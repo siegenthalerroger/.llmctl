@@ -1,5 +1,5 @@
 ---
-name: "agent-skill"
+name: "meta-skill"
 description: "Guidelines for creating high-quality Agent Skills. Use when asked to create, review, or improve AI agent skills, design skill structures, write skill documentation, or understand agent skill best practices and specifications."
 license: "MIT"
 adaptedFrom: "https://github.com/github/awesome-copilot/blob/main/instructions/agent-skills.instructions.md"
