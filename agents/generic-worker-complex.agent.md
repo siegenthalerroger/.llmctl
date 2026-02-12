@@ -2,7 +2,7 @@
 name: Complex-Worker
 description: "Mid-tier implementation agent for well-specified work spanning multiple components, systems, or files. Handles cross-cutting refactors, migrations, multi-file features, and tasks requiring sustained reasoning across a large change surface. Keywords: implement, refactor, migrate, multi-component, cross-cutting, large change."
 tools: ['todo', 'search', 'read', 'edit', 'execute', 'git/git_log', 'git/git_diff', 'git/git_diff_staged', 'git/git_diff_unstaged', 'gradle/*', 'vscjava.vscode-java-debug/*']
-model: ['GPT-5.3-Codex', 'Claude Sonnet 4.5', 'GPT-5.2-Codex', 'Gemini 3 Pro (Preview)', 'GPT-5.1-Codex-Max', 'Gemini 2.5 Pro', 'Claude Sonnet 4']
+model: ['GPT-5.3-Codex (copilot)', 'Claude Sonnet 4.5 (copilot)', 'GPT-5.2-Codex (copilot)', 'Gemini 3 Pro (Preview) (copilot)', 'GPT-5.1-Codex-Max (copilot)', 'Gemini 2.5 Pro (copilot)', 'Claude Sonnet 4 (copilot)']
 user-invokable: false
 ---
 

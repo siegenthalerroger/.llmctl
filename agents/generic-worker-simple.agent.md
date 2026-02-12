@@ -2,7 +2,7 @@
 name: Simple-Worker
 description: "Fast, cost-efficient implementation agent for well-specified, tightly-scoped coding tasks within a single component. Use when the plan is clear, changes touch ≤5 files, and no cross-component reasoning is needed. Keywords: implement, code, fix, small task, single component, focused change."
 tools: ['todo', 'search', 'read', 'edit', 'execute', 'git/git_log', 'git/git_diff', 'git/git_diff_staged', 'git/git_diff_unstaged', 'gradle/*', 'vscjava.vscode-java-debug/*']
-model: ['Gemini 3 Flash (Preview)', 'Claude Haiku 4.5', 'GPT-5.1-Codex-Mini (Preview)', 'GPT-5 mini']
+model: ['Gemini 3 Flash (Preview) (copilot)', 'Claude Haiku 4.5 (copilot)', 'GPT-5.1-Codex-Mini (Preview) (copilot)', 'GPT-5 mini (copilot)']
 user-invokable: false
 ---
 
