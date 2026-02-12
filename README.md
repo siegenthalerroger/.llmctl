@@ -4,10 +4,6 @@
 
 It is _not_ designed to be a library where only selected items are copied or used, though this is of course possible (copy-pasta).
 
-See the [vscode/github copilot documentation](https://code.visualstudio.com/docs/copilot/customization/overview) for details on what each type of file can achieve.
-
-Read on for details of what to expect from this repo and when to add/adapt the files here.
-
 ## How to use
 
 ### VS Code
@@ -16,8 +12,8 @@ Recommended configuration properties:
 
 ```js
 {
+  "$schema": "vscode://schemas/settings/user"
   "chat.edits2.enabled": true,
-
   "chat.customAgentInSubagent.enabled": true,
   "chat.includeReferencedInstructions": true,
   "chat.instructionsFilesLocations": {
@@ -55,17 +51,23 @@ Recommended configuration properties:
 
 ## Concept & Contributing
 
-### Agents (Modes)
+See the [vscode/github copilot documentation](https://code.visualstudio.com/docs/copilot/customization/overview) for details on what each type of file can achieve. There is an attempt to be tool-neutral, however the supported use-case is initiation of agents from VSCode, as such the naming follows their patterns.
+
+### Agents (Custom Modes)
 
 At a top-level these modes are normally provided by your tool of choice. However it can be useful to have specific personas as sub-agents, especially when parallel execution should be possible.
 
+Any custom agent files must end in `*.agent.md`.
+
 ### Skills
 
-Skills are a generalised form of Instructions that are dynamically loaded based on the name and description.
+Skills are a generalised form of Instructions that are dynamically loaded based on the name and description. Prefer skills to instructions whenever possible, as they are an open standard.
+
+A skill is encapsulated in a folder and at a minimum will have a `SKILL.md` file.
 
 ### Instructions
 
-Instructions are kept intentionally light, as their main purpose is code-base specific rules and not generic guidelines.
+Instructions are kept intentionally light, as their main purpose is code-base specific rules and not generic guidelines. Instructions should always be explicitly loaded, either by a relevant `applyTo` pattern or being referenced from a prompt. Instructions cover what Claude would want in a `CLAUDE.md` or `AGENTS.md`, while enabling optionality in their inclusion based on file patterns (or nested referential inclusion).
 
 Any instruction files must end in `*.instructions.md`.
 
