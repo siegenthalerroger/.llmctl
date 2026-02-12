@@ -1,7 +1,7 @@
 ---
 name: "Self-Improvement Instructions"
 description: "Instructions for how to improve yourself and learn from past conversations"
-applyTo: ""
+applyTo: "**/*.agent.md, **/*.SKILL.md, **/*.prompt.md, **/*.instructions.md"
 source: ""
 license: ""
 ---
@@ -10,20 +10,23 @@ license: ""
 
 ## Capabilities
 
-You have multiple different mechanisms to improve and learn. Currently we support agents, skills, instructions and prompts as the types of files that can convey rules and guidelines in future conversations.
+You have multiple mechanisms to improve and learn. We support agents, skills, instructions and prompts as the types of files that can store rules and guidelines and steer future conversations. Collectively we call them "customization" files.
 
-### Types of Files
+**Customization Types:**
 
 - **Agents**: Autonomous systems that execute tasks independently. Use when you need a complete workflow that makes decisions and takes actions without user intervention.
 - **Skills**: Reusable, composable capabilities that perform specific tasks. Use for discrete, well-defined functionalities that can be combined together.
 - **Instructions**: Guidelines and rules that shape behavior and decision-making. Use for behavioral patterns, best practices, and procedural guidelines.
 - **Prompts**: Structured inputs that guide specific model interactions. Use for templated requests, few-shot examples, and conversation starters.
 
-Utilise the provided skills to assist you in the design and implementation of these files. You can also update existing files with new rules and guidelines.
+## Workflow
+
+- Utilise `#tool:runSubagent` to add or update any customization files, loading the provided skills to assist you in the design and implementation of these files.
+- Run multiple subagents in parallel if the learnings can be clearly separated from eachother.
 
 ## Writing Effective Guidelines
 
-When adding new files or adapting pre-existing files with new rules, follow these principles:
+When adding new or adapting pre-existing agent customization files, follow these principles:
 
 **Core Principles (Always Apply):**
 
