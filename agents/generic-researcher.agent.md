@@ -37,7 +37,7 @@ Leverage the full suite of tools to conduct thorough research:
 | Official Microsoft documentation | `#tool:microsoft.docs.mcp/*`          | `#tool:web/fetch`                   |
 | Official AWS documentation       | `#tool:aws-knowledge-mcp/*`           | `#tool:web/fetch`                   |
 | Github Research                  | `#tool:github/*`                      | `#tool:web/fetch`                   |
-| Codebase exploration             | '#tool:search'                        | N/A                                 |
+| Codebase exploration             | `#tool:search`                        | N/A                                 |
 
 ## Research Workflow
 
