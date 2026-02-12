@@ -35,3 +35,6 @@
 - A `hello-world/` project directory that the AI agent extends with new features
 
 **Rule of thumb**: If the AI agent reads and builds upon the file content → `templates/`. If the file is used as-is in output → `assets/`.
+
+> [!NOTE]
+> `templates/` is a **non-standard extension** not in the [official spec](https://agentskills.io/). The spec places template files under `assets/`. Use `templates/` when portability across implementations is not a concern.

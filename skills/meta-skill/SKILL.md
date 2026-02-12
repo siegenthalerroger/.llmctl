@@ -2,7 +2,8 @@
 name: "meta-skill"
 description: "Guidelines for creating high-quality Agent Skills. Use when asked to create, review, or improve AI agent skills, design skill structures, write skill documentation, or understand agent skill best practices and specifications."
 license: "MIT"
-adaptedFrom: "https://github.com/github/awesome-copilot/blob/main/instructions/agent-skills.instructions.md"
+metadata:
+  adaptedFrom: "https://github.com/github/awesome-copilot/blob/main/instructions/agent-skills.instructions.md"
 ---
 
 # Agent Skills File Guidelines
@@ -54,8 +55,13 @@ description: "Toolkit and guidelines for an example usecase. Use when asked to d
 
 | Field         | Required | Constraints                                                               |
 | ------------- | -------- | ------------------------------------------------------------------------- |
-| `name`        | Yes      | Lowercase, hyphens for spaces, max 64 characters (e.g., `webapp-testing`) |
+| `name`        | Yes      | Lowercase letters, numbers, and hyphens only. Max 64 chars. Must not start/end with hyphen or contain `--`. Must match parent directory name. No XML tags or reserved words (`anthropic`, `claude`, `copilot`, `openai`). |
 | `description` | Yes      | Clear description of capabilities AND use cases, max 1024 characters      |
+
+**Naming conventions:**
+- Preferred: gerund form (`processing-pdfs`, `analyzing-data`)
+- Acceptable: noun phrases (`pdf-processing`) or action-oriented (`process-pdfs`)
+- Avoid: vague names (`helper`, `utils`, `tools`, `documents`)
 
 #### Description Best Practices
 
@@ -66,6 +72,11 @@ description: "Toolkit and guidelines for an example usecase. Use when asked to d
 1. **WHAT** the skill does (capabilities)
 2. **WHEN** to use it (specific triggers, scenarios, file types, or user requests)
 3. **Keywords** that users might mention in their prompts
+
+**Additional constraints:**
+- Write in third person ("Processes Excel files", not "I can help you process Excel files")
+- No XML tags allowed in description
+- No reserved words (`anthropic`, `claude`, `copilot`, `openai`)
 
 See examples in the [reference file](./references/FRONTMATTER.md) for clarification.
 
@@ -86,7 +97,13 @@ Skills can include additional files that Copilot accesses on-demand:
 | `assets/`     | **Static files used AS-IS** in output (not modified by the AI agent)  | No                   | `logo.png`, `brand-template.pptx`, `custom-font.ttf`      |
 | `templates/`  | **Starter code/scaffolds that the AI agent MODIFIES** and builds upon | Yes, when referenced | `viewer.html` (insert algorithm), `hello-world/` (extend) |
 
-Check out the [structure reference](./references/STRUCTURE.md) for details.
+> [!NOTE]
+> `templates/` is a **non-standard extension** not in the [official spec](https://agentskills.io/). The spec places template files under `assets/`. Use `templates/` when portability across implementations is not a concern.
+
+For reference files longer than 100 lines, include a table of contents at the top so agents can see the full scope when previewing with partial reads.
+
+Check out the [structure reference](./references/STRUCTURE.md) for details.
+
 
 ### Referencing Resources in SKILL.md
 
@@ -112,6 +129,18 @@ Use the [scaffold](./templates/scaffold.py) as a starting point.
 - Show expected outputs where helpful
 - Keep sections focused and scannable
 
+### Degrees of Freedom
+
+Match the level of prescriptiveness to the task's fragility and variability:
+
+| Freedom    | When to Use                                        | Approach                            |
+| ---------- | -------------------------------------------------- | ----------------------------------- |
+| **High**   | Multiple valid approaches, context-dependent        | Text-based guidance                 |
+| **Medium** | Preferred pattern exists, some variation acceptable | Pseudocode or parameterized scripts |
+| **Low**    | Fragile/critical operations, consistency essential  | Exact scripts, no modifications     |
+
+Think of the agent as navigating a path — narrow bridge with cliffs means low freedom (exact instructions); open field means high freedom (general direction).
+
 ### Workflow Requirements
 
 Define multi-step workflows as numbered steps with TODO lists. Format each step to reference relevant resources:
@@ -127,15 +156,31 @@ This structure enables interruption and resumption of workflows.
 
 When including scripts, prefer cross-platform languages, i.e. python or shell scripts.
 
+- Handle errors explicitly with clear messages rather than failing and letting the agent figure it out
+- Avoid unexplained magic numbers — document why specific values were chosen
+
+## Anti-Patterns
+
+- **"When to Use" sections in the body** — Useless since the body loads only AFTER activation. All trigger info belongs in the `description` field.
+- **Too many options** — Provide a default with an escape hatch, not a menu of alternatives.
+- **Deeply nested references** — Keep references one level deep from SKILL.md. Agents may partially read nested files.
+- **Time-sensitive information** — Avoid "if before date X, use Y". Use a collapsible "old patterns" section instead.
+- **Windows-style paths** — Always use forward slashes, even on Windows.
+- **Vague file names** — Use descriptive names (`form_validation_rules.md`, not `doc2.md`).
+
 ## Validation Checklist
 
 Before publishing a skill, ensure:
 
 **Frontmatter**
 
-- [ ] `name` is lowercase with hyphens, 1-64 characters, matches directory
+- [ ] `name` is lowercase letters, numbers, and hyphens only, 1-64 characters, matches directory
+- [ ] `name` does not start/end with hyphen, no consecutive hyphens (`--`)
+- [ ] `name` contains no XML tags or reserved words (`anthropic`, `claude`)
 - [ ] `description` is 1-1024 characters and non-empty
 - [ ] `description` clearly states **WHAT** it does, **WHEN** to use it, and **KEYWORDS**
+- [ ] `description` uses third person ("Processes files", not "I process files")
+- [ ] `description` contains no XML tags or reserved words (`anthropic`, `claude`)
 - [ ] Optional fields (`license`, `compatibility`, `metadata`) are correctly formatted if included
 
 **File Structure**
@@ -143,7 +188,7 @@ Before publishing a skill, ensure:
 - [ ] Minimum required: `SKILL.md` with valid frontmatter
 - [ ] SKILL.md body kept under 500 lines (split large content to `references/`)
 - [ ] Large workflows (>5 steps) in `references/` folder with clear links from SKILL.md
-- [ ] Resource directories follow naming: `scripts/`, `references/`, `templates/`, `assets/`
+- [ ] Resource directories follow naming: `scripts/`, `references/`, `assets/` (official spec), `templates/` (non-standard extension)
 
 **References & Paths**
 
@@ -176,3 +221,4 @@ Learn more about agent skills and see working examples:
 - **VS Code Docs** - [Agent Skills in VS Code](https://code.visualstudio.com/docs/copilot/customization/agent-skills)
 - **Reference Library** - [Example skills from Anthropic](https://github.com/anthropics/skills)
 - **Community Skills** - [Awesome Copilot skills collection](https://github.com/github/awesome-copilot/blob/main/docs/README.skills.md)
+- **Authoring Best Practices** - [Official skill authoring guide](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)

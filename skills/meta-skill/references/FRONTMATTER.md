@@ -19,3 +19,19 @@ The poor description fails because:
 - No specific triggers (when should Copilot load this?)
 - No keywords (what user prompts would match?)
 - No capabilities (what can it actually do?)
+
+## Third-Person Voice
+
+**Good (third person):**
+
+```yaml
+description: Processes Excel spreadsheets and generates summary reports. Use when working with .xlsx files, pivot tables, or data aggregation tasks.
+```
+
+**Poor (first/second person):**
+
+```yaml
+description: I can help you process Excel files and create reports for you.
+```
+
+Use third person ("Processes", "Generates") — not first person ("I can") or second person ("You can use this to").
