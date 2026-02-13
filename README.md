@@ -61,13 +61,19 @@ Any custom agent files must end in `*.agent.md`.
 
 ### Skills
 
-Skills are a generalised form of Instructions that are dynamically loaded based on the name and description. Prefer skills to instructions whenever possible, as they are an open standard.
+Skills are a generalised form of Instructions that are dynamically loaded based on the name and description. Prefer skills to instructions whenever possible, as they are an open standard and support improved progressive loading capabilities.
 
 A skill is encapsulated in a folder and at a minimum will have a `SKILL.md` file.
 
 ### Instructions
 
 Instructions are kept intentionally light, as their main purpose is code-base specific rules and not generic guidelines. Instructions should always be explicitly loaded, either by a relevant `applyTo` pattern or being referenced from a prompt. Instructions cover what Claude would want in a `CLAUDE.md` or `AGENTS.md`, while enabling optionality in their inclusion based on file patterns (or nested referential inclusion).
+
+> [!TIP] Instructions & Skills combined
+>
+> Instructions are really useful in VSCode, as the `applyTo` frontmatter, allows us to force the loading of specific files depending on the referenced file-types/-paths. The non-vscode alternatives don't support this, depending on Skills for progressive loading of context.
+>
+> We can utilise this, by having instructions strongly suggest the loading of a skill when a certain `applyTo` pattern applies. This reinforces the models own decision making and ensures the correct skills are chosen at the correct time.
 
 Any instruction files must end in `*.instructions.md`.
 
