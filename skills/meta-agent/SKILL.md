@@ -38,9 +38,22 @@ tools: ['read', 'edit', 'search']
 
 #### Frontmatter Properties
 
-> [!NOTE]
->
-> TODO: define minimal fields here and add a reference FRONTMATTER.md file with a description of all of the available fields.
+**Minimum Required Fields:**
+
+- **`description`** (string, 50-150 chars): Keyword-rich description of agent purpose and use cases
+- **`name`** (string): Display name shown in UI (e.g., "Security Audit Agent")
+
+**Common Optional Fields:**
+
+- **`tools`** (array): List of tools the agent can access (defaults to all tools if omitted)
+- **`model`** (string): Preferred AI model (e.g., `"claude-sonnet-4.5"`, `"gpt-5"`, `"o4"`)
+- **`target`** (string): Environment where agent is available (e.g., `"vscode"`, `"cli"`, `"web"`)
+- **`infer`** (boolean): Whether agent can be auto-suggested (`true`) or must be manually selected (`false`)
+- **`handoffs`** (array): Configuration for multi-step workflows with other agents
+- **`license`** (string): License for the agent definition (e.g., `"MIT"`, `"Apache-2.0"`)
+- **`metadata`** (object): Additional custom metadata (author, version, tags, etc.)
+
+See [references/FRONTMATTER.md](./references/FRONTMATTER.md) for complete documentation of all available frontmatter properties.
 
 ## Agent Behavior Definition
 
@@ -208,9 +221,19 @@ See the complete configuration guide in [references/HANDOFF.md](./references/HAN
 
 ### Tool Configuration
 
-> [!NOTE]
->
-> TODO: write an explanation and move details to a TOOLS.md reference file
+The `tools` field in agent frontmatter controls which capabilities an agent can access. Proper tool configuration is essential for security (limiting potential damage), clarity (making capabilities explicit), and performance (reducing decision overhead).
+
+**Key Principles:**
+- **Principle of Least Privilege**: Only enable tools necessary for the agent's purpose
+- **Security**: Limit high-risk tools like `execute` unless explicitly required
+- **Clarity**: Fewer tools = clearer agent purpose and better performance
+
+See [references/TOOLS.md](./references/TOOLS.md) for tool configuration guidance, including:
+- Understanding tool categories and discovery
+- Tool selection patterns by agent type
+- Security considerations and best practices
+- MCP server tool integration
+- Common issues and debugging
 
 #### Tool Specification Strategies
 
@@ -256,9 +279,12 @@ The recommended approach is **prompt-based orchestration**:
 - Each step is delegated to a specialized agent.
 - The orchestrator passes only the essential context (e.g., base path, identifiers) and requires each sub-agent to read its own `.agent.md` spec for tools/constraints.
 
-> [!NOTE]
->
-> TODO: move details to a SUBAGENT.md reference file
+See [references/SUBAGENT.md](./references/SUBAGENT.md) for complete sub-agent orchestration documentation, including:
+- Detailed invocation patterns and syntax
+- Common orchestration workflows (planning → implementation, TDD, multi-agent review)
+- Advanced patterns (conditional steps, error handling, logging)
+- Limitations and when NOT to use orchestration
+- Complete working examples
 
 #### How It Works
 
