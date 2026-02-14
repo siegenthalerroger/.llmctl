@@ -63,7 +63,7 @@ Any custom agent files must end in `*.agent.md`.
 
 Skills are a generalised form of Instructions that are dynamically loaded based on the name and description. Prefer skills to instructions whenever possible, as they are an open standard and support improved progressive loading capabilities.
 
-A skill is encapsulated in a folder and at a minimum will have a `SKILL.md` file.
+Skills follow the [Agent Skills](https://agentskills.io/) standard. A skill is encapsulated in a folder and at a minimum will have a `SKILL.md` file.
 
 ### Instructions
 
