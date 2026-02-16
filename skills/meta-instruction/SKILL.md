@@ -10,7 +10,9 @@ Instructions for creating effective and maintainable instruction files that defi
 
 > [!IMPORTANT] Relation to other customization files
 >
-> Instructions define **rules and conventions** that apply broadly across files or projects.
+> **Skills are always preferable to instructions.**
+>
+> Instructions should normally only be used to **force VS Code to load certain skills** (via `applyTo` rules) or for broad behavioral conventions.
 >
 > For templated tasks with inputs, use **prompts**. For complex workflows with specialized expertise, use **agents**.
 
@@ -33,14 +35,39 @@ Key characteristics:
 
 | Type | Best For | Application Scope |
 |------|----------|-------------------|
-| **Instructions** | Coding standards, project conventions, persistent rules | Conditional (via `applyTo`) or always-on |
+| **Skills** | Discrete capabilities, knowledge, tasks (ALWAYS PREFER OVER INSTRUCTIONS) | On-demand or forced via instructions |
+| **Instructions** | Forcing VS Code to load skills, broad behavioral rules | Conditional (via `applyTo`) or always-on |
 | **Prompts** | Quick templated tasks with variable inputs | One-time invocation |
 | **Agents** | Complex workflows with specialized expertise | Session-based with specific role |
 
 **Decision tree**:
-- Recurring coding standard across files? → **Instruction**
+- Need a reusable capability or knowledge? → **Skill**
+- Need to automatically load a skill for certain files? → **Instruction** (with `applyTo`)
 - One-off task with inputs? → **Prompt**
 - Multi-step workflow with expertise? → **Agent**
+
+## Loading Skills via Instructions
+
+As per the core principle "Skills are always preferable to instructions", the most common pattern for instruction files should be to conditionally load skills based on file types.
+
+**Why?**
+Skills are modular, testable, and reusable. Instructions are broad and "always on" for the matched files. By using instructions primarily to load skills, you get the best of both worlds: automatic context loading (from instructions) with modular capability definitions (from skills).
+
+**Example Pattern:**
+
+\`\`\`markdown
+---
+name: "Load React Skills"
+description: "Forces loading of React-specific skills for .tsx files"
+applyTo: "**/*.tsx"
+---
+
+# React Development
+
+When working with these files, ALWAYS use the following skills as your primary reference:
+- [React Component Generator](../skills/react-gen/SKILL.md)
+- [React Testing Library](../skills/react-test/SKILL.md)
+\`\`\`
 
 ## File Structure and Naming
 
