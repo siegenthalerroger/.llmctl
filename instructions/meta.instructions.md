@@ -21,7 +21,8 @@ You have multiple mechanisms to improve and learn. We support agents, skills, in
 
 ## Workflow
 
-- Utilise `#tool:runSubagent` to add or update any customization files, loading the provided skills to assist you in the design and implementation of these files.
+- Utilise `#tool:runSubagent` to **create new** or **substantially rewrite** customization files, loading the provided skills to assist you in the design and implementation of these files.
+- For targeted edits (inserting a section, appending items, fixing wording), edit the file directly with the available tools. Do not use a subagent when the edit is simple and the insertion point is known.
 - Run multiple subagents in parallel if the learnings can be clearly separated from eachother.
 
 ## Writing Effective Guidelines
