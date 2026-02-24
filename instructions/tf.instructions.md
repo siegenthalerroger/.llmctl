@@ -6,6 +6,6 @@ applyTo: ["**/*.tofu", "**/*.tf"]
 
 # TF Development
 
-When working with these files, ALWAYS use the following skill as your primary reference for standards, conventions of code organization:
+When working with `.tf` or `.tofu` files, load and read the following skill **before making any edits**. Do not defer loading until a later turn.
 
 - [TF Standards and Patterns](../skills/tf-standards/SKILL.md)
