@@ -67,7 +67,7 @@ tools: ['read', 'edit', 'github/*']
 
 ### `model`
 
-**Type:** String or Array of strings  
+**Type:** String or Array of strings
 **Required:** No
 
 Specifies the preferred AI model(s) for this agent. Use this when:
@@ -159,6 +159,7 @@ license: "MIT"
 Additional metadata about the agent. Can contain any custom key-value pairs. Common uses:
 - `author`: Agent creator
 - `version`: Agent version number
+- `source`: Canonical upstream/original source URL or reference
 - `adaptedFrom`: Source URL if adapted from another agent
 - `tags`: Additional categorization tags
 
@@ -167,9 +168,12 @@ Additional metadata about the agent. Can contain any custom key-value pairs. Com
 metadata:
   author: "Engineering Team"
   version: "1.2.0"
+  source: "https://github.com/example/agents"
   adaptedFrom: "https://github.com/example/agents"
   tags: ["security", "compliance"]
 ```
+
+For consistency across customization types, use the same provenance keys in prompt, instruction, skill, and agent files: `metadata.source` and `metadata.adaptedFrom`.
 
 ## Minimal Frontmatter Example
 
@@ -198,6 +202,7 @@ license: "MIT"
 metadata:
   author: "Security Team"
   version: "2.1.0"
+  source: "https://github.com/example/security-agents"
   tags: ["security", "owasp", "vulnerability-scanning"]
 handoffs:
   - name: "remediation"

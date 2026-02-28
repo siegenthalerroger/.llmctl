@@ -50,6 +50,8 @@ license: Apache-2.0
 metadata:
   author: example-org
   version: "1.0"
+  source: https://github.com/example-org/skills/tree/main/pdf-processing
+  adaptedFrom: https://github.com/example-upstream/skills/tree/main/pdf-processing
 ---
 ```
 
@@ -162,6 +164,7 @@ The optional `metadata` field:
 * A map from string keys to string values
 * Clients can use this to store additional properties not defined by the Agent Skills spec
 * We recommend making your key names reasonably unique to avoid accidental conflicts
+* For provenance, we recommend `metadata.source` (canonical origin) and `metadata.adaptedFrom` (adaptation origin)
 
 Example:
 
@@ -169,6 +172,8 @@ Example:
 metadata:
   author: example-org
   version: "1.0"
+  source: https://github.com/example-org/skills/tree/main/pdf-processing
+  adaptedFrom: https://github.com/example-upstream/skills/tree/main/pdf-processing
 ```
 
 #### `allowed-tools` field

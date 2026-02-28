@@ -53,6 +53,13 @@ tools: ['read', 'edit', 'search']
 - **`license`** (string): License for the agent definition (e.g., `"MIT"`, `"Apache-2.0"`)
 - **`metadata`** (object): Additional custom metadata (author, version, tags, etc.)
 
+**Provenance metadata convention (recommended across all customization files):**
+
+- **`metadata.source`** (string): Canonical upstream/original source URL or reference
+- **`metadata.adaptedFrom`** (string): URL or reference when this file is a local adaptation/fork
+
+Use this same convention for prompt, instruction, skill, and agent frontmatter to keep source tracking consistent.
+
 See [references/FRONTMATTER.md](./references/FRONTMATTER.md) for complete documentation of all available frontmatter properties.
 
 ## Agent Behavior Definition

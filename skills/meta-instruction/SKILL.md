@@ -112,6 +112,15 @@ license: ""
 | `source` | Optional | URL or reference to source material |
 | `license` | Optional | License information for the instructions |
 
+For cross-file provenance consistency, instruction frontmatter may also include:
+
+- `metadata.source` (optional): Canonical upstream/original source URL or reference
+- `metadata.adaptedFrom` (optional): URL or reference when adapted from another source
+
+Use the same `metadata.source` / `metadata.adaptedFrom` convention for prompt, instruction, skill, and agent files.
+
+Keep top-level `source` when required by your tooling conventions; it can coexist with `metadata.source`.
+
 ### applyTo Patterns
 
 The `applyTo` field uses glob patterns to conditionally activate instructions:

@@ -47,12 +47,15 @@ Every prompt file should include YAML frontmatter with the following fields:
 | `model`         | Optional    | The language model to use. Defaults to the currently selected model                         |
 | `tools`         | Optional    | List of tool/tool set names available for this prompt                                       |
 | `argument-hint` | Optional    | Hint text shown in chat input to guide user interaction                                     |
+| `metadata.source` | Optional  | Canonical upstream/original source URL or reference                                         |
+| `metadata.adaptedFrom` | Optional | URL or reference when this prompt is adapted from another source                        |
 
 ### Guidelines
 
 - Use consistent quoting (single quotes recommended) and keep one field per line for readability and version control clarity
 - If `tools` are specified and the current agent is `ask` or `edit`, the default agent becomes `agent`
 - Preserve any additional metadata (`language`, `tags`, `visibility`, etc.) required by your organization
+- For provenance tracking, prefer `metadata.source` and `metadata.adaptedFrom`; use the same convention for prompts, instructions, skills, and agents
 
 ## File Naming and Placement
 

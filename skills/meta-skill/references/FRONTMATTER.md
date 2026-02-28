@@ -35,3 +35,18 @@ description: I can help you process Excel files and create reports for you.
 ```
 
 Use third person ("Processes", "Generates") — not first person ("I can") or second person ("You can use this to").
+
+## Provenance Metadata (Recommended)
+
+When documenting where content came from, add provenance under `metadata` in frontmatter:
+
+```yaml
+metadata:
+	source: "https://github.com/example-org/skills/tree/main/excel-processing"
+	adaptedFrom: "https://github.com/example-upstream/skills/tree/main/excel-processing"
+```
+
+- `metadata.source`: canonical upstream/original source URL or reference
+- `metadata.adaptedFrom`: source URL/reference when locally adapted
+
+Use this same convention for prompt, instruction, skill, and agent files.

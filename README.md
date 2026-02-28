@@ -4,6 +4,59 @@
 
 It is _not_ designed to be a library where only selected items are copied or used, though this is of course possible (copy-pasta).
 
+## Concept & Contributing
+
+See the [vscode/github copilot documentation](https://code.visualstudio.com/docs/copilot/customization/overview) for details on what each type of file can achieve. There is an attempt to be tool-neutral, however the supported use-case is initiation of agents from VSCode, as such the naming follows their patterns.
+
+### Agents (Custom Modes)
+
+At a top-level these modes are normally provided by your tool of choice. However it can be useful to have specific personas as sub-agents, especially when parallel execution should be possible.
+
+Any custom agent files must end in `*.agent.md`.
+
+### Skills
+
+Skills are a generalised form of Instructions that are dynamically loaded based on the name and description. Prefer skills to instructions whenever possible, as they are an open standard and support improved progressive loading capabilities.
+
+Skills follow the [Agent Skills](https://agentskills.io/) standard. A skill is encapsulated in a folder and at a minimum will have a `SKILL.md` file.
+
+### Instructions
+
+Instructions are kept intentionally light, as their main purpose is code-base specific rules and not generic guidelines. Instructions should always be explicitly loaded, either by a relevant `applyTo` pattern or being referenced from a prompt. Instructions cover what Claude would want in a `CLAUDE.md` or `AGENTS.md`, while enabling optionality in their inclusion based on file patterns (or nested referential inclusion).
+
+> [!TIP] Instructions & Skills combined
+>
+> Instructions are really useful in VSCode, as the `applyTo` frontmatter, allows us to force the loading of specific files depending on the referenced file-types/-paths. The non-vscode alternatives don't support this, depending on Skills for progressive loading of context.
+>
+> We can utilise this, by having instructions strongly suggest the loading of a skill when a certain `applyTo` pattern applies. This reinforces the models own decision making and ensures the correct skills are chosen at the correct time.
+
+Any instruction files must end in `*.instructions.md`.
+
+### Prompts
+
+Prevent repeating yourself by making a slash-command available to you. Anything that seems to produce better output can be put here tbh.
+
+Any prompt files must end in `*.prompt.md`.
+
+## Repository Frontmatter Provenance Convention
+
+This repository defines a local provenance convention for customization files (`*.agent.md`, `*.prompt.md`, `*.instructions.md`, `*/SKILL.md`).
+
+Use the following metadata keys in YAML frontmatter:
+
+```yaml
+metadata:
+  source: "https://example.com/canonical/upstream"
+  adaptedFrom: "https://example.com/original/that-was-adapted"
+```
+
+- `metadata.source`: Canonical upstream/original source URL or reference
+- `metadata.adaptedFrom`: URL/reference when local content is adapted from another source
+
+This is a **repository convention**, not a universal standard.
+
+For instruction files, a top-level `source` field may still be used for tooling compatibility; it can coexist with `metadata.source`.
+
 ## How to use
 
 ### VS Code
@@ -48,37 +101,3 @@ Recommended configuration properties:
   "github.copilot.chat.searchSubagent.enabled": true
 }
 ```
-
-## Concept & Contributing
-
-See the [vscode/github copilot documentation](https://code.visualstudio.com/docs/copilot/customization/overview) for details on what each type of file can achieve. There is an attempt to be tool-neutral, however the supported use-case is initiation of agents from VSCode, as such the naming follows their patterns.
-
-### Agents (Custom Modes)
-
-At a top-level these modes are normally provided by your tool of choice. However it can be useful to have specific personas as sub-agents, especially when parallel execution should be possible.
-
-Any custom agent files must end in `*.agent.md`.
-
-### Skills
-
-Skills are a generalised form of Instructions that are dynamically loaded based on the name and description. Prefer skills to instructions whenever possible, as they are an open standard and support improved progressive loading capabilities.
-
-Skills follow the [Agent Skills](https://agentskills.io/) standard. A skill is encapsulated in a folder and at a minimum will have a `SKILL.md` file.
-
-### Instructions
-
-Instructions are kept intentionally light, as their main purpose is code-base specific rules and not generic guidelines. Instructions should always be explicitly loaded, either by a relevant `applyTo` pattern or being referenced from a prompt. Instructions cover what Claude would want in a `CLAUDE.md` or `AGENTS.md`, while enabling optionality in their inclusion based on file patterns (or nested referential inclusion).
-
-> [!TIP] Instructions & Skills combined
->
-> Instructions are really useful in VSCode, as the `applyTo` frontmatter, allows us to force the loading of specific files depending on the referenced file-types/-paths. The non-vscode alternatives don't support this, depending on Skills for progressive loading of context.
->
-> We can utilise this, by having instructions strongly suggest the loading of a skill when a certain `applyTo` pattern applies. This reinforces the models own decision making and ensures the correct skills are chosen at the correct time.
-
-Any instruction files must end in `*.instructions.md`.
-
-### Prompts
-
-Prevent repeating yourself by making a slash-command available to you. Anything that seems to produce better output can be put here tbh.
-
-Any prompt files must end in `*.prompt.md`.
