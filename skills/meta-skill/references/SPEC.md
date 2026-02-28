@@ -164,7 +164,7 @@ The optional `metadata` field:
 * A map from string keys to string values
 * Clients can use this to store additional properties not defined by the Agent Skills spec
 * We recommend making your key names reasonably unique to avoid accidental conflicts
-* For provenance, we recommend `metadata.source` (canonical origin) and `metadata.adaptedFrom` (adaptation origin)
+* For provenance, we recommend `metadata.source` (canonical origin) and `metadata.adaptedFrom` (adaptation origin; string or array of URLs for multi-source synthesis)
 
 Example:
 

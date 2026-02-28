@@ -44,14 +44,25 @@ This repository defines a local provenance convention for customization files (`
 
 Use the following metadata keys in YAML frontmatter:
 
+Single-source:
+
 ```yaml
 metadata:
   source: "https://example.com/canonical/upstream"
   adaptedFrom: "https://example.com/original/that-was-adapted"
 ```
 
+Multi-source (synthesised from multiple upstreams):
+
+```yaml
+metadata:
+  adaptedFrom:
+    - "https://github.com/org-a/repo/blob/main/skill.md"
+    - "https://github.com/org-b/repo/blob/main/skill.md"
+```
+
 - `metadata.source`: Canonical upstream/original source URL or reference
-- `metadata.adaptedFrom`: URL/reference when local content is adapted from another source
+- `metadata.adaptedFrom`: URL (string) or list of URLs (array) when local content is adapted/synthesised from upstream sources
 
 This is a **repository convention**, not a universal standard.
 

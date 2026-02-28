@@ -47,6 +47,6 @@ metadata:
 ```
 
 - `metadata.source`: canonical upstream/original source URL or reference
-- `metadata.adaptedFrom`: source URL/reference when locally adapted
+- `metadata.adaptedFrom`: source URL (string) or list of URLs (array) when locally adapted/synthesised
 
 Use this same convention for prompt, instruction, skill, and agent files.

@@ -56,7 +56,7 @@ tools: ['read', 'edit', 'search']
 **Provenance metadata convention (recommended across all customization files):**
 
 - **`metadata.source`** (string): Canonical upstream/original source URL or reference
-- **`metadata.adaptedFrom`** (string): URL or reference when this file is a local adaptation/fork
+- **`metadata.adaptedFrom`** (string or array): URL or list of URLs when this file is a local adaptation/fork of upstream sources
 
 Use this same convention for prompt, instruction, skill, and agent frontmatter to keep source tracking consistent.
 

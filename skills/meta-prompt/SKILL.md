@@ -48,7 +48,7 @@ Every prompt file should include YAML frontmatter with the following fields:
 | `tools`         | Optional    | List of tool/tool set names available for this prompt                                       |
 | `argument-hint` | Optional    | Hint text shown in chat input to guide user interaction                                     |
 | `metadata.source` | Optional  | Canonical upstream/original source URL or reference                                         |
-| `metadata.adaptedFrom` | Optional | URL or reference when this prompt is adapted from another source                        |
+| `metadata.adaptedFrom` | Optional | URL (string) or list of URLs (array) when adapted/synthesised from upstream sources      |
 
 ### Guidelines
 

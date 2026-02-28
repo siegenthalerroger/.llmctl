@@ -58,7 +58,7 @@ description: "Toolkit and guidelines for an example usecase. Use when asked to d
 | `name`        | Yes      | Lowercase letters, numbers, and hyphens only. Max 64 chars. Must not start/end with hyphen or contain `--`. Must match parent directory name. No XML tags or reserved words (`anthropic`, `claude`, `copilot`, `openai`). |
 | `description` | Yes      | Clear description of capabilities AND use cases, max 1024 characters      |
 | `metadata.source` | No   | Canonical upstream/original source URL or reference                        |
-| `metadata.adaptedFrom` | No | URL or reference when this skill is adapted from another source         |
+| `metadata.adaptedFrom` | No | URL (string) or list of URLs (array) when adapted/synthesised from upstream sources |
 
 For consistent provenance tracking, use `metadata.source` and `metadata.adaptedFrom` across prompt, instruction, skill, and agent frontmatter.
 

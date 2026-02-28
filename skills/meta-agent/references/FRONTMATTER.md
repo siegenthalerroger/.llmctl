@@ -160,16 +160,21 @@ Additional metadata about the agent. Can contain any custom key-value pairs. Com
 - `author`: Agent creator
 - `version`: Agent version number
 - `source`: Canonical upstream/original source URL or reference
-- `adaptedFrom`: Source URL if adapted from another agent
+- `adaptedFrom`: Source URL (string) or list of URLs (array) when adapted/synthesised from upstream sources
 - `tags`: Additional categorization tags
 
-**Example:**
+**Example (single source):**
 ```yaml
 metadata:
-  author: "Engineering Team"
-  version: "1.2.0"
-  source: "https://github.com/example/agents"
-  adaptedFrom: "https://github.com/example/agents"
+  adaptedFrom: "https://github.com/example/agents/blob/main/security.agent.md"
+```
+
+**Example (synthesised from multiple sources):**
+```yaml
+metadata:
+  adaptedFrom:
+    - "https://github.com/org-a/skills/blob/main/skills/security/SKILL.md"
+    - "https://github.com/org-b/copilot-rules/blob/main/instructions/owasp.instructions.md"
   tags: ["security", "compliance"]
 ```
 

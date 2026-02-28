@@ -115,7 +115,7 @@ license: ""
 For cross-file provenance consistency, instruction frontmatter may also include:
 
 - `metadata.source` (optional): Canonical upstream/original source URL or reference
-- `metadata.adaptedFrom` (optional): URL or reference when adapted from another source
+- `metadata.adaptedFrom` (optional): URL (string) or list of URLs (array) when adapted/synthesised from upstream sources
 
 Use the same `metadata.source` / `metadata.adaptedFrom` convention for prompt, instruction, skill, and agent files.
 
