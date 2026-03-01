@@ -22,6 +22,7 @@ You have multiple mechanisms to improve and learn. We support agents, skills, in
 ## Workflow
 
 - Utilise `#tool:runSubagent` to **create new** or **substantially rewrite** customization files, loading the provided skills to assist you in the design and implementation of these files.
+- Before creating or substantially editing a customization file, load the corresponding `meta-*` skill for that file type (e.g. `meta-skill` for `SKILL.md`, `meta-agent` for `.agent.md`, `meta-prompt` for `.prompt.md`, `meta-instruction` for `.instructions.md`). These contain structure, format, and content guidelines.
 - For targeted edits (inserting a section, appending items, fixing wording), edit the file directly with the available tools. Do not use a subagent when the edit is simple and the insertion point is known.
 - Run multiple subagents in parallel if the learnings can be clearly separated from eachother.
 
