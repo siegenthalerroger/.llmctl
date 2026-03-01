@@ -1,0 +1,112 @@
+---
+name: "meta-upstream-sync"
+description: "Deterministic workflow and scripts to audit third-party source updates for local customization files using metadata.source or metadata.adaptedFrom patterns. Use when checking whether copied (mirror) or adapted files should be refreshed. Keywords: source drift, adaptedFrom, mirror, sync, update audit."
+license: "MIT"
+---
+
+# meta-upstream-sync
+
+Deterministically audit local files by discovering `metadata.source` and `metadata.adaptedFrom` in frontmatter, then comparing upstream and local commit dates.
+
+## Inputs
+
+- Script: [Update Checker](./scripts/check-updates.ps1)
+- URL rules: [Source URL Reference](./references/source-url-reference.md)
+
+## Workflow
+
+1. [ ] Ensure target files include frontmatter with `metadata.source` (mirror) or `metadata.adaptedFrom` (adapted).
+1. [ ] Run [Update Checker](./scripts/check-updates.ps1). When a specific target is already identified, use `-IncludePath` to scope the run — do not run a broad discovery scan first. The script compares each upstream's latest commit date with the local file's last git commit date.
+1. [ ] Classify each upstream check as `up_to_date`, `update_available`, `missing_local_commit`, or `fetch_failed`.
+1. [ ] For new/uncommitted local files that should be bootstrapped from upstream, add `-AllowNoLocalCommit` (guarded mode) so they can be treated as actionable `update_available` entries. Combine with `-IncludePath` in a single invocation when the target is already known.
+1. [ ] For items with `update_available`, run targeted follow-up checks per item using `-IncludePath` with `-IncludeChangeDetails` to gather commit-level upstream change summaries.
+1. [ ] For bootstrap scenarios (local file is a stub or empty), fetch the full upstream file content using a web-fetch tool. Commit summaries alone are insufficient when there is no local content to diff against. Do not use terminal commands (`curl`, `Invoke-WebRequest`) for this — use an available fetch tool.
+1. [ ] Recommend next action per the [recommendation matrix](#recommendation-matrix). For multi-source files, follow the [multi-source synthesis](#multi-source-synthesis) procedure.
+
+### Recommendation Matrix
+
+| Mode | Status | Action |
+|---|---|---|
+| `mirror` | `update_available` | Replace from upstream |
+| `adapted` (single source) | `update_available` | Merge review |
+| `adapted` (multi-source) | one or more `update_available` | Synthesised merge review across all changed upstreams |
+| any | `up_to_date` | No action |
+
+### Multi-source Synthesis
+
+When a local file lists multiple URLs under `metadata.adaptedFrom`, each upstream is checked independently. If more than one upstream flags `update_available`:
+
+1. Run targeted detailed checks for each changed source (`-IncludePath` + `-IncludeChangeDetails`).
+2. Compare changes against the local file to identify overlapping vs. independent sections.
+3. Recommend a **single merged update** that incorporates relevant upstream changes while preserving local customizations.
+4. Flag conflicts where two upstreams changed the same concept differently.
+
+## Guidelines
+
+- When the user identifies a specific target, scope directly with `-IncludePath`. Never run a broad discovery scan when the target is already known.
+- For bootstrap/stub local files (empty or placeholder content), fetch the full upstream file(s) using a web-fetch tool so the actual content can be reviewed. Commit-level metadata alone is not actionable without source content.
+- Treat `adapted` entries as merge-review candidates, not blind replacements.
+- For multi-source files, never apply one upstream's changes without considering all upstreams flagged as changed.
+- When upstream changes alter workflow, process, or opinionated behavior (not just factual corrections), flag for human review before replication.
+- Report unknown or unreachable sources explicitly.
+
+## Command
+
+```powershell
+./skills/meta-upstream-sync/scripts/check-updates.ps1
+```
+
+Machine-readable output:
+
+```powershell
+./skills/meta-upstream-sync/scripts/check-updates.ps1 -OutputJson
+```
+
+Filter by workspace-relative wildcard path:
+
+```powershell
+./skills/meta-upstream-sync/scripts/check-updates.ps1 -IncludePath "skills/meta-*/SKILL.md"
+```
+
+Combine filter with JSON output:
+
+```powershell
+./skills/meta-upstream-sync/scripts/check-updates.ps1 -IncludePath "agents/*.agent.md" -OutputJson
+```
+
+Authenticated run (recommended to avoid GitHub API rate limits):
+
+```powershell
+$env:GITHUB_TOKEN = "<your-token>"
+./skills/meta-upstream-sync/scripts/check-updates.ps1 -OutputJson
+```
+
+Alternative explicit token parameter:
+
+```powershell
+./skills/meta-upstream-sync/scripts/check-updates.ps1 -GitHubToken "<your-token>" -OutputJson
+```
+
+Targeted detailed check for one updated item:
+
+```powershell
+./skills/meta-upstream-sync/scripts/check-updates.ps1 -IncludePath "skills/meta-prompt/SKILL.md" -IncludeChangeDetails -MaxChangeCommits 5 -OutputJson
+```
+
+Bootstrap check for an uncommitted local file (explicitly guarded):
+
+```powershell
+./skills/meta-upstream-sync/scripts/check-updates.ps1 -IncludePath "skills/k8s-standards/SKILL.md" -AllowNoLocalCommit -IncludeChangeDetails -MaxChangeCommits 5 -OutputJson
+```
+
+## Notes
+
+- No local manifest is required.
+- Comparison uses commit date only: upstream latest commit date for source path vs local file last git commit date.
+- Supported source format is currently GitHub repository/tree/blob URLs.
+- `metadata.adaptedFrom` may be a single URL string or a YAML array of URLs for files synthesised from multiple upstream sources.
+- When a file has multiple upstreams, each is checked independently and output shows one row per upstream. See [Multi-source Synthesis](#multi-source-synthesis) for the recommended grouping procedure.
+- `upstreamChanges` commit summaries are opt-in via `-IncludeChangeDetails` to keep the default output concise.
+- Use `-MaxChangeCommits` to cap detailed commit payload size for targeted checks (default: `5`).
+- Uncommitted local files stay blocked by default (`missing_local_commit`); enable `-AllowNoLocalCommit` only for intentional bootstrap/synthesis from upstream.
+- GitHub API auth supports `-GitHubToken` or environment variables `GITHUB_TOKEN`/`GH_TOKEN`; authenticated requests greatly reduce 403 rate-limit failures.

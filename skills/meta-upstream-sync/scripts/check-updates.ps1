@@ -2,11 +2,71 @@
 param(
     [string]$RepoRoot = "",
     [string]$IncludePath = "",
-    [switch]$OutputJson
+    [switch]$OutputJson,
+    [switch]$IncludeChangeDetails,
+    [switch]$AllowNoLocalCommit,
+    [string]$GitHubToken = "",
+    [ValidateRange(1, 100)]
+    [int]$MaxChangeCommits = 5
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+$script:ResolvedGitHubToken = if (-not [string]::IsNullOrWhiteSpace($GitHubToken)) {
+    $GitHubToken.Trim()
+}
+elseif (-not [string]::IsNullOrWhiteSpace($env:GITHUB_TOKEN)) {
+    $env:GITHUB_TOKEN.Trim()
+}
+elseif (-not [string]::IsNullOrWhiteSpace($env:GH_TOKEN)) {
+    $env:GH_TOKEN.Trim()
+}
+else {
+    ""
+}
+
+function Get-GitHubApiHeaders {
+    $headers = @{
+        "User-Agent" = "llmctl-meta-upstream-sync"
+        "Accept"     = "application/vnd.github+json"
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($script:ResolvedGitHubToken)) {
+        $headers["Authorization"] = "Bearer $($script:ResolvedGitHubToken)"
+    }
+
+    return $headers
+}
+
+function Invoke-GitHubApiGet {
+    param([string]$Url)
+
+    $headers = Get-GitHubApiHeaders
+
+    try {
+        return Invoke-RestMethod -Uri $Url -Headers $headers -Method Get -TimeoutSec 30
+    }
+    catch {
+        $statusCode = $null
+        try {
+            $statusCode = [int]$_.Exception.Response.StatusCode.value__
+        }
+        catch {
+            $statusCode = $null
+        }
+
+        if ($statusCode -eq 403) {
+            if ([string]::IsNullOrWhiteSpace($script:ResolvedGitHubToken)) {
+                throw "GitHub API returned 403 (likely unauthenticated rate limit). Set GITHUB_TOKEN/GH_TOKEN or pass -GitHubToken."
+            }
+
+            throw "GitHub API returned 403 with authentication. Verify token validity/scopes or wait for rate limit reset."
+        }
+
+        throw
+    }
+}
 
 function Get-RepoRoot {
     param([string]$Hint)
@@ -88,7 +148,7 @@ function Get-TrackEntriesFromFile {
     $adaptedUrls = New-Object System.Collections.Generic.List[string]
 
     # Match YAML array form:  adaptedFrom:\n    - "url1"\n    - "url2"
-    if ($frontmatter -match '(?ms)^\s*adaptedFrom\s*:\s*\r?\n(?<block>([ \t]+-\s*["'']?https?://[^"''\r\n]+["'']?\s*\r?\n?)+)') {
+    if ($frontmatter -match '(?ms)^\s*adaptedFrom\s*:[ \t]*\r?\n(?<block>(?:[ \t]+-[ \t]*["'']?https?://[^"''\r\n]+["'']?[ \t]*\r?\n?)+)') {
         $block = $Matches.block
         $arrayMatches = [regex]::Matches($block, '(?m)-\s*["'']?(?<url>https?://[^"''\r\n]+?)["'']?\s*$')
         foreach ($m in $arrayMatches) {
@@ -168,11 +228,6 @@ function Convert-GitHubUrlToQuery {
 function Get-GitHubLatestCommitInfo {
     param($Query)
 
-    $headers = @{
-        "User-Agent" = "llmctl-upstream-sync"
-        "Accept"     = "application/vnd.github+json"
-    }
-
     $apiUrl = if ($Query.path) {
         "https://api.github.com/repos/{0}/{1}/commits?path={2}&sha={3}&per_page=1" -f $Query.owner, $Query.repo, $Query.path, $Query.ref
     }
@@ -180,7 +235,7 @@ function Get-GitHubLatestCommitInfo {
         "https://api.github.com/repos/{0}/{1}/commits?sha={2}&per_page=1" -f $Query.owner, $Query.repo, $Query.ref
     }
 
-    $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers -Method Get -TimeoutSec 30
+    $response = Invoke-GitHubApiGet -Url $apiUrl
 
     $first = $null
     if ($response -is [System.Array]) {
@@ -199,6 +254,108 @@ function Get-GitHubLatestCommitInfo {
     return [pscustomobject]@{
         commitSha  = [string]$first.sha
         commitDate = ([DateTimeOffset]$first.commit.committer.date).ToString('o')
+    }
+}
+
+function Get-GitHubChangesSince {
+    param(
+        $Query,
+        [DateTimeOffset]$Since,
+        [int]$MaxCommits = 20
+    )
+
+    $sinceIso = $Since.ToUniversalTime().ToString('o')
+    $sinceEscaped = [System.Uri]::EscapeDataString($sinceIso)
+
+    $apiUrl = if ($Query.path) {
+        "https://api.github.com/repos/{0}/{1}/commits?path={2}&sha={3}&since={4}&per_page={5}" -f $Query.owner, $Query.repo, $Query.path, $Query.ref, $sinceEscaped, $MaxCommits
+    }
+    else {
+        "https://api.github.com/repos/{0}/{1}/commits?sha={2}&since={3}&per_page={4}" -f $Query.owner, $Query.repo, $Query.ref, $sinceEscaped, $MaxCommits
+    }
+
+    $response = Invoke-GitHubApiGet -Url $apiUrl
+
+    $commitObjects = @()
+    if ($response -is [System.Array]) {
+        $commitObjects = @($response)
+    }
+    elseif ($response) {
+        $commitObjects = @($response)
+    }
+
+    $commits = foreach ($commit in $commitObjects) {
+        if (-not $commit.sha) {
+            continue
+        }
+
+        [pscustomobject]@{
+            sha      = [string]$commit.sha
+            shortSha = ([string]$commit.sha).Substring(0, [Math]::Min(10, ([string]$commit.sha).Length))
+            date     = ([DateTimeOffset]$commit.commit.committer.date).ToString('o')
+            author   = [string]$commit.commit.author.name
+            message  = [string](($commit.commit.message -split "`r?`n", 2)[0])
+            url      = [string]$commit.html_url
+        }
+    }
+
+    return [pscustomobject]@{
+        since       = $sinceIso
+        commitCount = (@($commits) | Measure-Object).Count
+        commits     = @($commits)
+    }
+}
+
+function Get-GitHubRecentChanges {
+    param(
+        $Query,
+        [int]$MaxCommits = 20
+    )
+
+    $apiUrl = if ($Query.path) {
+        "https://api.github.com/repos/{0}/{1}/commits?path={2}&sha={3}&per_page={4}" -f $Query.owner, $Query.repo, $Query.path, $Query.ref, $MaxCommits
+    }
+    else {
+        "https://api.github.com/repos/{0}/{1}/commits?sha={2}&per_page={3}" -f $Query.owner, $Query.repo, $Query.ref, $MaxCommits
+    }
+
+    $response = Invoke-GitHubApiGet -Url $apiUrl
+
+    $commitObjects = @()
+    if ($response -is [System.Array]) {
+        $commitObjects = @($response)
+    }
+    elseif ($response) {
+        $commitObjects = @($response)
+    }
+
+    $commits = foreach ($commit in $commitObjects) {
+        if (-not $commit.sha) {
+            continue
+        }
+
+        [pscustomobject]@{
+            sha      = [string]$commit.sha
+            shortSha = ([string]$commit.sha).Substring(0, [Math]::Min(10, ([string]$commit.sha).Length))
+            date     = ([DateTimeOffset]$commit.commit.committer.date).ToString('o')
+            author   = [string]$commit.commit.author.name
+            message  = [string](($commit.commit.message -split "`r?`n", 2)[0])
+            url      = [string]$commit.html_url
+        }
+    }
+
+    return [pscustomobject]@{
+        collected   = $true
+        commitCount = (@($commits) | Measure-Object).Count
+        commits     = @($commits)
+    }
+}
+
+function New-UpstreamChangesEmpty {
+    return [pscustomobject]@{
+        collected   = $false
+        commitCount = 0
+        commits     = @()
     }
 }
 
@@ -259,21 +416,74 @@ $results = New-Object System.Collections.Generic.List[object]
 foreach ($item in $trackedEntries) {
     $localGit = Get-LocalGitInfo -Repo $repoRootResolved -Path $item.localPath
     if (-not $localGit.commitDate) {
+        if (-not $AllowNoLocalCommit) {
+            $results.Add([pscustomobject]@{
+                id              = $item.id
+                localPath       = $item.localPath
+                mode            = $item.mode
+                sourceUrl       = $item.sourceUrl
+                status          = 'missing_local_commit'
+                recommendation  = 'commit_local_file_first'
+                recommendUpdate = $false
+                reason          = 'local_file_not_in_git_history'
+                localGit        = $localGit
+                upstream        = [pscustomobject]@{ commitSha = ''; commitDate = '' }
+                upstreamChanges = New-UpstreamChangesEmpty
+                comparison      = [pscustomobject]@{ localIsOlder = $null; deltaDays = $null }
+            })
+            continue
+        }
+
+        $bootstrapChanges = New-UpstreamChangesEmpty
+        try {
+            $query = Convert-GitHubUrlToQuery -Url $item.sourceUrl
+            $upstreamInfo = Get-GitHubLatestCommitInfo -Query $query
+
+            if ($IncludeChangeDetails) {
+                $bootstrapChanges = Get-GitHubRecentChanges -Query $query -MaxCommits $MaxChangeCommits
+            }
+        }
+        catch {
+            $results.Add([pscustomobject]@{
+                id              = $item.id
+                localPath       = $item.localPath
+                mode            = $item.mode
+                sourceUrl       = $item.sourceUrl
+                status          = 'fetch_failed'
+                recommendation  = 'check_source_url'
+                recommendUpdate = $false
+                reason          = $_.Exception.Message
+                localGit        = $localGit
+                upstream        = [pscustomobject]@{ commitSha = ''; commitDate = '' }
+                upstreamChanges = $bootstrapChanges
+                comparison      = [pscustomobject]@{ localIsOlder = $null; deltaDays = $null }
+            })
+            continue
+        }
+
+        $bootstrapRecommendation = if ($item.mode -eq 'mirror') { 'bootstrap_replace_from_upstream' } else { 'bootstrap_review_and_merge_from_upstream' }
         $results.Add([pscustomobject]@{
             id              = $item.id
             localPath       = $item.localPath
             mode            = $item.mode
             sourceUrl       = $item.sourceUrl
-            status          = 'missing_local_commit'
-            recommendation  = 'commit_local_file_first'
-            recommendUpdate = $false
-            reason          = 'local_file_not_in_git_history'
+            status          = 'update_available'
+            recommendation  = $bootstrapRecommendation
+            recommendUpdate = $true
+            reason          = 'local_file_not_in_git_history_bootstrap_allowed'
             localGit        = $localGit
-            upstream        = [pscustomobject]@{ commitSha = ''; commitDate = '' }
+            upstream        = [pscustomobject]@{
+                commitSha  = $upstreamInfo.commitSha
+                commitDate = $upstreamInfo.commitDate
+            }
+            upstreamChanges = $bootstrapChanges
             comparison      = [pscustomobject]@{ localIsOlder = $null; deltaDays = $null }
         })
         continue
     }
+
+    $localDate = Parse-DateSafe -Value $localGit.commitDate
+    $upstreamChanges = New-UpstreamChangesEmpty
 
     try {
         $query = Convert-GitHubUrlToQuery -Url $item.sourceUrl
@@ -291,12 +501,12 @@ foreach ($item in $trackedEntries) {
             reason          = $_.Exception.Message
             localGit        = $localGit
             upstream        = [pscustomobject]@{ commitSha = ''; commitDate = '' }
+            upstreamChanges = $upstreamChanges
             comparison      = [pscustomobject]@{ localIsOlder = $null; deltaDays = $null }
         })
         continue
     }
 
-    $localDate = Parse-DateSafe -Value $localGit.commitDate
     $upstreamDate = Parse-DateSafe -Value $upstreamInfo.commitDate
     $localIsOlder = $localDate -lt $upstreamDate
     $deltaDays = [math]::Round(($upstreamDate - $localDate).TotalDays, 3)
@@ -314,6 +524,21 @@ foreach ($item in $trackedEntries) {
         }
         else {
             $recommendation = 'review_and_merge_from_upstream'
+        }
+
+        if ($IncludeChangeDetails) {
+            try {
+                $upstreamChanges = Get-GitHubChangesSince -Query $query -Since $localDate -MaxCommits $MaxChangeCommits
+                $upstreamChanges.collected = $true
+            }
+            catch {
+                $upstreamChanges = [pscustomobject]@{
+                    collected   = $false
+                    commitCount = 0
+                    commits     = @()
+                    error       = $_.Exception.Message
+                }
+            }
         }
     }
     else {
@@ -334,6 +559,7 @@ foreach ($item in $trackedEntries) {
             commitSha  = $upstreamInfo.commitSha
             commitDate = $upstreamInfo.commitDate
         }
+        upstreamChanges = $upstreamChanges
         comparison      = [pscustomobject]@{
             localIsOlder = $localIsOlder
             deltaDays    = $deltaDays
@@ -342,6 +568,7 @@ foreach ($item in $trackedEntries) {
 }
 
 $uniqueFiles = ($results | Select-Object -Property localPath -Unique | Measure-Object).Count
+$authMode = if ([string]::IsNullOrWhiteSpace($script:ResolvedGitHubToken)) { 'unauthenticated' } else { 'token' }
 
 $summary = [pscustomobject]@{
     filesChecked         = $uniqueFiles
@@ -356,6 +583,7 @@ $output = [pscustomobject]@{
     generatedAt = (Get-Date).ToString('o')
     repoRoot    = $repoRootResolved
     includePath = $IncludePath
+    authMode    = $authMode
     summary     = $summary
     results     = $results
 }
@@ -364,10 +592,22 @@ if ($OutputJson) {
     $output | ConvertTo-Json -Depth 10
 }
 else {
-    Write-Host "Upstream sync check complete"
-    Write-Host ("Files: {0} | Upstreams: {1} | Up-to-date: {2} | Update-available: {3} | Failed: {4} | Recommend: {5}" -f $summary.filesChecked, $summary.upstreamChecks, $summary.upToDateCount, $summary.updateAvailableCount, $summary.failedCount, $summary.recommendCount)
+    Write-Host "Meta upstream sync check complete"
+    Write-Host ("Auth: {0} | Files: {1} | Upstreams: {2} | Up-to-date: {3} | Update-available: {4} | Failed: {5} | Recommend: {6}" -f $authMode, $summary.filesChecked, $summary.upstreamChecks, $summary.upToDateCount, $summary.updateAvailableCount, $summary.failedCount, $summary.recommendCount)
+    if ($authMode -eq 'unauthenticated') {
+        Write-Host "Tip: Set GITHUB_TOKEN (or GH_TOKEN) or pass -GitHubToken to avoid GitHub API rate-limit 403 errors."
+    }
+    if (-not $IncludeChangeDetails) {
+        Write-Host "Tip: Run again with -IncludeChangeDetails and a narrow -IncludePath for updated items to inspect commit-level upstream changes."
+    }
 
     foreach ($result in $results) {
-        Write-Host ("[{0}] {1} ({2}) <- {3} | {4} | recommendation: {5}" -f $result.status, $result.localPath, $result.mode, $result.sourceUrl, $result.reason, $result.recommendation)
+        if ($IncludeChangeDetails -and $null -ne $result.upstreamChanges) {
+            $changeCount = [int]$result.upstreamChanges.commitCount
+            Write-Host ("[{0}] {1} ({2}) <- {3} | {4} | upstream commits since local: {5} | recommendation: {6}" -f $result.status, $result.localPath, $result.mode, $result.sourceUrl, $result.reason, $changeCount, $result.recommendation)
+        }
+        else {
+            Write-Host ("[{0}] {1} ({2}) <- {3} | {4} | recommendation: {5}" -f $result.status, $result.localPath, $result.mode, $result.sourceUrl, $result.reason, $result.recommendation)
+        }
     }
 }

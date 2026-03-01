@@ -8,6 +8,8 @@ It is _not_ designed to be a library where only selected items are copied or use
 
 See the [vscode/github copilot documentation](https://code.visualstudio.com/docs/copilot/customization/overview) for details on what each type of file can achieve. There is an attempt to be tool-neutral, however the supported use-case is initiation of agents from VSCode, as such the naming follows their patterns.
 
+Contributor conventions are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ### Agents (Custom Modes)
 
 At a top-level these modes are normally provided by your tool of choice. However it can be useful to have specific personas as sub-agents, especially when parallel execution should be possible.
@@ -37,36 +39,6 @@ Any instruction files must end in `*.instructions.md`.
 Prevent repeating yourself by making a slash-command available to you. Anything that seems to produce better output can be put here tbh.
 
 Any prompt files must end in `*.prompt.md`.
-
-## Repository Frontmatter Provenance Convention
-
-This repository defines a local provenance convention for customization files (`*.agent.md`, `*.prompt.md`, `*.instructions.md`, `*/SKILL.md`).
-
-Use the following metadata keys in YAML frontmatter:
-
-Single-source:
-
-```yaml
-metadata:
-  source: "https://example.com/canonical/upstream"
-  adaptedFrom: "https://example.com/original/that-was-adapted"
-```
-
-Multi-source (synthesised from multiple upstreams):
-
-```yaml
-metadata:
-  adaptedFrom:
-    - "https://github.com/org-a/repo/blob/main/skill.md"
-    - "https://github.com/org-b/repo/blob/main/skill.md"
-```
-
-- `metadata.source`: Canonical upstream/original source URL or reference
-- `metadata.adaptedFrom`: URL (string) or list of URLs (array) when local content is adapted/synthesised from upstream sources
-
-This is a **repository convention**, not a universal standard.
-
-For instruction files, a top-level `source` field may still be used for tooling compatibility; it can coexist with `metadata.source`.
 
 ## How to use
 
