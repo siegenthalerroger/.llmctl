@@ -44,12 +44,12 @@ Any prompt files must end in `*.prompt.md`.
 
 ### Compatibility Matrix
 
-| Steering File Type                 | VS Code Copilot               | Claude Code             | Codex   |
-| ---------------------------------- | ----------------------------- | ----------------------- | ------- |
-| Agents (`*.agent.md`)              | Supported (via configuration) | Supported (via symlink) | Unknown |
-| Skills (`*/SKILL.md`)              | Supported (via configuration) | Supported (via symlink) | Unknown |
-| Instructions (`*.instructions.md`) | Supported                     | Supported (via symlink) | Unknown |
-| Prompts (`*.prompt.md`)            | Supported                     | Supported (via symlink, deprecated) | Unknown |
+| Steering File Type                 | VS Code Copilot | Claude Code                                     | Codex   |
+| ---------------------------------- | --------------- | ----------------------------------------------- | ------- |
+| Agents (`*.agent.md`)              | Supported       | Supported (symlink)                             | Unknown |
+| Skills (`*/SKILL.md`)              | Supported       | Supported (symlink)                             | Unknown |
+| Instructions (`*.instructions.md`) | Supported       | Supported (symlink - as "rules")                | Unknown |
+| Prompts (`*.prompt.md`)            | Supported       | Supported (symlink, deprecated - as "commands") | Unknown |
 
 ### VS Code
 
