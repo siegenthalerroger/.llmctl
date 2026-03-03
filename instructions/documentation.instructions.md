@@ -2,8 +2,6 @@
 name: "Technical Documentation Instructions"
 description: "Instructions for writing succinct technical documentation"
 applyTo: "**/*.md"
-source: ""
-license: ""
 ---
 
 # Documentation Guidelines

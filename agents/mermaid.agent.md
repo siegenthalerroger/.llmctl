@@ -5,7 +5,8 @@ argument-hint: Describe the diagram you want to create (e.g., flowchart, sequenc
 model: ['GPT-5 mini (copilot)', 'Raptor mini (Preview) (copilot)', 'GPT-4.1 (copilot)', 'Grok Code Fast 1 (copilot)']
 tools: ['read', 'search', 'mermaidchart.vscode-mermaid-chart/get_syntax_docs', 'mermaidchart.vscode-mermaid-chart/mermaid-diagram-validator', 'mermaidchart.vscode-mermaid-chart/mermaid-diagram-preview']
 metadata:
-  adaptedFrom: "https://github.com/arisng/github-copilot-fc/blob/main/agents/mermaid.agent.md"
+  provenance:
+    adaptedFrom: "https://github.com/arisng/github-copilot-fc/blob/main/agents/mermaid.agent.md"
 ---
 
 # Mermaid Diagram Agent

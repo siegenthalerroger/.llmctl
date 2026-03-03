@@ -3,7 +3,8 @@ name: angular-component
 description: Create modern Angular standalone components following v20+ best practices. Use for building UI components with signal-based inputs/outputs, OnPush change detection, host bindings, content projection, and lifecycle hooks. Triggers on component creation, refactoring class-based inputs to signals, adding host bindings, or implementing accessible interactive components.
 license: MIT
 metadata:
-  source: "https://github.com/analogjs/angular-skills/tree/main/skills/angular-component"
+  provenance:
+    mirror: "https://github.com/analogjs/angular-skills/tree/main/skills/angular-component"
 ---
 
 # Angular Component

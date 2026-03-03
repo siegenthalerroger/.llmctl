@@ -12,7 +12,7 @@ Audit local customization files against third-party upstream sources without aut
 
 ## Workflow
 
-1. [ ] Load the `meta-upstream-sync` skill and verify files contain `metadata.source` or `metadata.adaptedFrom` in frontmatter.
+1. [ ] Load the `meta-upstream-sync` skill and verify files contain `metadata.provenance.mirror` or `metadata.provenance.adaptedFrom` in frontmatter.
 1. [ ] Use `vscode/askQuestions` to ask for a GitHub Personal Access Token (fine-grained, `Contents: Read-only`). This avoids GitHub API rate limits (60 req/hr unauthenticated). The token is passed via `-GitHubToken` and is not stored or persisted. Mark as optional — the user can skip if the repo is small or rate limits are not a concern.
 1. [ ] Run `./skills/meta-upstream-sync/scripts/check-updates.ps1` from the repository root in default mode first (broad, lightweight scan). Include `-GitHubToken "<token>"` if the user provided one in the previous step.
 1. [ ] Review output classifications (`up_to_date`, `update_available`, `missing_local_commit`, `fetch_failed`).

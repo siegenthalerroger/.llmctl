@@ -2,25 +2,35 @@
 
 `check-updates.ps1` auto-discovers tracked files from frontmatter and reads these keys:
 
-- `metadata.source` => tracked as `mirror` (single URL)
-- `metadata.adaptedFrom` => tracked as `adapted` (single URL string or YAML array of URLs)
+- `metadata.provenance.mirror` => tracked as `mirror` (single URL)
+- `metadata.provenance.adaptedFrom` => tracked as `adapted` (single URL string or YAML array of URLs)
 
 `adaptedFrom` takes precedence when both exist.
+
+### Mirror (exact copy)
+
+```yaml
+metadata:
+  provenance:
+    mirror: "https://github.com/owner/repo/blob/main/path/to/file.md"
+```
 
 ### Single-source adapted
 
 ```yaml
 metadata:
-  adaptedFrom: "https://github.com/owner/repo/blob/main/path/to/file.md"
+  provenance:
+    adaptedFrom: "https://github.com/owner/repo/blob/main/path/to/file.md"
 ```
 
 ### Multi-source adapted (synthesised)
 
 ```yaml
 metadata:
-  adaptedFrom:
-    - "https://github.com/owner-a/repo-a/blob/main/skill.md"
-    - "https://github.com/owner-b/repo-b/blob/main/skill.md"
+  provenance:
+    adaptedFrom:
+      - "https://github.com/owner-a/repo-a/blob/main/skill.md"
+      - "https://github.com/owner-b/repo-b/blob/main/skill.md"
 ```
 
 Each URL in the array is checked independently. The script emits one result row per upstream URL.

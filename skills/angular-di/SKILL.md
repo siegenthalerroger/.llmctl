@@ -3,7 +3,8 @@ name: angular-di
 description: Implement dependency injection in Angular v20+ using inject(), injection tokens, and provider configuration. Use for service architecture, providing dependencies at different levels, creating injectable tokens, and managing singleton vs scoped services. Triggers on service creation, configuring providers, using injection tokens, or understanding DI hierarchy.
 license: MIT
 metadata:
-  source: "https://github.com/analogjs/angular-skills/tree/main/skills/angular-di"
+  provenance:
+    mirror: "https://github.com/analogjs/angular-skills/tree/main/skills/angular-di"
 ---
 
 # Angular Dependency Injection

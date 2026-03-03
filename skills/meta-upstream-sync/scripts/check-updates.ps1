@@ -138,13 +138,13 @@ function Get-TrackEntriesFromFile {
 
     $relativePath = [IO.Path]::GetRelativePath($Repo, $AbsolutePath).Replace('\', '/')
 
-    # Collect metadata.source (single URL => mirror)
+    # Collect metadata.provenance.mirror (single URL => mirror)
     $sourceUrl = ""
-    if ($frontmatter -match '(?m)^\s*source\s*:\s*["'']?(?<url>https?://[^"''\r\n]+)') {
+    if ($frontmatter -match '(?m)^\s*mirror\s*:\s*["'']?(?<url>https?://[^"''\r\n]+)') {
         $sourceUrl = $Matches.url.Trim()
     }
 
-    # Collect metadata.adaptedFrom (single URL or YAML array => adapted)
+    # Collect metadata.provenance.adaptedFrom (single URL or YAML array => adapted)
     $adaptedUrls = New-Object System.Collections.Generic.List[string]
 
     # Match YAML array form:  adaptedFrom:\n    - "url1"\n    - "url2"
@@ -408,7 +408,7 @@ if ($trackedEntries.Count -eq 0) {
     if ($IncludePath) {
         throw "No tracked files found for IncludePath '$IncludePath'."
     }
-    throw "No tracked files found. Add metadata.source or metadata.adaptedFrom URLs in frontmatter."
+    throw "No tracked files found. Add metadata.provenance.mirror or metadata.provenance.adaptedFrom URLs in frontmatter."
 }
 
 $results = New-Object System.Collections.Generic.List[object]

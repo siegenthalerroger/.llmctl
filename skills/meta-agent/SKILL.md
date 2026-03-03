@@ -3,7 +3,11 @@ name: "meta-agent"
 description: "Guidelines for creating high-quality custom agents (aka modes or subagents). Use when asked to create, review, or improve AI agent personas, design agent workflows, configure handoffs between agents, or apply prompt engineering best practices to agent definitions. Keywords: agent, mode, subagent, persona, handoff, workflow, prompt engineering."
 license: "MIT"
 metadata:
-  adaptedFrom: "https://github.com/github/awesome-copilot/blob/main/instructions/agents.instructions.md"
+  provenance:
+    adaptedFrom: "https://github.com/github/awesome-copilot/blob/main/instructions/agents.instructions.md"
+    authoritativeSpec:
+      - "https://code.visualstudio.com/docs/copilot/customization/custom-agents"
+      - "https://code.claude.com/docs/en/sub-agents"
 ---
 
 # Custom Agent File Guidelines
@@ -55,8 +59,9 @@ tools: ['read', 'edit', 'search']
 
 **Provenance metadata convention (recommended across all customization files):**
 
-- **`metadata.source`** (string): Canonical upstream/original source URL or reference
-- **`metadata.adaptedFrom`** (string or array): URL or list of URLs when this file is a local adaptation/fork of upstream sources
+- **`metadata.provenance.mirror`** (string): Canonical upstream URL for files that are exact copies
+- **`metadata.provenance.adaptedFrom`** (string or array): URL or list of URLs when this file is a local adaptation/fork of upstream sources
+- **`metadata.provenance.authoritativeSpec`** (array): URLs of authoritative specifications that define the file format or behavioral contract (informational only, not tracked for drift)
 
 Use this same convention for prompt, instruction, skill, and agent frontmatter to keep source tracking consistent.
 

@@ -2,9 +2,10 @@
 name: "k8s-standards"
 description: "Configuration standards, conventions, and patterns for Kubernetes manifests. Includes resource naming, labeling, annotations, security contexts, resource management, probes, and rollout strategies. Use when creating, reviewing, or modifying Kubernetes YAML manifests, Helm chart templates, or Kustomize overlays. Triggers on k8s/, manifests/, deploy/, charts/ paths and *.yaml/*.yml files containing apiVersion/kind."
 metadata:
-  adaptedFrom:
-    - "https://github.com/github/awesome-copilot/blob/main/instructions/kubernetes-deployment-best-practices.instructions.md"
-    - "https://github.com/github/awesome-copilot/blob/main/instructions/kubernetes-manifests.instructions.md"
+  provenance:
+    adaptedFrom:
+      - "https://github.com/github/awesome-copilot/blob/main/instructions/kubernetes-deployment-best-practices.instructions.md"
+      - "https://github.com/github/awesome-copilot/blob/main/instructions/kubernetes-manifests.instructions.md"
 ---
 
 # Kubernetes Standards and Patterns

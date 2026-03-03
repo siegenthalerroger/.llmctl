@@ -2,8 +2,6 @@
 name: "Self-Improvement Instructions"
 description: "Instructions for how to improve yourself and learn from past conversations"
 applyTo: "**/*.agent.md, **/*.SKILL.md, **/*.prompt.md, **/*.instructions.md"
-source: ""
-license: ""
 ---
 
 # Self-Improvement Guidelines

@@ -3,7 +3,8 @@ name: angular-http
 description: Implement HTTP data fetching in Angular v20+ using resource(), httpResource(), and HttpClient. Use for API calls, data loading with signals, request/response handling, and interceptors. Triggers on data fetching, API integration, loading states, error handling, or converting Observable-based HTTP to signal-based patterns.
 license: MIT
 metadata:
-  source: "https://github.com/analogjs/angular-skills/tree/main/skills/angular-http"
+  provenance:
+    mirror: "https://github.com/analogjs/angular-skills/tree/main/skills/angular-http"
 ---
 
 # Angular HTTP & Data Fetching

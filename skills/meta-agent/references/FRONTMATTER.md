@@ -159,26 +159,41 @@ license: "MIT"
 Additional metadata about the agent. Can contain any custom key-value pairs. Common uses:
 - `author`: Agent creator
 - `version`: Agent version number
-- `source`: Canonical upstream/original source URL or reference
-- `adaptedFrom`: Source URL (string) or list of URLs (array) when adapted/synthesised from upstream sources
+- `provenance`: Provenance tracking (see below)
 - `tags`: Additional categorization tags
 
-**Example (single source):**
+**Provenance** is grouped under `metadata.provenance`:
+- `provenance.mirror` (string): Canonical upstream URL for exact copies
+- `provenance.adaptedFrom` (string or array): URL or list of URLs when adapted/synthesised from upstream sources
+- `provenance.authoritativeSpec` (array): URLs of authoritative specifications defining the file format (informational only)
+
+**Example (mirror):**
 ```yaml
 metadata:
-  adaptedFrom: "https://github.com/example/agents/blob/main/security.agent.md"
+  provenance:
+    mirror: "https://github.com/example/agents/blob/main/security.agent.md"
 ```
 
 **Example (synthesised from multiple sources):**
 ```yaml
 metadata:
-  adaptedFrom:
-    - "https://github.com/org-a/skills/blob/main/skills/security/SKILL.md"
-    - "https://github.com/org-b/copilot-rules/blob/main/instructions/owasp.instructions.md"
+  provenance:
+    adaptedFrom:
+      - "https://github.com/org-a/skills/blob/main/skills/security/SKILL.md"
+      - "https://github.com/org-b/copilot-rules/blob/main/instructions/owasp.instructions.md"
   tags: ["security", "compliance"]
 ```
 
-For consistency across customization types, use the same provenance keys in prompt, instruction, skill, and agent files: `metadata.source` and `metadata.adaptedFrom`.
+**Example (authoritative spec for dual-tool compatibility):**
+```yaml
+metadata:
+  provenance:
+    authoritativeSpec:
+      - "https://code.claude.com/docs/en/sub-agents"
+      - "https://code.visualstudio.com/docs/copilot/customization/custom-agents"
+```
+
+For consistency across customization types, use the same provenance keys in prompt, instruction, skill, and agent files.
 
 ## Minimal Frontmatter Example
 
@@ -207,7 +222,11 @@ license: "MIT"
 metadata:
   author: "Security Team"
   version: "2.1.0"
-  source: "https://github.com/example/security-agents"
+  provenance:
+    mirror: "https://github.com/example/security-agents"
+    authoritativeSpec:
+      - "https://code.claude.com/docs/en/sub-agents"
+      - "https://code.visualstudio.com/docs/copilot/customization/custom-agents"
   tags: ["security", "owasp", "vulnerability-scanning"]
 handoffs:
   - name: "remediation"

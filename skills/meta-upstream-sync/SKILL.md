@@ -1,12 +1,12 @@
 ---
 name: "meta-upstream-sync"
-description: "Deterministic workflow and scripts to audit third-party source updates for local customization files using metadata.source or metadata.adaptedFrom patterns. Use when checking whether copied (mirror) or adapted files should be refreshed. Keywords: source drift, adaptedFrom, mirror, sync, update audit."
+description: "Deterministic workflow and scripts to audit third-party source updates for local customization files using metadata.provenance.mirror or metadata.provenance.adaptedFrom patterns. Use when checking whether copied (mirror) or adapted files should be refreshed. Keywords: source drift, adaptedFrom, mirror, sync, update audit."
 license: "MIT"
 ---
 
 # meta-upstream-sync
 
-Deterministically audit local files by discovering `metadata.source` and `metadata.adaptedFrom` in frontmatter, then comparing upstream and local commit dates.
+Deterministically audit local files by discovering `metadata.provenance.mirror` and `metadata.provenance.adaptedFrom` in frontmatter, then comparing upstream and local commit dates.
 
 ## Inputs
 
@@ -15,7 +15,7 @@ Deterministically audit local files by discovering `metadata.source` and `metada
 
 ## Workflow
 
-1. [ ] Ensure target files include frontmatter with `metadata.source` (mirror) or `metadata.adaptedFrom` (adapted).
+1. [ ] Ensure target files include frontmatter with `metadata.provenance.mirror` (mirror) or `metadata.provenance.adaptedFrom` (adapted).
 1. [ ] Run [Update Checker](./scripts/check-updates.ps1). When a specific target is already identified, use `-IncludePath` to scope the run — do not run a broad discovery scan first. The script compares each upstream's latest commit date with the local file's last git commit date.
 1. [ ] Classify each upstream check as `up_to_date`, `update_available`, `missing_local_commit`, or `fetch_failed`.
 1. [ ] For new/uncommitted local files that should be bootstrapped from upstream, add `-AllowNoLocalCommit` (guarded mode) so they can be treated as actionable `update_available` entries. Combine with `-IncludePath` in a single invocation when the target is already known.
@@ -34,7 +34,7 @@ Deterministically audit local files by discovering `metadata.source` and `metada
 
 ### Multi-source Synthesis
 
-When a local file lists multiple URLs under `metadata.adaptedFrom`, each upstream is checked independently. If more than one upstream flags `update_available`:
+When a local file lists multiple URLs under `metadata.provenance.adaptedFrom`, each upstream is checked independently. If more than one upstream flags `update_available`:
 
 1. Run targeted detailed checks for each changed source (`-IncludePath` + `-IncludeChangeDetails`).
 2. Compare changes against the local file to identify overlapping vs. independent sections.
@@ -102,10 +102,11 @@ Bootstrap check for an uncommitted local file (explicitly guarded):
 
 ## Notes
 
+- The `metadata.provenance.authoritativeSpec` field is informational only and is not checked by the update script. It declares which specifications the file format conforms to, not where content was sourced from.
 - No local manifest is required.
 - Comparison uses commit date only: upstream latest commit date for source path vs local file last git commit date.
 - Supported source format is currently GitHub repository/tree/blob URLs.
-- `metadata.adaptedFrom` may be a single URL string or a YAML array of URLs for files synthesised from multiple upstream sources.
+- `metadata.provenance.adaptedFrom` may be a single URL string or a YAML array of URLs for files synthesised from multiple upstream sources.
 - When a file has multiple upstreams, each is checked independently and output shows one row per upstream. See [Multi-source Synthesis](#multi-source-synthesis) for the recommended grouping procedure.
 - `upstreamChanges` commit summaries are opt-in via `-IncludeChangeDetails` to keep the default output concise.
 - Use `-MaxChangeCommits` to cap detailed commit payload size for targeted checks (default: `5`).

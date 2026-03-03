@@ -2,7 +2,8 @@
 name: "mermaid-creator"
 description: 'Create Mermaid diagrams (flowchart, sequence, class, ER, state, C4, architecture, gantt, user journey, mind map) from text descriptions or source code. Use when asked to "create a diagram", "generate mermaid", "document architecture", "code to diagram", "create design doc", or "convert code to diagram".'
 metadata:
-  adaptedFrom: "https://github.com/arisng/github-copilot-fc/tree/main/skills/mermaid-creator"
+  provenance:
+    adaptedFrom: "https://github.com/arisng/github-copilot-fc/tree/main/skills/mermaid-creator"
 ---
 
 # Mermaid Creator
