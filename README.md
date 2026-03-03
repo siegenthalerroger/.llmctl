@@ -42,6 +42,15 @@ Any prompt files must end in `*.prompt.md`.
 
 ## How to use
 
+### Compatibility Matrix
+
+| Steering File Type                 | VS Code Copilot               | Claude Code             | Codex   |
+| ---------------------------------- | ----------------------------- | ----------------------- | ------- |
+| Agents (`*.agent.md`)              | Supported (via configuration) | Supported (via symlink) | Unknown |
+| Skills (`*/SKILL.md`)              | Supported (via configuration) | Supported (via symlink) | Unknown |
+| Instructions (`*.instructions.md`) | Supported                     | Unknown                 | Unknown |
+| Prompts (`*.prompt.md`)            | Supported                     | Unknown                 | Unknown |
+
 ### VS Code
 
 Recommended configuration properties:
