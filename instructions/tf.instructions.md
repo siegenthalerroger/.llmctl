@@ -1,7 +1,10 @@
 ---
 name: "Load TF Standards"
 description: "Forces loading of TF standards and patterns for .tf and .tofu files"
-applyTo: ["**/*.tofu", "**/*.tf"]
+# Copilot
+applyTo: "**/*.tofu, **/*.tf"
+# Claude Code
+paths: ["**/*.tofu", "**/*.tf"]
 ---
 
 # TF Development

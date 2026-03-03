@@ -1,7 +1,10 @@
 ---
 name: "Technical Documentation Instructions"
 description: "Instructions for writing succinct technical documentation"
+# Copilot
 applyTo: "**/*.md"
+# Claude Code
+paths: ["**/*.md"]
 ---
 
 # Documentation Guidelines

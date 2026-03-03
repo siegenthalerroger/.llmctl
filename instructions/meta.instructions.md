@@ -1,7 +1,10 @@
 ---
 name: "Self-Improvement Instructions"
 description: "Instructions for how to improve yourself and learn from past conversations"
+# Copilot
 applyTo: "**/*.agent.md, **/*.SKILL.md, **/*.prompt.md, **/*.instructions.md"
+# Claude Code
+paths: ["**/*.agent.md", "**/*.SKILL.md", "**/*.prompt.md", "**/*.instructions.md"]
 ---
 
 # Self-Improvement Guidelines

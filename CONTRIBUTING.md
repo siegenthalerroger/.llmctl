@@ -47,6 +47,14 @@ Both tools support skill discovery from user-level directories. The [Agent Skill
 - **Frontmatter:** Both tools read `name` and `description` for discovery. Unknown fields are ignored.
 - **References:** Relative paths to reference files (e.g., `references/*.md`) work in both tools since the folder structure is preserved via symlink.
 
+### Instructions (`*.instructions.md`)
+
+Copilot calls these "Instructions" and Claude Code calls them "Rules" — both auto-load behavioral guidelines when matching file patterns are referenced. Each tool uses a different frontmatter key for path-scoping, but both safely ignore unknown keys, so a single file works for both.
+
+- **Shared fields:** `name`, `description`, and the markdown body are fully compatible.
+- **Path-scoping:** Copilot uses `applyTo` (string or array); Claude Code uses `paths` (array of strings). Include both in the frontmatter with `# Copilot` / `# Claude Code` comments.
+- **Discovery:** Copilot uses `chat.instructionsFilesLocations` in VS Code settings. Claude Code discovers rules from `~/.claude/rules/` (symlink `~/.llmctl/instructions` there).
+
 ## Upstream Update Tooling
 
 Use the `meta-updater` agent together with the `meta-upstream-sync` skill to audit and synthesize upstream updates.

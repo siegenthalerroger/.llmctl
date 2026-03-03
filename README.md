@@ -48,7 +48,7 @@ Any prompt files must end in `*.prompt.md`.
 | ---------------------------------- | ----------------------------- | ----------------------- | ------- |
 | Agents (`*.agent.md`)              | Supported (via configuration) | Supported (via symlink) | Unknown |
 | Skills (`*/SKILL.md`)              | Supported (via configuration) | Supported (via symlink) | Unknown |
-| Instructions (`*.instructions.md`) | Supported                     | Unknown                 | Unknown |
+| Instructions (`*.instructions.md`) | Supported                     | Supported (via symlink) | Unknown |
 | Prompts (`*.prompt.md`)            | Supported                     | Unknown                 | Unknown |
 
 ### VS Code
@@ -102,12 +102,14 @@ Symlink the agents and skills directories into Claude Code's user-level director
 # Unix/macOS
 ln -s ~/.llmctl/agents ~/.claude/agents
 ln -s ~/.llmctl/skills ~/.claude/skills
+ln -s ~/.llmctl/instructions ~/.claude/rules
 ```
 
 ```bat
 :: Windows (requires admin or developer mode - run in CMD not powershell)
 mklink /D "%USERPROFILE%\.claude\agents" "%USERPROFILE%\.llmctl\agents"
 mklink /D "%USERPROFILE%\.claude\skills" "%USERPROFILE%\.llmctl\skills"
+mklink /D "%USERPROFILE%\.claude\rules" "%USERPROFILE%\.llmctl\instructions"
 ```
 
 Verify agent discovery with `claude agents`. Skills are discovered automatically from `~/.claude/skills/` (there is no `claude skills` command — ask within a session to confirm).
