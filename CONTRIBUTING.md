@@ -55,6 +55,10 @@ Copilot calls these "Instructions" and Claude Code calls them "Rules" — both a
 - **Path-scoping:** Copilot uses `applyTo` (string or array); Claude Code uses `paths` (array of strings). Include both in the frontmatter with `# Copilot` / `# Claude Code` comments.
 - **Discovery:** Copilot uses `chat.instructionsFilesLocations` in VS Code settings. Claude Code discovers rules from `~/.claude/rules/` (symlink `~/.llmctl/instructions` there).
 
+### Prompts (`*.prompt.md`)
+
+VSCode Prompts map to Claude Code Commands (`.claude/commands/`) — both create user-invokable slash commands. Commands are superseded by Skills in Claude Code; this mapping is for basic compatibility only.
+
 ## Upstream Update Tooling
 
 Use the `meta-updater` agent together with the `meta-upstream-sync` skill to audit and synthesize upstream updates.

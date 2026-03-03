@@ -58,6 +58,12 @@ Every prompt file should include YAML frontmatter with the following fields:
 - Preserve any additional metadata (`language`, `tags`, `visibility`, etc.) required by your organization
 - For provenance tracking, use `metadata.provenance` fields (`mirror`, `adaptedFrom`, `authoritativeSpec`); use the same convention for prompts, instructions, skills, and agents
 
+## Cross-Tool Compatibility (Copilot + Claude Code)
+
+Prompt files can serve both GitHub Copilot (as "Prompts") and Claude Code (as "Commands"). Both create user-invokable slash commands. Each tool ignores frontmatter fields it does not recognize, so a single file works for both.
+
+> [!NOTE] Commands are superseded by Skills in Claude Code, however we retain the separation of concerns with prompts being for reusable quick-use inputs.
+
 ## File Naming and Placement
 
 - Use kebab-case filenames ending with `.prompt.md` and store them under `.github/prompts/` unless your workspace standard specifies another directory.
