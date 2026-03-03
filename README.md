@@ -8,7 +8,7 @@ It is _not_ designed to be a library where only selected items are copied or use
 
 See the [vscode/github copilot documentation](https://code.visualstudio.com/docs/copilot/customization/overview) for details on what each type of file can achieve. There is an attempt to be tool-neutral, however the supported use-case is initiation of agents from VSCode, as such the naming follows their patterns.
 
-Contributor conventions are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for adaptations required for cross-tool compatibility and repository conventions.
 
 ### Agents (Custom Modes)
 
@@ -93,3 +93,21 @@ Recommended configuration properties:
   "github.copilot.chat.searchSubagent.enabled": true
 }
 ```
+
+### Claude Code
+
+Symlink the agents and skills directories into Claude Code's user-level directories:
+
+```bash
+# Unix/macOS
+ln -s ~/.llmctl/agents ~/.claude/agents
+ln -s ~/.llmctl/skills ~/.claude/skills
+```
+
+```bat
+:: Windows (requires admin or developer mode - run in CMD not powershell)
+mklink /D "%USERPROFILE%\.claude\agents" "%USERPROFILE%\.llmctl\agents"
+mklink /D "%USERPROFILE%\.claude\skills" "%USERPROFILE%\.llmctl\skills"
+```
+
+Verify agent discovery with `claude agents`. Skills are discovered automatically from `~/.claude/skills/` (there is no `claude skills` command — ask within a session to confirm).

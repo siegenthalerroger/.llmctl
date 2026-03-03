@@ -3,7 +3,10 @@ name: "meta-skill"
 description: "Guidelines for creating high-quality Agent Skills. Use when asked to create, review, or improve AI agent skills, design skill structures, write skill documentation, or understand agent skill best practices and specifications."
 license: "MIT"
 metadata:
-  adaptedFrom: "https://github.com/github/awesome-copilot/blob/main/instructions/agent-skills.instructions.md"
+  provenance:
+    adaptedFrom: "https://github.com/github/awesome-copilot/blob/main/instructions/agent-skills.instructions.md"
+    authoritativeSpec:
+      - "https://agentskills.io/"
 ---
 
 # Agent Skills File Guidelines
@@ -57,10 +60,11 @@ description: "Toolkit and guidelines for an example usecase. Use when asked to d
 | ------------- | -------- | ------------------------------------------------------------------------- |
 | `name`        | Yes      | Lowercase letters, numbers, and hyphens only. Max 64 chars. Must not start/end with hyphen or contain `--`. Must match parent directory name. No XML tags or reserved words (`anthropic`, `claude`, `copilot`, `openai`). |
 | `description` | Yes      | Clear description of capabilities AND use cases, max 1024 characters      |
-| `metadata.source` | No   | Canonical upstream/original source URL or reference                        |
-| `metadata.adaptedFrom` | No | URL (string) or list of URLs (array) when adapted/synthesised from upstream sources |
+| `metadata.provenance.mirror` | No | Canonical upstream URL for exact copies |
+| `metadata.provenance.adaptedFrom` | No | URL (string) or list of URLs (array) when adapted/synthesised from upstream sources |
+| `metadata.provenance.authoritativeSpec` | No | Array of URLs for authoritative format specifications (informational only) |
 
-For consistent provenance tracking, use `metadata.source` and `metadata.adaptedFrom` across prompt, instruction, skill, and agent frontmatter.
+For consistent provenance tracking, use `metadata.provenance` fields across prompt, instruction, skill, and agent frontmatter.
 
 **Naming conventions:**
 - Preferred: gerund form (`processing-pdfs`, `analyzing-data`)

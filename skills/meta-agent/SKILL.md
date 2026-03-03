@@ -27,6 +27,55 @@ Agents work best when they have clear boundaries, explicit responsibilities, and
 
 See [common examples](./references/COMMON_PATTERNS.md) for typical agent patterns.
 
+## Cross-Tool Compatibility (Copilot + Claude Code)
+
+Agent files can serve both GitHub Copilot and Claude Code. Both tools use `*.agent.md` files with YAML frontmatter and a markdown body. Each tool ignores frontmatter fields it does not recognize, so a single file works for both.
+
+### Shared fields
+
+- `name`, `description`: Fully compatible — both tools read these identically
+- Markdown body (system prompt): Fully shared
+
+### Tool-specific fields (safely ignored by the other tool)
+
+**Copilot-only** (ignored by Claude Code):
+- `tools` (array format with Copilot tool names)
+- `model` (array of full model display names)
+- `user-invokable`, `handoffs`, `agents`, `target`, `infer`
+
+**Claude Code-only** (ignored by Copilot):
+- `disallowedTools`, `permissionMode`, `maxTurns`
+- `skills`, `mcpServers`, `hooks`, `memory`, `background`, `isolation`
+
+### Tools field
+
+The `tools` field is the main incompatibility. Copilot uses a YAML array of Copilot-specific tool names; Claude Code uses comma-separated strings of Claude-specific tool names. When Claude Code encounters Copilot's array format, it falls back to inheriting all tools from the parent conversation.
+
+To restrict tools on the Claude side, use the Claude-only `disallowedTools` field (e.g., `disallowedTools: Edit, Write` for a read-only agent).
+
+### Model field
+
+Copilot supports an array of model display names with fallback ordering. Claude Code uses a single alias (`sonnet`, `opus`, `haiku`, or `inherit`). Each tool ignores the other's format.
+
+### Dual-compatible frontmatter example
+
+```yaml
+---
+name: "Agent Display Name"
+description: "Brief description of purpose and capabilities..."
+# Copilot tools and model
+tools: ['read', 'edit', 'search']
+model: ['Claude Sonnet 4.6 (copilot)', 'GPT-5.2 (copilot)']
+# Claude Code (restricts inherited tools)
+disallowedTools: Edit, Write
+metadata:
+  provenance:
+    authoritativeSpec:
+      - "https://code.claude.com/docs/en/sub-agents"
+      - "https://code.visualstudio.com/docs/copilot/customization/custom-agents"
+---
+```
+
 ## *.agent.md File Structure
 
 ### Required Frontmatter

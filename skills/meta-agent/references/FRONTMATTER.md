@@ -90,6 +90,8 @@ model: "your-preferred-model"
 
 # Multiple models with fallback
 model: ["primary-model", "fallback-model", "backup-model"]
+```
+
 ### `target`
 
 **Type:** String
@@ -195,6 +197,63 @@ metadata:
 
 For consistency across customization types, use the same provenance keys in prompt, instruction, skill, and agent files.
 
+## Claude Code-Specific Fields
+
+These fields are recognized by Claude Code only. Copilot safely ignores them. Include them alongside Copilot fields for dual-tool compatibility.
+
+### `disallowedTools`
+
+**Type:** Comma-separated string
+**Required:** No
+
+Tools to deny from the inherited set. Use when Claude Code inherits all tools (because Copilot's `tools` array is not parseable by Claude) and you want to restrict specific Claude tools.
+
+**Example:**
+```yaml
+disallowedTools: Edit, Write  # read-only agent
+```
+
+### `permissionMode`
+
+**Type:** String
+**Required:** No
+
+Controls how the subagent handles permission prompts. Values: `default`, `acceptEdits`, `dontAsk`, `bypassPermissions`, `plan`.
+
+### `skills`
+
+**Type:** Array of strings
+**Required:** No
+
+Claude Code skills to preload into the subagent's context at startup.
+
+### `memory`
+
+**Type:** String
+**Required:** No
+
+Persistent memory scope: `user`, `project`, or `local`. Enables cross-session learning.
+
+### `hooks`
+
+**Type:** Object
+**Required:** No
+
+Lifecycle hooks scoped to the subagent (e.g., `PreToolUse`, `PostToolUse`, `Stop`).
+
+### `mcpServers`
+
+**Type:** Object
+**Required:** No
+
+MCP servers available to the subagent. Each entry is a server name or inline definition.
+
+### Other Claude Code fields
+
+- `maxTurns` (number): Maximum agentic turns before stopping
+- `background` (boolean): Always run as a background task
+- `isolation` (`worktree`): Run in a temporary git worktree
+
 ## Minimal Frontmatter Example
 
 The absolute minimum required frontmatter:
@@ -208,16 +267,24 @@ name: "Security Auditor"
 
 ## Complete Frontmatter Example
 
-A comprehensive example with all fields:
+A comprehensive dual-compatible example with Copilot and Claude Code fields:
 
 ```yaml
 ---
 description: "Security auditor that scans code for vulnerabilities using OWASP guidelines. Use when reviewing authentication, authorization, input validation, or before deployments. Keywords: security, vulnerability, OWASP."
 name: "Security Audit Agent"
+# Copilot fields
 tools: ['read', 'search', 'web']
-model: ["your-preferred-model", "an-alternative-model", "an-acceptable-backup-model"]  # Example: platform-specific model identifiers
+model: ["Claude Sonnet 4.6 (copilot)", "GPT-5.2 (copilot)"]
 target: "vscode"
 infer: true
+handoffs:
+  - name: "remediation"
+    description: "Hand off to fix identified vulnerabilities"
+    agent: "security-fixer"
+# Claude Code fields
+disallowedTools: Edit, Write
+permissionMode: plan
 license: "MIT"
 metadata:
   author: "Security Team"
@@ -228,10 +295,6 @@ metadata:
       - "https://code.claude.com/docs/en/sub-agents"
       - "https://code.visualstudio.com/docs/copilot/customization/custom-agents"
   tags: ["security", "owasp", "vulnerability-scanning"]
-handoffs:
-  - name: "remediation"
-    description: "Hand off to fix identified vulnerabilities"
-    agent: "security-fixer"
 ---
 ```
 

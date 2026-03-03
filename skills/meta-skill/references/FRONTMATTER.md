@@ -38,15 +38,22 @@ Use third person ("Processes", "Generates") — not first person ("I can") or se
 
 ## Provenance Metadata (Recommended)
 
-When documenting where content came from, add provenance under `metadata` in frontmatter:
+When documenting where content came from, add provenance under `metadata.provenance` in frontmatter:
 
 ```yaml
 metadata:
-	source: "https://github.com/example-org/skills/tree/main/excel-processing"
-	adaptedFrom: "https://github.com/example-upstream/skills/tree/main/excel-processing"
+  provenance:
+    mirror: "https://github.com/example-org/skills/tree/main/excel-processing"
 ```
 
-- `metadata.source`: canonical upstream/original source URL or reference
-- `metadata.adaptedFrom`: source URL (string) or list of URLs (array) when locally adapted/synthesised
+```yaml
+metadata:
+  provenance:
+    adaptedFrom: "https://github.com/example-upstream/skills/tree/main/excel-processing"
+```
+
+- `metadata.provenance.mirror`: canonical upstream URL for exact copies
+- `metadata.provenance.adaptedFrom`: source URL (string) or list of URLs (array) when locally adapted/synthesised
+- `metadata.provenance.authoritativeSpec`: array of URLs for authoritative format specifications (informational only)
 
 Use this same convention for prompt, instruction, skill, and agent files.

@@ -1,9 +1,12 @@
 ---
 name: meta-updater
 description: "User-invoked agent for checking third-party source drift across local skills, agents, prompts, and instructions. Use when asked to audit source updates, compare local files to upstream, or recommend mirror/adapted refresh actions. Keywords: upstream, sync, adaptedFrom, source, update audit."
+# Copilot fields
 user-invokable: true
 disable-model-invocation: true
-tools: ['read', 'search', 'execute', 'todo', 'vscode/askQuestions', 'web/fetch',  'github/list_commits', 'github/get_commit', 'github/get_file_contents', 'github/search_code']
+tools: ['read', 'search', 'execute', 'todo', 'vscode/askQuestions', 'web/fetch', 'github/list_commits', 'github/get_commit', 'github/get_file_contents', 'github/search_code']
+# Claude Code fields
+skills: ['meta-upstream-sync']
 ---
 
 # meta-updater

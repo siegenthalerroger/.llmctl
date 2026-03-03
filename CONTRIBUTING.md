@@ -26,6 +26,27 @@ metadata:
 
 This is a **repository convention**, not a universal standard.
 
+## Cross-Tool Compatibility
+
+### Agents (`*.agent.md`)
+
+Both VS Code Copilot and Claude Code use markdown files with YAML frontmatter for agent definitions. Each tool safely ignores frontmatter fields it doesn't recognize, so a single file can work for both.
+
+- **Shared fields:** `name`, `description`, and the markdown body (system prompt) are fully compatible.
+- **Tools:** Copilot and Claude Code have different tool ecosystems. The Copilot `tools` array is ignored by Claude Code, which falls back to inheriting all tools. Use the Claude-only `disallowedTools` field to restrict specific tools.
+- **Model:** Copilot's `model` array is ignored by Claude Code, which defaults to inheriting the conversation model.
+- **Extra fields:** Each tool safely ignores the other's unique fields.
+
+See the [meta-agent skill](skills/meta-agent/SKILL.md) for full cross-tool compatibility documentation.
+
+### Skills (`*/SKILL.md`)
+
+Both tools support skill discovery from user-level directories. The [Agent Skills](https://agentskills.io/) standard (`SKILL.md` + folder structure) is shared — no format changes are needed.
+
+- **Discovery:** Copilot uses `chat.agentSkillsLocations` in VS Code settings. Claude Code discovers skills from `~/.claude/skills/` (symlink `~/.llmctl/skills` there).
+- **Frontmatter:** Both tools read `name` and `description` for discovery. Unknown fields are ignored.
+- **References:** Relative paths to reference files (e.g., `references/*.md`) work in both tools since the folder structure is preserved via symlink.
+
 ## Upstream Update Tooling
 
 Use the `meta-updater` agent together with the `meta-upstream-sync` skill to audit and synthesize upstream updates.

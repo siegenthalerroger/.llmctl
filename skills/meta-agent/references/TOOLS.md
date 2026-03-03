@@ -154,6 +154,28 @@ While specific implementations vary, these tool names are commonly available:
 
 **Note:** Always verify tool names in your specific environment as they may differ.
 
+### Claude Code Tool Names
+
+Claude Code uses a different tool ecosystem from Copilot. Its built-in tools use PascalCase names:
+
+- `Read`, `Glob`, `Grep` - File reading and search
+- `Edit`, `Write` - File modification
+- `Bash` - Command execution
+- `Agent` - Sub-agent orchestration
+- `WebFetch`, `WebSearch` - External content access
+- `NotebookEdit` - Jupyter notebook editing
+
+**Cross-tool compatibility:** When Copilot's `tools` array is present, Claude Code cannot parse it and falls back to inheriting all tools from the parent conversation. Use the Claude-only `disallowedTools` field (comma-separated string) to deny specific tools:
+
+```yaml
+# Copilot tools (array format)
+tools: ['read', 'search']
+# Claude Code restriction (comma-separated string, ignored by Copilot)
+disallowedTools: Edit, Write, Bash
+```
+
+This gives read-only behavior in both tools using a single file.
+
 ### MCP Server Tools
 
 MCP servers extend the tool ecosystem with integrations for external services. Common patterns:
