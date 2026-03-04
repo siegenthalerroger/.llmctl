@@ -33,6 +33,32 @@ Once tasks are confirmed:
 - Assign one sub-agent per group; never let two agents touch the same file
 - State the grouping explicitly so the user can spot overlap before agents start
 
+## Sub-Agent Task Sizing
+
+Choose the right worker tier and enforce sizing discipline. See agent definitions for full details:
+
+- [Simple-Worker](../../agents/generic-worker-simple.agent.md)
+- [Complex-Worker](../../agents/generic-worker-complex.agent.md)
+
+### Definition of "touch"
+
+A file is **touched** if it must be **read for context** or **edited**. Count both.
+
+A task that edits 2 files but must consult 4 others to produce correct output touches 6 files — even though only 2 files change.
+
+### Simple-Worker (≤5 files touched)
+
+- One task = one concrete outcome
+- Do not batch multiple file creations/rewrites into a single request
+- Keep each request narrowly scoped enough that a failed result can be reverted or retried without collateral edits
+- Prefer a short sequence of tiny tasks over a single broad "small" task as failures are isolated and retries are cheap
+
+### Complex-Worker (6+ files touched)
+
+- Use when a task requires cross-component reasoning or sustained context across many files
+- The Complex-Worker may internally delegate isolated subtasks to Simple-Worker
+- Prefer Complex-Worker over a chain of Simple-Worker calls when the subtasks share significant context that would need to be re-explained in each prompt
+
 ## Handling Stale or Ambiguous Tasks
 
 TODO lists go stale. Before executing:
