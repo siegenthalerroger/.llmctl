@@ -2,9 +2,9 @@
 name: "Self-Improvement Instructions"
 description: "Instructions for how to improve yourself and learn from past conversations"
 # Copilot
-applyTo: "**/*.agent.md, **/*.SKILL.md, **/*.prompt.md, **/*.instructions.md"
+applyTo: "**/*.agent.md, **/SKILL.md, **/*.prompt.md, **/*.instructions.md"
 # Claude Code
-paths: ["**/*.agent.md", "**/*.SKILL.md", "**/*.prompt.md", "**/*.instructions.md"]
+paths: ["**/*.agent.md", "**/SKILL.md", "**/*.prompt.md", "**/*.instructions.md"]
 ---
 
 # Self-Improvement Guidelines
@@ -36,8 +36,8 @@ When adding new or adapting pre-existing agent customization files, follow these
 1. **Prefer Skills over Instructions**: Skills are modular and more powerful. Only use instructions for setting context or loading skills via `applyTo`.
 2. Be explicit about what files to update or add. Consider what type of input would have been most helpful.
 3. Use absolute directives. Don't use words like "should" or "would".
-3. Bullets over paragraphs. Keep explanations concise.
-4. Do NOT just suggest what could have been done differently this time! Generalise and adapt any pre-existing provided inputs.
+4. Bullets over paragraphs. Keep explanations concise.
+5. Do NOT just suggest what could have been done differently this time! Generalise and adapt any pre-existing provided inputs.
 
 **Optional Enhancements (Use Strategically):**
 
