@@ -26,6 +26,43 @@ metadata:
 
 This is a **repository convention**, not a universal standard.
 
+## Model Profile Convention (`metadata.modelProfile`)
+
+Agent and skill files may declare a `metadata.modelProfile` block to describe the model capabilities required, instead of maintaining a hardcoded `model:` array. The `update-models` skill reads this profile, fetches the authoritative model list for the target provider at run-time, and rewrites the `model:` array with the current best-matching models.
+
+```yaml
+metadata:
+  modelProfile:
+    specialisation: NONE   # NONE | CODE
+    cost: MEDIUM           # FREE | LOW | MEDIUM | HIGH
+    latency: LOW           # LOW | MEDIUM | HIGH
+    minDate: "2025-01-01"  # ISO date — exclude models retired before this date
+```
+
+### Field reference
+
+| Field | Type | Allowed values | Semantics |
+|---|---|---|---|
+| `specialisation` | string | `NONE`, `CODE` | `CODE` prefers Codex-family and code-optimised models; `NONE` accepts general-purpose models |
+| `cost` | string | `FREE`, `LOW`, `MEDIUM`, `HIGH` | Abstract cost tier: `FREE` = no quota consumed, `LOW` = minimal quota, `MEDIUM` = standard, `HIGH` = premium. Mapped to provider-specific pricing by the `update-models` skill. |
+| `latency` | string | `LOW`, `MEDIUM`, `HIGH` | `LOW` prefers the fastest/smallest models; tie-breaks within a cost band |
+| `minDate` | string | ISO 8601 date | Ensure models have intrinsic knowledge of everything up to this date; excludes models trained before this date |
+
+### Resolution rules
+
+The `update-models` skill fetches **all supported providers in parallel** and combines the results into one ranked `model:` array. Cost bands are abstract — the skill maps them to each provider's pricing metric at run-time:
+
+| Cost tier | Copilot | KiloCode |
+|---|---|---|
+| `FREE` | Premium multiplier = 0 | Included without credits |
+| `LOW` | Multiplier ≤ 0.33 | Low credit consumption |
+| `MEDIUM` | Multiplier ≤ 1 | Standard credit consumption |
+| `HIGH` | Any multiplier | Any model |
+
+Authoritative sources are maintained in the `update-models` skill frontmatter (`metadata.provenance.authoritativeSpec`).
+
+> **Note:** The `model:` array is a Copilot-only frontmatter field. Claude Code and other tools ignore it. `metadata.modelProfile` is a local repository convention and is safely ignored by all tools.
+
 ## Cross-Tool Compatibility
 
 ### Agents (`*.agent.md`)

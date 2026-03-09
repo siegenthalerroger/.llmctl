@@ -7,6 +7,13 @@ disable-model-invocation: true
 tools: ['read', 'search', 'execute', 'todo', 'vscode/askQuestions', 'web/fetch', 'github/list_commits', 'github/get_commit', 'github/get_file_contents', 'github/search_code']
 # Claude Code fields
 skills: ['meta-upstream-sync']
+# Metadata fields
+metadata:
+  modelProfile:
+    specialisation: NONE
+    cost: MEDIUM
+    latency: HIGH
+    minDate: "2025-01-01"
 ---
 
 # meta-updater

@@ -5,6 +5,13 @@ description: "Fast, cost-efficient implementation agent for well-specified, tigh
 tools: ['todo', 'search', 'read', 'edit', 'execute', 'git/git_log', 'git/git_diff', 'git/git_diff_staged', 'git/git_diff_unstaged', 'gradle/*', 'vscjava.vscode-java-debug/*']
 model: ['Gemini 3 Flash (Preview) (copilot)', 'Claude Haiku 4.5 (copilot)', 'GPT-5.1-Codex-Mini (Preview) (copilot)', 'GPT-5 mini (copilot)']
 user-invokable: false
+# Metadata fields
+metadata:
+  modelProfile:
+    specialisation: CODE
+    cost: FREE
+    latency: MEDIUM
+    minDate: "2025-01-01"
 ---
 
 # Simple Worker

@@ -73,6 +73,11 @@ metadata:
     authoritativeSpec:
       - "https://code.claude.com/docs/en/sub-agents"
       - "https://code.visualstudio.com/docs/copilot/customization/custom-agents"
+  modelProfile:
+    specialisation: NONE
+    cost: MEDIUM
+    latency: LOW
+    minDate: "2025-01-01"
 ---
 ```
 

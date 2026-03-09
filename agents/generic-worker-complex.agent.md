@@ -5,6 +5,13 @@ description: "Mid-tier implementation agent for well-specified work spanning mul
 tools: ['todo', 'search', 'read', 'edit', 'execute', 'git/git_log', 'git/git_diff', 'git/git_diff_staged', 'git/git_diff_unstaged', 'gradle/*', 'vscjava.vscode-java-debug/*']
 model: ['GPT-5.3-Codex (copilot)', 'Claude Sonnet 4.5 (copilot)', 'GPT-5.2-Codex (copilot)', 'Gemini 3 Pro (Preview) (copilot)', 'GPT-5.1-Codex-Max (copilot)', 'Gemini 2.5 Pro (copilot)', 'Claude Sonnet 4 (copilot)']
 user-invokable: false
+# Metadata fields
+metadata:
+  modelProfile:
+    specialisation: CODE
+    cost: LOW
+    latency: MEDIUM
+    minDate: "2025-01-01"
 ---
 
 # Complex Worker

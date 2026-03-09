@@ -169,6 +169,32 @@ Additional metadata about the agent. Can contain any custom key-value pairs. Com
 - `provenance.adaptedFrom` (string or array): URL or list of URLs when adapted/synthesised from upstream sources
 - `provenance.authoritativeSpec` (array): URLs of authoritative specifications defining the file format (informational only)
 
+#### `metadata.modelProfile`
+
+Declarative capability profile used by the `update-models` skill to resolve the `model:` array at run-time by consulting authoritative provider documentation. Provider-agnostic — add a `provider` field to target a different model gateway.
+
+**Schema:**
+
+| Field | Allowed values | Semantics |
+|---|---|---|
+| `specialisation` | `NONE` \| `CODE` | `CODE` prefers Codex-family/code-optimised models; `NONE` accepts general-purpose models |
+| `cost` | `FREE` \| `LOW` \| `MEDIUM` \| `HIGH` | Abstract cost tier mapped to each provider's pricing metric by the skill. `FREE`=no quota, `LOW`=minimal, `MEDIUM`=standard, `HIGH`=any. |
+| `latency` | `LOW` \| `MEDIUM` \| `HIGH` | `LOW` selects fastest/smallest models; used as tie-breaker |
+| `minDate` | ISO 8601 date string | Exclude models retired before this date |
+
+The `update-models` skill fetches **all supported providers in parallel** and combines the results into one `model:` array — no `provider` field is needed in the profile.
+
+**Example:**
+
+```yaml
+metadata:
+  modelProfile:
+    specialisation: CODE
+    cost: FREE
+    latency: LOW
+    minDate: "2025-01-01"
+```
+
 **Example (mirror):**
 ```yaml
 metadata:

@@ -8,9 +8,15 @@ tools: ['read', 'search', 'mermaidchart.vscode-mermaid-chart/get_syntax_docs', '
 # Claude Code fields
 disallowedTools: Edit, Write, Bash
 skills: ['mermaid-creator']
+# Metadata fields
 metadata:
   provenance:
     adaptedFrom: "https://github.com/arisng/github-copilot-fc/blob/main/agents/mermaid.agent.md"
+  modelProfile:
+    specialisation: NONE
+    cost: LOW
+    latency: LOW
+    minDate: "2025-01-01"
 ---
 
 # Mermaid Diagram Agent
@@ -27,6 +33,7 @@ Specialized agent for creating, validating, and rendering Mermaid diagrams. Tran
 ## Skill
 
 Load the `mermaid-creator` skill before generating diagrams. It contains:
+
 - Diagram type selection matrix (when to use which diagram)
 - Unicode semantic symbol reference for enhanced clarity
 - Best practices for layout, styling, and accessibility
