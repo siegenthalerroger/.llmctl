@@ -15,6 +15,8 @@ Reads a `metadata.modelProfile` block from an agent or skill file, fetches the a
 
 `cost`, `latency`, and `specialisation` are abstract tiers — this skill maps them to each provider's pricing metric at run-time. Because provider pricing structures vary and change frequently, cost-band assignment is **approximate**. When the fetched docs are ambiguous, supplement them with a web search before committing to a selection.
 
+Use the current on-disk file contents as the only source of truth. Read every target file before changing it, write the new `model:` array, and verify the saved file before reporting completion. Never describe a proposed model list as if it has already been applied.
+
 ## When to Use
 
 - User asks to "update models", "refresh model lists", or "regenerate model arrays"
@@ -36,7 +38,7 @@ metadata:
     minDate: "2025-01-01"
 ```
 
-If no `modelProfile` is present, stop and inform the user.
+If no `modelProfile` is present, stop and ask the user how to proceed, using a tool if available.
 
 ### Step 2 — Fetch all providers in parallel
 
@@ -158,13 +160,17 @@ model: ['DeepSeek V3.2 (unify-chat-provider)', 'Claude 3.7 Sonnet (thinking) (un
 To update all agent files:
 
 1. List all `*.agent.md` files in the workspace
-2. For each file that contains `metadata.modelProfile`, run Steps 1–7
-3. Report a summary table: file → old model count → new model list
+2. Read each file that contains `metadata.modelProfile` and capture its current `model:` array from disk
+3. For each target file, run Steps 1–8
+4. Re-read or diff every changed file before preparing the final response
+5. Report a summary table: file → old model count → verified new model list
 
 ## Constraints
 
 - Always fetch docs fresh — never rely on a cached or remembered model list
 - Preserve all other frontmatter fields exactly as-is
+- Never claim a file was "updated" until the edit has been applied and verified on disk
+- If a target file changes after the initial read, re-read it before editing
 - If the docs are unreachable, report the error and do not modify the file
 
 ## Provider-Specific Considerations
