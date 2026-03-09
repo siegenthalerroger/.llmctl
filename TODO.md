@@ -115,3 +115,8 @@ Steering file compatibility:
 - [ ] **3d — Add KiloCode symlink instructions to `README.md`**
   Add a "KiloCode" subsection under "How to use" explaining how to place or symlink `.llmctl` content for KiloCode (`.kilocodemodes` generation, `.kilo/rules-*/` placement).
   _Simple-Worker: edit one section of `README.md`._
+
+---
+## 4 - Consider Running `meta-update-models` skill as part of the `meta-updater` Agent
+
+_tbd_
