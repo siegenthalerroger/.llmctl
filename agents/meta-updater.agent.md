@@ -5,6 +5,7 @@ description: "User-invoked agent for checking third-party source drift across lo
 user-invokable: true
 disable-model-invocation: true
 tools: ['read', 'search', 'execute', 'todo', 'vscode/askQuestions', 'web/fetch', 'github/list_commits', 'github/get_commit', 'github/get_file_contents', 'github/search_code']
+model: ['GPT-5.4 (unify-chat-provider)', 'Claude Sonnet 4.6 (unify-chat-provider)', 'Kimi K2.5 (unify-chat-provider)', 'GPT-5.4 (copilot)', 'Claude Sonnet 4.6 (copilot)', 'Gemini 3.1 Pro (copilot)', 'GPT-5.2 (copilot)']
 # Claude Code fields
 skills: ['meta-upstream-sync']
 # Metadata fields

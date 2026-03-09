@@ -3,7 +3,7 @@ name: Generic-Research-Agent
 description: Specialized agent for complex, multi-source research requiring investigation across web, documentation, repositories, and synthesis into comprehensive reports. Delivers authoritative, validated findings for technical decisions. Use when research spans 3+ sources or requires comparative analysis and synthesis. Not for simple lookups or single-source queries.
 # Copilot fields
 tools: ['todo', 'agent/runSubagent', 'search', 'web', 'read', 'vscode', 'edit/createDirectory', 'edit/createFile', 'edit/editFiles', 'github/get_commit', 'github/get_file_contents', 'github/get_latest_release', 'github/get_release_by_tag', 'github/get_tag', 'github/list_branches', 'github/list_commits', 'github/list_releases', 'github/list_tags', 'github/search_code', 'github/search_issues', 'github/search_repositories', 'github/issue_read', 'context7/*', 'microsoft.docs.mcp/*', 'aws-knowledge-mcp/*', 'markitdown/*', 'pdf-reader/*']
-model: ['Gemini 3.1 Pro (Preview) (copilot)', 'Gemini 3 Pro (Preview) (copilot)', 'GPT-5.2 (copilot)', 'Gemini 2.5 Pro (copilot)', 'Claude Sonnet 4.6 (copilot)', 'Claude Sonnet 4.5 (copilot)', 'GPT-5.1 (copilot)']
+model: ['Claude Sonnet 4.6 (unify-chat-provider)', 'Kimi K2.5 (unify-chat-provider)', 'Gemini 3.1 Pro (Preview) (copilot)', 'GPT-5.4 (copilot)', 'Claude Sonnet 4.6 (copilot)', 'GPT-5.2 (copilot)', 'Gemini 3 Pro (Preview) (copilot)']
 # Metadata fields
 metadata:
   provenance:

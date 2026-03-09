@@ -3,7 +3,7 @@ name: "Mermaid-Agent"
 description: "Generate, validate, and render Mermaid diagrams from natural language descriptions or source code. Use when asked to create diagrams, generate mermaid, document architecture, convert code to diagram, or create design docs. Keywords: mermaid, diagram, flowchart, sequence, architecture, visualization."
 # Copilot fields
 argument-hint: Describe the diagram you want to create (e.g., flowchart, sequence diagram, etc.)
-model: ['GPT-5 mini (copilot)', 'Raptor mini (Preview) (copilot)', 'GPT-4.1 (copilot)', 'Grok Code Fast 1 (copilot)']
+model: ['GPT-5 nano (unify-chat-provider)', 'DeepSeek V3.1 (unify-chat-provider)', 'GPT-5 mini (copilot)', 'Raptor mini (copilot)', 'GPT-4.1 (copilot)', 'Grok Code Fast 1 (copilot)']
 tools: ['read', 'search', 'mermaidchart.vscode-mermaid-chart/get_syntax_docs', 'mermaidchart.vscode-mermaid-chart/mermaid-diagram-validator', 'mermaidchart.vscode-mermaid-chart/mermaid-diagram-preview']
 # Claude Code fields
 disallowedTools: Edit, Write, Bash
