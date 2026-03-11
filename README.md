@@ -55,44 +55,159 @@ Any prompt files must end in `*.prompt.md`.
 
 Recommended configuration properties:
 
-```js
+<details>
+<summary>Base VSCode</summary>
+
+#### Base VSCode
+
+```json
 {
-  "$schema": "vscode://schemas/settings/user"
-  "chat.edits2.enabled": true,
+  "$schema": "vscode://schemas/settings/user",
+  "editor.aiStats.enabled": true,
+  "inlineChat.enableV2": true,
+  "chat.checkpoints.showFileChanges": true,
+  "chat.agent.enabled": true,
   "chat.customAgentInSubagent.enabled": true,
   "chat.includeReferencedInstructions": true,
   "chat.instructionsFilesLocations": {
-    "~/.llmctl/instructions": true,
     ".agents/instructions": true,
+    ".claude/rules": true,
+    ".copilot/instructions": true,
+    ".github/instructions": true,
+    "~/.llmctl/instructions": true,
     "~/.agents/instructions": false,
-    ".github/instructions": false
+    "~/.claude/rules": false,
+    "~/.copilot/instructions": false,
+    "~/.github/instructions": false
   },
   "chat.promptFilesLocations": {
-    "~/.llmctl/prompts": true,
     ".agents/prompts": true,
+    ".claude/commands": true,
+    ".copilot/prompts": true,
+    ".github/prompts": true,
+    "~/.llmctl/prompts": true,
     "~/.agents/prompts": false,
-    ".github/prompts": false
+    "~/.claude/commands": false,
+    "~/.copilot/prompts": false,
+    "~/.github/prompts": false
   },
   "chat.agentSkillsLocations": {
-    "~/.llmctl/skills": true,
     ".agents/skills": true,
+    ".claude/skills": true,
+    ".copilot/skills": true,
+    ".github/skills": true,
+    "~/.llmctl/skills": true,
     "~/.agents/skills": false,
-    ".claude/skills": false,
-    ".github/skills": false,
+    "~/.claude/skills": false,
     "~/.copilot/skills": false,
-    "~/.claude/skills": false
+    "~/.github/skills": false
   },
   "chat.agentFilesLocations": {
-    "~/.llmctl/agents": true,
     ".agents/agents": true,
+    ".claude/agents": true,
+    ".copilot/agents": true,
+    ".github/agents": true,
+    "~/.llmctl/agents": true,
     "~/.agents/agents": false,
-    ".github/agents": false,
+    "~/.claude/agents": false,
+    "~/.copilot/agents": false,
     "~/.github/agents": false
   },
-  "github.copilot.chat.codesearch.enabled": true,
-  "github.copilot.chat.searchSubagent.enabled": true
+  "chat.hookFilesLocations": {
+    ".agents/hooks": true,
+    ".claude/hooks": true,
+    ".claude/settings.json": true,
+    ".claude/settings.local.json": true,
+    ".copilot/hooks": true,
+    ".github/hooks": true,
+    "~/.llmctl/hooks": true,
+    "~/.agents/hooks": false,
+    "~/.claude/hooks": false,
+    "~/.claude/settings.json": false,
+    "~/.copilot/hooks": false,
+    "~/.github/hooks": false
+  },
+  "chat.tools.terminal.autoApprove": {
+    "Test-Path": true,
+    "podman ps": true,
+    "podman compose ps": true,
+    "kubectl get": true,
+    "kubectl describe": true,
+    "kubectl logs": true,
+    "/^pnpm (--filter .+)? typecheck/": true,
+  },
+  "chat.tools.urls.autoApprove": {
+    "https://github.com/kilo-org/kilocode": {
+      "approveRequest": true,
+      "approveResponse": true
+    },
+    "https://code.visualstudio.com": {
+      "approveRequest": true,
+      "approveResponse": true
+    },
+    "https://*.openai.com": {
+      "approveRequest": true,
+      "approveResponse": true
+    },
+    "https://github.com/openai/codex": {
+      "approveRequest": true,
+      "approveResponse": true
+    },
+    "https://docs.github.com": {
+      "approveRequest": false,
+      "approveResponse": true
+    },
+    "https://api.kilo.ai": {
+      "approveRequest": true,
+      "approveResponse": true
+    },
+    "https://trivy.dev": {
+      "approveRequest": true,
+      "approveResponse": true
+    }
+  },
+  "simpleBrowser.useIntegratedBrowser": true,
+  "workbench.browser.enableChatTools": true,
 }
 ```
+
+</details>
+<details>
+<summary>Provider Configs</summary>
+
+#### Provider Configs
+
+```json
+{
+  "$schema": "vscode://schemas/settings/user",
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "github.copilot.chat.scopeSelection": true,
+  "github.copilot.chat.codesearch.enabled": true,
+  "github.copilot.chat.searchSubagent.enabled": true,
+  "gitlab.duoCodeSuggestions.enabled": false,
+  "gitlab.duoChat.enabled": false,
+  "gitlab.duo.enabledWithoutGitlabProject": false,
+  "kilo-code.debug": false,
+  "kilo-code.enableCodeActions": false,
+  "kilo-code.newTaskRequireTodos": true,
+  "kilo-code.preventCompletionWithOpenTodos": true,
+  "kilo-code.useAgentRules": false,
+  "kilo-code.deniedCommands": [],
+  "kilo-code.allowedCommands": [
+    "git log",
+    "git diff",
+    "git show",
+    "npm test",
+    "npm install",
+    "tsc"
+  ],
+  "claudeCode.preferredLocation": "panel",
+  "claudeCode.selectedModel": "claude-sonnet-4-6",
+  "unifyChatProvider.endpoints": [...]
+}
+```
+
+</details>
 
 ### Claude Code
 
