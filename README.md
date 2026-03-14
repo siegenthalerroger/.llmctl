@@ -127,6 +127,9 @@ Recommended configuration properties:
     "~/.copilot/hooks": false,
     "~/.github/hooks": false
   },
+  "chat.pluginLocations": {
+    "~/.llmctl/plugins": true
+  },
   "chat.tools.terminal.autoApprove": {
     "Test-Path": true,
     "podman ps": true,
