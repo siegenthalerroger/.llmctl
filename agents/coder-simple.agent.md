@@ -1,10 +1,10 @@
 ---
-name: Simple-Worker
+name: "Coder (Simple)"
 description: "Fast, cost-efficient implementation agent for well-specified, tightly-scoped coding tasks within a single component. Use when the plan is clear, changes touch ≤5 files, and no cross-component reasoning is needed. Keywords: implement, code, fix, small task, single component, focused change."
 # Copilot fields
+user-invocable: false
 tools: ['todo', 'search', 'read', 'edit', 'execute', 'git/git_log', 'git/git_diff', 'git/git_diff_staged', 'git/git_diff_unstaged', 'gradle/*', 'vscjava.vscode-java-debug/*']
-model: ['giga-potato-thinking (unify-chat-provider)', 'corethink:free (unify-chat-provider)', 'Raptor mini (copilot)', 'GPT-5 mini (copilot)']
-user-invokable: false
+model: ['giga-potato-thinking (unify-chat-provider)', 'Grok Code Fast 1 (unify-chat-provider)', 'Raptor mini (copilot)', 'Goldeneye (copilot)', 'GPT-5 mini (copilot)']
 # Metadata fields
 metadata:
   modelProfile:
@@ -14,7 +14,7 @@ metadata:
     minDate: "2025-01-01"
 ---
 
-# Simple Worker
+# Coder (Simple)
 
 Fast implementation agent for focused, well-specified coding tasks within a single component or module.
 

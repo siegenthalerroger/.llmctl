@@ -1,10 +1,10 @@
 ---
-name: Complex-Worker
+name: "Coder (Advanced)"
 description: "Mid-tier implementation agent for well-specified work spanning multiple components, systems, or files. Handles cross-cutting refactors, migrations, multi-file features, and tasks requiring sustained reasoning across a large change surface. Keywords: implement, refactor, migrate, multi-component, cross-cutting, large change."
 # Copilot fields
+user-invocable: false
 tools: ['todo', 'search', 'read', 'edit', 'execute', 'git/git_log', 'git/git_diff', 'git/git_diff_staged', 'git/git_diff_unstaged', 'gradle/*', 'vscjava.vscode-java-debug/*']
-model: ['GPT-5.3-Codex (unify-chat-provider)', 'GPT-5.1-Codex (unify-chat-provider)', 'GPT-5.3-Codex (copilot)', 'GPT-5.2-Codex (copilot)', 'GPT-5.1-Codex-Max (copilot)', 'Raptor mini (copilot)']
-user-invokable: false
+model: ['GPT-5.3-Codex (unify-chat-provider)', 'GPT-5.1-Codex-Max (unify-chat-provider)', 'Raptor mini (copilot)', 'GPT-5.1-Codex-Mini (copilot)', 'Goldeneye (copilot)', 'GPT-5.3-Codex (copilot)']
 # Metadata fields
 metadata:
   modelProfile:
@@ -14,7 +14,7 @@ metadata:
     minDate: "2025-01-01"
 ---
 
-# Complex Worker
+# Coder (Advanced)
 
 Implementation agent for well-specified work that spans multiple components, modules, or systems.
 
