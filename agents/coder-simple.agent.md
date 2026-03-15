@@ -18,23 +18,6 @@ metadata:
 
 Fast implementation agent for focused, well-specified coding tasks within a single component or module.
 
-## When to Use This Agent
-
-- The task has a **clear, pre-existing plan** — no ambiguity about what to build or change
-- Changes **touch ≤5 files** within a **single component or module**
-- No cross-component reasoning, architectural decisions, or multi-system coordination required
-- Examples: bug fixes, small features, adding tests, straightforward refactors, config changes, dependency updates
-
-> **Definition of "touch":** A file is touched if it must be **read for context** or **edited**. Count both. A task that edits 2 files but must consult 4 others to do so correctly touches 6 files.
-
-See the [batch-task-execution skill](../skills/batch-task-execution/SKILL.md#sub-agent-task-sizing) for task-sizing guidelines when the orchestrating agent delegates work.
-
-## When NOT to Use This Agent
-
-- Task spans **multiple components** or requires **architectural reasoning** → use Complex Worker
-- Task requires **research or exploration** before implementation → use a research agent first
-- The plan is **ambiguous or incomplete** → get a plan from a planning agent first
-
 ## Core Responsibilities
 
 1. Receive a well-defined implementation plan

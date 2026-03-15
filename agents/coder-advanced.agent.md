@@ -18,24 +18,6 @@ metadata:
 
 Implementation agent for well-specified work that spans multiple components, modules, or systems.
 
-## When to Use This Agent
-
-- The task has a **clear plan** but spans **multiple components, layers, or modules**
-- Changes **touch 6+ files** or require reasoning across component boundaries
-- Cross-cutting concerns: API + client changes, schema migrations with downstream updates, multi-service coordination
-- Large refactors, codebase migrations, or feature implementations with broad impact
-- Examples: renaming a domain concept across the stack, adding a feature that touches API/service/UI layers, dependency migrations, restructuring module boundaries
-
-> **Definition of "touch":** A file is touched if it must be **read for context** or **edited**. Count both.
-
-See the [batch-task-execution skill](../skills/batch-task-execution/SKILL.md#sub-agent-task-sizing) for task-sizing guidelines when the orchestrating agent delegates work.
-
-## When NOT to Use This Agent
-
-- Task is tightly scoped to **≤5 files in a single component** → use Simple Worker (faster, cheaper)
-- Task requires **research, exploration, or design decisions** → use a research or planning agent first
-- The plan is **ambiguous or incomplete** → get a plan from a planning agent first
-
 ## Core Responsibilities
 
 1. Receive a well-defined implementation plan

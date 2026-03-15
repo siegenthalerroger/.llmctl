@@ -37,8 +37,8 @@ Once tasks are confirmed:
 
 Choose the right worker tier and enforce sizing discipline. See agent definitions for full details:
 
-- [Simple-Worker](../../agents/generic-worker-simple.agent.md)
-- [Complex-Worker](../../agents/generic-worker-complex.agent.md)
+- [Simple Coder](../../agents/coder-simple.agent.md)
+- [Advanced Coder](../../agents/coder-advanced.agent.md)
 
 ### Definition of "touch"
 
@@ -46,18 +46,18 @@ A file is **touched** if it must be **read for context** or **edited**. Count bo
 
 A task that edits 2 files but must consult 4 others to produce correct output touches 6 files — even though only 2 files change.
 
-### Simple-Worker (≤5 files touched)
+### Coder (Simple) — ≤5 files touched, single component
 
-- One task = one concrete outcome
+- One task = one concrete outcome within a single component or module
 - Do not batch multiple file creations/rewrites into a single request
 - Keep each request narrowly scoped enough that a failed result can be reverted or retried without collateral edits
 - Prefer a short sequence of tiny tasks over a single broad "small" task as failures are isolated and retries are cheap
 
-### Complex-Worker (6+ files touched)
+### Coder (Advanced) — 6+ files touched or cross-component
 
 - Use when a task requires cross-component reasoning or sustained context across many files
-- The Complex-Worker may internally delegate isolated subtasks to Simple-Worker
-- Prefer Complex-Worker over a chain of Simple-Worker calls when the subtasks share significant context that would need to be re-explained in each prompt
+- Coder (Advanced) may internally delegate isolated subtasks to Coder (Simple)
+- Prefer Coder (Advanced) over a chain of Coder (Simple) calls when subtasks share significant context that would need to be re-explained in each prompt
 
 ## Handling Stale or Ambiguous Tasks
 
