@@ -177,7 +177,7 @@ Declarative capability profile used by the `update-models` skill to resolve the 
 
 | Field | Allowed values | Semantics |
 |---|---|---|
-| `specialisation` | `NONE` \| `CODE` | `CODE` prefers Codex-family/code-optimised models; `NONE` accepts general-purpose models |
+| `specialisation` | `NONE` \| `CODE` \| `REASONING` \| `LONG-CONTEXT` | `CODE` prefers Codex-family/code-optimised models; `REASONING` prefers models with extended thinking/chain-of-thought capabilities; `LONG-CONTEXT` prefers models with the largest context windows (≥200K tokens); `NONE` accepts general-purpose models |
 | `cost` | `FREE` \| `LOW` \| `MEDIUM` \| `HIGH` | Abstract cost tier mapped to each provider's pricing metric by the skill. `FREE`=no quota, `LOW`=minimal, `MEDIUM`=standard, `HIGH`=any. |
 | `latency` | `LOW` \| `MEDIUM` \| `HIGH` | `LOW` selects fastest/smallest models; used as tie-breaker |
 | `minDate` | ISO 8601 date string | Exclude models retired before this date |

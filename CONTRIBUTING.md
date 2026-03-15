@@ -33,7 +33,7 @@ Agent and skill files may declare a `metadata.modelProfile` block to describe th
 ```yaml
 metadata:
   modelProfile:
-    specialisation: NONE   # NONE | CODE
+    specialisation: NONE   # NONE | CODE | REASONING | LONG-CONTEXT
     cost: MEDIUM           # FREE | LOW | MEDIUM | HIGH
     latency: LOW           # LOW | MEDIUM | HIGH
     minDate: "2025-01-01"  # ISO date — exclude models retired before this date
@@ -43,7 +43,7 @@ metadata:
 
 | Field | Type | Allowed values | Semantics |
 |---|---|---|---|
-| `specialisation` | string | `NONE`, `CODE` | `CODE` prefers Codex-family and code-optimised models; `NONE` accepts general-purpose models |
+| `specialisation` | string | `NONE`, `CODE`, `REASONING`, `LONG-CONTEXT` | `CODE` prefers Codex-family and code-optimised models; `REASONING` prefers models with extended thinking/chain-of-thought capabilities; `LONG-CONTEXT` prefers models with the largest context windows and capability to retrieve from its entirety; `NONE` accepts general-purpose models |
 | `cost` | string | `FREE`, `LOW`, `MEDIUM`, `HIGH` | Abstract cost tier: `FREE` = no quota consumed, `LOW` = minimal quota, `MEDIUM` = standard, `HIGH` = premium. Mapped to provider-specific pricing by the `update-models` skill. |
 | `latency` | string | `LOW`, `MEDIUM`, `HIGH` | `LOW` prefers the fastest/smallest models; tie-breaks within a cost band |
 | `minDate` | string | ISO 8601 date | Ensure models have intrinsic knowledge of everything up to this date; excludes models trained before this date |

@@ -74,7 +74,7 @@ metadata:
       - "https://code.claude.com/docs/en/sub-agents"
       - "https://code.visualstudio.com/docs/copilot/customization/custom-agents"
   modelProfile:
-    specialisation: NONE
+    specialisation: NONE   # NONE | CODE | REASONING | LONG-CONTEXT
     cost: MEDIUM
     latency: LOW
     minDate: "2025-01-01"

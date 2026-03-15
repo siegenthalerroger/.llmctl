@@ -23,6 +23,19 @@ Use the current on-disk file contents as the only source of truth. Read every ta
 - A `metadata.modelProfile` block exists in a file but the `model:` array is stale or missing
 - After running this skill on multiple files to bring all agents up to date
 
+## Schema Documentation Locations
+
+The `modelProfile` schema (especially the `specialisation` enum) is documented in **multiple files**. When adding or changing allowed values, update **all** of these in a single pass:
+
+| File | What to update |
+|---|---|
+| `CONTRIBUTING.md` | Field reference table + YAML example comment |
+| `skills/meta-update-models/SKILL.md` | Step 1 profile example comment + Step 4 filter rules |
+| `skills/meta-agent/SKILL.md` | Dual-compatible frontmatter example |
+| `skills/meta-agent/references/FRONTMATTER.md` | `metadata.modelProfile` schema table |
+
+Use `grep -r "specialisation" .` (or equivalent) before starting to catch any other locations.
+
 ## Process
 
 ### Step 1 — Read the profile
@@ -32,7 +45,7 @@ Read the target file and extract `metadata.modelProfile`:
 ```yaml
 metadata:
   modelProfile:
-    specialisation: NONE   # NONE | CODE
+    specialisation: NONE   # NONE | CODE | REASONING | LONG-CONTEXT
     cost: MEDIUM           # FREE | LOW | MEDIUM | HIGH
     latency: LOW           # LOW | MEDIUM | HIGH
     minDate: "2025-01-01"
@@ -73,7 +86,7 @@ For each provider's catalogue, apply these filters **in order**, discarding mode
 | **Retired**        | Exclude any model with a retirement date on or before today's date                                  |
 | **Training Date**  | Exclude any model trained before `minDate`; ensures intrinsic knowledge up to that date              |
 | **Cost band**      | Apply the provider-specific mapping from Step 3                                                      |
-| **Specialisation** | `CODE` → keep only Codex-family and code-optimised variants (names containing "Codex", "Raptor", "Goldeneye", or described as code-optimised in the docs); `NONE` → keep all remaining models |
+| **Specialisation** | `CODE` → keep only Codex-family and code-optimised variants (names containing "Codex", "Raptor", "Goldeneye", or described as code-optimised in the docs); `REASONING` → keep only models with extended thinking or chain-of-thought capabilities (e.g. o1, o3, DeepSeek R1, models with "thinking" or "reasoning" in their name or description); `LONG-CONTEXT` → keep only models with context windows ≥ 200K tokens, sorted by context window size (largest first); `NONE` → keep all remaining models |
 | **Task match**     | Based on the agent's task descriptions, ensure the model is appropriate for that type of task based on the recommendations in the docs. |
 
 ### Step 5 — Format model names
