@@ -1,12 +1,30 @@
 ---
 name: prd-feature
-description: 'Prompt for creating Product Requirements Documents (PRDs) for new features, based on an Epic.'
+description: 'Creates type-aware Feature PRDs from a parent epic. Use when writing platform, engine, or domain feature PRDs so personas, workflows, requirements, and UX depth inherit the parent epic type.'
 metadata:
   provenance:
-    mirror: "https://github.com/github/awesome-copilot/blob/main/skills/breakdown-feature-prd/SKILL.md"
+    adaptedFrom:
+      - "https://github.com/github/awesome-copilot/blob/main/skills/breakdown-feature-prd/SKILL.md"
 ---
 
 # Feature PRD Prompt
+
+## Before Writing: Read the Parent Epic and Inherit Its Type
+
+Before drafting the feature PRD:
+
+- Read the parent epic first and classify it as **Platform**, **Engine**, or **Domain**.
+- The feature **inherits the parent epic type**. If the requested feature does not fit that type, stop and ask whether it belongs in another epic instead of forcing it into the wrong template.
+
+| Parent Epic Type | Personas | Section 5 | UX Discovery |
+|---|---|---|---|
+| **Platform** | Developer / Operator only | Operational or integration workflows | Only if the feature has a real human workflow |
+| **Engine** | Developer only | Integration / lifecycle workflows | Rare |
+| **Domain** | Direct user roles | Standard user stories | Common when flows need depth |
+
+- **Platform / Engine features** focus on contracts, states, failure handling, extensibility, and operations.
+- **Domain features** focus on direct user value, workflows, and user-facing outcomes.
+- If a Platform / Engine feature starts to require domain-user journeys, challenge the epic boundary.
 
 ## Goal
 
@@ -36,17 +54,18 @@ The output should be a complete PRD in Markdown format, saved to `docs/product/{
 
 #### 4. User Personas
 
-- Describe the target user(s) for this feature.
+- Inherit the parent epic type: direct user roles for **Domain** features, Developer / Operator personas for **Platform / Engine** features.
 
-#### 5. User Stories
+#### 5. User Stories / Workflows
 
-- Write user stories in the format: "As a `<user persona>`, I want to `<perform an action>` so that I can `<achieve a benefit>`."
-- Cover the primary paths and edge cases.
+- For **Domain** features, ask: *"Should I run a UX discovery session first (JTBD analysis, full journey map, edge cases) before we commit to requirements?"* Propose the **UX Expert agent** if the feature involves a meaningful user workflow. The UX Expert writes directly into this PRD.
+- For **Platform / Engine** features, use developer/operator or integration workflows instead of forcing consumer-style end-user stories. Capture contracts, state transitions, failure handling, and extension points.
+- Write stories or workflows in the format that best matches the parent type, while still covering primary paths and edge cases.
 
 #### 6. Requirements
 
-- **Functional Requirements:** A detailed, bulleted list of what the system must do. Be specific and unambiguous.
-- **Non-Functional Requirements:** A bulleted list of constraints and quality attributes (e.g., performance, security, accessibility, data privacy).
+- **Functional Requirements:** A concise list of what the system must do. Keep to ≤12 requirements total. One sentence per requirement. Group by concern — never produce sub-tables per entity instance (e.g., one row per CRUD operation per entity type). A single requirement like "Admin can create, edit, and delete [entity] with deletion safeguards" is better than four separate rows. For Platform / Engine features, include contracts, state transitions, failure modes, observability expectations, and extension hooks where relevant.
+- **Non-Functional Requirements:** ≤6 requirements. One sentence each, covering performance, accessibility, and security.
 
 #### 7. Acceptance Criteria
 
