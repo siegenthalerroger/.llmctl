@@ -5,7 +5,7 @@ argument-hint: Describe WHAT you're looking for and desired thoroughness (quick/
 # Copilot fields
 target: vscode
 user-invocable: false
-model: ['Gemini 3.1 Flash Lite Preview (unify-chat-provider)', 'Claude Haiku 4.5 (unify-chat-provider)', 'GPT-5.2 (copilot)', 'Gemini 3 Flash (copilot)']
+model: ['Google: Gemini 3.1 Flash Lite Preview (unify-chat-provider)', 'Claude Haiku 4.5 (unify-chat-provider)', 'GPT-5.2 (copilot)', 'Gemini 3 Flash (copilot)']
 tools: ['search', 'read', 'web', 'vscode/memory', 'github/issue_read', 'github.vscode-pull-request-github/issue_fetch', 'github.vscode-pull-request-github/activePullRequest', 'execute/getTerminalOutput', 'execute/testFailure']
 agents: []
 # Metadata fields

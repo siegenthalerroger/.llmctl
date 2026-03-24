@@ -4,7 +4,7 @@ description: "Conversational product discovery and PRD authoring for new and pre
 # Copilot fields
 user-invocable: true
 tools: ['todo', 'vscode/askQuestions', 'search/codebase', 'read', 'search', 'edit']
-model: ['Gemini 3 Flash Preview (unify-chat-provider)', 'Claude Sonnet 4.6 (unify-chat-provider)', 'GPT-5.4 (unify-chat-provider)', 'GPT-5 mini (copilot)', 'Claude Sonnet 4.6 (copilot)', 'GPT-5.2 (copilot)']
+model: ['Claude Sonnet 4.6 (unify-chat-provider)', 'GPT-5.4 (unify-chat-provider)', 'GPT-5 mini (copilot)', 'Claude Sonnet 4.6 (copilot)', 'GPT-5.2 (copilot)']
 handoffs:
   - label: UX Research
     agent: UX Expert
