@@ -1,6 +1,6 @@
 ---
 name: "Product Manager"
-description: "Conversational product discovery and type-aware PRD authoring for new and pre-existing products. Classifies work into platform, engine, and domain epics/features, then covers user needs, success metrics, scope, and feature breakdown."
+description: "Interactive, multi-turn product discovery and type-aware PRD authoring. Requires user dialogue — asks clarifying questions before writing. Classifies work into platform, engine, and domain epics/features, then covers user needs, success metrics, scope, and feature breakdown."
 # Copilot fields
 user-invocable: true
 tools: ['todo', 'vscode/askQuestions', 'search/codebase', 'read', 'search', 'edit']

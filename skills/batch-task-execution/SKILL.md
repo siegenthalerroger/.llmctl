@@ -59,6 +59,36 @@ A task that edits 2 files but must consult 4 others to produce correct output to
 - Coder (Advanced) may internally delegate isolated subtasks to Coder (Simple)
 - Prefer Coder (Advanced) over a chain of Coder (Simple) calls when subtasks share significant context that would need to be re-explained in each prompt
 
+## Conversational Agents as Subagents
+
+`mcp_runSubagent` is **single-shot** — the agent receives one prompt and returns one response. It cannot ask the user follow-up questions.
+
+**How to detect a conversational agent:** check the agent's description for keywords like "interactive", "requires user dialogue", "asks questions", or "multi-turn". These agents lose their core value when run single-shot.
+
+### When the agent's value is the conversation, not just the output
+
+- Do **not** run conversational agents as subagents when design decisions require user input
+- Instead, present the task to the user and recommend they invoke the agent directly (e.g. "This needs UX discovery — switch to the UX Expert agent to work through it interactively")
+- If multiple conversational tasks exist, list them for the user and let them sequence the conversations
+
+### When subagent delegation is acceptable
+
+Conversational agents may run as subagents only when:
+
+- All design decisions are already resolved (user explicitly confirmed direction)
+- The task is purely mechanical (e.g. "write up these agreed requirements as a PRD")
+- The handover prompt contains the user's own words/decisions, not your assumptions
+
+### Handover prompt rules for conversational agents
+
+❌ Never pre-decide design choices in the prompt ("Recommended Design Direction: X")
+❌ Never instruct the agent to skip questions ("you do NOT need to ask clarifying questions")
+❌ Never fill in answers the user hasn't given
+
+✅ Provide context (what exists, what's missing, what the gap is)
+✅ Include the user's stated preferences and prior decisions verbatim
+✅ Flag open questions as open — let the agent surface them in its output as "decisions needed"
+
 ## Handling Stale or Ambiguous Tasks
 
 TODO lists go stale. Before executing:

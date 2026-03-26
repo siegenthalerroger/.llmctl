@@ -1,6 +1,6 @@
 ---
 name: "UX Expert"
-description: "Product-focused UX research: JTBD analysis, persona definition, user journey mapping, and flow documentation. Writes into the feature PRD — no separate design files."
+description: "Interactive UX research requiring user dialogue: JTBD analysis, persona definition, user journey mapping, and flow documentation. Asks discovery questions before writing. Outputs directly into the feature PRD — no separate design files."
 # Copilot fields
 user-invocable: true
 tools: ['todo', 'vscode/askQuestions', 'codebase', 'read', 'search', 'edit/editFiles']
