@@ -55,7 +55,7 @@ To restrict tools on the Claude side, use the Claude-only `disallowedTools` fiel
 
 ### Model field
 
-Copilot supports an array of model display names with fallback ordering. Claude Code uses a single alias (`sonnet`, `opus`, `haiku`, or `inherit`). Each tool ignores the other's format.
+Copilot supports an array of model display names with ordered fallback semantics, and the harness chooses the first available entry. Put genuinely suitable free-capable models first when that ordering matters. Claude Code uses a single alias (`sonnet`, `opus`, `haiku`, or `inherit`). Each tool ignores the other's format.
 
 ### Dual-compatible frontmatter example
 

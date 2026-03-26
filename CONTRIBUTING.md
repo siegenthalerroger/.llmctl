@@ -28,7 +28,7 @@ This is a **repository convention**, not a universal standard.
 
 ## Model Profile Convention (`metadata.modelProfile`)
 
-Agent and skill files may declare a `metadata.modelProfile` block to describe the model capabilities required, instead of maintaining a hardcoded `model:` array. The `update-models` skill reads this profile, fetches the authoritative model list for the target provider at run-time, and rewrites the `model:` array with the current best-matching models.
+Customization files may declare a `metadata.modelProfile` block to describe the model capabilities required, instead of maintaining a hardcoded `model:` array, but only when that file type supports the top-level Copilot `model` frontmatter field. The `meta-update-models` skill reads this profile, fetches the authoritative model catalogues for all supported providers at run-time, and rewrites the ordered `model:` array with the current best-matching models.
 
 ```yaml
 metadata:
@@ -44,22 +44,26 @@ metadata:
 | Field | Type | Allowed values | Semantics |
 |---|---|---|---|
 | `specialisation` | string | `NONE`, `CODE`, `REASONING`, `LONG-CONTEXT` | `CODE` prefers Codex-family and code-optimised models; `REASONING` prefers models with extended thinking/chain-of-thought capabilities; `LONG-CONTEXT` prefers models with the largest context windows and capability to retrieve from its entirety; `NONE` accepts general-purpose models |
-| `cost` | string | `FREE`, `LOW`, `MEDIUM`, `HIGH` | Abstract cost tier: `FREE` = no quota consumed, `LOW` = minimal quota, `MEDIUM` = standard, `HIGH` = premium. Mapped to provider-specific pricing by the `update-models` skill. |
+| `cost` | string | `FREE`, `LOW`, `MEDIUM`, `HIGH` | Abstract cost tier: `FREE` = truly zero incremental usage, `LOW` = light usage burn, `MEDIUM` = standard included usage, `HIGH` = premium or high-burn usage. Mapped to provider-specific pricing by the `meta-update-models` skill. |
 | `latency` | string | `LOW`, `MEDIUM`, `HIGH` | `LOW` prefers the fastest/smallest models; tie-breaks within a cost band |
 | `minDate` | string | ISO 8601 date | Ensure models have intrinsic knowledge of everything up to this date; excludes models trained before this date |
 
 ### Resolution rules
 
-The `update-models` skill fetches **all supported providers in parallel** and combines the results into one ranked `model:` array. Cost bands are abstract — the skill maps them to each provider's pricing metric at run-time:
+The `meta-update-models` skill fetches **all supported providers in parallel** and combines the results into one ranked `model:` array. Cost bands are abstract — the skill maps them to each provider's pricing or entitlement model at run-time.
 
-| Cost tier | Copilot | KiloCode |
-|---|---|---|
-| `FREE` | Premium multiplier = 0 | Included without credits |
-| `LOW` | Multiplier ≤ 0.33 | Low credit consumption |
-| `MEDIUM` | Multiplier ≤ 1 | Standard credit consumption |
-| `HIGH` | Any multiplier | Any model |
+The skill also enforces these merge rules:
 
-Authoritative sources are maintained in the `update-models` skill frontmatter (`metadata.provenance.authoritativeSpec`).
+- The array is ordered, and the harness chooses the first available entry.
+- For `FREE` profiles, put qualifying free models first. In practice, this means free KiloCode models and GitHub Copilot models with premium multiplier `0`, but only when they pass the same task-fit and specialisation filters as every other candidate. Subscription-included models are **not** automatically free.
+- For `LOW`, `MEDIUM`, and `HIGH` profiles, do **not** put free models first by default. Treat free options as optional fallbacks that must be explicitly validated as competitive with the paid candidates for the task.
+- After the free-first prefix, reserve provider coverage in this order: **Claude Code**, **OpenAI-backed models available through Codex**, then **GitHub Copilot**.
+- Always include at least one **Claude Code-backed** model, one **OpenAI-backed model available through Codex**, and one **GitHub Copilot** model when that provider still has a candidate after cost-band filtering.
+- KiloCode is optional and free-only: include it only when a free KiloCode model is genuinely strong enough for the task, and never spend KiloCode credits.
+- Interpret `cost` as a ceiling, not as an instruction to maximize cheapness. Within the allowed band, specialization and task fit outrank small cost differences.
+- Use the exact accepted model display strings in `model:` arrays. Preserve casing and provider-specific spellings, and do not normalize names across providers. For example, `GPT-5.4 mini (copilot)` and `GPT-5.4 Mini (unify-chat-provider)` are distinct valid strings.
+
+Authoritative sources are maintained in the `meta-update-models` skill frontmatter (`metadata.provenance.authoritativeSpec`) and currently cover GitHub Copilot, Claude Code, OpenAI Codex, and KiloCode.
 
 > **Note:** The `model:` array is a Copilot-only frontmatter field. Claude Code and other tools ignore it. `metadata.modelProfile` is a local repository convention and is safely ignored by all tools.
 

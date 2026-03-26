@@ -88,9 +88,11 @@ Model identifiers vary by platform and provider. Can be a single string or an ar
 # Single model
 model: "your-preferred-model"
 
-# Multiple models with fallback
-model: ["primary-model", "fallback-model", "backup-model"]
+# Multiple models with ordered fallback
+model: ["free-model", "preferred-paid-model", "backup-model"]
 ```
+
+For Copilot model arrays, order matters: the harness chooses the first available entry. For `FREE` profiles, put genuinely suitable free options first. For non-`FREE` profiles, prefer the best-fitting models within the requested cost band and do **not** put free options first by default. Use the exact accepted display strings, preserving casing and provider-specific suffixes.
 
 ### `target`
 
@@ -171,18 +173,18 @@ Additional metadata about the agent. Can contain any custom key-value pairs. Com
 
 #### `metadata.modelProfile`
 
-Declarative capability profile used by the `update-models` skill to resolve the `model:` array at run-time by consulting authoritative provider documentation. Provider-agnostic — add a `provider` field to target a different model gateway.
+Declarative capability profile used by the `meta-update-models` skill to resolve the ordered `model:` array at run-time by consulting authoritative provider documentation. Use it only in customization files that support the top-level `model` frontmatter field.
 
 **Schema:**
 
 | Field | Allowed values | Semantics |
 |---|---|---|
 | `specialisation` | `NONE` \| `CODE` \| `REASONING` \| `LONG-CONTEXT` | `CODE` prefers Codex-family/code-optimised models; `REASONING` prefers models with extended thinking/chain-of-thought capabilities; `LONG-CONTEXT` prefers models with the largest context windows (≥200K tokens); `NONE` accepts general-purpose models |
-| `cost` | `FREE` \| `LOW` \| `MEDIUM` \| `HIGH` | Abstract cost tier mapped to each provider's pricing metric by the skill. `FREE`=no quota, `LOW`=minimal, `MEDIUM`=standard, `HIGH`=any. |
+| `cost` | `FREE` \| `LOW` \| `MEDIUM` \| `HIGH` | Abstract cost tier mapped to each provider's pricing metric by the skill. `FREE`=truly zero incremental usage, `LOW`=light usage burn, `MEDIUM`=standard included usage, `HIGH`=premium or high-burn usage. |
 | `latency` | `LOW` \| `MEDIUM` \| `HIGH` | `LOW` selects fastest/smallest models; used as tie-breaker |
 | `minDate` | ISO 8601 date string | Exclude models retired before this date |
 
-The `update-models` skill fetches **all supported providers in parallel** and combines the results into one `model:` array — no `provider` field is needed in the profile.
+The `meta-update-models` skill fetches **all supported providers in parallel** and combines the results into one ordered `model:` array. The harness chooses the first available entry, so qualifying free models are placed first; after that free-first prefix, the skill reserves Claude Code, OpenAI-backed models available through Codex, and GitHub Copilot coverage in that order. Subscription-included Claude Code and OpenAI Codex models are not automatically `FREE`. No `provider` field is needed in the profile.
 
 **Example:**
 
