@@ -5,7 +5,7 @@ description: "Generate, validate, and render Mermaid diagrams from natural langu
 user-invocable: true
 argument-hint: Describe the diagram you want to create (e.g., flowchart, sequence diagram, etc.)
 tools: ['read', 'search', 'mermaidchart.vscode-mermaid-chart/get_syntax_docs', 'mermaidchart.vscode-mermaid-chart/mermaid-diagram-validator', 'mermaidchart.vscode-mermaid-chart/mermaid-diagram-preview']
-model: ['xAI: Grok Code Fast 1 Optimized (experimental, free) (unify-chat-provider)', 'Nex AGI: DeepSeek V3.1 Nex N1 (unify-chat-provider)', 'GPT-5 mini (copilot)', 'GPT-4.1 (copilot)', 'Grok Code Fast 1 (copilot)', 'Raptor mini (copilot)']
+model: ['Claude Haiku 4.5 (unify-chat-provider)', 'GPT-5.4 Mini (unify-chat-provider)', 'GPT-5.4 mini (copilot)', 'GPT-5 mini (copilot)']
 # Claude Code fields
 disallowedTools: Bash
 skills: ['mermaid-creator']

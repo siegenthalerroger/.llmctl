@@ -4,7 +4,7 @@ description: "Mid-tier implementation agent for well-specified work spanning mul
 # Copilot fields
 user-invocable: false
 tools: ['todo', 'search', 'read', 'edit', 'execute', 'git/git_log', 'git/git_diff', 'git/git_diff_staged', 'git/git_diff_unstaged', 'gradle/*', 'vscjava.vscode-java-debug/*']
-model: ['GPT-5.3-Codex (unify-chat-provider)', 'GPT-5.1-Codex-Max (unify-chat-provider)', 'Raptor mini (copilot)', 'GPT-5.1-Codex-Mini (copilot)', 'Goldeneye (copilot)', 'GPT-5.3-Codex (copilot)']
+model: ['Claude Haiku 4.5 (unify-chat-provider)', 'GPT-5.3-Codex (unify-chat-provider)', 'GPT-5.3-Codex (copilot)', 'GPT-5 mini (copilot)']
 # Metadata fields
 metadata:
   modelProfile:

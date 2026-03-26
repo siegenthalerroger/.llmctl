@@ -5,7 +5,7 @@ description: "User-invocable agent for auditing and updating local customization
 user-invocable: true
 disable-model-invocation: true
 tools: ['read', 'edit', 'search', 'execute', 'todo', 'vscode/askQuestions', 'web/fetch', 'github/list_commits', 'github/get_commit', 'github/get_file_contents', 'github/search_code']
-model: ['Claude Sonnet 4.6 (unify-chat-provider)', 'GPT-5.4 (unify-chat-provider)', 'GPT-5.4 (copilot)', 'Claude Sonnet 4.6 (copilot)', 'Gemini 3.1 Pro (copilot)', 'GPT-5.2 (copilot)']
+model: ['Claude Sonnet 4.6 (unify-chat-provider)', 'GPT-5.4 (unify-chat-provider)', 'Claude Sonnet 4.6 (copilot)']
 # Claude Code fields
 skills: ['meta-upstream-sync', 'meta-update-models', 'meta-agent', 'meta-skill', 'meta-prompt', 'meta-instruction']
 # Metadata fields

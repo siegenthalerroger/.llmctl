@@ -4,7 +4,7 @@ description: "Interactive UX research requiring user dialogue: JTBD analysis, pe
 # Copilot fields
 user-invocable: true
 tools: ['todo', 'vscode/askQuestions', 'codebase', 'read', 'search', 'edit/editFiles']
-model: ['Claude Sonnet 4.6 (unify-chat-provider)', 'Claude Sonnet 4.6 (copilot)']
+model: ['Claude Sonnet 4.6 (unify-chat-provider)', 'GPT-5.4 Mini (unify-chat-provider)', 'Claude Sonnet 4.6 (copilot)']
 handoffs:
   - label: Back to Product Manager
     agent: Product Manager

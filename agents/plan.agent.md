@@ -6,7 +6,7 @@ argument-hint: Outline the goal or problem to research
 target: vscode
 disable-model-invocation: true
 tools: ['search', 'read', 'web', 'vscode/memory', 'github/issue_read', 'github.vscode-pull-request-github/issue_fetch', 'github.vscode-pull-request-github/activePullRequest', 'execute/getTerminalOutput', 'execute/testFailure', 'agent', 'vscode/askQuestions']
-model: ['Claude Sonnet 4.6 (unify-chat-provider)', 'Gemini 3.1 Pro (copilot)', 'Claude Sonnet 4.6 (copilot)', 'GPT-5.2 (copilot)']
+model: ['Claude Opus 4.6 (unify-chat-provider)', 'GPT-5.4 (unify-chat-provider)', 'Claude Opus 4.6 (copilot)', 'Claude Sonnet 4.6 (copilot)']
 agents: ['Explore']
 handoffs:
   - label: Start Implementation

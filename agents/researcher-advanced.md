@@ -4,7 +4,7 @@ description: Specialized agent for complex, multi-source research requiring inve
 # Copilot fields
 user-invocable: true
 tools: ['todo', 'agent/runSubagent', 'search', 'web', 'read', 'edit', 'github/get_commit', 'github/get_file_contents', 'github/get_latest_release', 'github/get_release_by_tag', 'github/get_tag', 'github/list_branches', 'github/list_commits', 'github/list_releases', 'github/list_tags', 'github/search_code', 'github/search_issues', 'github/search_repositories', 'github/issue_read', 'context7/*', 'microsoft.docs.mcp/*', 'aws-knowledge-mcp/*', 'markitdown/*', 'pdf-reader/*']
-model: ['Claude Sonnet 4.6 (unify-chat-provider)', 'GPT-5.4 (unify-chat-provider)', 'Claude Sonnet 4.6 (copilot)', 'GPT-5.4 (copilot)', 'Gemini 3.1 Pro (copilot)', 'GPT-5.2 (copilot)']
+model: ['Claude Sonnet 4.6 (unify-chat-provider)', 'GPT-5.4 (unify-chat-provider)', 'Gemini 3.1 Pro (copilot)', 'GPT-5.4 (copilot)', 'Claude Sonnet 4.6 (copilot)']
 # Claude Code fields
 skills: ['complex-research']
 # Metadata fields
@@ -12,7 +12,7 @@ metadata:
   provenance:
     adaptedFrom: "https://github.com/arisng/github-copilot-fc/blob/main/agents/generic-research.agent.md"
   modelProfile:
-    specialisation: NONE
+    specialisation: LONG-CONTEXT
     cost: MEDIUM
     latency: HIGH
     minDate: "2025-01-01"
