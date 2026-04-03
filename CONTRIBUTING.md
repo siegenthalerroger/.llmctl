@@ -10,7 +10,7 @@ Provenance fields are grouped under `metadata.provenance` in YAML frontmatter:
 metadata:
   provenance:
     mirror: "https://example.com/canonical/upstream"           # single string — exact copy
-    adaptedFrom:                                                # array — synthesised from
+    adaptedFrom:                                               # array — synthesised from
       - "https://github.com/org-a/repo/blob/main/skill.md"
       - "https://github.com/org-b/repo/blob/main/skill.md"
     authoritativeSpec:                                          # array — format specifications

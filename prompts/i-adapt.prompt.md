@@ -1,6 +1,6 @@
 ---
 name: i-adapt
-description: Adapt designs to work across different screen sizes, devices, contexts, or platforms. Ensures consistent experience across varied environments.
+description: Adapt designs to work across different screen sizes, devices, contexts, or platforms. Implements breakpoints, fluid layouts, and touch targets. Use when the user mentions responsive design, mobile layouts, breakpoints, viewport adaptation, or cross-device compatibility.
 argument-hint: "[TARGET=<value>] [CONTEXT=<value>]"
 license: Apache-2.0
 metadata:
@@ -9,6 +9,12 @@ metadata:
 ---
 
 Adapt existing designs to work effectively across different contexts - different screen sizes, devices, platforms, or use cases.
+
+## MANDATORY PREPARATION
+
+Use the frontend-design skill for design principles, anti-patterns, and the context gathering protocol. If no design context exists yet, run i-teach-impeccable first. Additionally gather target platforms/devices and usage contexts.
+
+If any of that context is still unclear after reviewing the current thread and codebase, ask the user directly before proceeding.
 
 ## Assess Adaptation Challenge
 

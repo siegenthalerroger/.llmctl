@@ -1,6 +1,6 @@
 ---
 name: i-normalize
-description: Normalize design to match your design system and ensure consistency
+description: Audits and realigns UI to match design system standards, spacing, tokens, and patterns. Use when the user mentions consistency, design drift, mismatched styles, tokens, or wants to bring a feature back in line with the system.
 argument-hint: "[FEATURE=<value>]"
 license: Apache-2.0
 metadata:
@@ -9,6 +9,12 @@ metadata:
 ---
 
 Analyze and redesign the feature to perfectly match our design system standards, aesthetics, and established patterns.
+
+## MANDATORY PREPARATION
+
+Use the frontend-design skill for design principles, anti-patterns, and the context gathering protocol. If no design context exists yet, run i-teach-impeccable first.
+
+If any of that context is still unclear after reviewing the current thread and codebase, ask the user directly before proceeding.
 
 ## Plan
 
@@ -19,7 +25,7 @@ Before making changes, deeply understand the context:
    - Target audience and personas
    - Component patterns and conventions
    - Design tokens (colors, typography, spacing)
-   
+
    **CRITICAL**: If something isn't clear, ask. Don't guess at design system principles.
 
 2. **Analyze the current feature**: Assess what works and what doesn't:
@@ -31,7 +37,7 @@ Before making changes, deeply understand the context:
    - Which components can be replaced with design system equivalents?
    - Which styles need to use design tokens instead of hard-coded values?
    - How can UX patterns match established user flows?
-   
+
    **IMPORTANT**: Great design is effective design. Prioritize UX consistency and usability over visual polish alone. Think through the best possible experience for your use case and personas first.
 
 ## Execute

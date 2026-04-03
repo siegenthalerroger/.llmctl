@@ -3,8 +3,8 @@ name: "UX Expert"
 description: "Interactive UX research requiring user dialogue: JTBD analysis, persona definition, user journey mapping, and flow documentation. Asks discovery questions before writing. Outputs directly into the feature PRD — no separate design files."
 # Copilot fields
 user-invocable: true
-tools: ['todo', 'vscode/askQuestions', 'codebase', 'read', 'search', 'edit/editFiles']
-model: ['Claude Sonnet 4.6 (unify-chat-provider)', 'GPT-5.4 Mini (unify-chat-provider)', 'Claude Sonnet 4.6 (copilot)']
+tools: ['todo', 'vscode/askQuestions', 'search/codebase', 'read', 'search', 'edit/editFiles']
+model: ['Claude Sonnet 4.6 (unify-chat-provider)', 'GPT-5.4 (unify-chat-provider)', 'Claude Sonnet 4.6 (copilot)']
 handoffs:
   - label: Back to Product Manager
     agent: Product Manager

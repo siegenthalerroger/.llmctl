@@ -24,7 +24,7 @@ Note what you've learned and what remains unclear.
 
 ## Step 2: Ask UX-Focused Questions
 
-ask the user directly to clarify what you cannot infer. Focus only on what you couldn't infer from the codebase:
+Ask the user directly to clarify what you cannot infer. Focus only on what you couldn't infer from the codebase:
 
 ### Users & Purpose
 - Who uses this? What's their context when using it?
@@ -67,6 +67,8 @@ Synthesize your findings and the user's answers into a `## Design Context` secti
 [3-5 principles derived from the conversation that should guide all design decisions]
 ```
 
-Write this section to .github/copilot-instructions.md in the project root. If the file exists, append or update the Design Context section.
+Write this section to any agent steering files that are in use for this project (e.g. `CLAUDE.md`, `*.agent.md`, `.github/copilot-instructions.md`) so that it will persist across all future sessions and be available to all agents.
+
+If this section already exists in any of those files, update it with the new information rather than overwriting it. If the file references an external source for design context, update that source instead.
 
 Confirm completion and summarize the key design principles that will now guide all future work.

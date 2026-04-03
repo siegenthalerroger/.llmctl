@@ -1,6 +1,6 @@
 ---
 name: i-onboard
-description: Design or improve onboarding flows, empty states, and first-time user experiences. Helps users get started successfully and understand value quickly.
+description: Designs and improves onboarding flows, empty states, and first-run experiences to help users reach value quickly. Use when the user mentions onboarding, first-time users, empty states, activation, getting started, or new user flows.
 argument-hint: "[TARGET=<value>]"
 license: Apache-2.0
 metadata:
@@ -9,6 +9,12 @@ metadata:
 ---
 
 Create or improve onboarding experiences that help users understand, adopt, and succeed with the product quickly.
+
+## MANDATORY PREPARATION
+
+Use the frontend-design skill for design principles, anti-patterns, and the context gathering protocol. If no design context exists yet, run i-teach-impeccable first. Additionally gather the "aha moment" users should reach and users' experience level.
+
+If any of that context is still unclear after reviewing the current thread and codebase, ask the user directly before proceeding.
 
 ## Assess Onboarding Needs
 
@@ -180,7 +186,7 @@ Every empty state needs:
 ### What Will Be Here
 "Your recent projects will appear here"
 
-### Why It Matters  
+### Why It Matters
 "Projects help you organize your work and collaborate with your team"
 
 ### How to Get Started

@@ -1,6 +1,6 @@
 ---
 name: i-optimize
-description: Improve interface performance across loading speed, rendering, animations, images, and bundle size. Makes experiences faster and smoother.
+description: Diagnoses and fixes UI performance across loading speed, rendering, animations, images, and bundle size. Use when the user mentions slow, laggy, janky, performance, bundle size, load time, or wants a faster, smoother experience.
 argument-hint: "[TARGET=<value>]"
 license: Apache-2.0
 metadata:
@@ -44,7 +44,7 @@ Create systematic improvement plan:
 - Use CDN for faster delivery
 
 ```html
-<img 
+<img
   src="hero.webp"
   srcset="hero-400.webp 400w, hero-800.webp 800w, hero-1200.webp 1200w"
   sizes="(max-width: 400px) 400px, (max-width: 800px) 800px, 1200px"

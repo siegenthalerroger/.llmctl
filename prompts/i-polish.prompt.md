@@ -1,6 +1,6 @@
 ---
 name: i-polish
-description: Final quality pass before shipping. Fixes alignment, spacing, consistency, and detail issues that separate good from great.
+description: Performs a final quality pass fixing alignment, spacing, consistency, and micro-detail issues before shipping. Use when the user mentions polish, finishing touches, pre-launch review, something looks off, or wants to go from good to great.
 argument-hint: "[TARGET=<value>]"
 license: Apache-2.0
 metadata:
@@ -8,9 +8,13 @@ metadata:
     adaptedFrom: "https://github.com/pbakaus/impeccable/blob/main/source/skills/polish/SKILL.md"
 ---
 
-**First**: Use the i-frontend-design skill for design principles and anti-patterns.
-
 Perform a meticulous final pass to catch all the small details that separate good work from great work. The difference between shipped and polished.
+
+## MANDATORY PREPARATION
+
+Use the frontend-design skill for design principles, anti-patterns, and the context gathering protocol. If no design context exists yet, run i-teach-impeccable first. Additionally gather the quality bar (MVP vs flagship).
+
+If any of that context is still unclear after reviewing the current thread and codebase, ask the user directly before proceeding.
 
 ## Pre-Polish Assessment
 

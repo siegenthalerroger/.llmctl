@@ -1,6 +1,6 @@
 ---
 name: i-harden
-description: Improve interface resilience through better error handling, i18n support, text overflow handling, and edge case management. Makes interfaces robust and production-ready.
+description: Improve interface resilience through better error handling, i18n support, text overflow handling, and edge case management. Makes interfaces robust and production-ready. Use when the user asks to harden, make production-ready, handle edge cases, add error states, or fix overflow and i18n issues.
 argument-hint: "[TARGET=<value>]"
 license: Apache-2.0
 metadata:
@@ -131,9 +131,9 @@ border-inline-end: 1px solid; /* Not border-right */
 new Intl.DateTimeFormat('en-US').format(date); // 1/15/2024
 new Intl.DateTimeFormat('de-DE').format(date); // 15.1.2024
 
-new Intl.NumberFormat('en-US', { 
-  style: 'currency', 
-  currency: 'USD' 
+new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD'
 }).format(1234.56); // $1,234.56
 ```
 
@@ -245,7 +245,7 @@ t('items', { count }) // Handles complex plural rules
 **Constraint handling**:
 ```html
 <!-- Set clear constraints -->
-<input 
+<input
   type="text"
   maxlength="100"
   pattern="[A-Za-z0-9]+"

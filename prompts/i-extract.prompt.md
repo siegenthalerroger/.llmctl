@@ -1,6 +1,6 @@
 ---
 name: i-extract
-description: Extract and consolidate reusable components, design tokens, and patterns into your design system. Identifies opportunities for systematic reuse and enriches your component library.
+description: Extract and consolidate reusable components, design tokens, and patterns into your design system. Identifies opportunities for systematic reuse and enriches your component library. Use when the user asks to create components, refactor repeated UI patterns, build a design system, or extract tokens.
 argument-hint: "[TARGET=<value>]"
 license: Apache-2.0
 metadata:
@@ -19,7 +19,7 @@ Analyze the target area to identify extraction opportunities:
    - Design token structure (if any)
    - Documentation patterns
    - Import/export conventions
-   
+
    **CRITICAL**: If no design system exists, ask before creating one. Understand the preferred location and structure first.
 
 2. **Identify patterns**: Look for:
@@ -55,12 +55,12 @@ Build improved, reusable versions:
   - Proper variants for different use cases
   - Accessibility built in (ARIA, keyboard navigation, focus management)
   - Documentation and usage examples
-  
+
 - **Design tokens**: Create tokens with:
   - Clear naming (primitive vs semantic)
   - Proper hierarchy and organization
   - Documentation of when to use each token
-  
+
 - **Patterns**: Document patterns with:
   - When to use this pattern
   - Code examples

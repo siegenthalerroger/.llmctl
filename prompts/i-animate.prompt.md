@@ -1,6 +1,6 @@
 ---
 name: i-animate
-description: Review a feature and enhance it with purposeful animations, micro-interactions, and motion effects that improve usability and delight.
+description: Review a feature and enhance it with purposeful animations, micro-interactions, and motion effects that improve usability and delight. Use when the user mentions adding animation, transitions, micro-interactions, motion design, hover effects, or making the UI feel more alive.
 argument-hint: "[TARGET=<value>]"
 license: Apache-2.0
 metadata:
@@ -12,20 +12,9 @@ Analyze a feature and strategically add animations and micro-interactions that e
 
 ## MANDATORY PREPARATION
 
-### Context Gathering (Do This First)
+Use the frontend-design skill for design principles, anti-patterns, and the context gathering protocol. If no design context exists yet, run i-teach-impeccable first. Additionally gather performance constraints.
 
-You cannot do a great job without having necessary context, such as target audience (critical), desired use-cases (critical), brand personality/tone (playful vs serious, energetic vs calm), and performance constraints.
-
-Attempt to gather these from the current thread or codebase.
-
-1. If you don't find *exact* information and have to infer from existing design and functionality, you MUST STOP and ask the user directly to clarify what you cannot infer. whether you got it right.
-2. Otherwise, if you can't fully infer or your level of confidence is medium or lower, you MUST ask the user directly to clarify what you cannot infer. clarifying questions first to complete your context.
-
-Do NOT proceed until you have answers. Guessing leads to inappropriate or excessive animation.
-
-### Use frontend-design skill
-
-Use the i-frontend-design skill for design principles and anti-patterns. Do NOT proceed until it has executed and you know all DO's and DON'Ts.
+If any of that context is still unclear after reviewing the current thread and codebase, ask the user directly before proceeding.
 
 ---
 

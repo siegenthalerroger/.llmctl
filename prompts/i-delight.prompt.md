@@ -1,6 +1,6 @@
 ---
 name: i-delight
-description: Add moments of joy, personality, and unexpected touches that make interfaces memorable and enjoyable to use. Elevates functional to delightful.
+description: Add moments of joy, personality, and unexpected touches that make interfaces memorable and enjoyable to use. Elevates functional to delightful. Use when the user asks to add polish, personality, animations, micro-interactions, delight, or make an interface feel fun or memorable.
 argument-hint: "[TARGET=<value>]"
 license: Apache-2.0
 metadata:
@@ -12,20 +12,9 @@ Identify opportunities to add moments of joy, personality, and unexpected polish
 
 ## MANDATORY PREPARATION
 
-### Context Gathering (Do This First)
+Use the frontend-design skill for design principles, anti-patterns, and the context gathering protocol. If no design context exists yet, run i-teach-impeccable first. Additionally gather what's appropriate for the domain (playful vs professional vs quirky vs elegant).
 
-You cannot do a great job without having necessary context, such as target audience (critical), desired use-cases (critical), brand personality (playful vs professional vs quirky vs elegant), and what's appropriate for the domain.
-
-Attempt to gather these from the current thread or codebase.
-
-1. If you don't find *exact* information and have to infer from existing design and functionality, you MUST STOP and ask the user directly to clarify what you cannot infer. whether you got it right.
-2. Otherwise, if you can't fully infer or your level of confidence is medium or lower, you MUST ask the user directly to clarify what you cannot infer. clarifying questions first to complete your context.
-
-Do NOT proceed until you have answers. Delight that's wrong for the context is worse than no delight at all.
-
-### Use frontend-design skill
-
-Use the i-frontend-design skill for design principles and anti-patterns. Do NOT proceed until it has executed and you know all DO's and DON'Ts.
+If any of that context is still unclear after reviewing the current thread and codebase, ask the user directly before proceeding.
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: i-clarify
-description: Improve unclear UX copy, error messages, microcopy, labels, and instructions. Makes interfaces easier to understand and use.
+description: Improve unclear UX copy, error messages, microcopy, labels, and instructions to make interfaces easier to understand. Use when the user mentions confusing text, unclear labels, bad error messages, hard-to-follow instructions, or wanting better UX writing.
 argument-hint: "[TARGET=<value>]"
 license: Apache-2.0
 metadata:
@@ -9,6 +9,12 @@ metadata:
 ---
 
 Identify and improve unclear, confusing, or poorly written interface text to make the product easier to understand and use.
+
+## MANDATORY PREPARATION
+
+Use the frontend-design skill for design principles, anti-patterns, and the context gathering protocol. If no design context exists yet, run i-teach-impeccable first. Additionally gather audience technical level and users' mental state in context.
+
+If any of that context is still unclear after reviewing the current thread and codebase, ask the user directly before proceeding.
 
 ## Assess Current Copy
 
