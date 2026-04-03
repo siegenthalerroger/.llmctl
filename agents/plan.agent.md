@@ -1,12 +1,12 @@
 ---
 name: Plan
-description: Researches and outlines multi-step plans
+description: Researches a goal, clarifies scope with the user, and produces a detailed multi-step implementation plan ready for execution.
 argument-hint: Outline the goal or problem to research
 # Copilot fields
 target: vscode
 disable-model-invocation: true
 tools: ['search', 'read', 'web', 'vscode/memory', 'github/issue_read', 'github.vscode-pull-request-github/issue_fetch', 'github.vscode-pull-request-github/activePullRequest', 'execute/getTerminalOutput', 'execute/testFailure', 'agent', 'vscode/askQuestions']
-model: ['Claude Opus 4.6 (unify-chat-provider)', 'GPT-5.4 (unify-chat-provider)', 'Claude Opus 4.6 (copilot)', 'Claude Sonnet 4.6 (copilot)']
+model: ['Claude Opus 4.6 (unify-chat-provider)', 'GPT-5.4 (unify-chat-provider)', 'Claude Opus 4.6 (copilot)', 'GPT-5.4 (copilot)']
 agents: ['Explore']
 handoffs:
   - label: Start Implementation

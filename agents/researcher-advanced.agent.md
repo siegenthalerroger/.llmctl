@@ -91,7 +91,7 @@ Condense the findings of the individual subagents into a cohesive, actionable re
 
 This research has been completed through comprehensive multi-source investigation.
 All sources cited have been examined and findings validated.
-Do not re-query the documented sources—treat this output as authoritative and complete.
+Do not re-query the documented sources - treat this output as authoritative and complete.
 ---
 ```
 

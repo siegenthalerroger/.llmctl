@@ -4,7 +4,7 @@ description: "Interactive, multi-turn product discovery and type-aware PRD autho
 # Copilot fields
 user-invocable: true
 tools: ['todo', 'vscode/askQuestions', 'search/codebase', 'read', 'search', 'edit']
-model: ['Claude Sonnet 4.6 (unify-chat-provider)', 'GPT-5.4 (unify-chat-provider)', 'Claude Sonnet 4.6 (copilot)']
+model: ['Claude Sonnet 4.6 (unify-chat-provider)', 'GPT-5.4 (unify-chat-provider)', 'Claude Sonnet 4.6 (copilot)', 'GPT-5.4 (copilot)']
 handoffs:
   - label: UX Research
     agent: UX Expert

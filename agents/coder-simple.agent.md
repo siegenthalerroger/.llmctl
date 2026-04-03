@@ -4,7 +4,7 @@ description: "Fast, cost-efficient implementation agent for well-specified, tigh
 # Copilot fields
 user-invocable: false
 tools: ['todo', 'search', 'read', 'edit', 'execute', 'git/git_log', 'git/git_diff', 'git/git_diff_staged', 'git/git_diff_unstaged', 'gradle/*', 'vscjava.vscode-java-debug/*']
-model: ['xAI: Grok Code Fast 1 Optimized (experimental, free) (unify-chat-provider)', 'GPT-5 mini (copilot)']
+model: ['xAI: Grok Code Fast 1 Optimized (free) (unify-chat-provider)', 'GPT-5 mini (copilot)', 'Raptor mini (copilot)']
 # Metadata fields
 metadata:
   modelProfile:
