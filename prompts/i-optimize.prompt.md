@@ -2,6 +2,7 @@
 name: i-optimize
 description: Diagnoses and fixes UI performance across loading speed, rendering, animations, images, and bundle size. Use when the user mentions slow, laggy, janky, performance, bundle size, load time, or wants a faster, smoother experience.
 argument-hint: "[TARGET=<value>]"
+agent: agent
 license: Apache-2.0
 metadata:
   provenance:

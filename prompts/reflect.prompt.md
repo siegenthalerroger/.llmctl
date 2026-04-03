@@ -1,6 +1,7 @@
 ---
 name: "reflect"
 description: "Drive self-improvement of the input provided to the model."
+agent: agent
 ---
 
 Reflect on this conversation. Abstract and generalize any learnings by recognising where additional guidance was required and where mistakes were made.

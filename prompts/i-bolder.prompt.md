@@ -2,6 +2,7 @@
 name: i-bolder
 description: Amplify safe or boring designs to make them more visually interesting and stimulating. Increases impact while maintaining usability. Use when the user says the design looks bland, generic, too safe, lacks personality, or wants more visual impact and character.
 argument-hint: "[TARGET=<value>]"
+agent: agent
 license: Apache-2.0
 metadata:
   provenance:

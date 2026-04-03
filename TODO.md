@@ -25,15 +25,15 @@ No single file is read by all tools automatically; they must be maintained separ
 
 - [ ] **1a — Create MCP configuration reference doc** (`references/mcp-configuration.md`)
   Document the config schema for each supported tool (VS Code, Claude Code, KiloCode), the file locations, the key differences (`servers` vs `mcpServers`), and recommended project layout.
-  _Simple-Worker: create one new file._
+  _Coder (Simple): create one new file._
 
 - [ ] **1b — Create a cross-tool MCP setup prompt** (`prompts/setup-mcp.prompt.md`)
   A slash-command that takes a list of MCP server definitions and outputs the correctly formatted config blocks for each supported tool (VS Code `mcp.json` and Claude `.mcp.json`).
-  _Simple-Worker: create one new file._
+  _Coder (Simple): create one new file._
 
 - [ ] **1c — Update `README.md` compatibility matrix**
   Add a "MCP Server Config" row to the compatibility matrix table. Reference the new `references/mcp-configuration.md` doc.
-  _Simple-Worker: edit one section of `README.md`._
+  _Coder (Simple): edit one section of `README.md`._
 
 ---
 
@@ -74,7 +74,7 @@ The official OpenAI Codex CLI ([`openai/codex`](https://github.com/openai/codex)
 
 - [ ] **2a — Update `README.md` compatibility matrix**
   Fill in the "Codex" column with the findings above. Skills = ✅, Instructions = ⚠️, Agents = ❌, Prompts = ❌.
-  _Simple-Worker: edit one section of `README.md`._
+  _Coder (Simple): edit one section of `README.md`._
 
 - [ ] **2b — Add Codex CLI setup instructions to `README.md`**
   Add a "OpenAI Codex CLI" subsection under "How to use" with symlink instructions for `~/.agents/skills` and guidance on using `AGENTS.md` for instructions.
@@ -102,19 +102,19 @@ Steering file compatibility:
 
 - [ ] **3a — Update `README.md` compatibility matrix**
   Add a "KiloCode" column with the compatibility findings above.
-  _Simple-Worker: edit one section of `README.md`._
+  _Coder (Simple): edit one section of `README.md`._
 
 - [ ] **3b — Document KiloCode mode schema in `CONTRIBUTING.md`**
   Add a "KiloCode" section under "Cross-Tool Compatibility" explaining the `.kilocodemodes` schema, how `*.agent.md` fields map to it, and where to place instruction rules.
-  _Simple-Worker: edit one section of `CONTRIBUTING.md`._
+  _Coder (Simple): edit one section of `CONTRIBUTING.md`._
 
 - [ ] **3c — Create a conversion prompt** (`prompts/export-kilocode.prompt.md`)
   A slash-command prompt that reads an `*.agent.md` file and outputs a `.kilocodemodes` YAML block for it, mapping frontmatter fields to the KiloCode schema.
-  _Simple-Worker: create one new file._
+  _Coder (Simple): create one new file._
 
 - [ ] **3d — Add KiloCode symlink instructions to `README.md`**
   Add a "KiloCode" subsection under "How to use" explaining how to place or symlink `.llmctl` content for KiloCode (`.kilocodemodes` generation, `.kilo/rules-*/` placement).
-  _Simple-Worker: edit one section of `README.md`._
+  _Coder (Simple): edit one section of `README.md`._
 
 ---
 ## 4 - Consider Running `meta-update-models` skill as part of the `meta-updater` Agent

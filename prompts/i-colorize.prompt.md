@@ -2,6 +2,7 @@
 name: i-colorize
 description: Add strategic color to features that are too monochromatic or lack visual interest, making interfaces more engaging and expressive. Use when the user mentions the design looking gray, dull, lacking warmth, needing more color, or wanting a more vibrant or expressive palette.
 argument-hint: "[TARGET=<value>]"
+agent: agent
 license: Apache-2.0
 metadata:
   provenance:

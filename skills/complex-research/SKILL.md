@@ -8,7 +8,7 @@ license: ""
 
 Guidelines for effectively delegating complex research tasks to specialized research agents and handling their outputs.
 
-## When to Delegate Research
+## Delegation Threshold
 
 Delegate to a research agent when the task requires:
 

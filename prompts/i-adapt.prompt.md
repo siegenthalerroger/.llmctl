@@ -2,6 +2,7 @@
 name: i-adapt
 description: Adapt designs to work across different screen sizes, devices, contexts, or platforms. Implements breakpoints, fluid layouts, and touch targets. Use when the user mentions responsive design, mobile layouts, breakpoints, viewport adaptation, or cross-device compatibility.
 argument-hint: "[TARGET=<value>] [CONTEXT=<value>]"
+agent: agent
 license: Apache-2.0
 metadata:
   provenance:

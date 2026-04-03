@@ -2,6 +2,7 @@
 name: i-normalize
 description: Audits and realigns UI to match design system standards, spacing, tokens, and patterns. Use when the user mentions consistency, design drift, mismatched styles, tokens, or wants to bring a feature back in line with the system.
 argument-hint: "[FEATURE=<value>]"
+agent: agent
 license: Apache-2.0
 metadata:
   provenance:

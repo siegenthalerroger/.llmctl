@@ -2,6 +2,7 @@
 name: i-onboard
 description: Designs and improves onboarding flows, empty states, and first-run experiences to help users reach value quickly. Use when the user mentions onboarding, first-time users, empty states, activation, getting started, or new user flows.
 argument-hint: "[TARGET=<value>]"
+agent: agent
 license: Apache-2.0
 metadata:
   provenance:
