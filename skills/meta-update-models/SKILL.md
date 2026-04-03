@@ -23,7 +23,13 @@ Assume the user has **GitHub Copilot**, **Claude Code**, and **OpenAI Codex** su
 
 Use the current on-disk file contents as the only source of truth. Read every target file before changing it, write the new `model:` array, and verify the saved file before reporting completion. Never describe a proposed model list as if it has already been applied.
 
-## When to Use
+## Authority and Freshness
+
+- Treat live provider docs and API responses as higher authority than examples in this skill
+- Prefer current provider capability labels and product guidance over hard-coded model families
+- Treat concrete model names in examples as illustrative snapshots only; do not encode them as durable ranking rules
+
+## Supported Scenarios
 
 - User asks to "update models", "refresh model lists", or "regenerate model arrays"
 - A customization file both supports the `model` frontmatter field and contains a `metadata.modelProfile` block, but the `model:` array is stale or missing
@@ -66,8 +72,8 @@ Fetch the model catalogue from **every supported provider** concurrently. The UR
 | Provider | What to extract |
 | --- | --- |
 | **GitHub Copilot** | Display name, premium request multiplier, release status, retirement date, training date, plan inclusion, task guidance |
-| **Claude Code** | Current Claude model names/families, plan inclusion, usage/cost notes, and model-role guidance from Anthropic docs |
-| **OpenAI Codex** | Current OpenAI model names/families available through Codex, including non-Codex models, plus subscription tier inclusion, usage/cost notes, preview status, and model-role guidance |
+| **Claude Code** | Current Claude model names/families, availability or entitlement notes, usage/cost notes, and model-role guidance from Anthropic docs |
+| **OpenAI Codex** | Current OpenAI model names/families available through Codex, including non-Codex models, plus availability or entitlement notes, usage/cost notes, preview status, and model-role guidance |
 | **KiloCode** | `id`, `name`, `isFree`, context length, pricing fields, release status, and training date/knowledge cutoff fields when present |
 
 > To add a new provider: fetch its model docs, add the URL to `metadata.provenance.authoritativeSpec` in this file, update `CONTRIBUTING.md`, and add its entitlement/cost-band mapping to Step 3.
@@ -79,13 +85,13 @@ Translate the abstract `cost` tier to each provider's pricing or entitlement mod
 | Cost tier | GitHub Copilot | Claude Code | OpenAI Codex | KiloCode |
 | --- | --- | --- | --- | --- |
 | `FREE` | Multiplier = 0; qualifying entries belong in the free-first prefix | Only models explicitly documented as zero-burn or otherwise truly free-to-use. Do **not** treat bundled subscription usage as `FREE` | Only models explicitly documented as zero-burn or otherwise truly free-to-use through Codex. Do **not** treat bundled subscription usage as `FREE` | `isFree = true` or all relevant pricing fields are `0` |
-| `LOW` | Multiplier ≤ 0.33 | Included subscription models with the lightest usage burn, highest allowance, or lowest-latency classes | Included subscription models from the full OpenAI set available through Codex with the lightest usage burn, highest allowance, or lowest-latency classes | **Not allowed** |
-| `MEDIUM` | Multiplier ≤ 1 | Standard included subscription models, including stronger default classes with moderate usage burn | Standard included subscription models from the full OpenAI set available through Codex, including stronger default coding or reasoning options with moderate usage burn | **Not allowed** |
-| `HIGH` | Any multiplier | Any supported Claude Code model allowed by the user's subscription, higher-burn tiers, or explicit paid extensions | Any supported OpenAI model available through Codex, including higher-burn tiers, preview models, or explicit credit extensions | **Not allowed** |
+| `LOW` | Multiplier ≤ 0.33 | Lowest-burn models documented as available | Lowest-burn models documented as available through Codex | **Not allowed** |
+| `MEDIUM` | Multiplier ≤ 1 | Standard generally available models with moderate usage burn | Standard generally available models with moderate usage burn through Codex | **Not allowed** |
+| `HIGH` | Any multiplier | Any documented premium or add-on tier available | Any documented premium, preview, or credit-backed tier available through Codex | **Not allowed** |
 
 Interpret `cost` as a **ceiling**, not as an instruction to maximize cheapness. Once candidates are inside the allowed cost band, task fit and specialization outweigh small cost savings.
 
-**When the mapping is unclear or the fetched docs don't provide explicit pricing tiers**, do a targeted web search (e.g. `"KiloCode free models"`, `"OpenAI models available in Codex 2026"`, `"Claude Code included models 2026"`) to find current pricing information. Prefer recent community sources, changelogs, or official blog posts when docs are ambiguous. Note any uncertainty in the summary reported to the user.
+**When the mapping is unclear or the fetched docs don't provide explicit pricing tiers**, do a targeted web search (e.g. `"KiloCode free models"`, `"OpenAI models available in Codex"`, `"Claude Code available models"`) to find current pricing information. Prefer recent community sources, changelogs, or official blog posts when docs are ambiguous. Note any uncertainty in the summary reported to the user.
 
 ### Step 4 — Filter (per provider)
 
@@ -95,9 +101,9 @@ For each provider's catalogue, apply these filters **in order**, discarding mode
 | --- | --- |
 | **Retired / unavailable** | Exclude any model with a retirement date on or before today's date, or any model no longer listed as available in the relevant product docs |
 | **Training Date** | Exclude any model trained before `minDate`; ensures intrinsic knowledge up to that date |
-| **Entitlement** | For Claude Code, keep models available under the user's Claude subscription or documented add-on policy; for OpenAI Codex, keep models available through Codex from the full OpenAI model set, subject to plan inclusion or explicit credit-extension policy; for Copilot, keep models available to the user's Copilot plan; for KiloCode, keep only free models |
+| **Entitlement** | For Claude Code and OpenAI Codex, keep only models the current docs or user context show as available; for Copilot, keep models available; for KiloCode, keep only free models |
 | **Cost band** | Apply the provider-specific mapping from Step 3. KiloCode remains free-only even when the profile cost is higher |
-| **Specialisation** | `CODE` → keep only code-optimised variants (names containing identifiers such as `Codex`, `Raptor`, `Goldeneye`, or `Code`, or models described as code-optimised / agentic coding in the docs); `REASONING` → keep only models with extended thinking or chain-of-thought capabilities (for example Opus/Sonnet-class reasoning models, o-series models, DeepSeek R1-style models, or models with `thinking`, `reasoning`, or explicit deep-debugging guidance); `LONG-CONTEXT` → keep only models with context windows ≥ 200K tokens, sorted by context window size (largest first); `NONE` → keep all remaining models |
+| **Specialisation** | `CODE` → keep only models described as code-optimised, coding-specialised, or agentic-coding-oriented in the docs, falling back to clear family identifiers only when the docs lack richer labels; `REASONING` → keep only models explicitly labeled for reasoning, thinking, deep debugging, or similar deliberate-reasoning tasks; `LONG-CONTEXT` → keep only models with context windows ≥ 200K tokens, sorted by context window size (largest first); `NONE` → keep all remaining models |
 | **Task match** | Based on the agent's task descriptions, ensure the model is appropriate for that type of task using the product guidance in the fetched docs |
 
 Apply the same capability bar to free and paid candidates. Do **not** include a KiloCode or multiplier-0 Copilot model merely because it is free.
@@ -157,7 +163,7 @@ For `LOW`, `MEDIUM`, and `HIGH` profiles, **do not** start with a free-first pre
 3. For non-`FREE` profiles, append a free KiloCode or multiplier-0 Copilot model only when it remains genuinely competitive after side-by-side comparison with the paid candidates and does not displace a stronger paid fit.
 4. After the reserved coverage is in place, fill remaining slots from the merged ranking.
 5. Within each provider group, sort by:
-  - **Specialisation and task fit** — models explicitly optimized for the job ahead of generic mini models. For example: `REASONING` profiles prefer non-mini reasoning models such as `GPT-5.2` / `GPT-5.4` over `GPT-5.4 mini`; `CODE` profiles prefer Codex-family or explicitly coding-optimized models over generic mini models when both remain within the allowed band
+  - **Specialisation and task fit** — models explicitly optimized for the job ahead of generic or mini variants. For example: `REASONING` profiles usually prefer full reasoning-oriented models over mini or fast variants; `CODE` profiles prefer coding-specialized families over general-purpose models when both remain within the allowed band
   - **Latency** — `LOW` profile: prefer smallest/fastest models first; `HIGH`: prefer largest/most capable; `MEDIUM`: neutral
   - **Cost** — lower incremental cost or usage burn first, but only as a tie-breaker after task fit and latency, normalised by the provider-specific rules above
   - **Recency** — newer release date first; prefer GA over preview within the same capability tier
@@ -200,8 +206,8 @@ metadata:
 **Resolution:**
 
 - KiloCode: default to excluding free models because the profile is not `FREE`; only include one after explicit validation if it is genuinely competitive with the paid options
-- Claude Code: choose a current included Claude coding model with low relative usage burn that still meets the CODE and LOW-latency profile
-- OpenAI Codex: choose a current included OpenAI model available through Codex that still meets the CODE and LOW-latency profile; prefer Codex-family models over generic mini models when both are within band
+- Claude Code: choose a current available Claude coding-oriented model with low relative usage burn that still meets the CODE and LOW-latency profile
+- OpenAI Codex: choose a current available OpenAI model through Codex that still meets the CODE and LOW-latency profile; prefer coding-specialized models over generic mini models when both are within band
 - Copilot: prefer current coding-specialized Copilot models within the allowed band; do not lead with multiplier-0 entries merely because they are cheaper
 - Start with the best paid candidates, then add any validated free fallback only if it remains competitive and useful
 
@@ -260,34 +266,34 @@ To update all supported customization files:
 
 ### Claude Code Integration
 
-1. **Subscription assumption**: Claude Code is available via the user's Claude subscription. Do **not** treat subscription-included Claude models as `FREE`; map them into `LOW`, `MEDIUM`, or `HIGH` based on documented usage burn, allowance, and premium status.
+1. **Entitlement check**: Derive available Claude models from explicit user context and the current Claude Code / Anthropic docs. Do **not** treat generally available Claude models as `FREE` unless the docs explicitly mark them as zero-burn or otherwise free to use.
 
 2. **Model Identification**: Use Claude model names from Anthropic's current Claude Code and model-selection documentation, appending `(unify-chat-provider)` in the final array.
 
 3. **Task Compatibility**: When assessing Claude models:
-  - **Code generation/completion**: Prefer Sonnet-class models first, then Haiku for low-latency profiles, and Opus for `HIGH` / deep-reasoning profiles
-  - **Research/analysis**: Prefer Sonnet or Opus with the largest context windows and strongest reasoning guidance
-  - **General assistance**: Prefer Sonnet as the balanced default unless the profile explicitly favors latency or maximum reasoning depth
-  - **Interactive product / UX / planning work**: Prefer Sonnet over Haiku on non-`FREE` `MEDIUM` / `HIGH` profiles unless the task is clearly lightweight enough that the cheaper/faster model is still the better fit
+  - **Code generation/completion**: Prefer the current balanced or coding-oriented Claude class before the smallest latency-first class; reserve the flagship reasoning tier for `HIGH` or deep-debugging profiles
+  - **Research/analysis**: Prefer Claude models with the largest context windows and strongest reasoning guidance
+  - **General assistance**: Prefer the balanced default class unless the profile explicitly favors latency or maximum reasoning depth
+  - **Interactive product / UX / planning work**: Prefer the balanced or reasoning-oriented class over the smallest/fastest class on non-`FREE` `MEDIUM` / `HIGH` profiles unless the task is clearly lightweight
 
 ### OpenAI Codex Integration
 
-1. **Subscription assumption**: OpenAI Codex is available via the user's Codex subscription. Do **not** treat subscription-included OpenAI models as `FREE`; map them into `LOW`, `MEDIUM`, or `HIGH` based on documented usage burn, allowance, preview status, and premium status.
+1. **Entitlement check**: Derive available OpenAI models from explicit user context and the current Codex / OpenAI docs. Do **not** treat generally available OpenAI models as `FREE` unless the docs explicitly mark them as zero-burn or otherwise free to use through Codex.
 
 2. **Model Identification**: Select from the full OpenAI model catalogue available through Codex, not only models whose names include `Codex`. Use the official Codex pricing and OpenAI models documentation, appending `(unify-chat-provider)` in the final array.
 
 3. **Task Compatibility**: When assessing OpenAI models available through Codex:
-  - **Code generation/completion**: Prefer the current Codex-family models first. Do not let a generic mini model outrank a Codex-family model merely because it is cheaper when both remain within the requested cost band
-  - **Low latency**: Prefer the lightest current included OpenAI model documented for Codex usage that still meets the requested task profile, but do not trade away a materially better reasoning or coding-specialized fit solely for speed
-  - **Deep reasoning/debugging**: Prefer the strongest current included or credit-backed OpenAI reasoning or coding model that still meets the requested cost tier
-  - **Reasoning-heavy product / planning work**: Prefer non-mini reasoning models such as `GPT-5.2` / `GPT-5.4` over mini variants by default; use mini only when the profile explicitly prioritizes throughput over reasoning depth
+  - **Code generation/completion**: Prefer the current coding-specialized or agentic-coding family first. Do not let a generic mini model outrank a coding-specialized model merely because it is cheaper when both remain within the requested cost band
+  - **Low latency**: Prefer the lightest currently available OpenAI model that still meets the requested task profile, but do not trade away a materially better reasoning or coding-specialized fit solely for speed
+  - **Deep reasoning/debugging**: Prefer the strongest currently available reasoning or coding model that still meets the requested cost tier
+  - **Reasoning-heavy product / planning work**: Prefer full reasoning-capable models over mini or fast variants by default; use mini only when the profile explicitly prioritizes throughput over reasoning depth
 
 ### Copilot Integration
 
 1. **Model Identification**: Use the display names from the official Copilot documentation, appending the `(copilot)` suffix for clarity in the final model array.
 
 2. **Task Compatibility**: When assessing model suitability for specific agent tasks:
-  - **Code generation/completion**: Prioritize Codex-family models, `Goldeneye`, and other explicit coding-specialized entries before generic mini models when the allowed cost band permits them
-   - **Research/analysis**: Prioritize models with larger context windows and more recent knowledge cutoffs
+  - **Code generation/completion**: Prioritize coding-specialized or agentic-coding entries before generic mini models when the allowed cost band permits them
+  - **Research/analysis**: Prioritize models with larger context windows and more recent knowledge cutoffs
   - **General assistance**: Consider a balance of cost and capability
-  - **Reasoning-heavy discovery / planning agents**: Prefer models explicitly positioned for deep reasoning such as `GPT-5.2`, `GPT-5.4`, `Claude Sonnet 4.6`, `Claude Opus 4.6`, `Gemini 3.1 Pro`, or `Goldeneye` before `GPT-5 mini`, `GPT-5.4 mini`, or `Raptor mini`
+  - **Reasoning-heavy discovery / planning agents**: Prefer models the docs position for deep reasoning before mini or latency-first variants

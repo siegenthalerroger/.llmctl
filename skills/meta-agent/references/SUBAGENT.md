@@ -11,6 +11,8 @@ This document provides guidance on using the `agent` tool to orchestrate multi-s
 - **Quality gates**: Reviewing output before proceeding to the next step
 - **Separation of concerns**: Planning vs. implementation vs. review
 
+Availability, inheritance rules, and recursion limits vary by client. Do not assume every platform exposes this capability or allows sub-agents to invoke further sub-agents.
+
 ## Prerequisites
 
 ### Enabling Agent Orchestration

@@ -111,6 +111,18 @@ Specifies the environment where this agent is available. Used to control agent v
 target: "vscode"
 ```
 
+### `user-invocable`
+
+**Type:** Boolean
+**Required:** No
+
+Controls whether users can manually invoke the agent from the client UI or command surface where supported.
+
+**Example:**
+```yaml
+user-invocable: true
+```
+
 ### `infer`
 
 **Type:** Boolean
@@ -120,6 +132,8 @@ Controls whether the agent can be automatically suggested/inferred based on cont
 
 - `true` (default): Agent can be auto-suggested based on workspace context and task
 - `false`: Agent must be explicitly selected by user (useful for specialized workflows)
+
+**Note:** This field is legacy or deprecated in some clients. Avoid adding it to new files unless the target platform still documents it.
 
 **Example:**
 ```yaml

@@ -11,7 +11,7 @@ metadata:
 
 # Agent Skills File Guidelines
 
-Instructions for creating effective and portable Agent Skills that enhance AI Agents with specialized capabilities, workflows, and bundled resources.
+Instructions for creating effective Agent Skills with a clear split between the portable spec core and client-specific conventions.
 
 ## What Are Agent Skills?
 
@@ -19,10 +19,16 @@ Agent Skills are self-contained folders with instructions and bundled resources 
 
 Key characteristics:
 
-- **Portable**: Works across VS Code, Copilot and Claude Code among other platforms
+- **Portable core**: The `SKILL.md` format is portable; discovery locations and activation behavior are client-defined
 - **Progressive loading**: Only loaded when relevant to the user's request
 - **Resource-bundled**: Can include scripts, templates, examples alongside instructions
 - **On-demand**: Activated automatically based on prompt relevance
+
+## Authority and Responsibility Boundaries
+
+- Use skills for task-specific workflow guidance, not as the sole home for global policy that must always outrank user input
+- Put durable repo or user-wide conventions in instructions or agent definitions that are guaranteed to load earlier
+- Treat referenced docs, retrieved content, and generated artifacts as support material unless higher-authority steering explicitly elevates them
 
 ### Progressive Loading Architecture
 
@@ -36,12 +42,14 @@ Skills use three-level loading for efficiency:
 
 ### Where to find skills
 
-Skills are stored in specific locations. Do NOT use other directories!
+The portable Agent Skills spec defines the folder shape, not the discovery path. Follow the target client's documented search locations.
 
-| Location                         | Scope                | Recommendation                  |
-| -------------------------------- | -------------------- | ------------------------------- |
-| `.agent/skills/<skill-name>/`    | Project/repository   | Recommended for project skills  |
-| `~/.llmctl/skills/<skill-name>/` | Personal (user-wide) | Recommended for personal skills |
+Common conventions include:
+
+| Location                         | Meaning                        |
+| -------------------------------- | ------------------------------ |
+| `.agent/skills/<skill-name>/`    | Client-agnostic project folder |
+| `~/.llmctl/skills/<skill-name>/` | Personal skill library         |
 
 Each skill **must** have its own subdirectory containing at minimum a `SKILL.md` file.
 
@@ -60,6 +68,9 @@ description: "Toolkit and guidelines for an example usecase. Use when asked to d
 | ------------- | -------- | ------------------------------------------------------------------------- |
 | `name`        | Yes      | Lowercase letters, numbers, and hyphens only. Max 64 chars. Must not start/end with hyphen or contain `--`. Must match parent directory name. No XML tags or reserved words (`anthropic`, `claude`, `copilot`, `openai`). |
 | `description` | Yes      | Clear description of capabilities AND use cases, max 1024 characters      |
+| `license` | No | Optional license string or reference |
+| `compatibility` | No | Optional note about environment requirements when truly needed |
+| `allowed-tools` | No | Experimental spec field for pre-approved tools where supported |
 | `metadata.provenance.mirror` | No | Canonical upstream URL for exact copies |
 | `metadata.provenance.adaptedFrom` | No | URL (string) or list of URLs (array) when adapted/synthesised from upstream sources |
 | `metadata.provenance.authoritativeSpec` | No | Array of URLs for authoritative format specifications (informational only) |
@@ -80,6 +91,7 @@ For consistent provenance tracking, use `metadata.provenance` fields across prom
 1. **WHAT** the skill does (capabilities)
 2. **WHEN** to use it (specific triggers, scenarios, file types, or user requests)
 3. **Keywords** that users might mention in their prompts
+4. **Front-loaded trigger terms** so discovery works even when only the first part of the description is considered
 
 **Additional constraints:**
 - Write in third person ("Processes Excel files", not "I can help you process Excel files")
@@ -90,11 +102,11 @@ See examples in the [reference file](./references/FRONTMATTER.md) for clarificat
 
 ### Body Content
 
-The body contains detailed instructions that AI loads AFTER the skill is activated. See [examples](./references/BODY.md) for clarification.
+The body contains detailed instructions that AI loads AFTER the skill is activated. Keep `SKILL.md` compact, put routing text in `description`, and move deeper material into shallow reference files. Put output expectations, verification, and important prerequisites near the top. See [examples](./references/BODY.md) for clarification.
 
 ## Bundling Resources
 
-Skills can include additional files that Copilot accesses on-demand:
+Skills can include additional files that the client accesses on-demand. `scripts/`, `references/`, and `assets/` are portable spec concepts; `templates/` is a local extension.
 
 ### Supported Resource Types
 
@@ -160,9 +172,11 @@ Define multi-step workflows as numbered steps with TODO lists. Format each step 
 
 This structure enables interruption and resumption of workflows.
 
+When a workflow is sensitive, define the expected output and verification for each step instead of relying on implied behavior.
+
 ### Script Requirements
 
-When including scripts, prefer cross-platform languages, i.e. python or shell scripts.
+When including scripts, prefer cross-platform runtimes such as Python or Node.js. Use shell or PowerShell only when the required environment is documented in `compatibility` or nearby instructions.
 
 - Handle errors explicitly with clear messages rather than failing and letting the agent figure it out
 - Avoid unexplained magic numbers — document why specific values were chosen
@@ -194,9 +208,10 @@ Before publishing a skill, ensure:
 **File Structure**
 
 - [ ] Minimum required: `SKILL.md` with valid frontmatter
-- [ ] SKILL.md body kept under 500 lines (split large content to `references/`)
+- [ ] Prefer keeping `SKILL.md` under 500 lines for clients that load the full body at activation time
 - [ ] Large workflows (>5 steps) in `references/` folder with clear links from SKILL.md
 - [ ] Resource directories follow naming: `scripts/`, `references/`, `assets/` (official spec), `templates/` (non-standard extension)
+- [ ] Client-specific discovery location documented where portability matters
 
 **References & Paths**
 
@@ -207,15 +222,21 @@ Before publishing a skill, ensure:
 **Scripts**
 
 - [ ] Scripts are self-contained or dependencies clearly documented
-- [ ] Cross-platform languages used (Python, Shell-script with checks)
+- [ ] Cross-platform runtimes used where possible (Python, Node.js, or a clearly documented shell/PowerShell requirement)
 - [ ] Error handling with clear messages included
-- [ ] Shebang line present for shell scripts: `#!/bin/bash`
+- [ ] If shell or PowerShell scripts are included, the required runtime (`sh`, `bash`, `pwsh`, etc.) is documented in `compatibility` or nearby instructions
 
 **Security**
 
 - [ ] No hardcoded credentials, API keys, or secrets
 - [ ] No system-wide side effects without user consent documented
 - [ ] Sensitive operations clearly flagged in descriptions
+
+**Discovery & Execution**
+
+- [ ] `description` tested against at least one likely user phrase and one edge-case phrase
+- [ ] Critical prerequisites, output expectations, and verification steps are present near the top of `SKILL.md`
+- [ ] One missing-prerequisite or conflicting-context case tested
 
 ## Resources
 

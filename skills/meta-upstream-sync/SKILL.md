@@ -2,11 +2,18 @@
 name: "meta-upstream-sync"
 description: "Deterministic workflow and scripts to audit third-party source updates for local customization files using metadata.provenance.mirror or metadata.provenance.adaptedFrom patterns. Use when checking whether copied (mirror) or adapted files should be refreshed. Keywords: source drift, adaptedFrom, mirror, sync, update audit."
 license: "MIT"
+compatibility: "Primary automation requires PowerShell 7+ to run ./scripts/check-updates.ps1. If PowerShell is unavailable, reproduce the workflow with equivalent repository or MCP tools and report the fallback used."
 ---
 
 # meta-upstream-sync
 
 Deterministically audit local files by discovering `metadata.provenance.mirror` and `metadata.provenance.adaptedFrom` in frontmatter, then comparing upstream and local commit dates.
+
+## Compatibility
+
+- Primary automation is [Update Checker](./scripts/check-updates.ps1), which requires PowerShell 7+
+- The workflow itself is portable: if PowerShell is unavailable, reproduce the same audit steps with equivalent git, GitHub, and web-fetch tools and report which fallback path was used
+- The command examples below are PowerShell-specific because they target the bundled script directly
 
 ## Inputs
 
@@ -21,7 +28,7 @@ Deterministically audit local files by discovering `metadata.provenance.mirror` 
 1. [ ] For new/uncommitted local files that should be bootstrapped from upstream, add `-AllowNoLocalCommit` (guarded mode) so they can be treated as actionable `update_available` entries. Combine with `-IncludePath` in a single invocation when the target is already known.
 1. [ ] For items with `update_available`, run targeted follow-up checks per item using `-IncludePath` with `-IncludeChangeDetails` to gather commit-level upstream change summaries.
 1. [ ] For bootstrap scenarios (local file is a stub or empty), fetch the full upstream file content. Commit summaries alone are insufficient when there is no local content to diff against. Use the most specific available tool: prefer GitHub API tools (e.g. `mcp_github_get_file_contents`) for GitHub-hosted sources; fall back to a web-fetch tool for other URLs. Do not use terminal commands (`curl`, `Invoke-WebRequest`).
-1. [ ] Recommend next action per the [recommendation matrix](#recommendation-matrix). For multi-source files, follow the [multi-source synthesis](#multi-source-synthesis) procedure.
+1. [ ] Recommend next action per the recommendation matrix below. For multi-source files, follow the multi-source synthesis procedure below.
 
 ### Recommendation Matrix
 
@@ -107,7 +114,7 @@ Bootstrap check for an uncommitted local file (explicitly guarded):
 - Comparison uses commit date only: upstream latest commit date for source path vs local file last git commit date.
 - Supported source format is currently GitHub repository/tree/blob URLs.
 - `metadata.provenance.adaptedFrom` may be a single URL string or a YAML array of URLs for files synthesised from multiple upstream sources.
-- When a file has multiple upstreams, each is checked independently and output shows one row per upstream. See [Multi-source Synthesis](#multi-source-synthesis) for the recommended grouping procedure.
+- When a file has multiple upstreams, each is checked independently and output shows one row per upstream. See the Multi-source Synthesis section above for the recommended grouping procedure.
 - `upstreamChanges` commit summaries are opt-in via `-IncludeChangeDetails` to keep the default output concise.
 - Use `-MaxChangeCommits` to cap detailed commit payload size for targeted checks (default: `5`).
 - Uncommitted local files stay blocked by default (`missing_local_commit`); enable `-AllowNoLocalCommit` only for intentional bootstrap/synthesis from upstream.

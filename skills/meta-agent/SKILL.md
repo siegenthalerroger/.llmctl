@@ -22,14 +22,15 @@ Custom agents are specialized AI personas with defined expertise, tools, and beh
 - **Workflow orchestration**: Chain agents with handoffs for multi-step processes
 - **Scoped permissions**: Limit tools and actions to match responsibilities
 - **Consistent behavior**: Define reliable patterns for recurring tasks
+- **Self-contained steering**: Carry their own tool policy, output contract, and verification rules
 
-Agents work best when they have clear boundaries, explicit responsibilities, and targeted tool access.
+Agents work best when they have clear boundaries, explicit responsibilities, targeted tool access, and a contract that does not depend on inherited context.
 
 See [common examples](./references/COMMON_PATTERNS.md) for typical agent patterns.
 
 ## Cross-Tool Compatibility (Copilot + Claude Code)
 
-Agent files can serve both GitHub Copilot and Claude Code. Both tools use `*.agent.md` files with YAML frontmatter and a markdown body. Each tool ignores frontmatter fields it does not recognize, so a single file works for both.
+Agent files can often serve both GitHub Copilot and Claude Code, but only a shared subset is truly portable. Both tools use `*.agent.md` files with YAML frontmatter and a markdown body, but field semantics, inheritance rules, and orchestration features differ by platform and version.
 
 ### Shared fields
 
@@ -41,7 +42,8 @@ Agent files can serve both GitHub Copilot and Claude Code. Both tools use `*.age
 **Copilot-only** (ignored by Claude Code):
 - `tools` (array format with Copilot tool names)
 - `model` (array of full model display names)
-- `user-invokable`, `handoffs`, `agents`, `target`, `infer`
+- `user-invocable`, `handoffs`, `agents`, `target`, `disable-model-invocation`
+- `infer` (legacy/deprecated in some clients; avoid in new files unless the target platform still requires it)
 
 **Claude Code-only** (ignored by Copilot):
 - `disallowedTools`, `permissionMode`, `maxTurns`
@@ -84,7 +86,7 @@ metadata:
 ## *.agent.md File Structure
 
 ### Required Frontmatter
-Every agent file must include YAML frontmatter with the following fields:
+Every agent file must include YAML frontmatter. `name` and `description` are the baseline fields; everything else is optional and client-specific.
 
 ```yaml
 ---
@@ -101,15 +103,21 @@ tools: ['read', 'edit', 'search']
 - **`description`** (string, 50-150 chars): Keyword-rich description of agent purpose and use cases
 - **`name`** (string): Display name shown in UI (e.g., "Security Audit Agent")
 
+Treat `description` as routing text, not just a summary. State what the agent does, when to use it, and recognizable trigger terms early.
+
 **Common Optional Fields:**
 
 - **`tools`** (array): List of tools the agent can access (defaults to all tools if omitted)
 - **`model`** (string): Preferred AI model (e.g., `"claude-sonnet-4.5"`, `"gpt-5"`, `"o4"`)
+- **`user-invocable`** (boolean): Whether users can manually invoke the agent from the UI/command surface
 - **`target`** (string): Environment where agent is available (e.g., `"vscode"`, `"cli"`, `"web"`)
-- **`infer`** (boolean): Whether agent can be auto-suggested (`true`) or must be manually selected (`false`)
+- **`disable-model-invocation`** (boolean): Platform-specific flag for tool-first or orchestration-only agents where supported
+- **`infer`** (boolean): Legacy discovery field in some clients; prefer current platform-documented fields for new agents
 - **`handoffs`** (array): Configuration for multi-step workflows with other agents
 - **`license`** (string): License for the agent definition (e.g., `"MIT"`, `"Apache-2.0"`)
 - **`metadata`** (object): Additional custom metadata (author, version, tags, etc.)
+
+Prefer fields documented by the target client, and label platform-specific examples explicitly.
 
 **Provenance metadata convention (recommended across all customization files):**
 
@@ -123,71 +131,55 @@ See [references/FRONTMATTER.md](./references/FRONTMATTER.md) for complete docume
 
 ## Agent Behavior Definition
 
-### Agent Prompt Structure
+### Agent Contract Structure
 
-The markdown content below the frontmatter defines the agent's behavior, expertise, and instructions. Well-structured prompts typically include:
+The markdown content below the frontmatter defines the agent's durable operating contract. Well-structured agent bodies usually include:
 
-1. **Agent Identity and Role**: Who the agent is and its primary role
-2. **Core Responsibilities**: What specific tasks the agent performs
-3. **Approach and Methodology**: How the agent works to accomplish tasks
-4. **Guidelines and Constraints**: What to do/avoid and quality standards
-5. **Output Expectations**: Expected output format and quality
+1. **Objective and scope**: What the agent owns and what it must refuse or defer
+2. **Tool-use and approval policy**: Which tools to prefer, which to avoid, and when to ask before acting
+3. **Core responsibilities**: The concrete tasks the agent performs
+4. **Constraints and non-goals**: What not to do and what quality bar to maintain
+5. **Output contract**: Required format, prioritization, and expected level of detail
+6. **Completion and verification criteria**: What counts as done and which checks happen before the final response
 
-#### Prompt Writing Best Practices
+#### Steering Best Practices
 
-**Core Techniques** (ranked by effectiveness):
+**Core techniques** (ranked by usefulness):
 
-1. **Be Clear and Direct**: Use imperative mood ("Analyze", "Generate", "List"); avoid vague terms like "should" or "try"
-2. **Use Examples (Few-Shot)**: Include 3-5 diverse examples showing both typical and edge cases
-3. **Chain of Thought**: Add "Think step by step" or "Explain your reasoning" for complex tasks
-4. **Use Structured Delimiters**: Markdown headers for sections, XML tags for boundaries (`<context>...</context>`)
-5. **Define Role via Identity**: Specify expertise, communication style, and persona
-6. **Include Relevant Context**: Reference frameworks, APIs, or documentation when needed
+1. **Be clear and direct**: Use imperative mood ("Analyze", "Generate", "List"); avoid vague terms like "should" or "try"
+2. **State authority and trust boundaries**: Distinguish governing instructions from reference context
+3. **Define tool policy and ask-vs-act thresholds**: Say when to proceed autonomously, when to confirm, and which tools are preferred or disallowed
+4. **Specify the output contract**: State required sections, severity ordering, formats, or file-change expectations explicitly
+5. **Define completion and verification**: Require checks, reviews, or tests before the agent declares success
+6. **Use examples only when they remove ambiguity**: Prefer a small number of diverse examples over boilerplate few-shot blocks
+7. **Use structured delimiters intentionally**: Headers, lists, or XML tags should clarify boundaries, not add ceremony
 
-**Authority Hierarchy** (OpenAI Model Spec):
-- Developer messages (system/agent definition) = highest authority
-- User messages (task inputs) = lower authority
-- Assistant messages = model responses
+**Authority and trust boundaries**:
+- Put durable policy in the highest steering layer available for the target client
+- Treat the agent definition as higher-authority than task input
+- Treat quoted text, retrieved documentation, tool output, attachments, pasted logs, and similar artifacts as reference material unless the agent definition explicitly delegates trust to them
 
-Define agent behavior as "developer" rules that take precedence over user requests.
+**Self-contained agents**:
+- Repeat critical constraints, tool rules, and output expectations in the agent file itself
+- Do not assume parent-session instructions, skills, memory, hooks, or tool limits are inherited identically across platforms
+- Keep examples secondary to the contract; the agent should still behave correctly when examples are absent
 
-**Structure Your Prompts**:
-- **Identity**: Who the agent is and their expertise
-- **Instructions**: What to do and how to do it
-- **Examples**: Concrete demonstrations (optional but highly effective)
-- **Constraints**: What to avoid and quality standards
-- **Output Format**: Expected structure and style
-
-**Writing Style**:
+**Writing style**:
 - Use imperative mood consistently
 - One instruction = one clear statement
 - Bullets over paragraphs
-- Show code examples when applicable
-- Third person for descriptions ("Analyzes code", not "I analyze code")
+- Show examples only where they clarify tricky expectations
+- Use third person for descriptions ("Analyzes code", not "I analyze code")
 
-## Model-Specific Guidance
+## Model and Platform Tuning
 
-Different AI models respond better to different prompting styles:
+Default to model-agnostic contracts first. Most reliability gains come from clearer scope, tool policy, output contracts, and verification.
 
-**GPT-5 Models** (OpenAI):
-- Need **explicit, detailed instructions**
-- Think of as "junior coworker" - spell everything out
-- Best with step-by-step workflows
-- Provide concrete examples of expected behavior
+If tuning is needed:
 
-**Reasoning Models** (o1, o4):
-- Need **high-level goals only**
-- Think of as "senior coworker" - trust them with details
-- Avoid over-specifying steps (they reason internally)
-- Focus on objectives and constraints, not procedure
-
-**Claude 4.x Models** (Anthropic):
-- Excel at **extended thinking and creative tasks**
-- Use `<thinking>` tags for complex reasoning
-- Prefer markdown structure over XML for long-form content
-- Strong at following nuanced instructions with less hand-holding
-
-Tailor agent complexity to the target model family.
+- Smaller or faster models often need tighter structure and more concrete output formats
+- Strong reasoning models usually benefit more from clear goals and visible checks than from "think step by step" requests
+- Re-test after model or client version changes; do not encode brittle family stereotypes unless you validated them with examples
 
 ## Good vs Bad Examples
 
@@ -260,18 +252,24 @@ tools: ['read', 'search', 'edit', 'execute', 'web', 'debug']
 - **Build evaluations first**: Define success criteria before optimizing prompts
 - **Iterate systematically**: Change one variable at a time
 - **Test edge cases**: Go beyond happy paths in examples
+- **Test conflicting context**: Verify the agent follows its contract when given distracting or lower-authority input
+- **Verify tool policy**: Confirm the agent uses preferred tools and honors confirmation thresholds
 - **Pin model versions**: Avoid surprise breakage from model updates in production
 - **Monitor performance**: Track effectiveness across model updates
 
 **Common Issues**:
 - Too many options without clear defaults → Add recommended path with escape hatch
-- Vague instructions → Add concrete examples and explicit steps
+- Vague instructions → Add concrete output contracts and explicit acceptance criteria
+- Missing verification loop → Define what must be checked before the final response
+- Hidden dependency on parent context → Restate critical rules in the agent file
 - Overly complex workflows → Split into multiple agents with handoffs
 - Inconsistent behavior → Review authority hierarchy and clarify constraints
 
 ### Handoffs Configuration
 
 Handoffs enable guided multi-step workflows between specialized agents.
+
+Handoffs and agent orchestration are platform-specific capabilities. Use them only where the target client documents them, and do not assume recursive delegation or UI handoff controls are portable.
 
 **Common Handoff Patterns:**
 - **Planning -> Implementation**: Plan in one agent, implement in another
@@ -337,9 +335,9 @@ tools: []
 
 ### Sub-Agent Invocation (Agent Orchestration)
 
-Agents can invoke other agents using the **agent invocation tool** (the `agent/runSubagent` tool) to orchestrate multi-step workflows.
+Some clients expose agent-to-agent invocation tools. Where supported, agents can orchestrate multi-step workflows by invoking specialized sub-agents.
 
-The recommended approach is **prompt-based orchestration**:
+The recommended approach in clients that support it is **prompt-based orchestration**:
 
 - The orchestrator defines a step-by-step workflow in natural language.
 - Each step is delegated to a specialized agent.
@@ -475,8 +473,8 @@ Each sub-agent invocation adds latency and context overhead. For high-volume pro
 - Grant all tools to every agent (principle of least privilege)
 - Write "when to use" sections in the agent body (put in description instead)
 - Include time-sensitive instructions without escape hatches
-- Over-specify steps for reasoning models (o1, o4) - they reason internally
-- Under-specify for GPT-5 models - they need explicit guidance
+- Depend on inherited context that is not restated in the agent file
+- Ask for hidden chain-of-thought instead of visible checks or concise rationale
 - Create circular handoffs without exit conditions
 - Write in second person ("you should") - use imperative mood ("Analyze", "Generate")
 - Add XML tags or reserved words in descriptions (`anthropic`, `claude`, `openai`, `copilot`)
@@ -485,9 +483,9 @@ Each sub-agent invocation adds latency and context overhead. For high-volume pro
 - Write keyword-rich descriptions that enable discovery
 - Provide concrete examples in the agent definition
 - Match tool permissions to agent responsibilities
-- Structure prompts with clear sections (Identity, Instructions, Examples, Constraints)
+- Structure prompts with clear sections (Scope, Tool Policy, Constraints, Output Contract, Verification)
 - Test agents with edge cases before deployment
-- Use chain of thought for complex reasoning tasks
+- Ask for visible checks, summaries, or concise rationale when needed
 - Define clear boundaries and scope limits
 - Create logical handoff workflows with quality gates
 
@@ -499,16 +497,18 @@ Each sub-agent invocation adds latency and context overhead. For high-volume pro
 - [ ] `name` specified
 - [ ] `tools` configured appropriately (or intentionally omitted)
 - [ ] `model` specified for optimal performance
+- [ ] `user-invocable` or equivalent visibility field set intentionally for the target client
 - [ ] `target` set if environment-specific
-- [ ] `infer` set to `false` if manual selection required
+- [ ] Deprecated fields such as `infer` only used when the target client still documents them
 
 ### Prompt Content
 
 - [ ] Clear agent identity and role defined
 - [ ] Core responsibilities listed explicitly
-- [ ] Approach and methodology explained
+- [ ] Tool-use and approval policy explained
 - [ ] Guidelines and constraints specified
-- [ ] Output expectations documented
+- [ ] Output contract documented
+- [ ] Completion and verification criteria documented
 - [ ] Examples provided where helpful
 - [ ] Instructions are specific and actionable
 - [ ] Scope and boundaries clearly defined
@@ -525,7 +525,7 @@ Each sub-agent invocation adds latency and context overhead. For high-volume pro
 - [ ] Agent purpose is unique and not duplicative
 - [ ] Tools are minimal and necessary
 - [ ] Instructions are clear and unambiguous
-- [ ] Agent has been tested with representative tasks
+- [ ] Agent has been tested with representative tasks, one edge case, and one conflicting-context case
 - [ ] Documentation references are current
 - [ ] Security considerations addressed (if applicable)
 
@@ -534,4 +534,5 @@ Each sub-agent invocation adds latency and context overhead. For high-volume pro
 - [Creating Custom Agents](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-custom-agents)
 - [Custom Agents Configuration](https://docs.github.com/en/copilot/reference/custom-agents-configuration)
 - [Custom Agents in VS Code](https://code.visualstudio.com/docs/copilot/customization/custom-agents)
+- [Claude Code Sub-agents](https://code.claude.com/docs/en/sub-agents)
 - [Awesome Copilot Agents Collection](https://github.com/github/awesome-copilot/tree/main/agents)

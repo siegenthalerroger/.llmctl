@@ -2,6 +2,11 @@
 name: "meta-instruction"
 description: "Guidelines for creating high-quality instruction files that define coding standards, project conventions, and behavioral rules. Use when asked to create, review, or improve instruction files, define project rules, set coding standards, or configure AI assistant behavior patterns. Keywords: instructions, rules, conventions, standards, guidelines, applyTo, patterns."
 license: ""
+metadata:
+  provenance:
+    authoritativeSpec:
+      - "https://code.visualstudio.com/docs/copilot/customization/custom-instructions"
+      - "https://code.claude.com/docs/en/memory#organize-rules-with-claude/rules/"
 ---
 
 # Instruction Files Guidelines
@@ -10,9 +15,9 @@ Instructions for creating effective and maintainable instruction files that defi
 
 > [!IMPORTANT] Relation to other customization files
 >
-> **Skills are always preferable to instructions.**
+> **Use skills for reusable task workflows and bundled domain knowledge.**
 >
-> Instructions should normally only be used to **force VS Code to load certain skills** (via `applyTo` rules) or for broad behavioral conventions.
+> Use instructions for **durable project context, build/test/validate expectations, path-scoped conventions, broad behavioral rules, and automatic skill loading**.
 >
 > For templated tasks with inputs, use **prompts**. For complex workflows with specialized expertise, use **agents**.
 
@@ -26,32 +31,46 @@ Instruction files contain rules and guidelines that shape AI assistant behavior 
 - **Domain knowledge**: Framework-specific patterns, library usage, business logic
 
 Key characteristics:
-- **Conditional application**: Use `applyTo` glob patterns to target specific files
+- **Path targeting**: Use `applyTo` for Copilot-style glob scoping and `paths` for Claude-style path scoping when targeting both clients
+- **Description-based discovery**: State what the instructions cover, when they apply, and recognizable trigger terms
 - **Hierarchical specificity**: Personal > Repository > Organization
 - **Non-obvious rules**: Focus on conventions linters don't catch
 - **Include reasoning**: Explain WHY rules exist for better edge case handling
+- **Conflict avoidance**: Prefer non-overlapping scopes; do not rely on multiple matching instruction files merging predictably
 
-## When to Use Instructions vs Prompts vs Agents
+## Selection Guide: Instructions vs Prompts vs Agents
 
 | Type | Best For | Application Scope |
 |------|----------|-------------------|
-| **Skills** | Discrete capabilities, knowledge, tasks (ALWAYS PREFER OVER INSTRUCTIONS) | On-demand or forced via instructions |
-| **Instructions** | Forcing VS Code to load skills, broad behavioral rules | Conditional (via `applyTo`) or always-on |
+| **Skills** | Reusable workflows, bundled knowledge, task-specific capabilities | On-demand or forced via instructions |
+| **Instructions** | Durable project conventions, build/test/validate guidance, path-scoped or always-on rules | Conditional (via `applyTo`) or always-on |
 | **Prompts** | Quick templated tasks with variable inputs | One-time invocation |
 | **Agents** | Complex workflows with specialized expertise | Session-based with specific role |
 
 **Decision tree**:
-- Need a reusable capability or knowledge? → **Skill**
-- Need to automatically load a skill for certain files? → **Instruction** (with `applyTo`)
+- Need durable project conventions or repo context? → **Instruction**
+- Need a reusable capability or bundled workflow? → **Skill**
+- Need to automatically load a skill for certain files? → **Instruction** (with path-scoped frontmatter such as `applyTo` and/or `paths`) that references the skill
 - One-off task with inputs? → **Prompt**
 - Multi-step workflow with expertise? → **Agent**
 
+## Cross-Tool Compatibility (Copilot + Claude Code)
+
+Instruction files can often share the same markdown body across clients, but path activation fields differ.
+
+- **Shared fields**: `name`, `description`, markdown body, and provenance metadata
+- **Copilot path scoping**: `applyTo`
+- **Claude Code path scoping**: `paths`
+- **Always-on instructions**: May use client-specific locations or formats instead of path-scoped frontmatter
+
+If an instruction must work in both clients, include both `applyTo` and `paths` with equivalent scope. Do not assume one field substitutes for the other.
+
 ## Loading Skills via Instructions
 
-As per the core principle "Skills are always preferable to instructions", the most common pattern for instruction files should be to conditionally load skills based on file types.
+Conditionally loading skills from instructions is a strong pattern when a file class repeatedly needs a reusable capability.
 
 **Why?**
-Skills are modular, testable, and reusable. Instructions are broad and "always on" for the matched files. By using instructions primarily to load skills, you get the best of both worlds: automatic context loading (from instructions) with modular capability definitions (from skills).
+Skills are modular, testable, and reusable. Instructions remain the right home for stable conventions that should be present whenever the relevant work is in scope. Use both when appropriate.
 
 **Example Pattern:**
 
@@ -90,7 +109,7 @@ When working with these files, ALWAYS use the following skills as your primary r
 
 ## Frontmatter Requirements
 
-Every instruction file must include YAML frontmatter with the following fields:
+Path-scoped instruction files should include YAML frontmatter with the following fields. Always-on repository instructions may use the target client's documented format instead.
 
 ### Required Fields
 
@@ -98,7 +117,10 @@ Every instruction file must include YAML frontmatter with the following fields:
 ---
 name: "Python Style Guide"
 description: "Coding standards and style conventions for Python files"
+# Copilot
 applyTo: "**/*.py"
+# Claude Code
+paths: ["**/*.py"]
 source: ""
 license: ""
 ---
@@ -107,8 +129,9 @@ license: ""
 | Field | Required | Description |
 |-------|----------|-------------|
 | `name` | Yes | Display name for the instruction set |
-| `description` | Yes | Brief explanation of what rules are covered |
-| `applyTo` | Yes | Glob pattern(s) determining when instructions apply |
+| `description` | Yes | Brief explanation of what rules are covered; include what, when, and trigger terms when semantic discovery matters |
+| `applyTo` | Conditional | Copilot glob pattern(s) for path-based activation when supported and needed |
+| `paths` | Conditional | Claude Code path pattern array for path-based activation when supported and needed |
 | `source` | Optional | URL or reference to source material |
 | `license` | Optional | License information for the instructions |
 
@@ -119,33 +142,46 @@ For cross-file provenance consistency, instruction frontmatter may also include:
 
 Use the same `metadata.provenance` convention for prompt, instruction, skill, and agent files.
 
-### applyTo Patterns
+### Path Scoping Patterns
 
-The `applyTo` field uses glob patterns to conditionally activate instructions:
+Use the client's documented path-scoping field for path-based activation: `applyTo` in Copilot, `paths` in Claude Code. For dual-compatible files, keep both fields aligned.
 
 **Examples**:
 ```yaml
 # All Python files
 applyTo: "**/*.py"
+paths: ["**/*.py"]
 
 # Specific directory
 applyTo: "src/components/**"
+paths: ["src/components/**"]
 
 # Multiple patterns (JSON array)
 applyTo: ["**/*.ts", "**/*.tsx"]
+paths: ["**/*.ts", "**/*.tsx"]
 
 # All files (always active)
 applyTo: "**"
+paths: ["**"]
 
 # Specific file types in specific folders
 applyTo: "tests/**/*.test.{js,ts}"
+paths: ["tests/**/*.test.{js,ts}"]
 ```
 
 **Best practices**:
 - Be as specific as possible to avoid unnecessary context loading
 - Use `**` for recursive directory matching
 - Use `{ext1,ext2}` for multiple extensions
+- Keep `applyTo` and `paths` semantically aligned when both are present
 - Test patterns match intended files
+
+## Authority and Conflict Boundaries
+
+- Put durable conventions in the highest applicable instruction layer for the target environment
+- Treat quoted text, retrieved documentation, pasted logs, and tool output as reference material unless the instruction explicitly elevates them
+- Avoid overlapping instruction files that can both apply to the same task with contradictory rules
+- Do not rely on merge order or precedence tricks when two matching files say different things; narrow scope or consolidate the guidance instead
 
 ## Writing Effective Instructions
 
@@ -286,29 +322,13 @@ applyTo: "**/*.py"
 # Results in unpredictable behavior
 ```
 
-## Model-Specific Considerations
+## Model and Client Considerations
 
-Different models respond to instructions differently:
+Most gains come from clearer rules, examples, and rationale rather than model-specific prose.
 
-**All Models**:
-- Clear, direct language works universally
-- Concrete examples improve adherence
-- Reasoning helps with edge cases
-
-**GPT-5 Models**:
-- Need very explicit rules
-- Benefit from step-by-step guidance
-- May need redundant examples
-
-**Reasoning Models** (o1, o4):
-- Understand nuanced rules better
-- Can infer from principles
-- Less need for exhaustive examples
-
-**Claude 4.x**:
-- Strong at context-aware rule application
-- Excellent at understanding reasoning
-- Good at balancing conflicting guidelines
+- Prefer explicit conventions and concrete examples over "think step by step" style guidance
+- Add model-specific notes only when you validated them against the target client and model set
+- Re-test instructions when model versions or client behavior changes
 
 ## Anti-Patterns to Avoid
 
@@ -349,11 +369,13 @@ Different models respond to instructions differently:
    - Review hierarchy: personal > repository > organization
    - Ensure rules don't contradict each other
    - Test with files at hierarchy boundaries
+  - Test any semantically similar instruction files to ensure they do not overlap unpredictably
 
 3. **Validate Rules**:
    - Apply to real code and verify AI follows them
    - Test edge cases and ambiguous scenarios
    - Check if reasoning is clear and helpful
+  - Test that `description` text is specific enough for semantic discovery where the client supports it
 
 4. **Test Across Models**:
    - Verify instructions work with target AI models
@@ -362,17 +384,18 @@ Different models respond to instructions differently:
 
 **Common Issues**:
 - Rules too vague → Add concrete examples
-- Rules conflicting → Check hierarchy and scope
+- Rules conflicting → Narrow scope or consolidate the guidance; do not rely on implicit merge order
 - Rules ignored → Make them more specific and actionable
 - Pattern not matching → Test glob pattern syntax
+- Description not discovered → Add clearer what/when/trigger terms
 - Over-specification → Trust model intelligence for obvious cases
 
 ## Quality Assurance Checklist
 
 **Frontmatter**:
 - [ ] `name` is descriptive and clear
-- [ ] `description` explains scope accurately
-- [ ] `applyTo` pattern is specific and tested
+- [ ] `description` explains scope accurately and includes what/when/trigger terms when needed
+- [ ] `applyTo` pattern is specific and tested if path-based matching is intended
 - [ ] Optional fields (`source`, `license`) included if applicable
 
 **Content**:
@@ -395,16 +418,19 @@ Different models respond to instructions differently:
 - [ ] File is focused on single topic/domain
 - [ ] Length is reasonable (split if >500 lines)
 - [ ] Cross-platform compatible (no OS-specific paths)
+- [ ] Overlap with semantically similar instruction files reviewed intentionally
 
 **Testing**:
-- [ ] `applyTo` pattern matches intended files
+- [ ] `applyTo` pattern matches intended files when present
 - [ ] Rules applied to real code successfully
 - [ ] AI assistant follows instructions correctly
 - [ ] Edge cases handled appropriately
+- [ ] Conflicting-context case handled appropriately
 - [ ] No unintended side effects
 
 ## Additional Resources
 
 - [Custom Instructions Documentation](https://code.visualstudio.com/docs/copilot/customization/custom-instructions)
 - [Awesome Copilot Instructions Collection](https://github.com/github/awesome-copilot/tree/main/instructions)
-- [Prompt Engineering Best Practices](https://platform.openai.com/docs/guides/prompt-engineering)
+- [Repository Instructions](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions)
+- [Prompt Guidance](https://developers.openai.com/api/docs/guides/prompt-guidance)
