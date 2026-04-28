@@ -181,6 +181,40 @@ When including scripts, prefer cross-platform runtimes such as Python or Node.js
 - Handle errors explicitly with clear messages rather than failing and letting the agent figure it out
 - Avoid unexplained magic numbers — document why specific values were chosen
 
+## Writing High-Impact Skills
+
+### Focus on What the Agent Doesn't Know
+
+Do not include information the AI agent already knows from training data — standard language syntax, common library usage, or well-documented API behavior. Every line in a skill should teach something the agent would otherwise get wrong or miss entirely. If the information is on the first page of official docs, leave it out. Focus on internal conventions, non-obvious defaults, version-specific quirks, and domain-specific workflows that change behavior.
+
+### Context Budget Awareness
+
+All skill descriptions share a limited portion of the available context window during discovery. Your description competes with every other installed skill for the agent's attention. Keep descriptions concise and keyword-dense — aim for the shortest text that still communicates WHAT, WHEN, and relevant KEYWORDS. Verbose descriptions reduce visibility for every other skill in the system.
+
+### Gotchas Are Your Highest-Signal Content
+
+The `## Gotchas` section is consistently the most valuable part of any skill — proactive warnings that prevent mistakes before they happen. This is distinct from `## Troubleshooting`, which provides reactive fixes after something goes wrong. Treat gotchas as a living section: every time the agent produces a wrong result, add a gotcha. Bold the key constraint, then explain why (e.g., "**Never** call `X()` without checking `Y` first — the SDK throws an unrecoverable error").
+
+### Prefer Flexible Guidelines Over Rigid Steps
+
+Use numbered steps only for concrete, repeatable procedures (build, deploy, environment setup) where the sequence genuinely matters. For open-ended tasks (debugging, refactoring, code review), provide decision criteria and reference information instead — agents need flexibility to adapt to the user's specific situation. See also the [Degrees of Freedom](#degrees-of-freedom) matrix above.
+
+### Use Progressive Disclosure
+
+If `SKILL.md` exceeds ~200 lines, split detailed content into `references/`. This reduces context consumption — the agent loads only the core instructions initially and pulls reference material on demand. Use relative links from `SKILL.md` to reference files, and include a brief description of each so the agent knows when to load them.
+
+### Writing Each Section
+
+- **`# Title`** — One sentence stating what the skill enables. Be specific about the domain.
+- **`## When to Use This Skill`** — Bullet list of concrete scenarios that reinforce the description triggers. Helps the agent confirm it loaded the right skill.
+- **`## Prerequisites`** — Only include if the skill requires tools, services, or configuration that cannot be assumed. List exact install commands.
+- **`## Step-by-Step Workflows`** — Numbered steps for repeatable procedures where sequence matters. Describe WHAT to accomplish at each stage, not hardcoded file paths — steps should adapt to different project structures. For complex workflows (>5 steps), split into `references/` files.
+- **`## Gotchas`** — Proactive warnings. Bold the key constraint, then explain why.
+- **`## Troubleshooting`** — Reactive fixes as a symptom → solution table.
+- **`## References`** — Links to bundled docs in `references/`, external documentation, or related skills.
+
+Not every skill needs every section. Skip `## Prerequisites` if there are no external dependencies. Skip `## Step-by-Step Workflows` if the skill is purely advisory. Include `## Gotchas` whenever the skill involves non-obvious behavior.
+
 ## Anti-Patterns
 
 - **"When to Use" sections in the body** — Useless since the body loads only AFTER activation. All trigger info belongs in the `description` field.
