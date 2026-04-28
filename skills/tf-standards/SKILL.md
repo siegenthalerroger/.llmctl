@@ -11,10 +11,11 @@ Standards and conventions for writing TF (OpenTofu/Terraform) infrastructure cod
 
 Use OpenTofu Registry MCP tools to research provider resource schemas and arguments instead of local schema parsing or web searches.
 
-- Use `search-opentofu-registry` to find providers
-- Use `get-resource-docs` to get resource argument details
-- Use `get-datasource-docs` for data source documentation
-- Reference official provider documentation for examples and complete attribute lists
+- Use `mcp_opentofu-regi_search-opentofu-registry` to find providers
+- Use `mcp_opentofu-regi_get-provider-details` to get provider overview and available resources/data sources
+- Use `mcp_opentofu-regi_get-resource-docs` to get resource argument details
+- Use `mcp_opentofu-regi_get-datasource-docs` for data source documentation
+- NEVER use `fetch_webpage` for registry.terraform.io or registry.opentofu.org — use the MCP tools instead
 
 ## Provider Version Selection
 
@@ -500,6 +501,10 @@ provider "keycloak" {
   password   = var.keycloak_password   # Password
 }
 ```
+
+## Managing Pre-Existing or Unsupported Resources
+
+When a TF provider lacks support for a resource, or a resource is auto-created by the upstream system, use the `magodo/restful` provider for proper CRUD lifecycle with drift detection. See [restful provider patterns](./references/restful-provider.md) for authentication setup, patching patterns, and critical lessons.
 
 ## Quality Checklist
 
