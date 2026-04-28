@@ -109,11 +109,26 @@ provider "keycloak" {
 Separate infrastructure code by resource type and concern. Use descriptive file names that indicate content.
 
 - `main.tofu`: Provider configuration and terraform block only
-- `variables.tf`: All variable declarations
+- `variables.tf`: All variable declarations, `validation` blocks, and `check` blocks for input invariants
 - `outputs.tf`: All output declarations
 - `{resource-type}.tf`: Resources of a specific type (e.g., `realm.tf`, `database.tf`)
 - `{resource-name}.tf`: Individual complex resources (e.g., `client-webapp.tf`, `client-api.tf`)
 - `modules/{name}/`: Reusable module with its own main/variables/outputs
+
+### Locals Placement
+
+Colocate `locals` blocks with the resources that consume them. Do NOT centralize all locals into a single `locals.tf`.
+
+- Place derived values in the same file as the resources that reference them
+- A file must be self-contained: reading it alone reveals what locals drive its resources
+- Multiple `locals {}` blocks across files is idiomatic and preferred
+- Only create a separate `locals.tf` for truly cross-cutting values used in 3+ files
+
+### Check Block Placement
+
+Place `check` blocks next to the validation concern they enforce:
+- Input-shape invariants → in `variables.tf` alongside `validation` blocks
+- Resource-state assertions → in the file containing the asserted resources
 
 **Reasoning**: Logical separation makes code easier to navigate, review, and maintain. Finding "where is the realm configuration" should be immediate, not require searching through a monolithic file.
 
@@ -310,6 +325,51 @@ client_port = 8080
 enable_monitoring = true
 timeout_seconds = 30
 max_retries = 3
+```
+
+### Tfvars Minimalism
+
+When authoring `.tfvars` files, only set attributes that differ from their defaults.
+
+- Never set `optional(bool, false)` fields to `false` — omit them entirely
+- Never set `optional(string)` fields to `null` — that's already the default
+- Only include values that are environment-specific or override a default
+- Rely on variable defaults to express "normal" configuration; tfvars express deviations
+
+❌ **BAD**:
+```hcl
+tenants = {
+  "acm" = {
+    keycloak_realm = { id = "acm" }
+    is_default     = true       # Unnecessary if only one tenant
+    detect_tenants = [
+      { aml_tenant = "0001", business_unit = "...", is_global = true }
+    ]
+  }
+  "acm2" = {
+    keycloak_realm = { id = "acm2" }
+    is_default     = false      # Redundant — already the default
+    detect_tenants = [...]
+  }
+}
+```
+
+✅ **GOOD**:
+```hcl
+tenants = {
+  "acm" = {
+    keycloak_realm = { id = "acm" }
+    detect_tenants = [
+      { aml_tenant = "0001", business_unit = "...", is_global = true }
+    ]
+  }
+  "acm2" = {
+    keycloak_realm = { id = "acm2" }
+    detect_tenants = [
+      { aml_tenant = "0002", business_unit = "..." }
+    ]
+  }
+}
 ```
 
 ## Variable Flow Tracing
@@ -515,9 +575,11 @@ Before committing OpenTofu code, verify:
 - [ ] Only environment-specific/sensitive values required in tfvars
 - [ ] Conditional resources use `lifecycle.enabled` not `count`
 - [ ] Comments only explain non-obvious logic
-- [ ] Files organized by resource type/concern
+- [ ] Files organized by resource type/concern; locals colocated with consumers
 - [ ] Sensitive values marked with `sensitive = true`
 - [ ] Module structure follows single-responsibility principle
+- [ ] Outputs only expose values that are actually consumed downstream
+- [ ] Tfvars only set values that differ from defaults
 - [ ] Resource and variable names use snake_case
 - [ ] README or documentation exists for modules
 - [ ] Variables use consistent pattern across configuration
