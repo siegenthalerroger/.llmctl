@@ -49,9 +49,9 @@ MCP config format differs across tools in both file location and format:
 
 ---
 
-## 3 — Consider Running `meta-update-models` Skill as Part of the `meta-updater` Agent
+## 3 — Run `meta-update-models` Skill as Part of the `meta-updater` Agent
 
-_tbd_
+- [x] **Done.** Implemented as **Phase 2 — Model Refresh** in `agents/meta-updater.agent.md`, which loads the `meta-update-models` skill and refreshes `model:` arrays for every file declaring a `metadata.modelProfile`.
 
 ---
 

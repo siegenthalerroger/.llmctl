@@ -1,0 +1,14 @@
+{
+  "PostToolUse": [
+    {
+      "matcher": "Edit|Write",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 \"${workspaceFolder}/hooks/validate-customization-frontmatter.py\"",
+          "timeout": 15
+        }
+      ]
+    }
+  ]
+}

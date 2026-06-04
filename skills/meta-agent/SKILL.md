@@ -103,7 +103,7 @@ tools: ['read', 'edit', 'search']
 
 **Minimum Required Fields:**
 
-- **`description`** (string, 50-150 chars): Keyword-rich description of agent purpose and use cases
+- **`description`** (string): Keyword-rich routing text — front-load WHAT the agent does, WHEN to use it, and recognizable trigger terms. This is the primary discovery mechanism, not a one-line summary.
 - **`name`** (string): Display name shown in UI (e.g., "Security Audit Agent")
 
 Treat `description` as routing text, not just a summary. State what the agent does, when to use it, and recognizable trigger terms early.
@@ -273,7 +273,7 @@ tools: ['read', 'search', 'edit', 'execute', 'web', 'debug']
 - Overly complex workflows → Split into multiple agents with handoffs
 - Inconsistent behavior → Review authority hierarchy and clarify constraints
 
-### Handoffs Configuration
+## Handoffs Configuration
 
 Handoffs enable guided multi-step workflows between specialized agents.
 
@@ -291,185 +291,24 @@ See the complete configuration guide in [references/HANDOFF.md](./references/HAN
 - Full workflow examples and advanced patterns
 - Troubleshooting guidance
 
-### Tool Configuration
+## Tool Policy
 
-The `tools` field in agent frontmatter controls which capabilities an agent can access. Proper tool configuration is essential for security (limiting potential damage), clarity (making capabilities explicit), and performance (reducing decision overhead).
+Match tools to responsibilities (principle of least privilege): enable only what the agent needs, and limit high-risk tools like `execute` unless required. Fewer tools means a clearer purpose and better performance.
 
-**Key Principles:**
-- **Principle of Least Privilege**: Only enable tools necessary for the agent's purpose
-- **Security**: Limit high-risk tools like `execute` unless explicitly required
-- **Clarity**: Fewer tools = clearer agent purpose and better performance
+**Cross-tool reminder:** the Copilot `tools` array is ignored by Claude Code, which inherits all tools — restrict the Claude side structurally with `disallowedTools` (see [Tools field](#tools-field) above). A read-only agent must declare `disallowedTools: Edit, Write` even when its Copilot `tools` array already omits them.
 
-See [references/TOOLS.md](./references/TOOLS.md) for tool configuration guidance, including:
-- Understanding tool categories and discovery
-- Tool selection patterns by agent type
-- Security considerations and best practices
-- MCP server tool integration
-- Common issues and debugging
+See [references/TOOLS.md](./references/TOOLS.md) for tool categories and discovery, selection patterns by agent type, security considerations, MCP server tool integration, and debugging.
 
-#### Tool Specification Strategies
+## Sub-Agent Orchestration
 
-**Enable all tools** (default):
+Some clients expose agent-to-agent invocation (include `agent` in the orchestrator's `tools`). The recommended pattern is **prompt-based orchestration**: the orchestrator defines a step-by-step workflow in natural language, delegates each step to a specialized agent, and passes only minimal shared context (base path, identifiers) while requiring each sub-agent to read its own `.agent.md` spec for tools/constraints.
 
-```yaml
-# Omit tools property entirely, or use:
-tools: ['*']
-```
+Key constraints:
+- The orchestrator's tool permissions are a **ceiling** for every sub-agent — a sub-agent cannot use a tool the orchestrator lacks.
+- Orchestration and handoffs are platform-specific; use them only where the target client documents them. Do not assume recursive delegation or UI handoff controls are portable.
+- **Not** for large-scale data processing, or pipelines beyond ~5-10 sequential steps — each invocation adds latency and context overhead. For high-volume work, implement the logic in a single agent.
 
-**Enable specific tools**:
-
-```yaml
-tools: ['read', 'edit', 'search', 'execute']
-```
-
-**Enable MCP server tools**:
-
-```yaml
-tools: ['read', 'edit', 'github/*', 'playwright/navigate']
-```
-
-**Disable all tools**:
-
-```yaml
-tools: []
-```
-
-#### Tool Selection Best Practices
-
-- **Principle of Least Privilege**: Only enable tools necessary for the agent's purpose
-- **Security**: Limit `execute` access unless explicitly required
-- **Focus**: Fewer tools = clearer agent purpose and better performance
-- **Documentation**: Comment why specific tools are required for complex configurations
-
-### Sub-Agent Invocation (Agent Orchestration)
-
-Some clients expose agent-to-agent invocation tools. Where supported, agents can orchestrate multi-step workflows by invoking specialized sub-agents.
-
-The recommended approach in clients that support it is **prompt-based orchestration**:
-
-- The orchestrator defines a step-by-step workflow in natural language.
-- Each step is delegated to a specialized agent.
-- The orchestrator passes only the essential context (e.g., base path, identifiers) and requires each sub-agent to read its own `.agent.md` spec for tools/constraints.
-
-See [references/SUBAGENT.md](./references/SUBAGENT.md) for complete sub-agent orchestration documentation, including:
-- Detailed invocation patterns and syntax
-- Common orchestration workflows (planning → implementation, TDD, multi-agent review)
-- Advanced patterns (conditional steps, error handling, logging)
-- Limitations and when NOT to use orchestration
-- Complete working examples
-
-#### How It Works
-
-1) Enable agent invocation by including `agent` in the orchestrator's tools list:
-
-```yaml
-tools: ['read', 'edit', 'search', 'agent']
-```
-
-2) For each step, invoke a sub-agent by providing:
-
-- **Agent name** (the identifier users select/invoke)
-- **Agent spec path** (the `.agent.md` file to read and follow)
-- **Minimal shared context** (e.g., `basePath`, `projectName`, `logFile`)
-
-#### Prompt Pattern (Recommended)
-
-Use a consistent “wrapper prompt” for every step so sub-agents behave predictably:
-
-```text
-This phase must be performed as the agent "<AGENT_NAME>" defined in "<AGENT_SPEC_PATH>".
-
-IMPORTANT:
-- Read and apply the entire .agent.md spec (tools, constraints, quality standards).
-- Work on "<WORK_UNIT_NAME>" with base path: "<BASE_PATH>".
-- Perform the necessary reads/writes under this base path.
-- Return a clear summary (actions taken + files produced/modified + issues).
-```
-
-Optional: if you need a lightweight, structured wrapper for traceability, embed a small JSON block in the prompt (still human-readable and tool-agnostic):
-
-```text
-{
-  "step": "<STEP_ID>",
-  "agent": "<AGENT_NAME>",
-  "spec": "<AGENT_SPEC_PATH>",
-  "basePath": "<BASE_PATH>"
-}
-```
-
-#### Orchestrator Structure (Keep It Generic)
-
-For maintainable orchestrators, document these structural elements:
-
-- **Dynamic parameters**: what values are extracted from the user (e.g., `projectName`, `fileName`, `basePath`).
-- **Sub-agent registry**: a list/table mapping each step to `agentName` + `agentSpecPath`.
-- **Step ordering**: explicit sequence (Step 1 → Step N).
-- **Trigger conditions** (optional but recommended): define when a step runs vs is skipped.
-- **Logging strategy** (optional but recommended): a single log/report file updated after each step.
-
-Avoid embedding orchestration “code” (JavaScript, Python, etc.) inside the orchestrator prompt; prefer deterministic, tool-driven coordination.
-
-#### Basic Pattern
-
-Structure each step invocation with:
-
-1. **Step description**: Clear one-line purpose (used for logs and traceability)
-2. **Agent identity**: `agentName` + `agentSpecPath`
-3. **Context**: A small, explicit set of variables (paths, IDs, environment name)
-4. **Expected outputs**: Files to create/update and where they should be written
-5. **Return summary**: Ask the sub-agent to return a short, structured summary
-
-#### Example: Multi-Step Processing
-
-```text
-Step 1: Transform raw input data
-Agent: data-processor
-Spec: .github/agents/data-processor.agent.md
-Context: projectName=${projectName}, basePath=${basePath}
-Input: ${basePath}/raw/
-Output: ${basePath}/processed/
-Expected: write ${basePath}/processed/summary.md
-
-Step 2: Analyze processed data (depends on Step 1 output)
-Agent: data-analyst
-Spec: .github/agents/data-analyst.agent.md
-Context: projectName=${projectName}, basePath=${basePath}
-Input: ${basePath}/processed/
-Output: ${basePath}/analysis/
-Expected: write ${basePath}/analysis/report.md
-```
-
-#### Key Points
-
-- **Pass variables in prompts**: Use `${variableName}` for all dynamic values
-- **Keep prompts focused**: Clear, specific tasks for each sub-agent
-- **Return summaries**: Each sub-agent should report what it accomplished
-- **Sequential execution**: Run steps in order when dependencies exist between outputs/inputs
-- **Error handling**: Check results before proceeding to dependent steps
-
-#### ⚠️ Tool Availability Requirement
-
-**Critical**: If a sub-agent requires specific tools (e.g., `edit`, `execute`, `search`), the orchestrator must include those tools in its own `tools` list. Sub-agents cannot access tools that aren't available to their parent orchestrator.
-
-**Example**:
-
-```yaml
-# If your sub-agents need to edit files, execute commands, or search code
-tools: ['read', 'edit', 'search', 'execute', 'agent']
-```
-
-The orchestrator's tool permissions act as a ceiling for all invoked sub-agents. Plan your tool list carefully to ensure all sub-agents have the tools they need.
-
-#### ⚠️ Important Limitation
-
-**Sub-agent orchestration is NOT suitable for large-scale data processing.** Avoid using multi-step sub-agent pipelines when:
-
-- Processing hundreds or thousands of files
-- Handling large datasets
-- Performing bulk transformations on big codebases
-- Orchestrating more than 5-10 sequential steps
-
-Each sub-agent invocation adds latency and context overhead. For high-volume processing, implement logic directly in a single agent instead. Use orchestration only for coordinating specialized tasks on focused, manageable datasets.
+See [references/SUBAGENT.md](./references/SUBAGENT.md) for invocation patterns, the wrapper-prompt template, orchestrator structure, worked examples, and limitations.
 
 
 ## Anti-Patterns to Avoid
@@ -501,7 +340,7 @@ Each sub-agent invocation adds latency and context overhead. For high-volume pro
 
 ### Frontmatter
 
-- [ ] `description` field present and descriptive (50-150 chars)
+- [ ] `description` is keyword-rich routing text (WHAT/WHEN/trigger terms), not just a one-line summary
 - [ ] `name` specified
 - [ ] `tools` configured appropriately (or intentionally omitted)
 - [ ] `model` specified for optimal performance

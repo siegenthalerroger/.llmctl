@@ -48,7 +48,7 @@ Common conventions include:
 
 | Location                         | Meaning                        |
 | -------------------------------- | ------------------------------ |
-| `.agent/skills/<skill-name>/`    | Client-agnostic project folder |
+| `.agents/skills/<skill-name>/`   | Client-agnostic project folder |
 | `~/.llmctl/skills/<skill-name>/` | Personal skill library         |
 
 Each skill **must** have its own subdirectory containing at minimum a `SKILL.md` file.
