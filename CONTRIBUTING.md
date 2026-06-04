@@ -116,6 +116,14 @@ Standalone hook definition files use the `*.hook.json` extension — a repositor
 
 The fixed names `hooks.json` / `hooks/hooks.json` apply only inside **plugin** bundles, not to standalone hook files.
 
+**Author one canonical hook, let APM transform it.** Write hooks in APM's canonical (Claude-Code-style) schema — a top-level `hooks` object keyed by lifecycle event, each entry carrying a `matcher` and a `hooks` array of `{ "type": "command", ... }`:
+
+```json
+{ "hooks": { "PostToolUse": [ { "matcher": "Edit|Write", "hooks": [ { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/<script>\"", "timeout": 15 } ] } ] } }
+```
+
+APM is target-aware and reconciles event names, matchers, and paths per harness on deploy, so do **not** hand-maintain per-target variants. Use the portable `${CLAUDE_PLUGIN_ROOT}` root token (recognized by Claude and by Claude-compatible VS Code plugins) rather than a harness-specific token like `${workspaceFolder}`. APM hook support is still maturing — verify the deployed result with `apm install -g` before relying on it.
+
 **Do not commit deployed hook wiring.** APM deploys hooks into each target's native location (e.g. Claude Code's `settings.json`); that deployed `settings.json` is a build artifact and is git-ignored, not committed.
 
 ## Deprecated Fields

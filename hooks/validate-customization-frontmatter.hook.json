@@ -1,14 +1,16 @@
 {
-  "PostToolUse": [
-    {
-      "matcher": "Edit|Write",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "python3 \"${workspaceFolder}/hooks/validate-customization-frontmatter.py\"",
-          "timeout": 15
-        }
-      ]
-    }
-  ]
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/validate-customization-frontmatter.py\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
 }
