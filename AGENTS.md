@@ -18,7 +18,7 @@ This is a quick reference, see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed d
 - **Agents:** prefer structural tool constraints (`tools`, `disallowedTools`) over prose-based role restrictions. Add `disable-model-invocation: true` to side-effectful agents that should not be auto-selected.
 - **Instructions:** keep narrow — their main job is forcing skill loading via `applyTo` patterns.
 - **Prompts:** one slash-command per file. Keep the body concise.
-- **Hooks:** deterministic, event-driven guardrails/side-effects only — not behavioral steering. Prefer cross-platform (Python/Node) scripts.
+- **Hooks:** deterministic, event-driven guardrails/side-effects only — not behavioral steering. Prefer cross-platform (Python/Node) scripts. Name definition files `*.hook.json`.
 - **Plugins:** bundled distribution of multiple components. Add only when shipping a curated subset for marketplace/external use.
 - **Provenance:** track upstream sources via `metadata.provenance.{mirror,adaptedFrom,authoritativeSpec}` — prefer APM dependencies over vendored copies.
 

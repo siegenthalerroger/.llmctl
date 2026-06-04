@@ -3,6 +3,27 @@
 Lifecycle hooks for this collection. Authoring guidance lives in the
 [`meta-hook` skill](../skills/meta-hook/SKILL.md).
 
+## Naming convention
+
+Hook definition files use the `*.hook.json` extension, mirroring the
+`*.agent.md` / `*.prompt.md` / `*.instructions.md` conventions for the other
+primitive types. This is safe across every target:
+
+- **VS Code Copilot** loads *all* `*.json` files in a configured hook folder
+  (`chat.hookFilesLocations`, and the `.github/hooks/*.json` default), so
+  `*.hook.json` — a strict subset of `*.json` — is discovered normally.
+- **Claude Code** reads hooks from `settings.json`, not from arbitrary files in
+  a `hooks/` directory, so the source filename is irrelevant to it (project
+  wiring lives in `../.claude/settings.json`).
+- **APM** discovers hook primitives by glob, not a fixed filename, and rewrites
+  them into each target's native location on deploy.
+
+The suffix is therefore an organizational/repo convention (and an APM/VS Code
+discovery aid), not something any harness parses specially. Exception: a
+*plugin* bundle must use the plugin-format fixed names (`hooks.json` /
+`hooks/hooks.json`) — the `*.hook.json` convention applies to standalone hook
+files in this `hooks/` directory.
+
 ## `validate-customization-frontmatter`
 
 A deterministic guardrail that validates the frontmatter of customization
@@ -30,8 +51,8 @@ relying on the model to remember them.
 
 - `validate-customization-frontmatter.py` — the validator (Python 3,
   dependency-free).
-- `validate-customization-frontmatter.json` — VS Code / APM-style hook config
-  (`${workspaceFolder}` path token).
+- `validate-customization-frontmatter.hook.json` — VS Code / APM-style hook
+  config (`${workspaceFolder}` path token).
 - `../.claude/settings.json` — project-scoped Claude Code wiring
   (`$CLAUDE_PROJECT_DIR` path token), active when working in this repo.
 

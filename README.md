@@ -83,11 +83,13 @@ Any prompt files must end in `*.prompt.md`.
 
 ### Hooks
 
-Lifecycle hooks allow pre/post actions around agent events (file writes, command execution, mode switches). VS Code Copilot hooks are in preview; Claude Code supports 30+ hook events. See the [meta-agent skill](skills/meta-agent/SKILL.md) for authoring guidance.
+Lifecycle hooks allow pre/post actions around agent events (file writes, command execution, mode switches). VS Code Copilot hooks are in preview; Claude Code supports 30+ hook events. See the [meta-hook skill](skills/meta-hook/SKILL.md) for authoring guidance.
+
+Hook definition files use `*.hook.json` (a strict subset of `*.json`, so harness/APM discovery is unaffected — see [hooks/README.md](hooks/README.md)). Project-scoped Claude wiring lives in `.claude/settings.json`.
 
 ### Plugins
 
-Plugins extend agent capabilities beyond what skills and tools provide. VS Code Copilot plugins are experimental (v1.110+); Claude Code has a production plugin marketplace. See the [meta-agent skill](skills/meta-agent/SKILL.md) for when plugins are appropriate.
+Plugins extend agent capabilities beyond what skills and tools provide. VS Code Copilot plugins are experimental (v1.110+); Claude Code has a production plugin marketplace. See the [meta-plugin skill](skills/meta-plugin/SKILL.md) for when plugins are appropriate.
 
 ## Tool Guides
 
