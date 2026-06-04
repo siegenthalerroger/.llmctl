@@ -4,6 +4,8 @@
 # Dependency copies
 apm_modules/
 
-# Local / machine-generated settings (APM-deployed wiring lands in settings.local.json;
-# .claude/settings.json stays free for intentional, shared project settings)
+# Local / machine-generated settings. NOTE: APM deploys hook wiring to
+# .claude/settings.json (project scope) or ~/.claude/settings.json (user scope),
+# NOT to *.local.json — so prefer `apm install -g` to keep generated wiring out of
+# the repo (see microsoft/apm#1342). This rule still ignores hand-made local overrides.
 .claude/*.local.json
