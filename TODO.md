@@ -69,8 +69,9 @@ Authoring guidance lives in the [meta-agent skill](skills/meta-agent/SKILL.md).
 
 - [x] **4a — Create `meta-hook` skill:** Standalone skill for lifecycle hook authoring across Claude Code, VS Code, and APM. Sources: `code.claude.com/docs/en/hooks`, `code.visualstudio.com/docs/agent-customization/hooks`, `microsoft.github.io/apm/producer/author-primitives/hooks-and-commands/`.
 - [x] **4b — Create `meta-plugin` skill:** Standalone skill for plugin packaging across Claude Code, VS Code, and APM. Sources: `code.claude.com/docs/en/plugins-reference`, `code.visualstudio.com/docs/agent-customization/agent-plugins`, `microsoft.github.io/apm/producer/pack-a-bundle/`.
-- [ ] **4c — First hook:** Add when a concrete pre/post lifecycle need is identified (e.g., auto-lint on file write, post-commit validation).
+- [x] **4c — First hook:** Added `hooks/validate-customization-frontmatter.hook.json` — a `PostToolUse` (`Edit|Write`) hook authored in the canonical Claude-style envelope with a `${CLAUDE_PLUGIN_ROOT}` script path, for APM to transform per target on deploy.
 - [ ] **4d — First plugin:** Add when tool/MCP capabilities are insufficient for a task.
+- [ ] **4e — Verify APM hook deployment once APM's hook support matures:** APM's hook support is still WIP (microsoft/apm [#96](https://github.com/microsoft/apm/issues/96) "Support Hooks as an Agent Primitive", [#541](https://github.com/microsoft/apm/issues/541) "target-aware hook event diagnostics"). Once it lands, run `apm install -g` and verify the canonical hook in `hooks/*.hook.json` transforms correctly into each target's native location/format (Claude → `settings.json`; VS Code → `.github/hooks/*.json` / `chat.hookFilesLocations`), including event-name and matcher reconciliation. Until then, treat the canonical hook as authored-but-unverified end-to-end.
 
 ---
 
