@@ -18,7 +18,7 @@ handoffs:
     prompt: '#createFile the plan as is into an untitled file (`untitled:plan-${camelCaseName}.prompt.md` without frontmatter) for further refinement.'
     send: true
     showContinueOn: false
-# Claude Code fields (Copilot tools array is ignored by Claude, which inherits all tools — restrict structurally)
+# Claude Code fields
 disallowedTools: Edit, Write, NotebookEdit
 # Metadata fields
 metadata:

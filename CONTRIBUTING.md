@@ -106,6 +106,18 @@ Copilot calls these "Instructions" and Claude Code calls them "Rules" — both a
 
 VSCode Prompts map to Claude Code Commands (`.claude/commands/`) — both create user-invocable slash commands. Commands are superseded by Skills in Claude Code; this mapping is for basic compatibility only.
 
+### Hooks (`*.hook.json`)
+
+Standalone hook definition files use the `*.hook.json` extension — a repository naming convention analogous to `*.agent.md` / `*.prompt.md` / `*.instructions.md`. It is a strict subset of `*.json`, so it does not change how any harness discovers hooks:
+
+- **VS Code Copilot** loads all `*.json` in a configured hook folder (`chat.hookFilesLocations`, and the `.github/hooks/*.json` default), so `*.hook.json` is discovered normally.
+- **Claude Code** reads hooks from `settings.json`, not by scanning a `hooks/` directory, so the source filename is irrelevant to it.
+- **APM** discovers hook primitives by glob (not a fixed filename) and rewrites them into each target's native location on deploy.
+
+The fixed names `hooks.json` / `hooks/hooks.json` apply only inside **plugin** bundles, not to standalone hook files.
+
+**Do not commit deployed hook wiring.** APM deploys hooks into each target's native location (e.g. Claude Code's `settings.json`); that deployed `settings.json` is a build artifact and is git-ignored, not committed.
+
 ## Deprecated Fields
 
 ### `infer:` (agent frontmatter)

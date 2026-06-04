@@ -83,9 +83,9 @@ Any prompt files must end in `*.prompt.md`.
 
 ### Hooks
 
-Lifecycle hooks allow pre/post actions around agent events (file writes, command execution, mode switches). VS Code Copilot hooks are in preview; Claude Code supports 30+ hook events. See the [meta-hook skill](skills/meta-hook/SKILL.md) for authoring guidance.
+Lifecycle hooks allow pre/post actions around agent events (file writes, command execution, mode switches). VS Code Copilot hooks are in preview; Claude Code supports 30+ hook events. See the [meta-hook skill](skills/meta-hook/SKILL.md) for authoring guidance and the [`*.hook.json` convention](CONTRIBUTING.md#hooks-hookjson).
 
-Hook definition files use `*.hook.json` (a strict subset of `*.json`, so harness/APM discovery is unaffected — see [hooks/README.md](hooks/README.md)). Project-scoped Claude wiring lives in `.claude/settings.json`.
+APM deploys hook definitions into each target's native location (e.g. Claude Code's `settings.json`), so the deployed `settings.json` is not committed here — it is git-ignored. The current hook, `hooks/validate-customization-frontmatter.hook.json`, runs `hooks/validate-customization-frontmatter.py` after `Edit`/`Write` to validate customization-file frontmatter (required `name`/`description`, skill `name`==directory, kebab-case, no reserved words). It is invoked via `python3` — on Windows hosts where only `python` is on `PATH`, adjust accordingly.
 
 ### Plugins
 

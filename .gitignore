@@ -4,5 +4,6 @@
 # Dependency copies
 apm_modules/
 
-# Local configuration
+# Local configuration & deployed artifacts (APM deploys hooks into settings.json)
+.claude/settings.json
 .claude/*.local.json
