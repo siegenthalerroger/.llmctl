@@ -11,7 +11,7 @@ paths: ["**/*.agent.md", "**/SKILL.md", "**/*.prompt.md", "**/*.instructions.md"
 
 ## Capabilities
 
-You have multiple mechanisms to improve and learn. We support agents, skills, instructions and prompts as the types of files that can store rules and guidelines and steer future conversations. Collectively we call them "customization" files.
+You have multiple mechanisms to improve and learn. We support agents, skills, instructions, prompts, hooks, and plugins as the types of files that can store rules, automation, or distribution metadata. Collectively we call them "customization" files.
 
 **Customization Types:**
 
@@ -19,11 +19,21 @@ You have multiple mechanisms to improve and learn. We support agents, skills, in
 - **Skills**: Reusable, composable capabilities that perform specific tasks. Always prefer creating a skill over an instruction if the capability involves specific knowledge or tasks.
 - **Instructions**: Guidelines and rules that shape behavior and decision-making. **Only use instructions to force VS Code to load specific skills** or for strictly behavioral patterns that cannot be encapsulated in a skill.
 - **Prompts**: Structured inputs that guide specific model interactions. Use for templated requests, few-shot examples, and conversation starters.
+- **Hooks**: Deterministic, event-driven automation that runs at lifecycle boundaries (pre/post tool, file write, session). Use only for guardrails and side effects, not for behavioral steering.
+- **Plugins**: Packaging and distribution units that bundle skills, agents, hooks, and MCP servers together. Use only when shipping multiple components as one installable unit.
 
 ## Workflow
 
 - Utilise `#tool:runSubagent` to **create new** or **substantially rewrite** customization files, loading the provided skills to assist you in the design and implementation of these files.
-- Before creating or substantially editing a customization file, load the corresponding `meta-*` skill for that file type (e.g. `meta-skill` for `SKILL.md`, `meta-agent` for `.agent.md`, `meta-prompt` for `.prompt.md`, `meta-instruction` for `.instructions.md`). These contain structure, format, and content guidelines.
+- Before creating or substantially editing a customization file, load the corresponding `meta-*` skill for that file type:
+  - `meta-skill` for `SKILL.md`
+  - `meta-agent` for `*.agent.md`
+  - `meta-prompt` for `*.prompt.md`
+  - `meta-instruction` for `*.instructions.md`
+  - `meta-hook` for hook configuration files
+  - `meta-plugin` for `plugin.json` and bundle layouts
+
+  These contain structure, format, and content guidelines.
 - For targeted edits (inserting a section, appending items, fixing wording), edit the file directly with the available tools. Do not use a subagent when the edit is simple and the insertion point is known.
 - Run multiple subagents in parallel if the learnings can be clearly separated from eachother.
 

@@ -1,0 +1,244 @@
+---
+name: "meta-plugin"
+description: "Guidelines for authoring and packaging agent plugins. Covers Claude Code plugins (`plugin.json`), VS Code Copilot agent plugins, and APM bundles. Use when creating, reviewing, or distributing plugin packages that bundle skills, agents, hooks, or MCP servers. Keywords: plugin, plugin.json, bundle, marketplace, distribution, package, APM."
+license: ""
+metadata:
+  provenance:
+    authoritativeSpec:
+      - "https://code.claude.com/docs/en/plugins-reference"
+      - "https://code.claude.com/docs/en/plugins"
+      - "https://code.claude.com/docs/en/plugin-marketplaces"
+      - "https://code.visualstudio.com/docs/agent-customization/agent-plugins"
+      - "https://microsoft.github.io/apm/producer/pack-a-bundle/"
+      - "https://microsoft.github.io/apm/reference/package-types/"
+---
+
+# Plugin Authoring and Packaging Guidelines
+
+Use this skill when you need to package and distribute multiple customizations together, not when you are authoring a single skill, agent, or hook in isolation.
+
+For volatile schema details and CLI flags, always verify against the authoritative references listed in frontmatter.
+
+## When to Use Plugins
+
+Plugins are the packaging and distribution mechanism, not the capability mechanism.
+
+| Situation | Use |
+| --- | --- |
+| Single reusable capability | Skill (standalone SKILL.md) |
+| Agent workflow | Agent (standalone .agent.md) |
+| Lifecycle side-effects | Hook (see meta-hook skill) |
+| Bundled distribution of multiple components | Plugin |
+| External tool integration | MCP server |
+
+Use a plugin when at least one of these is true:
+
+- You need one install surface for multiple components.
+- You need versioned releases and upgrade semantics.
+- You need marketplace distribution or private internal catalogs.
+- You need portable packaging across projects, teams, or tools.
+
+> Plugin scope should stay cohesive: one clear domain/problem per plugin is usually better than a kitchen-sink bundle.
+
+## Cross-Tool Compatibility
+
+| Platform | Manifest | Components supported | Installation |
+| --- | --- | --- | --- |
+| Claude Code | `plugin.json` (typically `.claude-plugin/plugin.json`) | skills, agents, hooks, MCP servers, LSP, monitors | `--plugin-dir` / `--plugin-url` for local testing, or marketplace install |
+| VS Code Copilot | `plugin.json` | skills, agents, hooks, MCP servers | Workspace or user-level plugin install via Agent Plugins UI / source install |
+| APM | `apm.yml` source, `apm pack` emits plugin-format bundle (`plugin.json`) | skills, agents, hooks, MCP servers, prompts (packaging primitive set) | `apm pack` to produce bundle, `apm install` to consume |
+
+Claude-format `plugin.json` content is largely portable to VS Code for overlapping component types. Keep Claude-only components (for example LSP/monitors) isolated or optional when targeting both platforms.
+
+## Plugin Manifest Schema (`plugin.json`)
+
+Treat this section as a structural map. Do not hardcode full schema copies in local docs.
+
+Core identity fields:
+
+- `name` (required): plugin identifier and namespace anchor.
+- `version` (recommended): semantic version for release and update control.
+- `description` (recommended): concise intent and scope.
+
+Common component path/config fields:
+
+- `skills`: path(s) to skill directories.
+- `agents`: path(s) to agent files/directories.
+- `hooks`: hook config path or object, depending on format.
+- `mcpServers`: MCP config path or object.
+
+Other commonly encountered metadata:
+
+- `author`, `license`, `homepage`, `repository`, `keywords`.
+- Marketplace-facing metadata can appear in marketplace descriptors rather than only plugin manifest.
+
+Variable substitution and runtime roots:
+
+- `${CLAUDE_PLUGIN_ROOT}`: Claude-format plugin root token used by Claude and recognized by VS Code in Claude-compatible plugins.
+- `${PLUGIN_ROOT}`: OpenPlugin-style root token where supported.
+- Runtime env vars may also be injected (for example `CLAUDE_PLUGIN_ROOT`) for hooks/MCP server processes.
+
+> Prefer plugin root tokens over absolute paths. Plugin install locations differ by platform, scope, and marketplace source.
+
+For full field definitions and constraints, see the platform references:
+
+- Claude reference: https://code.claude.com/docs/en/plugins-reference
+- VS Code plugin docs: https://code.visualstudio.com/docs/agent-customization/agent-plugins
+
+## Component Types
+
+### Skills directory plugins
+
+- Package skills under `skills/<skill-name>/SKILL.md`.
+- Use plugin namespacing behavior where required by runtime.
+- Include scripts/resources next to the skill when needed.
+
+### Agent bundles
+
+- Package one or more `*.agent.md` files under `agents/`.
+- Keep agent tool policies explicit in each agent file.
+
+### Hook definitions
+
+- Include hook configuration plus referenced scripts.
+- Respect each runtime's supported hook event set and precedence behavior.
+
+### MCP server declarations
+
+- Bundle `.mcp.json` or inline `mcpServers` definitions in manifest.
+- Use plugin root variables for command paths, cwd, and config paths.
+
+### LSP and monitor components
+
+- LSP and background monitor plugin components are Claude Code plugin features.
+- Treat them as Claude-specific extensions when building cross-tool plugins.
+
+## Distribution Models
+
+### Local development
+
+- Claude Code: load via `--plugin-dir` for fast iteration.
+- VS Code: install plugin from source or marketplace while developing.
+- Use local installs to validate hooks, MCP startup, and component discovery.
+
+### Marketplace distribution
+
+- Publish via marketplace indexes (`marketplace.json`) and versioned entries.
+- Common source types include `github`, `url`, `git-subdir`, and `npm`.
+- Use pinned versions/refs and dependency constraints for reproducibility.
+
+### APM packaging
+
+- `apm pack` produces a plugin-format distributable bundle.
+- Bundles include `plugin.json` plus component directories and lock/integrity metadata.
+- Consumers install bundle artifacts with `apm install`.
+
+### Private/managed marketplaces
+
+- Use strict/allowlist policies to limit approved marketplace sources.
+- Validate manifests and enforce provenance before rollout.
+- Prefer internal review gates for plugins with hooks/MCP executables.
+
+> Plugins can execute code through hooks and MCP servers. Treat plugin installation as code execution trust, not just metadata import.
+
+## Local Development Workflow
+
+### Minimal plugin structure
+
+```text
+my-plugin/
+  .claude-plugin/
+    plugin.json
+  skills/
+    my-skill/
+      SKILL.md
+  agents/
+    helper.agent.md
+  hooks/
+    hooks.json
+  .mcp.json
+  scripts/
+    run-check.sh
+```
+
+### Suggested workflow
+
+1. Start with the smallest vertical slice (manifest + one skill).
+2. Load locally (`--plugin-dir` or equivalent install-from-source flow).
+3. Verify component discovery (skills, agents, hooks, MCP servers).
+4. Run reload cycle after edits (`/reload-plugins` or host equivalent).
+5. Validate behavior with representative tasks and failure cases.
+6. Package only after local validation passes.
+
+### Debugging plugin load issues
+
+- Validate manifest path and required fields first.
+- Confirm every configured component path exists and is relative.
+- Check for format mismatches (`.claude-plugin/plugin.json` vs root `plugin.json`).
+- Use platform diagnostics/doctor commands for plugin errors.
+- Verify hook/MCP scripts have executable permissions where required.
+
+### Runtime environment variables
+
+Commonly relevant runtime variables include:
+
+- `CLAUDE_PLUGIN_ROOT` / `${CLAUDE_PLUGIN_ROOT}` for Claude-format plugin paths.
+- `${PLUGIN_ROOT}` for formats that define it.
+
+Always check current platform docs for exact availability and expansion rules.
+
+## APM Integration
+
+APM is a producer/consumer packaging workflow that can emit plugin-format bundles.
+
+How `apm.yml` relates to `plugin.json`:
+
+- `apm.yml` is the authoring manifest used by APM workflows.
+- `apm pack` can synthesize or include plugin identity metadata in emitted bundle output.
+- Core fields typically map cleanly (`name`, `version`, `description`, plus metadata fields).
+
+Using `apm pack`:
+
+- Build distributable plugin bundle artifacts from source primitives.
+- Use dry-run/preview style checks before publishing.
+- Ship archives or directories depending on consumer workflow.
+
+Package types and when they matter:
+
+- Skill package: focused single-skill distribution.
+- Hook package: hook-only distribution.
+- Plugin collection (`plugin.json`): multi-component plugin layout.
+- APM package (`.apm/`) and skill collection layouts are useful producer forms but may install differently by target.
+
+When to use APM vs direct `plugin.json` authoring:
+
+- Use direct plugin authoring for quick local plugin iteration.
+- Use APM when you need repeatable bundle builds, dependency handling, integrity metadata, and marketplace publishing workflows.
+
+## Quality Checklist
+
+- Manifest contains required identity fields and valid naming.
+- Component paths are valid, relative, and exist.
+- Plugin is tested locally before any distribution step.
+- No absolute paths or user-home hardcoding in configs/scripts.
+- Variable substitution is used for portable paths.
+- Versioning follows semver and is bumped for publishable changes.
+- Description clearly states scope, behavior, and intended usage.
+- Hooks/MCP components were reviewed as executable trust boundaries.
+
+## Anti-Patterns
+
+- Bundling unrelated domains in one plugin instead of focused packages.
+- Hardcoding absolute paths instead of `${PLUGIN_ROOT}` or `${CLAUDE_PLUGIN_ROOT}`.
+- Shipping content changes without a version bump.
+- Duplicating components that should be shared via APM dependencies.
+- Overloading plugin docs with copied full schemas that quickly drift from upstream.
+
+## Reference Links
+
+- Claude plugins guide: https://code.claude.com/docs/en/plugins
+- Claude plugins reference: https://code.claude.com/docs/en/plugins-reference
+- Claude plugin marketplaces: https://code.claude.com/docs/en/plugin-marketplaces
+- VS Code agent plugins: https://code.visualstudio.com/docs/agent-customization/agent-plugins
+- APM pack a bundle: https://microsoft.github.io/apm/producer/pack-a-bundle/
+- APM package types: https://microsoft.github.io/apm/reference/package-types/

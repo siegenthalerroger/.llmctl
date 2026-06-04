@@ -121,7 +121,6 @@ description: "Coding standards and style conventions for Python files"
 applyTo: "**/*.py"
 # Claude Code
 paths: ["**/*.py"]
-source: ""
 license: ""
 ---
 ```
@@ -132,7 +131,6 @@ license: ""
 | `description` | Yes | Brief explanation of what rules are covered; include what, when, and trigger terms when semantic discovery matters |
 | `applyTo` | Conditional | Copilot glob pattern(s) for path-based activation when supported and needed |
 | `paths` | Conditional | Claude Code path pattern array for path-based activation when supported and needed |
-| `source` | Optional | URL or reference to source material |
 | `license` | Optional | License information for the instructions |
 
 For cross-file provenance consistency, instruction frontmatter may also include:
@@ -396,7 +394,7 @@ Most gains come from clearer rules, examples, and rationale rather than model-sp
 - [ ] `name` is descriptive and clear
 - [ ] `description` explains scope accurately and includes what/when/trigger terms when needed
 - [ ] `applyTo` pattern is specific and tested if path-based matching is intended
-- [ ] Optional fields (`source`, `license`) included if applicable
+- [ ] Optional fields (`license`, `metadata.provenance`) included if applicable
 
 **Content**:
 - [ ] Rules are specific and actionable

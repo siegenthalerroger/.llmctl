@@ -52,6 +52,8 @@ metadata:
     adaptedFrom: "https://github.com/example-upstream/skills/tree/main/excel-processing"
 ```
 
+> **APM-first rule:** Before creating a `mirror` entry, verify the upstream content isn't available as an APM package. APM dependencies (declared in `apm.yml`) don't need provenance tracking — they're managed externally. Use `mirror` only for exceptional cases where APM cannot manage the content.
+
 - `metadata.provenance.mirror`: canonical upstream URL for exact copies
 - `metadata.provenance.adaptedFrom`: source URL (string) or list of URLs (array) when locally adapted/synthesised
 - `metadata.provenance.authoritativeSpec`: array of URLs for authoritative format specifications (informational only)

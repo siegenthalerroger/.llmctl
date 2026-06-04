@@ -7,7 +7,7 @@ disable-model-invocation: true
 tools: ['read', 'edit', 'search', 'execute', 'todo', 'vscode/askQuestions', 'web/fetch', 'github/list_commits', 'github/get_commit', 'github/get_file_contents', 'github/search_code']
 model: ['Claude Sonnet 4.6 (unify-chat-provider)', 'GPT-5.4 (unify-chat-provider)', 'Claude Sonnet 4.6 (copilot)', 'GPT-5.4 (copilot)']
 # Claude Code fields
-skills: ['meta-upstream-sync', 'meta-update-models', 'meta-agent', 'meta-skill', 'meta-prompt', 'meta-instruction']
+skills: ['meta-upstream-sync', 'meta-update-models', 'meta-agent', 'meta-skill', 'meta-prompt', 'meta-instruction', 'meta-hook', 'meta-plugin']
 # Metadata fields
 metadata:
   modelProfile:
@@ -26,6 +26,8 @@ Unless the user scopes the request to a specific phase, run all three phases in 
 ## Phase 1 — Upstream Sync
 
 Check local customization files against their tracked upstream sources.
+
+> **Scope:** This phase audits locally-committed files with `metadata.provenance` declarations only. APM dependencies are updated separately via `apm install -g`. If a mirror file is found for content available as an APM package, recommend converting to an APM dependency instead of updating the local copy.
 
 1. [ ] Load the `meta-upstream-sync` skill and verify files contain `metadata.provenance.mirror` or `metadata.provenance.adaptedFrom` in frontmatter.
 1. [ ] Use `vscode/askQuestions` to ask for a GitHub Personal Access Token (fine-grained, `Contents: Read-only`). This avoids GitHub API rate limits (60 req/hr unauthenticated). Mark as optional — the user can skip if the repo is small or rate limits are not a concern. If provided, store in `$env:GITHUB_TOKEN` immediately.
@@ -49,8 +51,8 @@ Update `model:` arrays in files that declare a `metadata.modelProfile`.
 
 Ensure all customization files comply with the latest structural and frontmatter standards for their file type.
 
-1. [ ] Load the relevant meta-skills for the file types in scope: `meta-agent` for `*.agent.md`, `meta-skill` for `SKILL.md`, `meta-prompt` for `*.prompt.md`, `meta-instruction` for `*.instructions.md`.
-1. [ ] Discover all customization files in the workspace.
+1. [ ] Load the relevant meta-skills for the file types in scope: `meta-agent` for `*.agent.md`, `meta-skill` for `SKILL.md`, `meta-prompt` for `*.prompt.md`, `meta-instruction` for `*.instructions.md`, `meta-hook` for hook configuration files (e.g. `hooks/*.json`, hook entries in agent/settings frontmatter), `meta-plugin` for `plugin.json` and APM bundle layouts.
+1. [ ] Discover all customization files in the workspace, including hook and plugin manifests in addition to the four markdown types.
 1. [ ] For each file, verify frontmatter against its type's required and recommended fields (as defined in the loaded meta-skill). Check for: missing required fields, deprecated or renamed fields, incorrect field types or formats, missing `metadata.provenance` fields where applicable.
 1. [ ] Report findings grouped by file type: compliant files, files with warnings (missing optional fields), files with errors (missing required fields or structural violations).
 1. [ ] For each non-compliant file, propose the minimal diff needed to bring it into compliance. Apply fixes only when explicitly asked.

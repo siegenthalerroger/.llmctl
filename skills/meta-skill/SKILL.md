@@ -75,6 +75,8 @@ description: "Toolkit and guidelines for an example usecase. Use when asked to d
 | `metadata.provenance.adaptedFrom` | No | URL (string) or list of URLs (array) when adapted/synthesised from upstream sources |
 | `metadata.provenance.authoritativeSpec` | No | Array of URLs for authoritative format specifications (informational only) |
 
+> **Portable vs. private fields:** Only `name`, `description`, and `license` are part of the [agentskills.io](https://agentskills.io/) spec. Everything under `metadata.*` (provenance, modelProfile) is a **private convention** of this repository — other tools and consumers safely ignore it. Do not add `metadata.*` fields to skills intended for upstream publication without confirming the target registry supports them.
+
 For consistent provenance tracking, use `metadata.provenance` fields across prompt, instruction, skill, and agent frontmatter.
 
 **Naming conventions:**
@@ -242,7 +244,7 @@ Before publishing a skill, ensure:
 **File Structure**
 
 - [ ] Minimum required: `SKILL.md` with valid frontmatter
-- [ ] Prefer keeping `SKILL.md` under 500 lines for clients that load the full body at activation time
+- [ ] Prefer keeping `SKILL.md` under ~200 lines; split larger material into `references/` for progressive disclosure
 - [ ] Large workflows (>5 steps) in `references/` folder with clear links from SKILL.md
 - [ ] Resource directories follow naming: `scripts/`, `references/`, `assets/` (official spec), `templates/` (non-standard extension)
 - [ ] Client-specific discovery location documented where portability matters

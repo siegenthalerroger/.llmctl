@@ -48,6 +48,9 @@ Agent files can often serve both GitHub Copilot and Claude Code, but only a shar
 **Claude Code-only** (ignored by Copilot):
 - `disallowedTools`, `permissionMode`, `maxTurns`
 - `skills`, `mcpServers`, `hooks`, `memory`, `background`, `isolation`
+- `effort` (string: `low`, `medium`, `high` — controls reasoning depth)
+
+> **Note:** VS Code Copilot natively discovers `.claude/` directories (agents, skills, rules) as of v1.106+, so content symlinked there for Claude Code is also available to Copilot without duplication.
 
 ### Tools field
 
@@ -112,10 +115,13 @@ Treat `description` as routing text, not just a summary. State what the agent do
 - **`user-invocable`** (boolean): Whether users can manually invoke the agent from the UI/command surface
 - **`target`** (string): Environment where agent is available (e.g., `"vscode"`, `"cli"`, `"web"`)
 - **`disable-model-invocation`** (boolean): Platform-specific flag for tool-first or orchestration-only agents where supported
-- **`infer`** (boolean): Legacy discovery field in some clients; prefer current platform-documented fields for new agents
 - **`handoffs`** (array): Configuration for multi-step workflows with other agents
 - **`license`** (string): License for the agent definition (e.g., `"MIT"`, `"Apache-2.0"`)
 - **`metadata`** (object): Additional custom metadata (author, version, tags, etc.)
+
+**Deprecated fields:**
+
+- **`infer`** (boolean): Legacy discovery/auto-selection field removed from VS Code Copilot. Do not use in new files. Use `description` for discoverability and `disable-model-invocation: true` to prevent auto-selection.
 
 Prefer fields documented by the target client, and label platform-specific examples explicitly.
 
@@ -126,6 +132,8 @@ Prefer fields documented by the target client, and label platform-specific examp
 - **`metadata.provenance.authoritativeSpec`** (array): URLs of authoritative specifications that define the file format or behavioral contract (informational only, not tracked for drift)
 
 Use this same convention for prompt, instruction, skill, and agent frontmatter to keep source tracking consistent.
+
+> **APM-first:** If an upstream agent is available as an APM package, consume it via `apm.yml` rather than copying it locally. Use `adaptedFrom` or `mirror` only for agents that cannot be APM-managed.
 
 See [references/FRONTMATTER.md](./references/FRONTMATTER.md) for complete documentation of all available frontmatter properties.
 
@@ -499,7 +507,7 @@ Each sub-agent invocation adds latency and context overhead. For high-volume pro
 - [ ] `model` specified for optimal performance
 - [ ] `user-invocable` or equivalent visibility field set intentionally for the target client
 - [ ] `target` set if environment-specific
-- [ ] Deprecated fields such as `infer` only used when the target client still documents them
+- [ ] Deprecated fields such as `infer` are NOT used (removed from VS Code Copilot)
 
 ### Prompt Content
 
@@ -529,10 +537,19 @@ Each sub-agent invocation adds latency and context overhead. For high-volume pro
 - [ ] Documentation references are current
 - [ ] Security considerations addressed (if applicable)
 
+## Hooks and Plugins
+
+Agents can be extended with lifecycle hooks and plugins. These are documented in dedicated skills:
+
+- **Hooks:** See the `meta-hook` skill for lifecycle event authoring across Claude Code (`hooks:` frontmatter), VS Code (`hooks/*.json` files), and APM (`.apm/hooks/`).
+- **Plugins:** See the `meta-plugin` skill for plugin packaging across Claude Code (`plugin.json`), VS Code (agent plugins), and APM bundles.
+
+> **Guidance:** Only add hooks/plugins when a concrete need arises. Prefer structural tool constraints and skills for most steering needs.
+
 ## References
 
 - [Creating Custom Agents](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-custom-agents)
 - [Custom Agents Configuration](https://docs.github.com/en/copilot/reference/custom-agents-configuration)
-- [Custom Agents in VS Code](https://code.visualstudio.com/docs/copilot/customization/custom-agents)
+- [Custom Agents in VS Code](https://code.visualstudio.com/docs/agent-customization/custom-agents)
 - [Claude Code Sub-agents](https://code.claude.com/docs/en/sub-agents)
 - [Awesome Copilot Agents Collection](https://github.com/github/awesome-copilot/tree/main/agents)

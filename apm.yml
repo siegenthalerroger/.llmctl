@@ -1,0 +1,16 @@
+name: llmctl
+version: 0.1.0
+description: Personal agent steering collection — skills, agents, prompts, instructions
+author: siegenthalerroger
+
+targets:
+  - copilot
+  - claude
+
+dependencies:
+  apm: []
+  mcp: []
+
+includes: auto
+
+scripts: {}

@@ -26,6 +26,12 @@ metadata:
 
 This is a **repository convention**, not a universal standard.
 
+> **APM-first rule:** If upstream content is available as an APM package, consume it as a dependency in `apm.yml` rather than copying it locally. Use `adaptedFrom` or `mirror` only for content that cannot be APM-managed.
+
+### Portable vs. private frontmatter in SKILL.md
+
+The [agentskills.io](https://agentskills.io/) spec recognizes only `name`, `description`, and optionally `license` as top-level frontmatter. Everything under `metadata.*` (e.g., `metadata.provenance`, `metadata.modelProfile`) is a **private convention** of this repository — other tools and consumers safely ignore it.
+
 ## Model Profile Convention (`metadata.modelProfile`)
 
 Customization files may declare a `metadata.modelProfile` block to describe the model capabilities required, instead of maintaining a hardcoded `model:` array, but only when that file type supports the top-level Copilot `model` frontmatter field. The `meta-update-models` skill reads this profile, fetches the authoritative model catalogues for all supported providers at run-time, and rewrites the ordered `model:` array with the current best-matching models.
@@ -84,7 +90,7 @@ See the [meta-agent skill](skills/meta-agent/SKILL.md) for full cross-tool compa
 
 Both tools support skill discovery from user-level directories. The [Agent Skills](https://agentskills.io/) standard (`SKILL.md` + folder structure) is shared — no format changes are needed.
 
-- **Discovery:** Copilot uses `chat.agentSkillsLocations` in VS Code settings. Claude Code discovers skills from `~/.claude/skills/` (symlink `~/.llmctl/skills` there).
+- **Discovery:** Copilot uses `chat.agentSkillsLocations` in VS Code settings. Claude Code discovers skills from `~/.claude/skills/`.
 - **Frontmatter:** Both tools read `name` and `description` for discovery. Unknown fields are ignored.
 - **References:** Relative paths to reference files (e.g., `references/*.md`) work in both tools since the folder structure is preserved via symlink.
 
@@ -94,13 +100,51 @@ Copilot calls these "Instructions" and Claude Code calls them "Rules" — both a
 
 - **Shared fields:** `name`, `description`, and the markdown body are fully compatible.
 - **Path-scoping:** Copilot uses `applyTo` (string or array); Claude Code uses `paths` (array of strings). Include both in the frontmatter with `# Copilot` / `# Claude Code` comments.
-- **Discovery:** Copilot uses `chat.instructionsFilesLocations` in VS Code settings. Claude Code discovers rules from `~/.claude/rules/` (symlink `~/.llmctl/instructions` there).
+- **Discovery:** Copilot uses `chat.instructionsFilesLocations` in VS Code settings. Claude Code discovers rules from `~/.claude/rules/`.
 
 ### Prompts (`*.prompt.md`)
 
 VSCode Prompts map to Claude Code Commands (`.claude/commands/`) — both create user-invocable slash commands. Commands are superseded by Skills in Claude Code; this mapping is for basic compatibility only.
 
+## Deprecated Fields
+
+### `infer:` (agent frontmatter)
+
+The `infer:` field was an early experiment for automatic agent selection. It is now deprecated — VS Code Copilot removed support. Use `description` for discoverability and `disable-model-invocation: true` for agents that should not be auto-selected.
+
+## Content Strategy: APM-First
+
+APM is the primary mechanism for consuming upstream content. Prefer declaring upstream packages in `apm.yml` and installing them into the git-ignored `apm_modules/` directory. Only create local copies when upstream content cannot be managed by APM.
+
+| Category | When to use | Provenance field | Storage / update |
+|---|---:|---|---|
+| APM dependency (default) | Upstream package available as APM | none required (declare in `apm.yml`) | Installed to `apm_modules/` (git-ignored). Update with `apm install -g` |
+| Adapted / synthesised (local) | Significant local rewrite or merge of multiple sources | `metadata.provenance.adaptedFrom` | Tracked by `meta-upstream-sync` for drift detection; file lives in repo |
+| Mirror (legacy / exceptional) | Exact local copy of an upstream file (only if APM cannot manage it) | `metadata.provenance.mirror` | Tracked by `meta-upstream-sync`. Deprecated when upstream is APM-available |
+
+### APM dependency (default)
+
+- Default for any content available from an APM-compatible upstream source.
+- To add: declare the package in `apm.yml` and run `apm install -g`.
+- Installed into `apm_modules/` (git-ignored). No `metadata.provenance` tracking is required for pure APM dependencies.
+- Do NOT vendor upstream content by copying files into this repository.
+
+### Adapted / synthesised (local)
+
+- Use when the local file contains substantial original content, restructures the upstream material for local conventions, or synthesises multiple upstream sources.
+- Add `metadata.provenance.adaptedFrom` listing upstream sources. These files are tracked by `meta-upstream-sync` for drift and merge-review workflows.
+
+### Mirror (legacy / exceptional)
+
+- Use only when an exact copy of an upstream file is necessary and APM cannot manage the upstream source (for example, an internal VS Code file not packaged for APM).
+- Mark with `metadata.provenance.mirror`. Mirrors are tracked by `meta-upstream-sync` but are deprecated for content that can be consumed via APM.
+- Before creating a mirror, verify the upstream isn't available as an APM package.
+
+Local-only skills (not available upstream) remain directly in this repository.
+
 ## Upstream Update Tooling
+
+The `meta-updater` agent and `meta-upstream-sync` skill audit **locally-committed files** with provenance declarations. APM dependencies are updated separately via `apm install -g`.
 
 Use the `meta-updater` agent together with the `meta-upstream-sync` skill to audit and synthesize upstream updates.
 
