@@ -1,6 +1,6 @@
 ---
 name: "meta-plugin"
-description: "Guidelines for authoring and packaging agent plugins. Covers Claude Code plugins (`plugin.json`), VS Code Copilot agent plugins, and APM bundles. Use when creating, reviewing, or distributing plugin packages that bundle skills, agents, hooks, or MCP servers. Keywords: plugin, plugin.json, bundle, marketplace, distribution, package, APM."
+description: "Guidelines for authoring and packaging agent plugins. Covers plugin manifests (`plugin.json`), agent-harness plugin formats, and APM bundles. Use when creating, reviewing, or distributing plugin packages that bundle skills, agents, hooks, or MCP servers. Keywords: plugin, plugin.json, bundle, marketplace, distribution, package, APM."
 license: ""
 metadata:
   provenance:

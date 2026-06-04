@@ -107,13 +107,18 @@ def validate(path, kind, text):
                 "no leading/trailing or doubled hyphens"
             )
 
-    # Reserved words are disallowed in the `name` (identifier/namespace) for all
-    # types. Descriptions are intentionally NOT checked: cross-tool steering
-    # files must name the harnesses they target (e.g. "Claude Code", "Copilot").
+    # Reserved words are disallowed in both the `name` (identifier/namespace)
+    # and the `description`. Each meta-* file is the single canonical entry for
+    # its topic, so a harness name is never required for discovery — discovery
+    # runs off domain keywords instead.
     if name:
         hits = reserved_hits(name)
         if hits:
             errors.append("`name` contains reserved word(s): " + ", ".join(hits))
+    if desc:
+        hits = reserved_hits(desc)
+        if hits:
+            errors.append("`description` contains reserved word(s): " + ", ".join(hits))
 
     # filename kebab-case (skip SKILL.md — dir name is the identifier)
     if kind != "skill":

@@ -15,9 +15,9 @@ relying on the model to remember them.
 - Frontmatter block is present.
 - `name` and `description` are present and non-empty.
 - For skills: `name` matches the parent directory, is kebab-case, ≤64 chars.
-- The `name` (identifier) contains no reserved words (`anthropic`, `claude`,
-  `copilot`, `openai`). Descriptions are deliberately not checked — cross-tool
-  steering files must name the harnesses they target.
+- `name` and `description` contain no reserved words (`anthropic`, `claude`,
+  `copilot`, `openai`) — each meta-* file is the single canonical entry for its
+  topic, so discovery runs off domain keywords, not harness names.
 - For agents/prompts/instructions: the filename stem is kebab-case (warning).
 
 **Behavior**

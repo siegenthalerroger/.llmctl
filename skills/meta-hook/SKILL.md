@@ -1,6 +1,6 @@
 ---
 name: "meta-hook"
-description: "Guidelines for authoring lifecycle hooks for AI agent customization. Covers Claude Code hooks (frontmatter `hooks:` field), VS Code Copilot hooks (`hooks/*.json` files), and APM hook primitives. Use when creating, reviewing, or debugging hooks that run before/after tool calls, file writes, sessions, or other lifecycle events. Keywords: hook, lifecycle, PreToolUse, PostToolUse, PostFileWrite, SessionStart, matcher, command."
+description: "Guidelines for authoring lifecycle hooks for AI agent customization. Covers hook configuration across agent harnesses and APM packaging — frontmatter `hooks:` fields, `hooks/*.json` files, and hook primitives. Use when creating, reviewing, or debugging hooks that run before/after tool calls, file writes, sessions, or other lifecycle events. Keywords: hook, lifecycle, PreToolUse, PostToolUse, PostFileWrite, SessionStart, matcher, command."
 license: ""
 metadata:
   provenance:
