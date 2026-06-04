@@ -4,6 +4,6 @@
 # Dependency copies
 apm_modules/
 
-# Local configuration & deployed artifacts (APM deploys hooks into settings.json)
-.claude/settings.json
+# Local / machine-generated settings (APM-deployed wiring lands in settings.local.json;
+# .claude/settings.json stays free for intentional, shared project settings)
 .claude/*.local.json

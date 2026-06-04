@@ -152,8 +152,7 @@ Always validate behavior against target docs, especially for stop/block semantic
 - APM installs/transforms to target-native hook locations during integration
 
 > [!NOTE]
-> **Standalone hook filenames are matched by glob (`*.json`), not by a fixed name.**
-> A repo may therefore adopt a `*.hook.json` convention for organizational clarity (parity with `*.agent.md` / `*.prompt.md`): it is a strict subset of `*.json`, so VS Code folder discovery and APM still pick it up, and Claude Code is unaffected because it reads hooks from `settings.json` rather than scanning the directory. The fixed names `hooks.json` / `hooks/hooks.json` apply only inside **plugin** bundles, not to standalone hook files.
+> **Standalone hook filenames are matched by glob (`*.json`), not by a fixed name** — so this repo names them `*.hook.json` (parity with `*.agent.md` / `*.prompt.md` / `*.instructions.md`; see [CONTRIBUTING](../../CONTRIBUTING.md#hooks-hookjson)). It is a strict subset of `*.json`, so VS Code folder discovery and APM still pick it up, and Claude Code is unaffected because it reads hooks from `settings.json` rather than scanning the directory. The fixed names `hooks.json` / `hooks/hooks.json` apply only inside **plugin** bundles, not to standalone hook files.
 
 ## 6) Common patterns
 

@@ -2,9 +2,9 @@
 name: "Self-Improvement Instructions"
 description: "Instructions for how to improve yourself and learn from past conversations"
 # Copilot
-applyTo: "**/*.agent.md, **/SKILL.md, **/*.prompt.md, **/*.instructions.md, **/hooks/*.json, **/plugin.json"
+applyTo: "**/*.agent.md, **/SKILL.md, **/*.prompt.md, **/*.instructions.md, **/*.hook.json, **/plugin.json"
 # Claude Code
-paths: ["**/*.agent.md", "**/SKILL.md", "**/*.prompt.md", "**/*.instructions.md", "**/hooks/*.json", "**/plugin.json"]
+paths: ["**/*.agent.md", "**/SKILL.md", "**/*.prompt.md", "**/*.instructions.md", "**/*.hook.json", "**/plugin.json"]
 ---
 
 # Self-Improvement Guidelines

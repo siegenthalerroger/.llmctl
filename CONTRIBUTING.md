@@ -124,7 +124,7 @@ The fixed names `hooks.json` / `hooks/hooks.json` apply only inside **plugin** b
 
 APM is target-aware and reconciles event names, matchers, and paths per harness on deploy, so do **not** hand-maintain per-target variants. Use the portable `${CLAUDE_PLUGIN_ROOT}` root token (recognized by Claude and by Claude-compatible VS Code plugins) rather than a harness-specific token like `${workspaceFolder}`. APM hook support is still maturing — verify the deployed result with `apm install -g` before relying on it.
 
-**Do not commit deployed hook wiring.** APM deploys hooks into each target's native location (e.g. Claude Code's `settings.json`); that deployed `settings.json` is a build artifact and is git-ignored, not committed.
+**Do not commit machine-generated hook wiring.** APM deploys hooks into each target's native location (e.g. `~/.claude/settings.json` at user scope). Personal or machine-generated Claude settings belong in `.claude/settings.local.json`, which is git-ignored; `.claude/settings.json` is left free for intentional, shared project settings should you ever want them committed.
 
 ## Deprecated Fields
 
