@@ -9,6 +9,18 @@ compatibility: "Primary automation requires PowerShell 7+ to run ./scripts/check
 
 Deterministically audit local files by discovering `metadata.provenance.mirror` and `metadata.provenance.adaptedFrom` in frontmatter, then comparing upstream and local commit dates.
 
+## Scope
+
+This skill audits **locally-committed files** that declare `metadata.provenance.mirror` or `metadata.provenance.adaptedFrom` in their frontmatter. It does NOT manage APM dependencies — content available from APM-compatible upstream sources should be consumed via `apm.yml` and updated with `apm install -g`.
+
+### Decision: APM Dependency or Local Tracking?
+
+| Question | Yes → | No → |
+|---|---|---|
+| Is the upstream content available as an APM package? | Use APM dependency (remove local file, add to `apm.yml`) | Continue below |
+| Is the local file a verbatim copy of upstream? | Use `mirror` (exceptional — verify APM isn't available first) | Continue below |
+| Is the local file adapted/synthesised from upstream? | Use `adaptedFrom` + this skill for drift detection | No tracking needed |
+
 ## Compatibility
 
 - Primary automation is [Update Checker](./scripts/check-updates.ps1), which requires PowerShell 7+
@@ -34,6 +46,7 @@ Deterministically audit local files by discovering `metadata.provenance.mirror` 
 
 | Mode | Status | Action |
 |---|---|---|
+| `mirror` | `update_available` + APM-eligible | Recommend converting to APM dependency |
 | `mirror` | `update_available` | Replace from upstream |
 | `adapted` (single source) | `update_available` | Merge review |
 | `adapted` (multi-source) | one or more `update_available` | Synthesised merge review across all changed upstreams |

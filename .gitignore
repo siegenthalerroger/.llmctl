@@ -1,3 +1,7 @@
+# Secret Safety
 .env
+
+# Dependency copies
+apm_modules/
 
 .claude/*.local.json

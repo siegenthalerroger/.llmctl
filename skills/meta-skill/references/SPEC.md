@@ -56,6 +56,8 @@ metadata:
 ---
 ```
 
+> **Note:** `mirror` is for exceptional cases where APM cannot manage the upstream content. Prefer APM dependencies for content available upstream. See `CONTRIBUTING.md` for the full content strategy.
+
 | Field           | Required | Constraints                                                                                          |
 | --------------- | -------- | ---------------------------------------------------------------------------------------------------- |
 | `name`          | Yes      | Max 64 characters. Lowercase letters, numbers, and hyphens only. Must not start or end with a hyphen. |
