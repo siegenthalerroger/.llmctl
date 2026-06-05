@@ -4,15 +4,56 @@
 
 It is _not_ designed to be a library where only selected items are copied or used, though this is of course possible (copy-pasta).
 
+## Quickstart
+
+This repository is an [APM](https://github.com/microsoft/apm) package. APM deploys all content (agents, skills, prompts, instructions, hooks, plugins) to both Copilot and Claude Code user-scope directories — no manual symlinks needed.
+
+```bash
+# Install APM (macOS/Linux)
+brew install microsoft/apm/apm
+
+# Install APM (Windows)
+winget install Microsoft.APM
+
+# Clone and deploy to user-scope
+git clone git@github.com:siegenthalerroger/.llmctl.git ~/.llmctl
+apm install -g ~/.llmctl --target copilot,claude
+```
+
+This adds the local .llmctl repository to the `~/.apm/apm.yml` file and deploys:
+
+- Agents → `~/.copilot/agents/` + `~/.claude/agents/`
+- Skills → `~/.agents/skills/` (shared cross-tool)
+- Prompts → `~/.copilot/prompts/` + `~/.claude/commands/` (auto-converted)
+- Instructions → `~/.copilot/copilot-instructions.md` + `~/.claude/rules/`
+- Hooks → `~/.copilot/hooks/` + `~/.claude/settings.json`
+- Plugins → `~/.copilot/plugins/` + Claude plugin registry
+
+Upstream dependencies (declared in `apm.yml`) are also installed into `apm_modules/` (git-ignored).
+
+```bash
+apm update              # pull latest upstream versions
+apm outdated            # check for available updates
+```
+
 ## Concept & Contributing
 
-See the [vscode/github copilot documentation](https://code.visualstudio.com/docs/copilot/customization/overview) for details on what each type of file can achieve. There is an attempt to be tool-neutral, however the supported use-case is initiation of agents from VSCode, as such the naming follows their patterns.
+See the [VS Code agent customization docs](https://code.visualstudio.com/docs/agent-customization/overview) for details on what each type of file can achieve. There is an attempt to be tool-neutral, however the supported use-case is initiation of agents from VS Code, as such the naming follows their patterns.
+
+| Steering File Type                     | VS Code Copilot | Claude Code                             |
+| -------------------------------------- | --------------- | --------------------------------------- |
+| **Agents** (`*.agent.md`)              | Supported       | Supported (APM deploys)                 |
+| **Skills** (`*/SKILL.md`)              | Supported       | Supported (APM deploys)                 |
+| **Instructions** (`*.instructions.md`) | Supported       | Deployed as **rules** (APM converts)    |
+| **Prompts** (`*.prompt.md`)            | Supported       | Deployed as **commands** (APM converts) |
+| **Hooks**                              | Preview         | Supported (30+ lifecycle events)        |
+| **Plugins**                            | Experimental    | Supported (marketplace + git install)   |
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for adaptations required for cross-tool compatibility and repository conventions.
 
-### Agents (Custom Modes)
+### Agents (Custom Agents)
 
-At a top-level these modes are normally provided by your tool of choice. However it can be useful to have specific personas as sub-agents, especially when parallel execution should be possible.
+At a top-level these agents are normally provided by your tool of choice. However it can be useful to have specific personas as sub-agents, especially when parallel execution should be possible.
 
 Any custom agent files must end in `*.agent.md`.
 
@@ -40,16 +81,32 @@ Prevent repeating yourself by making a slash-command available to you. Anything 
 
 Any prompt files must end in `*.prompt.md`.
 
-## How to use
+### Hooks
 
-### Compatibility Matrix
+Lifecycle hooks run deterministic pre/post actions around agent events (file writes, command execution, session start). VS Code Copilot hooks are in preview; Claude Code supports 30+ hook events. Definitions use the `*.hook.json` convention and are deployed by APM into each target's native location. See the [meta-hook skill](skills/meta-hook/SKILL.md) and the [`*.hook.json` convention](CONTRIBUTING.md#hooks-hookjson).
 
-| Steering File Type                 | VS Code Copilot | Claude Code                                     | Codex   |
-| ---------------------------------- | --------------- | ----------------------------------------------- | ------- |
-| Agents (`*.agent.md`)              | Supported       | Supported (symlink)                             | Unknown |
-| Skills (`*/SKILL.md`)              | Supported       | Supported (symlink)                             | Unknown |
-| Instructions (`*.instructions.md`) | Supported       | Supported (symlink - as "rules")                | Unknown |
-| Prompts (`*.prompt.md`)            | Supported       | Supported (symlink, deprecated - as "commands") | Unknown |
+### Plugins
+
+Plugins extend agent capabilities beyond what skills and tools provide. VS Code Copilot plugins are experimental (v1.110+); Claude Code has a production plugin marketplace. See the [meta-plugin skill](skills/meta-plugin/SKILL.md) for when plugins are appropriate.
+
+## Tool Guides
+
+### Validated Steering Content
+
+Curated steering content tested for quality. Some may be installed by default globally (included in this repo's `apm.yml`).
+
+| Package                                             | Provides               | Use case                                                          | Is APM compatible | Is installed globally |
+| --------------------------------------------------- | ---------------------- | ----------------------------------------------------------------- | ----------------- | --------------------- |
+| `github/awesome-copilot/skills/review-and-refactor` | Code review skill      | Systematic code review and refactoring                            | ✅                | ⭕️                   |
+| `analogjs/angular-skills`                           | 10 Angular v20+ skills | Angular development (signals, forms, routing, SSR, testing, etc.) | ✅                | ⭕️                   |
+| `pbakaus/impeccable`                                | 17 iterative prompts   | Frontend polish, critique, distillation, optimization             | ✅                | ⭕️                   |
+
+To add a recommended package to a project:
+
+```bash
+cd your-project
+apm install github/awesome-copilot/skills/review-and-refactor
+```
 
 ### VS Code
 
@@ -214,22 +271,6 @@ Recommended configuration properties:
 
 ### Claude Code
 
-Symlink the agents and skills directories into Claude Code's user-level directories:
+APM handles deployment to `~/.claude/` automatically (see Setup above). Verify with `claude agents`.
 
-```bash
-# Unix/macOS
-ln -s ~/.llmctl/agents ~/.claude/agents
-ln -s ~/.llmctl/skills ~/.claude/skills
-ln -s ~/.llmctl/instructions ~/.claude/rules
-ln -s ~/.llmctl/prompts ~/.claude/commands
-```
-
-```bat
-:: Windows (requires admin or developer mode - run in CMD not powershell)
-mklink /D "%USERPROFILE%\.claude\agents" "%USERPROFILE%\.llmctl\agents"
-mklink /D "%USERPROFILE%\.claude\skills" "%USERPROFILE%\.llmctl\skills"
-mklink /D "%USERPROFILE%\.claude\rules" "%USERPROFILE%\.llmctl\instructions"
-mklink /D "%USERPROFILE%\.claude\commands" "%USERPROFILE%\.llmctl\prompts"
-```
-
-Verify agent discovery with `claude agents`. Skills are discovered automatically from `~/.claude/skills/` (there is no `claude skills` command — ask within a session to confirm).
+> **Note:** VS Code Copilot (v1.106+) natively discovers `.claude/` directories, so content deployed for Claude is also available to Copilot without duplication.
