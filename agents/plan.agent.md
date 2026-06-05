@@ -18,6 +18,8 @@ handoffs:
     prompt: '#createFile the plan as is into an untitled file (`untitled:plan-${camelCaseName}.prompt.md` without frontmatter) for further refinement.'
     send: true
     showContinueOn: false
+# Claude Code fields
+disallowedTools: Edit, Write, NotebookEdit
 # Metadata fields
 metadata:
   provenance:

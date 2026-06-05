@@ -3,6 +3,7 @@ name: "Code Reviewer"
 description: "Read-only code review agent for completed implementation work. Use after a feature slice or milestone to compare the diff against the plan, identify bugs and regressions, and report actionable findings with severity and file references. Keywords: review, code review, regression, diff, findings."
 # Copilot fields
 user-invocable: false
+disable-model-invocation: true
 tools: ['todo', 'search', 'read', 'git/git_log', 'git/git_diff', 'git/git_diff_staged', 'git/git_diff_unstaged', 'execute/testFailure']
 model: ['Claude Sonnet 4.6 (unify-chat-provider)', 'GPT-5.4 (unify-chat-provider)', 'Claude Sonnet 4.6 (copilot)', 'GPT-5.4 (copilot)']
 # Claude Code fields

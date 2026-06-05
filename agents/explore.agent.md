@@ -1,13 +1,15 @@
 ---
 name: Explore
-description: Fast read-only codebase exploration and Q&A subagent. Prefer over manually chaining multiple search and file-reading operations to avoid cluttering the main conversation. Safe to call in parallel. Specify thoroughness: quick, medium, or thorough.
-argument-hint: Describe WHAT you're looking for and desired thoroughness (quick/medium/thorough)
+description: "Fast read-only codebase exploration and Q&A subagent. Prefer over manually chaining multiple search and file-reading operations to avoid cluttering the main conversation. Safe to call in parallel. Specify thoroughness: quick, medium, or thorough."
+argument-hint: "Describe WHAT you're looking for and desired thoroughness (quick/medium/thorough)"
 # Copilot fields
 target: vscode
 user-invocable: false
 model: ['Claude Haiku 4.5 (unify-chat-provider)', 'GPT-5.4 Mini (unify-chat-provider)', 'GPT-5.4 mini (copilot)', 'GPT-5 mini (copilot)']
 tools: ['search', 'read', 'web', 'vscode/memory', 'github/issue_read', 'github.vscode-pull-request-github/issue_fetch', 'github.vscode-pull-request-github/activePullRequest', 'execute/getTerminalOutput', 'execute/testFailure']
 agents: []
+# Claude Code fields
+disallowedTools: Edit, Write, NotebookEdit
 # Metadata fields
 metadata:
   provenance:
