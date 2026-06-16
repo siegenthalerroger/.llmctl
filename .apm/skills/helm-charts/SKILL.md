@@ -16,8 +16,8 @@ Guidelines for chart structure conventions, dependency management, and the verif
 ## Chart Structure Conventions
 
 - `Chart.yaml`: use `type: application` for deployable charts, `type: library` for shared named-template-only charts
-- `values.yaml`: all values must be documented with helm-docs comments and helm-schema annotations — see the [helm-values](../../helm-values/SKILL.md) skill
-- `templates/_helpers.tpl`: all repeated fragments (labels, names, selectors) must be named templates — see the [helm-templates](../../helm-templates/SKILL.md) skill
+- `values.yaml`: all values must be documented with helm-docs comments and helm-schema annotations — see the [helm-values](../helm-values/SKILL.md) skill
+- `templates/_helpers.tpl`: all repeated fragments (labels, names, selectors) must be named templates — see the [helm-templates](../helm-templates/SKILL.md) skill
 - `values.schema.json`: always present and generated from `values.yaml` annotations via `helm-schema`
 - `README.md`: always generated from `values.yaml` via `helm-docs`
 - Commit `Chart.lock` to source control; never commit unpackaged dependency tarballs

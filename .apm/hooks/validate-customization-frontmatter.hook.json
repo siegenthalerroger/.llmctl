@@ -1,12 +1,12 @@
 {
   "hooks": {
-    "PostToolUse": [
+    "postToolUse": [
       {
         "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/validate-customization-frontmatter.py\"",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/.apm/hooks/validate-customization-frontmatter.py\"",
             "timeout": 15
           }
         ]

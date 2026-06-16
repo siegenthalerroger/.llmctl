@@ -84,7 +84,7 @@ Both VS Code Copilot and Claude Code use markdown files with YAML frontmatter fo
 - **Model:** Copilot's `model` array is ignored by Claude Code, which defaults to inheriting the conversation model.
 - **Extra fields:** Each tool safely ignores the other's unique fields.
 
-See the [meta-agent skill](skills/meta-agent/SKILL.md) for full cross-tool compatibility documentation.
+See the [meta-agent skill](.apm/skills/meta-agent/SKILL.md) for full cross-tool compatibility documentation.
 
 ### Skills (`*/SKILL.md`)
 
@@ -119,7 +119,7 @@ The fixed names `hooks.json` / `hooks/hooks.json` apply only inside **plugin** b
 **Author one canonical hook, let APM transform it.** Write hooks in APM's canonical (Claude-Code-style) schema — a top-level `hooks` object keyed by lifecycle event, each entry carrying a `matcher` and a `hooks` array of `{ "type": "command", ... }`:
 
 ```json
-{ "hooks": { "PostToolUse": [ { "matcher": "Edit|Write", "hooks": [ { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/<script>\"", "timeout": 15 } ] } ] } }
+{ "hooks": { "PostToolUse": [ { "matcher": "Edit|Write", "hooks": [ { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/.apm/hooks/<script>\"", "timeout": 15 } ] } ] } }
 ```
 
 APM is target-aware and reconciles event names, matchers, and paths per harness on deploy, so do **not** hand-maintain per-target variants. Use the portable `${CLAUDE_PLUGIN_ROOT}` root token (recognized by Claude and by Claude-compatible VS Code plugins) rather than a harness-specific token like `${workspaceFolder}`. APM hook support is still maturing — verify the deployed result with `apm install -g` before relying on it.
@@ -174,4 +174,4 @@ For GitHub API authentication, use a **Fine-grained Personal Access Token** when
 - Repository permissions: `Contents` = **Read-only**
 - No write permissions are required for update checks
 
-Provide the token via `GITHUB_TOKEN`/`GH_TOKEN`, or pass `-GitHubToken` to `./skills/meta-upstream-sync/scripts/check-updates.ps1`.
+Provide the token via `GITHUB_TOKEN`/`GH_TOKEN`, or pass `-GitHubToken` to `./.apm/skills/meta-upstream-sync/scripts/check-updates.ps1`.

@@ -83,11 +83,17 @@ Any prompt files must end in `*.prompt.md`.
 
 ### Hooks
 
-Lifecycle hooks run deterministic pre/post actions around agent events (file writes, command execution, session start). VS Code Copilot hooks are in preview; Claude Code supports 30+ hook events. Definitions use the `*.hook.json` convention and are deployed by APM into each target's native location. See the [meta-hook skill](skills/meta-hook/SKILL.md) and the [`*.hook.json` convention](CONTRIBUTING.md#hooks-hookjson).
+Lifecycle hooks run deterministic pre/post actions around agent events (file writes, command execution, session start). VS Code Copilot hooks are in preview; Claude Code supports 30+ hook events. Definitions use the `*.hook.json` convention and are deployed by APM into each target's native location. See the [meta-hook skill](.apm/skills/meta-hook/SKILL.md) and the [`*.hook.json` convention](CONTRIBUTING.md#hooks-hookjson).
 
 ### Plugins
 
-Plugins extend agent capabilities beyond what skills and tools provide. VS Code Copilot plugins are experimental (v1.110+); Claude Code has a production plugin marketplace. See the [meta-plugin skill](skills/meta-plugin/SKILL.md) for when plugins are appropriate.
+Plugins extend agent capabilities beyond what skills and tools provide. VS Code Copilot plugins are experimental (v1.110+); Claude Code has a production plugin marketplace. See the [meta-plugin skill](.apm/skills/meta-plugin/SKILL.md) for when plugins are appropriate.
+
+### MCP Servers
+
+MCP (Model Context Protocol) servers add external capabilities — API access, doc/registry search, browser automation — to an agent. Declare each server once in [`apm.yml`](apm.yml) under `dependencies.mcp`; APM translates it to each tool's native config (`.vscode/mcp.json` → `servers`, `.mcp.json`/`~/.claude.json` → `mcpServers`, Codex TOML). Secrets are `${VAR}` placeholders resolved from the git-ignored `.env` (see [`.env.example`](.env.example)) — never committed. Authoring guidance lives in the [meta-mcp skill](.apm/skills/meta-mcp/SKILL.md); use the [`/setup-mcp` prompt](.apm/prompts/setup-mcp.prompt.md) to generate an `apm.yml` block from existing definitions.
+
+> APM's MCP support is still maturing — verify the deployed per-target config with `apm install -g` before relying on it (same posture as hooks).
 
 ## Tool Guides
 
