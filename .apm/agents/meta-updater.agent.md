@@ -30,7 +30,7 @@ Check local customization files against their tracked upstream sources.
 > **Scope:** This phase audits locally-committed files with `metadata.provenance` declarations only. APM dependencies are updated separately via `apm install -g`. If a mirror file is found for content available as an APM package, recommend converting to an APM dependency instead of updating the local copy.
 
 1. [ ] Load the `meta-upstream-sync` skill and verify files contain `metadata.provenance.mirror` or `metadata.provenance.adaptedFrom` in frontmatter.
-1. [ ] Use `vscode/askQuestions` to ask for a GitHub Personal Access Token (fine-grained, `Contents: Read-only`). This avoids GitHub API rate limits (60 req/hr unauthenticated). Mark as optional — the user can skip if the repo is small or rate limits are not a concern. If provided, store in `$env:GITHUB_TOKEN` immediately.
+1. [ ] Confirm the `gh` CLI is authenticated (`gh auth status`) — the script reuses the `gh` login for GitHub API calls, avoiding rate limits (60 req/hr unauthenticated). If `gh` is not authenticated, prompt the user to run `gh auth login`, or skip for small repos where rate limits are not a concern.
 1. [ ] Run `./skills/meta-upstream-sync/scripts/check-updates.ps1` from the repository root in default mode first (broad, lightweight scan).
 1. [ ] Review output classifications (`up_to_date`, `update_available`, `missing_local_commit`, `fetch_failed`).
 1. [ ] If an item is `missing_local_commit` and bootstrap-from-upstream is desired, run a targeted follow-up with `-IncludePath` + `-AllowNoLocalCommit` (and optional `-IncludeChangeDetails`).

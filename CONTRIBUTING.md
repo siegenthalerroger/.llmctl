@@ -168,7 +168,9 @@ The `meta-updater` agent and `meta-upstream-sync` skill audit **locally-committe
 
 Use the `meta-updater` agent together with the `meta-upstream-sync` skill to audit and synthesize upstream updates.
 
-For GitHub API authentication, use a **Fine-grained Personal Access Token** whenever possible:
+GitHub API authentication uses the `gh` CLI by default — run `gh auth login` once and `check-updates.ps1` reuses that login (`gh auth token`) automatically.
+
+For CI or non-`gh` environments, supply a **Fine-grained Personal Access Token** instead:
 
 - Repository access: only the repositories you need to audit
 - Repository permissions: `Contents` = **Read-only**

@@ -24,6 +24,7 @@ This skill audits **locally-committed files** that declare `metadata.provenance.
 ## Compatibility
 
 - Primary automation is [Update Checker](./scripts/check-updates.ps1), which requires PowerShell 7+
+- GitHub API calls authenticate via the `gh` CLI by default (`gh auth login`); recommended to avoid rate limits, but the script falls back to unauthenticated (or a supplied token) if `gh` is absent
 - The workflow itself is portable: if PowerShell is unavailable, reproduce the same audit steps with equivalent git, GitHub, and web-fetch tools and report which fallback path was used
 - The command examples below are PowerShell-specific because they target the bundled script directly
 
@@ -39,7 +40,7 @@ This skill audits **locally-committed files** that declare `metadata.provenance.
 1. [ ] Classify each upstream check as `up_to_date`, `update_available`, `missing_local_commit`, or `fetch_failed`.
 1. [ ] For new/uncommitted local files that should be bootstrapped from upstream, add `-AllowNoLocalCommit` (guarded mode) so they can be treated as actionable `update_available` entries. Combine with `-IncludePath` in a single invocation when the target is already known.
 1. [ ] For items with `update_available`, run targeted follow-up checks per item using `-IncludePath` with `-IncludeChangeDetails` to gather commit-level upstream change summaries.
-1. [ ] For bootstrap scenarios (local file is a stub or empty), fetch the full upstream file content. Commit summaries alone are insufficient when there is no local content to diff against. Use the most specific available tool: prefer GitHub API tools (e.g. `mcp_github_get_file_contents`) for GitHub-hosted sources; fall back to a web-fetch tool for other URLs. Do not use terminal commands (`curl`, `Invoke-WebRequest`).
+1. [ ] For bootstrap scenarios (local file is a stub or empty), fetch the full upstream file content. Commit summaries alone are insufficient when there is no local content to diff against. Use the most specific available tool: prefer GitHub API tools (e.g. `mcp_github_get_file_contents`) or `gh api` for GitHub-hosted sources; fall back to a web-fetch tool for other URLs. Do not use unauthenticated terminal commands (`curl`, `Invoke-WebRequest`).
 1. [ ] Recommend next action per the recommendation matrix below. For multi-source files, follow the multi-source synthesis procedure below.
 
 ### Recommendation Matrix
@@ -64,12 +65,12 @@ When a local file lists multiple URLs under `metadata.provenance.adaptedFrom`, e
 ## Guidelines
 
 - When the user identifies a specific target, scope directly with `-IncludePath`. Never run a broad discovery scan when the target is already known. This applies even when the user's phrasing is indirect (e.g. "check out the new stub") — if a specific file is contextually identifiable, treat it as an identified target.
-- For bootstrap/stub local files (empty or placeholder content), fetch the full upstream file(s) so the actual content can be reviewed. Commit-level metadata alone is not actionable without source content. Use the most specific available tool for fetching: prefer GitHub API tools (e.g. `mcp_github_get_file_contents`) over generic web-fetch tools when the source is a GitHub URL.
+- For bootstrap/stub local files (empty or placeholder content), fetch the full upstream file(s) so the actual content can be reviewed. Commit-level metadata alone is not actionable without source content. Use the most specific available tool for fetching: prefer GitHub API tools (e.g. `mcp_github_get_file_contents`) or `gh api` over generic web-fetch tools when the source is a GitHub URL.
 - Treat `adapted` entries as merge-review candidates, not blind replacements.
 - For multi-source files, never apply one upstream's changes without considering all upstreams flagged as changed.
 - When upstream changes alter workflow, process, or opinionated behavior (not just factual corrections), flag for human review before replication.
 - Report unknown or unreachable sources explicitly.
-- When a GitHub token is provided interactively, store it in `$env:GITHUB_TOKEN` (or `$env:GH_TOKEN`) immediately. Do not pass tokens inline to individual script invocations.
+- The script authenticates to the GitHub API via the `gh` CLI (`gh auth token`) by default — ensure `gh auth login` has been run. `-GitHubToken` or `$env:GITHUB_TOKEN`/`$env:GH_TOKEN` override this only for CI or non-`gh` environments.
 
 ## Command
 
@@ -95,17 +96,11 @@ Combine filter with JSON output:
 ./skills/meta-upstream-sync/scripts/check-updates.ps1 -IncludePath "agents/*.agent.md" -OutputJson
 ```
 
-Authenticated run (recommended to avoid GitHub API rate limits):
+Authentication is automatic via the `gh` CLI (`gh auth login`) — no token flag needed. For CI or non-`gh` environments, override with an env var or the `-GitHubToken` parameter:
 
 ```powershell
-$env:GITHUB_TOKEN = "<your-token>"
+$env:GITHUB_TOKEN = "<your-token>"   # or: -GitHubToken "<your-token>"
 ./skills/meta-upstream-sync/scripts/check-updates.ps1 -OutputJson
-```
-
-Alternative explicit token parameter:
-
-```powershell
-./skills/meta-upstream-sync/scripts/check-updates.ps1 -GitHubToken "<your-token>" -OutputJson
 ```
 
 Targeted detailed check for one updated item:
@@ -131,4 +126,4 @@ Bootstrap check for an uncommitted local file (explicitly guarded):
 - `upstreamChanges` commit summaries are opt-in via `-IncludeChangeDetails` to keep the default output concise.
 - Use `-MaxChangeCommits` to cap detailed commit payload size for targeted checks (default: `5`).
 - Uncommitted local files stay blocked by default (`missing_local_commit`); enable `-AllowNoLocalCommit` only for intentional bootstrap/synthesis from upstream.
-- GitHub API auth supports `-GitHubToken` or environment variables `GITHUB_TOKEN`/`GH_TOKEN`; authenticated requests greatly reduce 403 rate-limit failures.
+- GitHub API auth defaults to the `gh` CLI login (`gh auth token`); `-GitHubToken` and `GITHUB_TOKEN`/`GH_TOKEN` are optional overrides. Authenticated requests greatly reduce 403 rate-limit failures.

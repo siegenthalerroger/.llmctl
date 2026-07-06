@@ -13,18 +13,31 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$script:ResolvedGitHubToken = if (-not [string]::IsNullOrWhiteSpace($GitHubToken)) {
-    $GitHubToken.Trim()
+function Resolve-GitHubToken {
+    param([string]$ExplicitToken)
+
+    # Explicit parameter and env vars win, for CI or override scenarios.
+    if (-not [string]::IsNullOrWhiteSpace($ExplicitToken)) { return $ExplicitToken.Trim() }
+    if (-not [string]::IsNullOrWhiteSpace($env:GITHUB_TOKEN)) { return $env:GITHUB_TOKEN.Trim() }
+    if (-not [string]::IsNullOrWhiteSpace($env:GH_TOKEN)) { return $env:GH_TOKEN.Trim() }
+
+    # Default: reuse the gh CLI's stored login (gh is a project prerequisite).
+    if (Get-Command gh -ErrorAction SilentlyContinue) {
+        try {
+            $token = (& gh auth token 2>$null)
+            if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($token)) {
+                return $token.Trim()
+            }
+        }
+        catch {
+            # gh present but not logged in — fall through to unauthenticated.
+        }
+    }
+
+    return ""
 }
-elseif (-not [string]::IsNullOrWhiteSpace($env:GITHUB_TOKEN)) {
-    $env:GITHUB_TOKEN.Trim()
-}
-elseif (-not [string]::IsNullOrWhiteSpace($env:GH_TOKEN)) {
-    $env:GH_TOKEN.Trim()
-}
-else {
-    ""
-}
+
+$script:ResolvedGitHubToken = Resolve-GitHubToken -ExplicitToken $GitHubToken
 
 function Get-GitHubApiHeaders {
     $headers = @{
@@ -58,7 +71,7 @@ function Invoke-GitHubApiGet {
 
         if ($statusCode -eq 403) {
             if ([string]::IsNullOrWhiteSpace($script:ResolvedGitHubToken)) {
-                throw "GitHub API returned 403 (likely unauthenticated rate limit). Set GITHUB_TOKEN/GH_TOKEN or pass -GitHubToken."
+                throw "GitHub API returned 403 (likely unauthenticated rate limit). Run 'gh auth login', or set GITHUB_TOKEN/GH_TOKEN, or pass -GitHubToken."
             }
 
             throw "GitHub API returned 403 with authentication. Verify token validity/scopes or wait for rate limit reset."
@@ -595,7 +608,7 @@ else {
     Write-Host "Meta upstream sync check complete"
     Write-Host ("Auth: {0} | Files: {1} | Upstreams: {2} | Up-to-date: {3} | Update-available: {4} | Failed: {5} | Recommend: {6}" -f $authMode, $summary.filesChecked, $summary.upstreamChecks, $summary.upToDateCount, $summary.updateAvailableCount, $summary.failedCount, $summary.recommendCount)
     if ($authMode -eq 'unauthenticated') {
-        Write-Host "Tip: Set GITHUB_TOKEN (or GH_TOKEN) or pass -GitHubToken to avoid GitHub API rate-limit 403 errors."
+        Write-Host "Tip: Run 'gh auth login' (or set GITHUB_TOKEN/GH_TOKEN, or pass -GitHubToken) to avoid GitHub API rate-limit 403 errors."
     }
     if (-not $IncludeChangeDetails) {
         Write-Host "Tip: Run again with -IncludeChangeDetails and a narrow -IncludePath for updated items to inspect commit-level upstream changes."
