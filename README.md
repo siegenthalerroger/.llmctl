@@ -8,6 +8,25 @@ It is _not_ designed to be a library where only selected items are copied or use
 
 This repository is an [APM](https://github.com/microsoft/apm) package. APM deploys all content (agents, skills, prompts, instructions, hooks, plugins) to both Copilot and Claude Code user-scope directories — no manual symlinks needed.
 
+### Prerequisites
+
+Install the CLI tools the deploy step and wired-in servers depend on:
+
+| Tool        | Required for                                                                                         |
+| ----------- | ---------------------------------------------------------------------------------------------------- |
+| `git`       | Cloning this repository                                                                              |
+| `gh`        | The wired-in `github` MCP server. The `github` mcp server uses the [`shuymn/gh-mcp`](https://github.com/shuymn/gh-mcp) extension, which reuses your `gh` login instead of a Personal Access Token |
+| `npx`/`uvx` | Stdio MCP servers shell out to a companion CLI, so install the CLI for any server you enable.        |
+
+Execute
+
+```bash
+gh auth login
+gh extension install shuymn/gh-mcp
+```
+
+### Deploy
+
 ```bash
 # Install APM (macOS/Linux)
 brew install microsoft/apm/apm
@@ -28,6 +47,7 @@ This adds the local .llmctl repository to the `~/.apm/apm.yml` file and deploys:
 - Instructions → `~/.copilot/copilot-instructions.md` + `~/.claude/rules/`
 - Hooks → `~/.copilot/hooks/` + `~/.claude/settings.json`
 - Plugins → `~/.copilot/plugins/` + Claude plugin registry
+- MCP Servers → `.vscode/mcp.json` + `.mcp.json` / `~/.claude.json` (declared in `apm.yml`)
 
 Upstream dependencies (declared in `apm.yml`) are also installed into `apm_modules/` (git-ignored).
 
@@ -42,12 +62,13 @@ See the [VS Code agent customization docs](https://code.visualstudio.com/docs/ag
 
 | Steering File Type                     | VS Code Copilot | Claude Code                             |
 | -------------------------------------- | --------------- | --------------------------------------- |
-| **Agents** (`*.agent.md`)              | Supported       | Supported (APM deploys)                 |
-| **Skills** (`*/SKILL.md`)              | Supported       | Supported (APM deploys)                 |
+| **Agents** (`*.agent.md`)              | Supported       | Supported                               |
+| **Skills** (`*/SKILL.md`)              | Supported       | Supported                               |
 | **Instructions** (`*.instructions.md`) | Supported       | Deployed as **rules** (APM converts)    |
 | **Prompts** (`*.prompt.md`)            | Supported       | Deployed as **commands** (APM converts) |
-| **Hooks**                              | Preview         | Supported (30+ lifecycle events)        |
+| **Hooks** (`*.hook.json`)              | Preview         | Supported (30+ lifecycle events)        |
 | **Plugins**                            | Experimental    | Supported (marketplace + git install)   |
+| **MCP Servers** (`apm.yml`)            | Supported       | Supported                               |
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for adaptations required for cross-tool compatibility and repository conventions.
 
@@ -91,9 +112,7 @@ Plugins extend agent capabilities beyond what skills and tools provide. VS Code 
 
 ### MCP Servers
 
-MCP (Model Context Protocol) servers add external capabilities — API access, doc/registry search, browser automation — to an agent. Declare each server once in [`apm.yml`](apm.yml) under `dependencies.mcp`; APM translates it to each tool's native config (`.vscode/mcp.json` → `servers`, `.mcp.json`/`~/.claude.json` → `mcpServers`, Codex TOML). Secrets are `${VAR}` placeholders resolved from the git-ignored `.env` (see [`.env.example`](.env.example)) — never committed. Authoring guidance lives in the [meta-mcp skill](.apm/skills/meta-mcp/SKILL.md); use the [`/setup-mcp` prompt](.apm/prompts/setup-mcp.prompt.md) to generate an `apm.yml` block from existing definitions.
-
-> APM's MCP support is still maturing — verify the deployed per-target config with `apm install -g` before relying on it (same posture as hooks).
+MCP (Model Context Protocol) servers add external capabilities — API access, doc/registry search, browser automation — to an agent. Declare each server once in [`apm.yml`](apm.yml) under `dependencies.mcp`; APM translates it to each tool's native config (`.vscode/mcp.json` → `servers`, `.mcp.json`/`~/.claude.json` → `mcpServers`, Codex TOML). Authoring guidance lives in the [meta-mcp skill](.apm/skills/meta-mcp/SKILL.md); use the [`/setup-mcp` prompt](.apm/prompts/setup-mcp.prompt.md) to generate an `apm.yml` block from existing definitions.
 
 ## Tool Guides
 
@@ -103,7 +122,6 @@ Curated steering content tested for quality. Some may be installed by default gl
 
 | Package                                             | Provides               | Use case                                                          | Is APM compatible | Is installed globally |
 | --------------------------------------------------- | ---------------------- | ----------------------------------------------------------------- | ----------------- | --------------------- |
-| `github/awesome-copilot/skills/review-and-refactor` | Code review skill      | Systematic code review and refactoring                            | ✅                | ⭕️                   |
 | `analogjs/angular-skills`                           | 10 Angular v20+ skills | Angular development (signals, forms, routing, SSR, testing, etc.) | ✅                | ⭕️                   |
 | `pbakaus/impeccable`                                | 17 iterative prompts   | Frontend polish, critique, distillation, optimization             | ✅                | ⭕️                   |
 
@@ -113,6 +131,20 @@ To add a recommended package to a project:
 cd your-project
 apm install github/awesome-copilot/skills/review-and-refactor
 ```
+
+### Recommended MCP Servers
+
+These are recommended additions to the required ones already in [`apm.yml`](apm.yml) — add them to a project scoped `apm.yml` (or generate the block with [`/setup-mcp`](.apm/prompts/setup-mcp.prompt.md)) when a task needs them.
+
+| Server                    | Transport | Provides                                                                             | Secret             |
+| ------------------------- | --------- | ------------------------------------------------------------------------------------ | ------------------ |
+| `brave-search-mcp-server` | stdio     | Brave web search                                                                     | `BRAVE_API_KEY`    |
+| `ddg-search`              | stdio     | DuckDuckGo web search                                                                | —                  |
+| `git`                     | stdio     | Local git repository operations                                                      | —                  |
+| `kubernetes-mcp-server`   | stdio     | Kubernetes cluster operations                                                        | —                  |
+| `gradle`                  | stdio     | Gradle build introspection                                                           | —                  |
+| `playwright`              | stdio     | Browser automation                                                                   | —                  |
+| `atlassian`               | http      | Jira / Confluence                                                                    | OAuth              |
 
 ### VS Code
 
@@ -278,5 +310,3 @@ Recommended configuration properties:
 ### Claude Code
 
 APM handles deployment to `~/.claude/` automatically (see Setup above). Verify with `claude agents`.
-
-> **Note:** VS Code Copilot (v1.106+) natively discovers `.claude/` directories, so content deployed for Claude is also available to Copilot without duplication.
