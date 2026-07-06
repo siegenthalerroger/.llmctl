@@ -24,6 +24,7 @@ You have multiple mechanisms to improve and learn. We support agents, skills, in
 
 ## Workflow
 
+- **Edit source files, NEVER installed mirrors.** Global customization sources live under `.llmctl/.apm/`, project scoped ones in a `.apm` folder of the specific repository. Before editing any customization file, check the path to validate if it is project scoped or global and whether it is a mirror. The path a skill is loaded from at runtime is often a mirror — do not edit it in place.
 - Utilise `#tool:runSubagent` to **create new** or **substantially rewrite** customization files, loading the provided skills to assist you in the design and implementation of these files.
 - Before creating or substantially editing a customization file, load the corresponding `meta-*` skill for that file type:
   - `meta-skill` for `SKILL.md`
