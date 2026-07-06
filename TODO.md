@@ -38,14 +38,16 @@ MCP config format differs across tools in both file location and format:
 
 ### Tasks
 
-- [ ] **2a — Create MCP configuration reference doc** (`references/mcp-configuration.md`)
-  Document the config schema for each supported tool, file locations, key differences (`servers` vs `mcpServers`), and recommended project layout.
+- [x] **2a — Create MCP configuration reference** — implemented as the **`meta-mcp` skill** (`skills/meta-mcp/SKILL.md` + `skills/meta-mcp/references/mcp-configuration.md`) rather than a top-level `references/` doc, matching the repo's meta-* skill family (so it deploys and progressively loads). Documents the per-tool config matrix incl. an **APM** row, `servers` vs `mcpServers` vs Codex TOML, transports, inline-vs-registry forms, and the `${VAR}` secret strategy.
 
-- [ ] **2b — Create a cross-tool MCP setup prompt** (`prompts/setup-mcp.prompt.md`)
-  A slash-command that takes a list of MCP server definitions and outputs the correctly formatted config blocks for each supported tool.
+- [x] **2b — Create a cross-tool MCP setup prompt** (`prompts/setup-mcp.prompt.md`)
+  Scoped to emit an **`apm.yml` `dependencies.mcp` block only** (APM produces the per-tool files on deploy); delegates schema knowledge to the `meta-mcp` skill.
 
-- [ ] **2c — Update `README.md` compatibility matrix**
-  Add a "MCP Server Config" row to the compatibility matrix. Reference `references/mcp-configuration.md`.
+- [x] **2c — Update `README.md`** — added an **MCP Servers** row to the steering matrix, an MCP Servers subsection + Quickstart deploy line, and a **Recommended MCP Servers** table. References the `meta-mcp` skill.
+
+> **Integration done alongside Task 2:** the 7 MCP servers referenced by `agents/researcher-advanced.agent.md` `tools:` are now wired into `apm.yml` `dependencies.mcp` (advances Section 5), with secrets externalized to `${VAR}` (`.env.example` added). Remaining servers from the personal `mcp.json` (`git`, `kubernetes`, `gradle`, `playwright`, `reddit`, `atlassian`) are listed as recommendations in the README, not wired.
+>
+> **Pending verification (like hooks 4e/4f):** APM MCP deployment at user/global scope (`apm install -g`) is authored-but-unverified end-to-end here. Confirm the generated per-target files (`.vscode/mcp.json` `servers`, `.mcp.json`/`~/.claude.json` `mcpServers`) and that the inline-stdio `env:` key and `sse` transport translate correctly. **Action: rotate the context7 API key** — it was committed in plaintext in the personal `mcp.json` and is now replaced by `${CONTEXT7_API_KEY}`.
 
 ---
 
@@ -89,3 +91,52 @@ Authoring guidance lives in the [meta-agent skill](skills/meta-agent/SKILL.md).
 - [ ] **5a — Survey available APM packages** for skills currently tracked via `metadata.provenance.mirror`.
 - [ ] **5b — Add confirmed packages to `apm.yml`** and verify installation with `apm install -g`.
 - [ ] **5c — Remove vendored local copies** of content now consumed via APM.
+
+---
+
+## 6 — Default Permissions / Auto-Approved Commands
+
+**Goal:** Provide a curated set of default permissions — safe, read-only commands (e.g. `git diff`, `diff`, `git status`, `git log`, `ls`) auto-approved without prompting — that deploy to all supported harnesses (`claude`, `copilot`).
+
+### Background
+
+Each harness expresses its command allow-list differently, and it's unconfirmed whether APM can deploy permission/settings blocks per target (it currently handles skills, agents, prompts, instructions, hooks, and MCP).
+
+| Tool | File | Setting (to verify) |
+|---|---|---|
+| Claude Code | `settings.json` | `permissions.allow` — e.g. `Bash(git diff:*)`, `Bash(diff:*)` |
+| VS Code Copilot | `settings.json` | terminal auto-approve allow-list (confirm exact key) |
+| APM | `apm.yml` | confirm whether permission/settings deployment is supported |
+
+Related: the `fewer-permission-prompts` skill derives allow-lists from transcripts — useful as a source for the default set.
+
+### Tasks
+
+- [ ] **6a — Investigate APM support** for deploying permission/settings configuration across targets; if unsupported, track upstream (file/find an issue) or deploy out-of-band.
+- [ ] **6b — Define the default allow-list** of safe read-only commands.
+- [ ] **6c — Map the allow-list to each target's native format** and verify the deployed result with `apm install -g`.
+
+---
+
+## 7 — LSP Server Configuration Support
+
+**Goal:** Document and provide cross-tool compatible LSP (Language Server Protocol) server configuration guidance within `.llmctl`, analogous to the MCP support in Section 2 — so agent harnesses can be configured with language servers (diagnostics, hover, go-to-definition, etc.) as a deployable unit via APM.
+
+### Background
+
+Agent harnesses increasingly support configuring LSP servers to give agents richer code intelligence. As with MCP, the config format likely differs across tools in file location and structure, and APM's ability to deploy per-target LSP config is unconfirmed. The specifics below need to be investigated and confirmed against current docs before authoring.
+
+| Tool | File | Format | Key/Section |
+|---|---|---|---|
+| VS Code Copilot | _(to verify)_ | _(to verify)_ | _(to verify)_ |
+| Claude Code | _(to verify)_ | _(to verify)_ | _(to verify)_ |
+| OpenAI Codex CLI | _(to verify)_ | _(to verify)_ | _(to verify)_ |
+| APM | `apm.yml` | YAML | confirm whether `dependencies.lsp` (or equivalent) is supported |
+
+### Tasks
+
+- [ ] **7a — Investigate per-tool LSP config support and format** across `claude` and `copilot` (and Codex if relevant); fill in the matrix above from authoritative docs.
+- [ ] **7b — Investigate APM support** for deploying LSP config per target; if unsupported, track upstream (file/find an issue) or deploy out-of-band — mirror the MCP/hooks verification approach.
+- [ ] **7c — Create an LSP configuration reference** as a `meta-lsp` skill (matching the `meta-mcp` pattern: `skills/meta-lsp/SKILL.md` + references), documenting the per-tool config matrix and any APM block.
+- [ ] **7d — Create a cross-tool LSP setup prompt** (e.g. `prompts/setup-lsp.prompt.md`), scoped to emit the APM dependency block and delegating schema knowledge to the `meta-lsp` skill.
+- [ ] **7e — Update `README.md`** — add an LSP Servers row to the steering matrix and a subsection referencing the `meta-lsp` skill.
