@@ -131,18 +131,17 @@ The only acceptable secret form in a tracked file is a placeholder. But the plac
 |---|---|---|
 | `apm.yml` (source) | `${VAR}` | APM on `apm install` — either bakes the value into each generated file, or passes the placeholder through (version-dependent; **inspect the output**). |
 | Claude Code `.mcp.json` | `${VAR}`, `${VAR:-default}` | Claude Code, from its own process env at launch. Expandable in `command`/`args`/`env`/`url`/`headers`. **Unset + no default → Claude fails to parse the config.** |
-| VS Code `mcp.json` | `${input:ID}` (+ `inputs`/`password`), `${env:VAR}`, or `envFile` | VS Code, at server start. `envFile` can point at a `.env` (`"${workspaceFolder}/.env"`). Bare `${VAR}` is not native here. |
+| VS Code `mcp.json` | `${input:ID}` (+ `inputs`/`password`) or `${env:VAR}` | VS Code, at server start. Bare `${VAR}` is not native here. |
 | Codex `config.toml` | `${VAR}` env reference | Codex, from its process env. |
 
 Key points:
-- **A `.env` file is not auto-loaded.** Export the vars (`set -a; source .env; set +a`, a shell profile, or direnv) before `apm install -g` and before launching the agent tool — that covers both APM deploy-time resolution and Claude/Codex runtime expansion.
-- Store real values in the git-ignored `.env`; document required variable names in [`.env.example`](../../../../.env.example).
-- Exception: APM's Copilot adapter auto-injects GitHub tokens (`GITHUB_COPILOT_PAT` → `GITHUB_TOKEN` → …) for the `github` server, so it resolves on Copilot without a manual export.
+- **APM prompts for secrets at `apm install` time** — it resolves each `${VAR}` it can't read from the environment and writes the value into the generated per-target config. No `.env` file is maintained in this repo.
+- For non-interactive runs (CI), export the vars first (`set -a; source <file>; set +a`, a shell profile, or direnv) so APM finds them without prompting.
 - A key committed or pasted in plaintext is compromised — rotate and revoke it.
 
 ## Recommended layout for this repo
 
 1. Author every server in [`apm.yml`](../../../../apm.yml) under `dependencies.mcp`.
-2. Externalize all secrets to `${VAR}`; list the variable names in `.env.example`.
+2. Externalize all secrets to `${VAR}`; APM prompts for each value on install.
 3. Run `apm install -g` to deploy; do not commit the generated `.vscode/mcp.json` / `.mcp.json` / `config.toml`.
 4. Keep server `name`s aligned with any `tools:` references in agents (e.g. `context7/*` in [researcher-advanced.agent.md](../../../agents/researcher-advanced.agent.md)).

@@ -1,6 +1,6 @@
 ---
 name: "meta-mcp"
-description: "Guidelines for configuring MCP (Model Context Protocol) servers for AI agent customization. Covers server config across agent harnesses and APM packaging — `dependencies.mcp` in apm.yml, the `servers` vs `mcpServers` key split, stdio/http/sse transports, and secret handling. Use when adding, reviewing, or debugging MCP servers, or generating MCP config for VS Code, Claude Code, Codex, or APM. Keywords: mcp, server, Model Context Protocol, mcpServers, servers, apm.yml, dependencies.mcp, stdio, http, sse, transport, secret, .mcp.json, mcp.json."
+description: "Guidelines for configuring MCP (Model Context Protocol) servers for AI agent customization. Covers server config across agent harnesses and APM packaging — `dependencies.mcp` in apm.yml, the `servers` vs `mcpServers` key split, stdio/http/sse transports, and secret handling. Use when adding, reviewing, or debugging MCP servers, or generating MCP config for any agent harness or APM. Keywords: mcp, server, Model Context Protocol, mcpServers, servers, apm.yml, dependencies.mcp, stdio, http, sse, transport, secret, .mcp.json, mcp.json."
 license: ""
 metadata:
   provenance:
@@ -97,11 +97,11 @@ The load-bearing trap: **VS Code uses `servers`; everyone else uses `mcpServers`
 > [!IMPORTANT]
 > Never commit a plaintext API key, token, or password. The only acceptable form in a tracked file is a placeholder.
 
-- **Author** secrets in `apm.yml` as the `${VAR}` placeholder in `headers`/`env` (APM's grammar). Keep real values in the git-ignored `.env` (see [.gitignore](../../../.gitignore)) and list the names in [`.env.example`](../../../.env.example).
-- **A `.env` file is not auto-loaded.** The variable must exist in the environment of whatever resolves the placeholder — export it first (`set -a; source .env; set +a`, a shell profile, or direnv) before deploying or launching the tool.
+- **Author** secrets in `apm.yml` as the `${VAR}` placeholder in `headers`/`env` (APM's grammar). Never put a real value in a tracked file.
+- **APM resolves the value at `apm install` time** — it prompts for any `${VAR}` it can't read from the environment and writes the resolved value into each generated per-target config. No `.env` file is maintained in this repo.
 - **Resolution differs per tool — APM bridges it on deploy, so verify the generated files** (it either bakes the value in at `apm install` time, or passes the placeholder through):
   - *Claude Code* expands `${VAR}` and `${VAR:-default}` in `command`/`args`/`env`/`url`/`headers`, read from Claude's own process environment at launch. A required var that is unset with no default makes Claude **fail to parse** the config.
-  - *VS Code* uses `${input:ID}` (with an `inputs` array, `password: true`) or `${env:VAR}`, and can load a file via the `envFile` property (e.g. `"${workspaceFolder}/.env"`). Bare `${VAR}` is **not** VS Code's native secret form.
+  - *VS Code* uses `${input:ID}` (with an `inputs` array, `password: true`) or `${env:VAR}`. Bare `${VAR}` is **not** VS Code's native secret form.
 - If a key was ever committed or pasted in plaintext, treat it as compromised: rotate it and revoke the old one.
 
 ```yaml
@@ -110,7 +110,7 @@ The load-bearing trap: **VS Code uses `servers`; everyone else uses `mcpServers`
   transport: http
   url: https://mcp.context7.com/mcp
   headers:
-    CONTEXT7_API_KEY: "${CONTEXT7_API_KEY}"   # value lives in .env, never here
+    CONTEXT7_API_KEY: "${CONTEXT7_API_KEY}"   # APM prompts for the value on install; never hard-code it
 ```
 
 ## 6) Quality checklist
@@ -118,7 +118,7 @@ The load-bearing trap: **VS Code uses `servers`; everyone else uses `mcpServers`
 - Capability isn't already covered by a built-in tool or another server.
 - Declared once in `apm.yml`; no hand-edited per-target files committed.
 - Transport matches how the server runs (`command` → stdio, `url` → http/sse).
-- Every secret is a `${VAR}` placeholder; required vars are listed in `.env.example`.
+- Every secret is a `${VAR}` placeholder that APM resolves on install; no real value in a tracked file.
 - Remote `url` and stdio `command`/`args` verified to start and respond.
 - `name` is stable and matches any `tools:` references in agents (e.g. `context7/*`).
 - Deploy verified with `apm install -g`; generated files use the right root key per tool.

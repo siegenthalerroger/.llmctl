@@ -20,7 +20,7 @@ Load the [meta-mcp skill](../skills/meta-mcp/SKILL.md) for the schema, transport
 ## Output
 
 - A single fenced `yaml` block ready to paste under `dependencies.mcp` in [apm.yml](../../apm.yml).
-- A short list of required environment variables to add to [.env.example](../../.env.example) and `.env`.
+- A short list of the `${VAR}` secrets the block references — APM prompts for each value at `apm install` time (no `.env` file to maintain).
 - A one-line flag for any secret that appeared in plaintext in the input (rotate it).
 
 End with the reminder: run `apm install -g` and verify the generated per-target config before relying on it.
