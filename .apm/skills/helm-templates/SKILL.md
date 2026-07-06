@@ -86,6 +86,23 @@ kind: Ingress
 {{- end }}
 ```
 
+### Mounting user-provided file content — default to verbatim
+
+`tpl` is a valid tool for rendering values that are *meant* to contain template expressions — but think about the edge cases before reaching for it. `tpl` evaluates every `{{ ... }}` it finds in the content, so files that legitimately carry template-like or `${...}` placeholder syntax get corrupted or fail to render.
+
+For general file or config passthrough, emit the content verbatim. Choose based on intent:
+
+```yaml
+data:
+  {{- range $name, $content := .Values.configFiles }}
+  {{ $name }}: |
+    {{- $content | nindent 4 }}          # safe default — content emitted as-is
+    # {{- tpl $content $ | nindent 4 }}  # only when users are meant to write template expressions
+  {{- end }}
+```
+
+When you do want interpolation, prefer a dedicated, opt-in input so the `tpl` path is reserved for content the user knowingly writes as template expressions — and where their braces won't collide with arbitrary file syntax.
+
 ## Whitespace Control
 
 - Use `{{-` to trim leading whitespace/newlines; use `-}}` to trim trailing
@@ -117,5 +134,7 @@ helm template myrelease mychart/ -f values.yaml
 # Simulate upgrade (server-side dry-run)
 helm upgrade myrelease mychart/ -f values.yaml --dry-run --debug
 ```
+
+Pass any value containing Go-template syntax (`{{ }}`), commas, or other special characters via a `-f values.yaml` file, NEVER `--set`. The `--set` parser splits on commas and chokes on braces (e.g. `Error: failed parsing --set data: key "}" has no value`). This matters most when testing `tpl`-rendered values and embedded config blobs.
 
 For template function reference, consult the [Helm template function list](https://helm.sh/docs/chart_template_guide/function_list/) and the bundled [Sprig functions](https://masterminds.github.io/sprig/).

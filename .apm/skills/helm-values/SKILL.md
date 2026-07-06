@@ -11,7 +11,17 @@ metadata:
 
 # Helm Values Authoring
 
-Conventions for `values.yaml` files. Every value must be documented and typed — undocumented values are unusable values.
+Conventions for `values.yaml` files in charts that use the helm-docs / helm-schema toolchain.
+
+## When to apply the annotation rules
+
+Apply the annotation rules below ONLY when the chart already uses this tooling. Detect it first:
+
+- `values.schema.json` exists, OR
+- a generated values table is present in `README.md`, OR
+- existing keys already carry `# @schema` / `# --` comments.
+
+If none hold, the chart uses plain comments — match that existing style and add a plain `# comment` above new keys. Do NOT introduce `# @schema` / `# --` annotations onto a handful of keys in a chart that has none; piecemeal annotations imply tooling that is not wired up and read as inconsistent. New value blocks must read like the surrounding values, not like a different chart.
 
 ## Core Rule
 
