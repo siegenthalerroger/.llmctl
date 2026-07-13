@@ -2,7 +2,9 @@
 
 ## Overview
 
-Handoffs enable you to create guided sequential workflows that transition seamlessly between custom agents. This is useful for orchestrating multi-step development workflows where users can review and approve each step before moving to the next one.
+Handoffs enable you to create guided sequential workflows that transition seamlessly between custom agents. This is a VS Code-specific mechanism: a handoff is a suggested, user-approved transition with a pre-filled prompt — the user clicks a button, reviews (and can edit) the prompt, and decides whether to send it. It is not silent auto-delegation to another agent. This is useful for orchestrating multi-step development workflows where users can review and approve each step before moving to the next one.
+
+**Handoff vs. agent-as-tool:** use a handoff when a specialist should take over the conversation and own the final response. When an orchestrator must synthesize results from specialists instead, use sub-agent orchestration (agent-as-tool) — see [SUBAGENT.md](./SUBAGENT.md).
 
 ## Common Handoff Patterns
 

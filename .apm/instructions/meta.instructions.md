@@ -49,6 +49,10 @@ When adding new or adapting pre-existing agent customization files, follow these
 3. Use absolute directives. Don't use words like "should" or "would".
 4. Bullets over paragraphs. Keep explanations concise.
 5. Do NOT just suggest what could have been done differently this time! Generalise and adapt any pre-existing provided inputs.
+6. Apply the per-line litmus test: would removing this line cause mistakes? If not, cut it.
+7. Write descriptions name-first, directive shape, with an explicit negative constraint; keywords are trigger coverage, not stuffing (see `meta-skill` for detail).
+8. Use binary constraints, never soft-permission phrasing ("prefer X, but Y if simpler").
+9. Budget every addition against the shared always-loaded instruction pool (frontier models reliably follow ~150–200 total, and the harness already spends ~50) — move procedures into an on-demand skill instead of growing an always-loaded file.
 
 **Optional Enhancements (Use Strategically):**
 
@@ -62,3 +66,5 @@ When adding new or adapting pre-existing agent customization files, follow these
 - ❌ Don't add "Warning Signs" to obvious rules
 - ❌ Don't show bad examples for trivial mistakes
 - ❌ Don't write paragraphs explaining what bullets can convey
+- ❌ Don't polish marginal content — delete it (irrelevant-but-coherent text measurably hurts more than incoherent filler)
+- ❌ Don't add a rule until the same mistake has recurred

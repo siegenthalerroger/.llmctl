@@ -1,6 +1,6 @@
 ---
 name: "meta-update-models"
-description: "Resolve a metadata.modelProfile declaration in any customization file that supports the `model` frontmatter field to a current `model:` array by fetching authoritative model-provider documentation at run-time. Use when asked to update model lists, refresh model arrays, or regenerate model selections from a modelProfile."
+description: "Resolves a metadata.modelProfile declaration into a current model: array by fetching authoritative model-provider documentation at run-time. ALWAYS use when asked to update model lists, refresh model arrays, or regenerate model selections from a modelProfile. Do not hand-write or recall a model: array from memory — fetch live provider docs first. Keywords: model refresh, modelProfile, model array, provider catalogue."
 metadata:
   provenance:
     authoritativeSpec:

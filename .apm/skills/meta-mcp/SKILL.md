@@ -1,6 +1,6 @@
 ---
 name: "meta-mcp"
-description: "Guidelines for configuring MCP (Model Context Protocol) servers for AI agent customization. Covers server config across agent harnesses and APM packaging — `dependencies.mcp` in apm.yml, the `servers` vs `mcpServers` key split, stdio/http/sse transports, and secret handling. Use when adding, reviewing, or debugging MCP servers, or generating MCP config for any agent harness or APM. Keywords: mcp, server, Model Context Protocol, mcpServers, servers, apm.yml, dependencies.mcp, stdio, http, sse, transport, secret, .mcp.json, mcp.json."
+description: "Guidelines for configuring MCP (Model Context Protocol) servers and curating their tool surface — `dependencies.mcp` in apm.yml, the `servers` vs `mcpServers` key split, stdio/http/sse transports, and secret handling. ALWAYS load when adding, reviewing, or debugging MCP servers, or generating MCP config for any agent harness or APM. Do not hand-maintain per-target MCP config files or add a server without checking its impact on exposed tool count. Keywords: mcp, server, Model Context Protocol, mcpServers, servers, apm.yml, dependencies.mcp, stdio, http, sse, transport, secret, .mcp.json, mcp.json."
 license: ""
 metadata:
   provenance:
@@ -40,6 +40,15 @@ Use an MCP server when an agent needs a capability that is not built in — quer
 | Ship a curated bundle of the above for distribution | Plugin | Packaged, marketplace-installable |
 
 Do not add an MCP server for a capability a built-in tool already covers, or to steer behavior.
+
+### Curating servers and tools
+
+Exposed tool count is not free — it directly degrades selection accuracy (a mid-size model that fails at 46 available tools passes at 19). Curate deliberately:
+
+- Add servers sparingly; disable unused tools where the harness allows it; prefer deferred/on-demand tool loading over always-on exposure when the harness supports it.
+- Tool **names** carry heavy routing weight — prefer servers whose tools are purpose-revealing and namespaced (`service_resource_verb`) over generic or cryptic names.
+- Split description density by layer: keep the server/namespace-level description terse (it only decides load-or-not); per-tool detail belongs in the tool's own schema, not in steering prose.
+- Prefer servers that set MCP tool annotations (`readOnlyHint`, `destructiveHint`, `openWorldHint`) — these are structured safety signals. Never restate a tool's schema/usage in instructions or skills; duplicated prose interferes with the model's autonomous tool selection.
 
 ## 2) APM-first rule
 
@@ -116,6 +125,7 @@ The load-bearing trap: **VS Code uses `servers`; everyone else uses `mcpServers`
 ## 6) Quality checklist
 
 - Capability isn't already covered by a built-in tool or another server.
+- Adding this server doesn't push total exposed tool count past what the model can discriminate; unused tools are disabled where the harness allows it.
 - Declared once in `apm.yml`; no hand-edited per-target files committed.
 - Transport matches how the server runs (`command` → stdio, `url` → http/sse).
 - Every secret is a `${VAR}` placeholder that APM resolves on install; no real value in a tracked file.
@@ -128,6 +138,7 @@ The load-bearing trap: **VS Code uses `servers`; everyone else uses `mcpServers`
 - Committing plaintext secrets, or baking a token into a `url`.
 - Hand-maintaining `.vscode/mcp.json` / `.mcp.json` instead of `apm.yml` (drift and double source of truth).
 - Adding a server "just in case" with no agent or task that uses it.
+- Adding a server that pushes total exposed tool count past what the model can discriminate, or restating its tool schemas in steering prose instead of letting the schema/annotations speak.
 - Using `servers` for Claude/Codex or `mcpServers` for VS Code (wrong root key → silently ignored).
 - Pinning `@latest` for a server whose behavior you depend on, then being surprised by a breaking change.
 - Relying on `${input:...}` for servers that must work in Claude Code or Codex (not portable).

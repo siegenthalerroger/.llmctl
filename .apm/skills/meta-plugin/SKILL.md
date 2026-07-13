@@ -1,6 +1,6 @@
 ---
 name: "meta-plugin"
-description: "Guidelines for authoring and packaging agent plugins. Covers plugin manifests (`plugin.json`), agent-harness plugin formats, and APM bundles. Use when creating, reviewing, or distributing plugin packages that bundle skills, agents, hooks, or MCP servers. Keywords: plugin, plugin.json, bundle, marketplace, distribution, package, APM."
+description: "Guidelines for authoring and packaging agent plugins — plugin manifests (`plugin.json`), agent-harness plugin formats, and APM bundles. ALWAYS load when creating, reviewing, or distributing plugin packages that bundle skills, agents, hooks, or MCP servers. Do not bundle unrelated skills into one plugin without checking the combined effect on the consumer's skill-discovery budget. Keywords: plugin, plugin.json, bundle, marketplace, distribution, package, APM."
 license: ""
 metadata:
   provenance:
@@ -39,6 +39,8 @@ Use a plugin when at least one of these is true:
 - You need portable packaging across projects, teams, or tools.
 
 > Plugin scope should stay cohesive: one clear domain/problem per plugin is usually better than a kitchen-sink bundle.
+
+Bundling many skills also has a discovery cost: every bundled skill's `description` competes in the consumer's shared skill-discovery budget (Claude Code totals ~15,000 chars across all loaded skills; skills past that cutoff become invisible, not down-ranked — see meta-skill). Keep bundles cohesive **and** descriptions short. `SLASH_COMMAND_TOOL_CHAR_BUDGET` exists as consumer-side relief, but a plugin author cannot rely on the consumer having raised it.
 
 ## Cross-Tool Compatibility
 
@@ -225,6 +227,7 @@ When to use APM vs direct `plugin.json` authoring:
 - Versioning follows semver and is bumped for publishable changes.
 - Description clearly states scope, behavior, and intended usage.
 - Hooks/MCP components were reviewed as executable trust boundaries.
+- Bundle does not flood the consumer's skill-discovery budget.
 
 ## Anti-Patterns
 

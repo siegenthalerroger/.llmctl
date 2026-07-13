@@ -1,5 +1,7 @@
 # Common Agent Patterns
 
+Before adding a new persona below, apply the default-to-one-agent gate in [SKILL.md](../SKILL.md#default-to-one-agent) — add a specialist only when it improves capability isolation, policy isolation, prompt clarity, or trace legibility.
+
 ## Personas
 
 ### Testing Specialist

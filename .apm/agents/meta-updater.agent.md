@@ -1,6 +1,6 @@
 ---
 name: "Meta Updater"
-description: "User-invocable agent for auditing and updating local customization files. Covers upstream source drift (mirror/adaptedFrom provenance), model array refresh (modelProfile), and metadata standards compliance across agents, skills, prompts, and instructions. Keywords: upstream, sync, adaptedFrom, source, update audit, model refresh, metadata standards."
+description: "Audits and updates local customization files (agents, skills, prompts, instructions) for upstream source drift, stale model arrays, and metadata standards compliance. ALWAYS invoke when asked to sync upstream sources, refresh model lists, or audit metadata/description compliance across customization files. Do not hand-edit a mirror or adaptedFrom file without running this audit first. Keywords: upstream, sync, adaptedFrom, source, update audit, model refresh, metadata standards."
 # Copilot fields
 user-invocable: true
 disable-model-invocation: true
@@ -56,6 +56,7 @@ Ensure all customization files comply with the latest structural and frontmatter
 1. [ ] For each file, verify frontmatter against its type's required and recommended fields (as defined in the loaded meta-skill). Check for: missing required fields, deprecated or renamed fields, incorrect field types or formats, missing `metadata.provenance` fields where applicable.
 1. [ ] Report findings grouped by file type: compliant files, files with warnings (missing optional fields), files with errors (missing required fields or structural violations).
 1. [ ] For each non-compliant file, propose the minimal diff needed to bring it into compliance. Apply fixes only when explicitly asked.
+1. [ ] Audit each file's `description` field against the `meta-skill` description standard: directive shape with an explicit negative constraint, single-line YAML, front-loaded trigger keywords, within the applicable char budget (1024 field / 1536 combined discovery), and discriminating versus sibling files. Flag files whose combined discovery text overflows budget.
 1. [ ] Use `vscode/askQuestions` when the correct fix requires a judgment call (e.g., which provenance pattern applies, or how to populate a missing `description`).
 
 ## Constraints

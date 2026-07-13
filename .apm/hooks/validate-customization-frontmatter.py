@@ -10,9 +10,19 @@ Exit codes (Claude Code PostToolUse contract):
   0  no hard errors (warnings, if any, are printed to stderr and surfaced)
   2  hard errors found — stderr is fed back to the agent so it self-corrects
 
-Dependency-free: extracts only the `name`/`description` fields with light
-parsing rather than requiring a YAML library. Multi-line folded/block values
-are not fully parsed; such cases are treated as present.
+Checks (see the meta-skill / meta-agent / meta-instruction / meta-prompt
+skills for the authoring rationale behind each):
+  errors (exit 2)   missing frontmatter/name/description; skill name↔dir and
+                    kebab/length rules; reserved words in name/description;
+                    skill `description` over the 1024-char agentskills.io limit
+  warnings (exit 0) multi-line/block-scalar `description` (silently dropped by
+                    some skill loaders — keep it single-line); SKILL.md over the
+                    ~500-line upstream ceiling; `description`+`when_to_use` over
+                    Claude Code's 1536-char discovery truncation; non-kebab filename
+
+Dependency-free: extracts only top-level scalar fields with light parsing
+rather than requiring a YAML library. Block/folded values cannot be measured
+for length, so they are flagged as multi-line warnings instead.
 """
 import json
 import os
@@ -73,6 +83,32 @@ def field(frontmatter, key):
     return val
 
 
+def field_raw(frontmatter, key):
+    """Return the unstripped remainder of a top-level field line. None if absent."""
+    m = re.search(rf"(?m)^{re.escape(key)}:\s*(.*)$", frontmatter)
+    return m.group(1) if m else None
+
+
+def is_multiline_description(raw):
+    """True if the description value is a block scalar or an unclosed inline quote."""
+    if raw is None:
+        return False
+    s = raw.strip()
+    if s[:1] in ("|", ">"):
+        return True
+    if s[:1] in ("\"", "'"):
+        return not (len(s) > 1 and s.endswith(s[0]))
+    return False
+
+
+# agentskills.io per-field `description` limit; Claude Code truncates the
+# combined `description` + `when_to_use` discovery entry past 1536 chars;
+# Anthropic's authoritative SKILL.md ceiling is under 500 lines (and <5000 tokens).
+DESC_MAX = 1024
+DISCOVERY_MAX = 1536
+SKILL_LINE_CEILING = 500
+
+
 def reserved_hits(value):
     low = value.lower()
     return [w for w in RESERVED if re.search(rf"\b{w}\b", low)]
@@ -119,6 +155,41 @@ def validate(path, kind, text):
         hits = reserved_hits(desc)
         if hits:
             errors.append("`description` contains reserved word(s): " + ", ".join(hits))
+
+    # A multi-line/block `description` is spec-valid YAML but some skill loaders
+    # (notably Claude Code) silently drop it, making the skill undiscoverable.
+    multiline_desc = is_multiline_description(field_raw(fm, "description"))
+    if multiline_desc:
+        warnings.append(
+            "`description` spans multiple lines or uses a block scalar (`|`/`>`); "
+            "keep it on a single line — some loaders silently ignore multi-line descriptions"
+        )
+    elif desc and kind == "skill" and len(desc) > DESC_MAX:
+        # Length is only meaningful for a fully-parsed single-line value.
+        errors.append(
+            f"skill `description` is {len(desc)} characters; the agentskills.io limit is {DESC_MAX}"
+        )
+
+    if kind == "skill":
+        when_to_use = field(fm, "when_to_use")
+        if (
+            not multiline_desc
+            and desc
+            and when_to_use
+            and when_to_use not in ("<block>",)
+        ):
+            combined = len(desc) + len(when_to_use)
+            if combined > DISCOVERY_MAX:
+                warnings.append(
+                    f"`description` + `when_to_use` is {combined} characters; Claude Code truncates "
+                    f"the discovery entry at {DISCOVERY_MAX} — trim or move detail into the body"
+                )
+        line_count = text.count("\n") + 1
+        if line_count > SKILL_LINE_CEILING:
+            warnings.append(
+                f"SKILL.md is {line_count} lines; the upstream ceiling is under {SKILL_LINE_CEILING} "
+                "lines (and <5000 tokens) — split detail into references/ (house style targets ~200)"
+            )
 
     # filename kebab-case (skip SKILL.md — dir name is the identifier)
     if kind != "skill":

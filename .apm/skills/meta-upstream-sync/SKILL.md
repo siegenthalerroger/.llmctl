@@ -1,6 +1,6 @@
 ---
 name: "meta-upstream-sync"
-description: "Deterministic workflow and scripts to audit third-party source updates for local customization files using metadata.provenance.mirror or metadata.provenance.adaptedFrom patterns. Use when checking whether copied (mirror) or adapted files should be refreshed. Keywords: source drift, adaptedFrom, mirror, sync, update audit."
+description: "Audits local customization files for third-party source drift using metadata.provenance.mirror or metadata.provenance.adaptedFrom patterns, then classifies each as up-to-date, update-available, or missing. ALWAYS use when checking whether a mirrored or adapted file should be refreshed from upstream. Do not assume a mirror or adaptedFrom file is current without running this audit first. Keywords: source drift, adaptedFrom, mirror, sync, update audit."
 license: "MIT"
 compatibility: "Primary automation requires PowerShell 7+ to run ./scripts/check-updates.ps1. If PowerShell is unavailable, reproduce the workflow with equivalent repository or MCP tools and report the fallback used."
 ---

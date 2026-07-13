@@ -88,6 +88,9 @@ Skills follow the [Agent Skills](https://agentskills.io/) standard. A skill is e
 
 Instructions are kept intentionally light, as their main purpose is code-base specific rules and not generic guidelines. Instructions should always be explicitly loaded, either by a relevant `applyTo` pattern or being referenced from a prompt. Instructions cover what Claude would want in a `CLAUDE.md` or `AGENTS.md`, while enabling optionality in their inclusion based on file patterns (or nested referential inclusion).
 
+> [!NOTE]
+> VS Code Copilot has a second, path-independent activation channel: it can auto-apply an instruction by semantically matching its `description` to the task. Give instruction descriptions the same trigger craft as skill descriptions (see the [meta-instruction skill](.apm/skills/meta-instruction/SKILL.md)), not just an `applyTo` glob.
+
 > [!TIP] Instructions & Skills combined
 >
 > Instructions are really useful in VSCode, as the `applyTo` frontmatter, allows us to force the loading of specific files depending on the referenced file-types/-paths. The non-vscode alternatives don't support this, depending on Skills for progressive loading of context.

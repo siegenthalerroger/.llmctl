@@ -8,17 +8,18 @@ This document provides guidance on common frontmatter properties for custom agen
 
 **Type:** String
 **Required:** Yes (conditionally - see `infer` field)
-**Length:** 50-150 characters recommended
+**Length:** ~50-150 characters house target (awesome-copilot convention); some platforms cap higher (e.g. M365 agent descriptions ≤1000 chars) — short and discriminating beats long and generic.
 
-A clear, concise description of the agent's purpose and capabilities. This should:
-- Be keyword-rich to enable discovery
-- Explain what the agent does and when to use it
-- Include relevant keywords for searchability
+Write `description` as a matching signal keyed to the words a user would say, not a capability summary. Prefer directive phrasing with an explicit negative constraint over passive "Use when…" — state WHAT the agent does, name concrete triggers, and say what it does NOT cover when a sibling agent overlaps:
+- Third person, active voice, present tense — the text is injected into the system prompt verbatim
+- Front-load the differentiating verb/scope in the first clause (the entry may be truncated)
+- Add negative space against overlapping siblings ("does not fix issues — hand off to X")
+- Keep keywords as coverage inside the trigger clause, not as stuffing — keyword density is not the lever; a discriminating name and directive shape are
 - Avoid XML tags or reserved words (`anthropic`, `claude`, `openai`, `copilot`)
 
 **Example:**
 ```yaml
-description: "Security auditor that scans code for vulnerabilities using OWASP guidelines. Use when reviewing authentication, authorization, input validation, or before deployments. Keywords: security, vulnerability, OWASP, SQL injection, XSS."
+description: "Scans code for OWASP vulnerabilities (SQL injection, XSS, auth flaws) before merges and deployments. ALWAYS invoke before approving a PR touching auth, input validation, or dependencies. Does not fix issues — hand off to security-fixer for remediation."
 ```
 
 ### `name`
@@ -123,6 +124,18 @@ Controls whether users can manually invoke the agent from the client UI or comma
 user-invocable: true
 ```
 
+### `disable-model-invocation`
+
+**Type:** Boolean
+**Required:** No
+
+Blocks the model from autonomously/automatically invoking the agent. Independent of `user-invocable` — the two are separate axes, not one flag: an agent can be automation-only (`user-invocable: false`, `disable-model-invocation: false`), UI-only (`user-invocable: true`, `disable-model-invocation: true`), both, or neither.
+
+**Example:**
+```yaml
+disable-model-invocation: true  # orchestration-only agent, never auto-selected
+```
+
 ### `infer`
 
 **Type:** Boolean
@@ -145,7 +158,7 @@ infer: false  # Must be manually invoked
 **Type:** Array of objects
 **Required:** No
 
-Defines multi-step workflows where the agent hands off control to other specialized agents. Each handoff object contains configuration for transitioning to another agent.
+VS Code-specific. Defines a suggested, user-approved transition to another agent — the user reviews a pre-filled prompt and sends (or edits) it; this is not silent auto-delegation. Each handoff object contains configuration for transitioning to another agent.
 
 See [HANDOFF.md](./HANDOFF.md) for complete documentation.
 
@@ -250,6 +263,10 @@ These fields are recognized by Claude Code only. Copilot safely ignores them. In
 
 Tools to deny from the inherited set. Use when Claude Code inherits all tools (because Copilot's `tools` array is not parseable by Claude) and you want to restrict specific Claude tools.
 
+**Resolution order:** Claude Code applies `disallowedTools` first, then resolves `tools` (if present) against the remainder — restrict structurally with this field rather than asking the agent in prose to avoid a tool it still holds.
+
+**Sub-agent spawn allowlist:** to restrict which sub-agents an orchestrator may spawn, use `Agent(worker, researcher)` syntax inside `tools` rather than describing the allowed set in prose.
+
 **Example:**
 ```yaml
 disallowedTools: Edit, Write  # read-only agent
@@ -267,7 +284,7 @@ Controls how the subagent handles permission prompts. Values: `default`, `accept
 **Type:** Array of strings
 **Required:** No
 
-Claude Code skills to preload into the subagent's context at startup.
+Claude Code skills to preload into the subagent's context at startup — this loads the full skill CONTENT into context immediately, not just the description. Distinct from listing `Skill` in `tools`, which only grants the ability to invoke a skill on demand.
 
 ### `memory`
 
@@ -282,6 +299,8 @@ Persistent memory scope: `user`, `project`, or `local`. Enables cross-session le
 **Required:** No
 
 Lifecycle hooks scoped to the subagent (e.g., `PreToolUse`, `PostToolUse`, `Stop`).
+
+> VS Code also supports an agent-scoped `hooks:` field (Preview) with a different schema — guardrails travel with the agent file instead of living only in global settings. See the `meta-hook` skill and verify against current docs.
 
 ### `mcpServers`
 
@@ -342,7 +361,7 @@ metadata:
 
 ## Validation Rules
 
-1. **description**: Must be present (unless `infer: false`), 50-150 chars recommended
+1. **description**: Must be present (unless `infer: false`); ~50-150 chars house target, directive shape with an explicit negative constraint, discriminating vs sibling agents
 2. **name**: Must be present and unique within agent collection
 3. **tools**: If specified, must be valid tool names or patterns
 4. **model**: If specified, must be a supported model identifier
@@ -354,12 +373,13 @@ metadata:
 
 ❌ **Don't:**
 - Use XML tags in description (`<anthropic>`, `<claude>`)
-- Make description too vague ("A helpful agent")
+- Make description too vague ("A helpful agent") or keyword-stuffed but passive
 - Grant all tools without justification
 - Forget to specify required `description` and `name`
+- Use soft-permission phrasing ("prefer X, but Y if simpler") instead of binary constraints
 
 ✅ **Do:**
-- Write keyword-rich descriptions
+- Write directive descriptions with an explicit negative constraint, discriminating vs sibling agents
 - Match tools to agent responsibilities
 - Use `infer: false` for specialized workflow agents
 - Add metadata for maintainability

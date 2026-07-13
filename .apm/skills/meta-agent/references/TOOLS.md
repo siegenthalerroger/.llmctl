@@ -275,6 +275,13 @@ tools: ['read', 'edit', 'github/*']
 
 ## Best Practices
 
+### Cut Tool Count Aggressively
+
+Large tool surfaces degrade model tool-selection accuracy even when the extra tools are irrelevant to the current task — a mid-size model that fails a task at 46 available tools passes the same task at 19.
+
+- Cut exposed tools per agent; don't trust the model to ignore ones it doesn't need
+- Where the harness supports it, prefer deferred/on-demand tool loading over always exposing the full set
+
 ### Principle of Least Privilege
 
 Grant only the tools needed for the agent's specific purpose.
@@ -456,3 +463,4 @@ tools: ['read', 'edit', 'search', 'execute', 'agent']
 - [Agent Frontmatter Reference](./FRONTMATTER.md) - Complete frontmatter documentation
 - [Sub-Agent Orchestration](./SUBAGENT.md) - Using the `agent` tool for workflows
 - [Common Agent Patterns](./COMMON_PATTERNS.md) - Real-world agent examples
+- [Anthropic — Writing Tools for Agents](https://www.anthropic.com/engineering/writing-tools-for-agents) - Tool design and count evidence

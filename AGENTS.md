@@ -14,6 +14,7 @@ Upstream-sourced content is declared in `apm.yml` and installed via `apm install
 
 This is a quick reference, see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed descriptions.
 
+- **Descriptions (all types):** single-line, front-loaded, name-first. Shape as a directive with an explicit negative constraint ("ALWAYS invoke when … Do not … without this skill") — keyword density is not the activation lever. Stay within budgets (skill `description` ≤ 1024 chars). See the [meta-skill description rules](.apm/skills/meta-skill/SKILL.md#description-best-practices); the frontmatter hook enforces the mechanical limits.
 - **Skills:** portable frontmatter is `name` + `description`. Additional fields are defined as a repo convention.
 - **Agents:** prefer structural tool constraints (`tools`, `disallowedTools`) over prose-based role restrictions. Add `disable-model-invocation: true` to side-effectful agents that should not be auto-selected.
 - **Instructions:** keep narrow — their main job is forcing skill loading via `applyTo` patterns.

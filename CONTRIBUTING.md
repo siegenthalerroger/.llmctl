@@ -93,6 +93,7 @@ Both tools support skill discovery from user-level directories. The [Agent Skill
 - **Discovery:** Copilot uses `chat.agentSkillsLocations` in VS Code settings. Claude Code discovers skills from `~/.claude/skills/`.
 - **Frontmatter:** Both tools read `name` and `description` for discovery. Unknown fields are ignored.
 - **References:** Relative paths to reference files (e.g., `references/*.md`) work in both tools since the folder structure is preserved via symlink.
+- **Descriptions:** follow the directive, naming-first shape defined in the [meta-skill skill](.apm/skills/meta-skill/SKILL.md). Four distinct char budgets govern different surfaces (1024 per-field / 1536 combined discovery / 15k Claude Code total / 8k Codex aggregate) — see meta-skill rather than duplicating the detail here.
 
 ### Instructions (`*.instructions.md`)
 

@@ -13,6 +13,12 @@ This document provides guidance on using the `agent` tool to orchestrate multi-s
 
 Availability, inheritance rules, and recursion limits vary by client. Do not assume every platform exposes this capability or allows sub-agents to invoke further sub-agents.
 
+**Context isolation:** a sub-agent receives only its own system prompt plus basic environment info — never the parent conversation's history, memory, or instructions. Every fact the sub-agent needs (paths, IDs, prior decisions, constraints) must be passed explicitly in the invocation prompt or restated in the sub-agent's own `.agent.md` file.
+
+### Agent-as-Tool vs. Handoff
+
+Choose sub-agent orchestration (agent-as-tool) when the orchestrator must synthesize results from one or more specialists into its own final response. Choose a handoff (see [HANDOFF.md](./HANDOFF.md)) when a specialist should take over the conversation and own the final response instead. Mixing both patterns for the same transition usually signals an unclear contract — pick one.
+
 ## Prerequisites
 
 ### Enabling Agent Orchestration
@@ -40,6 +46,8 @@ tools: ['read', 'edit', 'search', 'execute', 'agent']
 ```
 
 The orchestrator's tool permissions act as a **ceiling** for all invoked sub-agents.
+
+**Claude Code:** restrict which named sub-agents an orchestrator may spawn structurally, via `Agent(worker, researcher)` syntax inside `tools`, rather than describing the allowed set in prose.
 
 ## How It Works
 

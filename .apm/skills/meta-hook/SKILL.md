@@ -1,6 +1,6 @@
 ---
 name: "meta-hook"
-description: "Guidelines for authoring lifecycle hooks for AI agent customization. Covers hook configuration across agent harnesses and APM packaging — frontmatter `hooks:` fields, `hooks/*.json` files, and hook primitives. Use when creating, reviewing, or debugging hooks that run before/after tool calls, file writes, sessions, or other lifecycle events. Keywords: hook, lifecycle, PreToolUse, PostToolUse, PostFileWrite, SessionStart, matcher, command."
+description: "Guidelines for authoring deterministic lifecycle hooks — frontmatter `hooks:` fields, `hooks/*.json` files, and hook primitives across agent harnesses and APM packaging. ALWAYS load when creating, reviewing, or debugging hooks that run before/after tool calls, file writes, sessions, or other lifecycle events. Do not reach for stronger instruction or skill prose to force behavior that must always happen — use a hook instead. Keywords: hook, lifecycle, PreToolUse, PostToolUse, PostFileWrite, SessionStart, matcher, command."
 license: ""
 metadata:
   provenance:
@@ -36,6 +36,8 @@ Typical fit:
 
 Do not use hooks for prompt steering or broad policy text.
 
+Hooks are the **deterministic arm of the triggering ladder**: autonomous skill/instruction triggering is inherently probabilistic (see meta-skill's triggering guidance). When something must always happen, reach for a hook — or an explicit invocation — not stronger description prose.
+
 ### Decision criteria
 
 | Need | Use | Why |
@@ -53,6 +55,7 @@ Do not use hooks for prompt steering or broad policy text.
 |---|---|---|---|
 | Claude Code | `hooks:` in agent frontmatter or `hooks` in settings | Per-agent or global (`~/.claude/settings.json`, `.claude/settings.json`) | YAML/JSON |
 | VS Code Copilot | `hooks/*.json` files | Workspace or user-level (commonly `.github/hooks/*.json`; configurable locations) | JSON |
+| VS Code Copilot (Preview) | `hooks:` in agent frontmatter | Travels with the agent file instead of a global/workspace location | YAML/JSON |
 | APM | `.apm/hooks/*.json` | Package-level | JSON |
 
 ### Compatibility notes
@@ -60,6 +63,7 @@ Do not use hooks for prompt steering or broad policy text.
 - Claude and VS Code share a strongly overlapping schema for command hooks (stdin JSON, stdout JSON control).
 - APM does not define a new runtime; it packages/transforms hooks into each target's native locations and naming conventions.
 - Event names are not perfectly identical across tools and versions.
+- VS Code Copilot agent-scoped `hooks:` is a **Preview** feature — verify current availability and field names against the docs before relying on it.
 
 > [!WARNING]
 > Treat event names and fields as target contracts, not universal contracts. Always verify against current docs for your target version.
