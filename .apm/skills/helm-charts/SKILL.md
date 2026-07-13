@@ -1,6 +1,6 @@
 ---
 name: "helm-charts"
-description: "Guidelines for working with Helm charts: structure conventions, dependency management, library charts, and troubleshooting deployments. Use when creating or adapting chart structure, managing chart dependencies, debugging Helm installs/upgrades, working with third-party charts, or determining why Helm configuration isn't taking effect. Keywords: helm, chart, Chart.yaml, dependencies, library chart, helm install, helm upgrade, helm template, verify, troubleshoot."
+description: "Helm chart structure, dependency management, library charts, and install/upgrade troubleshooting. ALWAYS invoke when creating or adapting chart structure (Chart.yaml, subcharts), managing chart dependencies, using third-party or library charts, or debugging why a Helm install/upgrade isn't taking effect. Do not hand-edit Chart.yaml, add a dependency, or diagnose a failed release without this skill — for templates/ authoring use helm-templates, for values.yaml use helm-values. Keywords: helm, chart, Chart.yaml, dependencies, library chart, helm install, helm upgrade, helm template, troubleshoot."
 license: ""
 metadata:
   provenance:

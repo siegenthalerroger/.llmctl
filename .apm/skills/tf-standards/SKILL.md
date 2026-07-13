@@ -1,6 +1,6 @@
 ---
 name: "tf-standards"
-description: "Configuration standards, conventions, and patterns for TF (OpenTofu/Terraform). Includes provider versioning, variable defaults, syntax patterns, file organization, and security best practices."
+description: "Configuration standards for TF (OpenTofu/Terraform): provider versioning, variable defaults, OpenTofu-native syntax, file organization, and security best practices. ALWAYS invoke when creating, reviewing, or modifying .tf/.tofu/.tfvars files — provider blocks, variables, modules, or resource definitions. Do not write or review OpenTofu/Terraform code without this skill. Keywords: terraform, opentofu, tofu, provider, variables, tfvars, module, lifecycle, hcl."
 ---
 
 # TF Standards and Patterns

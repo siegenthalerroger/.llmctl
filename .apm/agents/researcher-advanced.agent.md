@@ -1,6 +1,6 @@
 ---
 name: "Researcher (Advanced)"
-description: Specialized agent for complex, multi-source research requiring investigation across web, documentation, repositories, and synthesis into comprehensive reports. Delivers authoritative, validated findings for technical decisions. Use when research spans 3+ sources or requires comparative analysis and synthesis. Not for simple lookups or single-source queries.
+description: "Specialized agent for complex, multi-source research across web, documentation, and repositories, synthesized into comprehensive, validated reports. ALWAYS invoke when research spans 3+ sources or requires comparative analysis and synthesis for a technical decision. Do not use for simple lookups or single-source queries — answer those directly. Keywords: research, multi-source, synthesis, comparison, investigation, report."
 # Copilot fields
 user-invocable: true
 tools: ['todo', 'agent/runSubagent', 'search', 'web', 'read', 'edit', 'ddg-search/search', 'brave-search-mcp-server/brave_web_search', 'context7/*', 'microsoft.docs.mcp/*', 'aws-knowledge-mcp/*', 'opentofu-registry/*', 'github/get_file_contents', 'github/get_latest_release', 'github/get_release_by_tag', 'github/get_tag', 'github/list_branches', 'github/list_commits', 'github/list_releases', 'github/list_tags', 'github/search_code', 'github/search_issues', 'github/search_repositories', 'github/issue_read', 'markitdown/*', 'pdf-reader/*']

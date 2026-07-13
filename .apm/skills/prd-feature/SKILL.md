@@ -1,6 +1,6 @@
 ---
 name: prd-feature
-description: 'Creates type-aware Feature PRDs from a parent epic. Use when writing platform, engine, or domain feature PRDs so personas, workflows, requirements, and UX depth inherit the parent epic type.'
+description: "Creates type-aware Feature PRDs derived from a parent epic (platform, engine, domain). ALWAYS invoke when writing or auditing a feature-level PRD so personas, workflows, requirements, and UX depth inherit the parent epic's type. Do not draft a Feature PRD without this skill — for the parent epic-level PRD use prd-epic. Keywords: PRD, feature, epic, persona, workflow, requirements, UX."
 metadata:
   provenance:
     adaptedFrom:

@@ -1,6 +1,6 @@
 ---
 name: "Coder (Simple)"
-description: "Fast, cost-efficient implementation agent for well-specified, tightly-scoped coding tasks within a single component. Use when the plan is clear, changes touch ≤5 files, and no cross-component reasoning is needed. Keywords: implement, code, fix, small task, single component, focused change."
+description: "Fast, cost-efficient implementation agent for well-specified, tightly-scoped coding tasks within a single component. ALWAYS invoke when the plan is clear, changes touch ≤5 files, and no cross-component reasoning is needed. Do not use for cross-cutting or multi-component changes (use coder-advanced) or unscoped work that needs a plan first (use the Plan agent). Keywords: implement, code, fix, small task, single component, focused change."
 # Copilot fields
 user-invocable: false
 tools: ['todo', 'search', 'read', 'edit', 'execute', 'git/git_log', 'git/git_diff', 'git/git_diff_staged', 'git/git_diff_unstaged', 'gradle/*', 'vscjava.vscode-java-debug/*']

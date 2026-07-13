@@ -1,6 +1,6 @@
 ---
 name: Explore
-description: "Fast read-only codebase exploration and Q&A subagent. Prefer over manually chaining multiple search and file-reading operations to avoid cluttering the main conversation. Safe to call in parallel. Specify thoroughness: quick, medium, or thorough."
+description: "Fast read-only codebase exploration and Q&A subagent. ALWAYS invoke instead of manually chaining multiple search and file-reading operations — it keeps the main conversation uncluttered and is safe to call in parallel. Do not use to edit files; it is read-only. Specify thoroughness: quick, medium, or thorough."
 argument-hint: "Describe WHAT you're looking for and desired thoroughness (quick/medium/thorough)"
 # Copilot fields
 target: vscode

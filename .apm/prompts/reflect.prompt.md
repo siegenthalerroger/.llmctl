@@ -1,6 +1,6 @@
 ---
 name: "reflect"
-description: "Drive self-improvement of the input provided to the model."
+description: "Reflects on the current conversation and folds learnings back into the .llmctl steering files. ALWAYS invoke when asked to self-improve, capture a lesson, or prevent a repeated mistake after a conversation went wrong. Do not edit steering files ad hoc — route improvements through this prompt using meta.instructions."
 agent: agent
 ---
 

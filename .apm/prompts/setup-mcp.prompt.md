@@ -1,6 +1,6 @@
 ---
 name: "setup-mcp"
-description: "Convert MCP server definitions into an apm.yml dependencies.mcp block. Takes pasted server config (or a path to an mcp.json) and emits APM-ready YAML with secrets externalized."
+description: "Converts MCP server definitions into an apm.yml dependencies.mcp block with secrets externalized to ${VAR}. ALWAYS invoke when asked to add or wire an MCP server into this repo from pasted config or an mcp.json path. Do not generate the per-tool files (.vscode/mcp.json, .mcp.json, .codex/config.toml) — emit only the APM block and let deploy produce them."
 agent: agent
 argument-hint: "paste MCP server definitions or a path to an mcp.json"
 # Claude Code fields

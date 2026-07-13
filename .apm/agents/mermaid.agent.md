@@ -1,6 +1,6 @@
 ---
 name: "Mermaid Agent"
-description: "Generate, validate, and render Mermaid diagrams from natural language descriptions or source code. Use when asked to create diagrams, generate mermaid, document architecture, convert code to diagram, or create design docs. Keywords: mermaid, diagram, flowchart, sequence, architecture, visualization."
+description: "Generates, validates, and renders Mermaid diagrams from natural language descriptions or source code. ALWAYS invoke when asked to create a diagram, generate mermaid, document architecture, convert code to a diagram, or create a design doc. Do not hand-write mermaid syntax without validating it through this agent's validator. Keywords: mermaid, diagram, flowchart, sequence, architecture, visualization."
 # Copilot fields
 user-invocable: true
 argument-hint: Describe the diagram you want to create (e.g., flowchart, sequence diagram, etc.)

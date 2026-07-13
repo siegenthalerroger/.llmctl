@@ -1,6 +1,6 @@
 ---
 name: "Coder (Advanced)"
-description: "Mid-tier implementation agent for well-specified work spanning multiple components, systems, or files. Handles cross-cutting refactors, migrations, multi-file features, and tasks requiring sustained reasoning across a large change surface. Keywords: implement, refactor, migrate, multi-component, cross-cutting, large change."
+description: "Mid-tier implementation agent for well-specified work spanning multiple components, systems, or files. ALWAYS invoke for cross-cutting refactors, migrations, and multi-file features that need sustained reasoning across a large change surface. Do not use for tightly-scoped single-component edits (use coder-simple) or for unspecified work that needs a plan first (use the Plan agent). Keywords: implement, refactor, migrate, multi-component, cross-cutting, large change."
 # Copilot fields
 user-invocable: false
 tools: ['todo', 'search', 'read', 'edit', 'execute', 'git/git_log', 'git/git_diff', 'git/git_diff_staged', 'git/git_diff_unstaged', 'gradle/*', 'vscjava.vscode-java-debug/*']

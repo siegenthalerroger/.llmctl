@@ -1,6 +1,6 @@
 ---
 name: "batch-task-execution"
-description: "Guidelines for planning and executing batches of tasks from todo lists, backlogs, or multi-item requests. Use when asked to work through a list of tasks, start multiple sub-agents in parallel, or tackle several items at once. Covers task confirmation, parallelisation, and overlap detection."
+description: "Guidelines for planning and executing batches of tasks from todo lists, backlogs, or multi-item requests. ALWAYS invoke when asked to work through a list of tasks, start multiple sub-agents in parallel, or tackle several items at once. Do not fan out sub-agents or start a multi-item batch without this skill — it covers task confirmation, parallelisation, and overlap detection. Keywords: batch, todo list, backlog, parallel, sub-agents, multi-item, overlap."
 license: ""
 ---
 

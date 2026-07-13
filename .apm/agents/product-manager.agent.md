@@ -1,6 +1,6 @@
 ---
 name: "Product Manager"
-description: "Interactive, multi-turn product discovery and type-aware PRD authoring. Requires user dialogue — asks clarifying questions before writing. Classifies work into platform, engine, and domain epics/features, then covers user needs, success metrics, scope, and feature breakdown."
+description: "Interactive, multi-turn product discovery and type-aware PRD authoring. ALWAYS invoke when authoring an epic or feature PRD from scratch through dialogue — it classifies work into platform, engine, and domain, then covers user needs, success metrics, scope, and feature breakdown. Do not use for non-interactive one-shot PRD edits, or when the user cannot answer discovery questions. Keywords: PRD, product discovery, epic, feature, personas, success metrics, scope."
 # Copilot fields
 user-invocable: true
 tools: ['todo', 'vscode/askQuestions', 'search/codebase', 'read', 'search', 'edit']
