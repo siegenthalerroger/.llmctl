@@ -140,3 +140,37 @@ Agent harnesses increasingly support configuring LSP servers to give agents rich
 - [ ] **7c — Create an LSP configuration reference** as a `meta-lsp` skill (matching the `meta-mcp` pattern: `skills/meta-lsp/SKILL.md` + references), documenting the per-tool config matrix and any APM block.
 - [ ] **7d — Create a cross-tool LSP setup prompt** (e.g. `prompts/setup-lsp.prompt.md`), scoped to emit the APM dependency block and delegating schema knowledge to the `meta-lsp` skill.
 - [ ] **7e — Update `README.md`** — add an LSP Servers row to the steering matrix and a subsection referencing the `meta-lsp` skill.
+
+---
+
+## 8 — Steering Guidance Refresh (2026) & Description Standards
+
+**Goal:** Keep the `meta-*` guidance current with the latest lab/community steering-authoring guidance, and enforce mechanically whatever is deterministic.
+
+### Background
+
+The `meta-*` skills were adapted from earlier awesome-copilot/lab snapshots. A 2026 review across Anthropic, OpenAI, Google, Microsoft, the Chinese labs, and Mistral (plus practitioner writing) reframed the description guidance: **shape and naming, not keyword density, drive activation** (a 650-trial Claude Code study found keyword density had zero measurable effect; directive phrasing with an explicit negative constraint was ~20× more likely to trigger). It also reconciled the four description char budgets (1024 field / 1536 combined discovery / 15k Claude Code total / 8k Codex aggregate), the shared ~150–200 instruction budget, and new frontmatter fields (`when_to_use`, `paths`, `context: fork`, agent `skills`/`memory`/`handoffs`/`hooks`).
+
+### Tasks
+
+- [x] **8a — Refresh the `meta-*` family** (skill/agent/instruction/prompt/hook/mcp/plugin skills, `meta.instructions.md`, `meta-updater` agent, `CONTRIBUTING.md`) against the 2026 synthesis; rewrite every `meta-*` frontmatter `description` to the directive shape as an exemplar.
+- [x] **8b — Extend the frontmatter hook** (`validate-customization-frontmatter.py`) with deterministic checks: skill `description` > 1024 chars → error; multi-line/block-scalar `description` → warning; `SKILL.md` > 500 lines → warning; `description` + `when_to_use` > 1536 chars → warning.
+- [ ] **8c — Propagate the directive description standard** to the non-`meta-*` steering files (`skills/helm-*`, `k8s-standards`, `tf-standards`, `prd-*`, `troubleshooting`, remaining agents/prompts). The `meta-updater` Phase 3 audit now flags divergences.
+- [ ] **8d — Split `skills/tf-standards/SKILL.md`** (589 lines) into `references/` to clear the sub-500-line ceiling now warned by the hook.
+
+---
+
+## 9 — Context-Scoped Packaging / Plugin Decomposition
+
+**Goal:** Re-work the repository so it can ship smaller, context-specific APM packages or generalized agent plugins, reducing the amount of customization loaded globally in every context.
+
+### Background
+
+The current setup is relatively broad and can load more items than are needed in every environment. Some assets should only be available in specific repositories or workflows (for example, the `meta-updater` agent only needs to be present in this repository, not globally in all contexts).
+
+### Tasks
+
+- [ ] **9a — Evaluate whether to split the repo into multiple APM packages or plugin bundles by concern/context.**
+- [ ] **9b — Identify customization items that should be scoped to this repository versus globally shared assets.**
+- [ ] **9c — Define a packaging model** (for example repo-local package, reusable plugin, or context-specific bundle) and update the repo structure/docs accordingly.
+- [ ] **9d — Prototype one scoped package/plugin** and verify that deployment behavior matches the intended context boundaries.
