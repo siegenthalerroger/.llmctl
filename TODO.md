@@ -156,7 +156,7 @@ The `meta-*` skills were adapted from earlier awesome-copilot/lab snapshots. A 2
 - [x] **8a — Refresh the `meta-*` family** (skill/agent/instruction/prompt/hook/mcp/plugin skills, `meta.instructions.md`, `meta-updater` agent, `CONTRIBUTING.md`) against the 2026 synthesis; rewrite every `meta-*` frontmatter `description` to the directive shape as an exemplar.
 - [x] **8b — Extend the frontmatter hook** (`validate-customization-frontmatter.py`) with deterministic checks: skill `description` > 1024 chars → error; multi-line/block-scalar `description` → warning; `SKILL.md` > 500 lines → warning; `description` + `when_to_use` > 1536 chars → warning.
 - [ ] **8c — Propagate the directive description standard** to the non-`meta-*` steering files (`skills/helm-*`, `k8s-standards`, `tf-standards`, `prd-*`, `troubleshooting`, remaining agents/prompts). The `meta-updater` Phase 3 audit now flags divergences.
-- [ ] **8d — Split `skills/tf-standards/SKILL.md`** (589 lines) into `references/` to clear the sub-500-line ceiling now warned by the hook.
+- [x] **8d — Split `skills/tf-standards/SKILL.md`** into `references/` to clear the sub-500-line ceiling now warned by the hook. SKILL.md is now 238 lines (verbose ✅/❌ code examples moved to `references/{provider-config,organization,variables,opentofu-patterns}.md`, each linked from its rule; directives and reasoning stay inline).
 
 ---
 
