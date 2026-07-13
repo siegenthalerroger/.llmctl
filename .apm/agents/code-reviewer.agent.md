@@ -1,6 +1,6 @@
 ---
 name: "Code Reviewer"
-description: "Read-only code review agent for completed implementation work. Use after a feature slice or milestone to compare the diff against the plan, identify bugs and regressions, and report actionable findings with severity and file references. Keywords: review, code review, regression, diff, findings."
+description: "Read-only code review agent for completed implementation work. ALWAYS invoke after a feature slice or milestone to compare the diff against the plan and report bugs, regressions, and actionable findings with severity and file references. Do not use to write or fix code — it has no edit tools; for implementation use the coder agents. Keywords: review, code review, regression, diff, findings."
 # Copilot fields
 user-invocable: false
 disable-model-invocation: true

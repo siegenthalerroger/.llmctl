@@ -1,6 +1,6 @@
 ---
 name: Plan
-description: Researches a goal, clarifies scope with the user, and produces a detailed multi-step implementation plan ready for execution.
+description: "Researches a goal, clarifies scope with the user, and produces a detailed multi-step implementation plan ready for execution. ALWAYS invoke before implementing anything non-trivial or under-specified — plan first, then hand off to a coder agent. Do not start editing code from an unclear or unscoped request without a plan. Keywords: plan, design, scope, implementation plan, research."
 argument-hint: Outline the goal or problem to research
 # Copilot fields
 target: vscode

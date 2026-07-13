@@ -1,6 +1,6 @@
 ---
 name: "k8s-standards"
-description: "Configuration standards, conventions, and patterns for Kubernetes manifests. Includes resource naming, labeling, annotations, security contexts, resource management, probes, and rollout strategies. Use when creating, reviewing, or modifying Kubernetes YAML manifests, Helm chart templates, or Kustomize overlays. Triggers on k8s/, manifests/, deploy/, charts/ paths and *.yaml/*.yml files containing apiVersion/kind."
+description: "Configuration standards for Kubernetes manifests: resource naming, labeling, annotations, security contexts, resource requests/limits, probes, and rollout strategies. ALWAYS invoke when creating, reviewing, or modifying Kubernetes YAML (manifests, Helm chart templates, Kustomize overlays) under k8s/, manifests/, deploy/, or charts/ — any file with apiVersion/kind. Do not write or review a Kubernetes manifest without this skill. Keywords: kubernetes, k8s, manifest, apiVersion, kind, security context, probes, resource limits, labels, rollout."
 metadata:
   provenance:
     adaptedFrom:

@@ -1,6 +1,6 @@
 ---
 name: prd-epic
-description: 'Creates and reviews type-aware Epic PRDs. Use for new or existing platform, engine, and domain epics when authoring or auditing structure, compactness, consistency, journey completeness, and metric quality.'
+description: "Creates and reviews type-aware Epic PRDs (platform, engine, domain). ALWAYS invoke when authoring or auditing an epic-level PRD's structure, compactness, consistency, journey completeness, or metric quality. Do not draft or review an Epic PRD without this skill — for feature-level PRDs derived from an epic use prd-feature. Keywords: PRD, epic, platform, engine, domain, success metrics, user journey, requirements."
 metadata:
   provenance:
     adaptedFrom:
