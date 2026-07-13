@@ -15,6 +15,21 @@ license: ""
 - Especially for open-source tools, check GitHub issues and forums for similar reports.
 - Avoid trial-and-error loops when external known issues are likely.
 
+## Prefer Structured Tools; Handle Large Outputs
+- When a capability is exposed by **both an MCP server and a native CLI** (Kubernetes, GitHub, etc.), prefer the MCP for structured reads; fall back to the native CLI for operations the MCP does not cover (e.g. `helm`) and when the MCP result would be very large.
+- When a tool/MCP result is too large and gets **persisted to a file**, slice it with `jq`/`grep`/offset reads — do NOT re-run the call. For search APIs (Jira JQL, Confluence CQL), narrow the query and request only the fields you need rather than re-fetching everything.
+- **Never echo secret values** while diagnosing. Read a credential via the tool that already holds it (e.g. a pod's own env vars) and compare with a boolean (`MATCH`/`MISMATCH`) — do not print the value.
+
+## Verify Capabilities and Prerequisites — Don't Infer
+- **Names lie about access.** Never assume an access level from a context/account/role name (a context called `read-only` may still have namespace-scoped write). Probe the real capability before acting or before ruling out an operation: `kubectl auth can-i <verb> <resource>`, a `--dry-run`, or a harmless write.
+- **When a pre-flight check is impossible from your vantage, don't block on it.** If credentials/scope prevent verifying a prerequisite (an image tag in a registry you can't reach, node capacity you can't list), identify the fail-fast signal that surfaces it during execution (`ImagePullBackOff`/`manifest unknown`, `Pending`/`Unschedulable`) and monitor that instead. State the residual risk rather than stalling.
+
+## Diagnose the Root, Not the Wrapper
+- When an orchestrator reports a child failure (helm "hook failed / Job not ready", a controller event), the real cause is in the **child's own logs** — read those, find the root `Caused by:`, and act on that, not the wrapper summary.
+- For a crashed/restarted container, use `logs --previous` (the live log is the next attempt, not the one that failed).
+- **Inspect the shipped artifact for ground truth.** To learn what a new image actually expects (its config, DB changelog, an enum's valid values), run a throwaway pod with that image, override the entrypoint (`--command -- sleep 1200`), then `exec` in to `find`/`cat`/`javap`/`unzip -p`. Delete it after. Beats guessing from docs or the previous version.
+- A failed orchestrated step leaves **state that blocks retry** (a release stuck `failed`, leftover hook Jobs, a partial lock). Clean it up before re-running.
+
 ## Browser Debugging (Web Apps)
 When diagnosing frontend or OIDC/auth issues, use the built-in browser MCP tools instead of only reading code or guessing:
 - `mcp_open_browser_page` — open the app in a live browser
