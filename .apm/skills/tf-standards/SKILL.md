@@ -7,6 +7,8 @@ description: "Configuration standards, conventions, and patterns for TF (OpenTof
 
 Standards and conventions for writing TF (OpenTofu/Terraform) infrastructure code, focusing on provider configuration, variable management, TF-specific syntax, and code organization.
 
+Worked ✅/❌ examples live in `references/` and are linked from each rule — load them on demand rather than reading them all up front.
+
 ## Provider Documentation Research
 
 Use OpenTofu Registry MCP tools to research provider resource schemas and arguments instead of local schema parsing or web searches.
@@ -28,33 +30,7 @@ Always use the latest stable major version of providers unless specific compatib
 
 **Reasoning**: Using outdated provider versions misses bug fixes, new features, and security patches. Explicit latest versions ensure predictable, modern behavior.
 
-✅ **GOOD**:
-```hcl
-terraform {
-  required_providers {
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 3.0"  # Latest stable major version
-    }
-    keycloak = {
-      source  = "mrparkers/keycloak"
-      version = "~> 4.4"  # Latest stable version
-    }
-  }
-}
-```
-
-❌ **BAD**:
-```hcl
-terraform {
-  required_providers {
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.0"  # Outdated major version
-    }
-  }
-}
-```
+See [provider-config.md](./references/provider-config.md#provider-version-selection) for ✅/❌ examples.
 
 ## Provider Authentication Patterns
 
@@ -65,44 +41,7 @@ Support multiple authentication methods for providers when the provider supports
 - Document which authentication method requires which variables
 - Prefer service account/client credentials in production, username/password for development
 
-✅ **GOOD**:
-```hcl
-# variables.tf
-variable "keycloak_client_id" {
-  description = "Keycloak admin client ID (for client credentials auth)"
-  type        = string
-  default     = "admin-cli"
-}
-
-variable "keycloak_client_secret" {
-  description = "Client secret for Keycloak authentication (optional, use for client credentials)"
-  type        = string
-  sensitive   = true
-  default     = null
-}
-
-variable "keycloak_username" {
-  description = "Username for Keycloak authentication (optional, use if not using client credentials)"
-  type        = string
-  default     = null
-}
-
-variable "keycloak_password" {
-  description = "Password for Keycloak authentication (optional, use if not using client credentials)"
-  type        = string
-  sensitive   = true
-  default     = null
-}
-
-# main.tofu
-provider "keycloak" {
-  client_id     = var.keycloak_client_id
-  url           = var.keycloak_url
-  client_secret = var.keycloak_client_secret
-  username      = var.keycloak_username
-  password      = var.keycloak_password
-}
-```
+See [provider-config.md](./references/provider-config.md#provider-authentication-patterns) for a full ✅ example.
 
 ## File Organization
 
@@ -132,35 +71,7 @@ Place `check` blocks next to the validation concern they enforce:
 
 **Reasoning**: Logical separation makes code easier to navigate, review, and maintain. Finding "where is the realm configuration" should be immediate, not require searching through a monolithic file.
 
-✅ **GOOD**:
-```
-keycloak/
-  main.tofu              # Providers and terraform config
-  variables.tf           # All variables
-  outputs.tf             # All outputs
-  realm.tf               # Realm resource
-  client-webapp.tf       # Web app client config
-  client-api.tf          # API client config
-  client-mobile.tf       # Mobile client config
-  modules/
-    oidc-client/
-      main.tofu
-      variables.tf
-      outputs.tf
-      client.tf
-      k8s-secret.tf
-```
-
-❌ **BAD**:
-```
-keycloak/
-  main.tofu              # Everything mixed together:
-                         # - providers
-                         # - realm
-                         # - all clients
-                         # - variables
-                         # - outputs
-```
+See [organization.md](./references/organization.md#file-organization) for ✅/❌ directory-layout examples.
 
 ## Module Design
 
@@ -179,39 +90,7 @@ When creating reusable modules, follow these principles:
 - Consistent output patterns (client_id, client_resource_id)
 - Parallel optional features (K8s secrets, logging, monitoring)
 
-✅ **GOOD** - Module structure:
-```
-modules/
-  oidc-client/
-    README.md           # Usage documentation
-    main.tofu           # Provider requirements
-    variables.tf        # Input variables
-    outputs.tf          # Output values
-    client.tf           # OIDC client resource
-    k8s-secret.tf       # Optional K8s secret
-```
-
-✅ **GOOD** - Module usage:
-```hcl
-module "webapp_client" {
-  source = "./modules/oidc-client"
-
-  keycloak_url          = var.keycloak_url
-  realm_name           = var.realm_name
-  client_id            = "webapp"
-  client_name          = "Web Application"
-  valid_redirect_uris  = ["https://app.example.com/*"]
-
-  # Optional features
-  create_kubernetes_secret = true
-  kubernetes_namespace     = "production"
-}
-
-output "webapp_client_secret" {
-  value     = module.webapp_client.client_secret
-  sensitive = true
-}
-```
+See [organization.md](./references/organization.md#module-design) for ✅ module structure and usage examples.
 
 ## Naming Conventions
 
@@ -220,25 +99,7 @@ output "webapp_client_secret" {
 - Prefix related resources: `client_webapp`, `client_api`, `client_mobile`
 - Use full words, avoid abbreviations except common ones (e.g., `k8s`, `oidc`, `url`)
 
-✅ **GOOD**:
-```hcl
-variable "keycloak_url" { }
-variable "realm_name" { }
-variable "client_id" { }
-variable "valid_redirect_uris" { }
-resource "keycloak_openid_client" "webapp_client" { }
-output "client_secret" { }
-```
-
-❌ **BAD**:
-```hcl
-variable "kcUrl" { }           # camelCase
-variable "rName" { }           # abbreviated
-variable "cid" { }             # too short
-variable "redirectURIs" { }   # inconsistent case
-resource "keycloak_openid_client" "c" { }  # non-descriptive
-output "secret" { }            # ambiguous
-```
+See [organization.md](./references/organization.md#naming-conventions) for ✅/❌ examples.
 
 ## Optional Resource Attributes
 
@@ -268,65 +129,6 @@ For application URLs and endpoints, prefer single base URL variables over split 
 - Keep URL format **consistent** across all application/service variables in the same configuration
 - Avoid splitting into separate `scheme`, `host`, `port` variables unless environment requires different combinations
 
-✅ **GOOD** - `variables.tf`:
-```hcl
-variable "keycloak_url" {
-  description = "Keycloak server URL"
-  type        = string
-  # No default - environment-specific
-}
-
-variable "realm_name" {
-  description = "Keycloak realm name"
-  type        = string
-  # No default - varies by deployment
-}
-
-variable "client_port" {
-  description = "Client service port"
-  type        = number
-  default     = 8080  # Sensible default
-}
-
-variable "enable_monitoring" {
-  description = "Enable monitoring integration"
-  type        = bool
-  default     = true  # Most deployments want this
-}
-```
-
-✅ **GOOD** - `terraform.tfvars`:
-```hcl
-# Only specify what varies or is sensitive
-keycloak_url = "https://keycloak.example.com"
-realm_name   = "production"
-client_secret = "secret-value-from-vault"
-```
-
-❌ **BAD** - `variables.tf`:
-```hcl
-variable "client_port" {
-  description = "Client service port"
-  type        = number
-  # No default forces users to specify obvious values
-}
-
-variable "enable_monitoring" {
-  description = "Enable monitoring"
-  type        = bool
-  # No default for boolean flag
-}
-```
-
-❌ **BAD** - `terraform.tfvars`:
-```hcl
-# Requiring obvious values in tfvars
-client_port = 8080
-enable_monitoring = true
-timeout_seconds = 30
-max_retries = 3
-```
-
 ### Tfvars Minimalism
 
 When authoring `.tfvars` files, only set attributes that differ from their defaults.
@@ -336,41 +138,7 @@ When authoring `.tfvars` files, only set attributes that differ from their defau
 - Only include values that are environment-specific or override a default
 - Rely on variable defaults to express "normal" configuration; tfvars express deviations
 
-❌ **BAD**:
-```hcl
-tenants = {
-  "acm" = {
-    keycloak_realm = { id = "acm" }
-    is_default     = true       # Unnecessary if only one tenant
-    detect_tenants = [
-      { aml_tenant = "0001", business_unit = "...", is_global = true }
-    ]
-  }
-  "acm2" = {
-    keycloak_realm = { id = "acm2" }
-    is_default     = false      # Redundant — already the default
-    detect_tenants = [...]
-  }
-}
-```
-
-✅ **GOOD**:
-```hcl
-tenants = {
-  "acm" = {
-    keycloak_realm = { id = "acm" }
-    detect_tenants = [
-      { aml_tenant = "0001", business_unit = "...", is_global = true }
-    ]
-  }
-  "acm2" = {
-    keycloak_realm = { id = "acm2" }
-    detect_tenants = [
-      { aml_tenant = "0002", business_unit = "..." }
-    ]
-  }
-}
-```
+See [variables.md](./references/variables.md) for ✅/❌ examples of defaults, URL patterns, and tfvars minimalism.
 
 ## Variable Flow Tracing
 
@@ -404,63 +172,11 @@ Use `lifecycle.enabled` for conditional resource creation, not `count` or `for_e
 
 **Reasoning**: OpenTofu's `lifecycle.enabled` is cleaner and more explicit than Terraform's `count = var.enabled ? 1 : 0` pattern. It clearly expresses intent and avoids index-based resource references.
 
-✅ **GOOD** - OpenTofu native:
-```hcl
-resource "kubernetes_secret" "client_credentials" {
-  lifecycle {
-    enabled = var.create_kubernetes_secret
-  }
-
-  metadata {
-    name      = "${var.client_id}-credentials"
-    namespace = var.kubernetes_namespace
-  }
-
-  data = {
-    client_id     = keycloak_openid_client.client.client_id
-    client_secret = keycloak_openid_client.client.client_secret
-  }
-}
-```
-
-❌ **BAD** - Terraform-style count workaround:
-```hcl
-resource "kubernetes_secret" "client_credentials" {
-  count = var.create_kubernetes_secret ? 1 : 0
-
-  metadata {
-    name      = "${var.client_id}-credentials"
-    namespace = var.kubernetes_namespace
-  }
-
-  data = {
-    # Awkward to reference with [0] everywhere
-    client_id     = keycloak_openid_client.client.client_id
-    client_secret = keycloak_openid_client.client.client_secret
-  }
-}
-```
-
-❌ **BAD** - Incorrect for_each usage:
-```hcl
-resource "kubernetes_secret" "client_credentials" {
-  for_each = var.create_kubernetes_secret ? { "enabled" = true } : {}
-  # for_each is for multiple instances, not conditionals
-}
-```
-
 ### Variable Declaration for Conditionals
 
 When using `lifecycle.enabled`, declare the controlling boolean variable with a clear, descriptive name.
 
-✅ **GOOD**:
-```hcl
-variable "create_kubernetes_secret" {
-  description = "Whether to create a Kubernetes secret with client credentials"
-  type        = bool
-  default     = false  # Opt-in for security
-}
-```
+See [opentofu-patterns.md](./references/opentofu-patterns.md#conditional-resource-creation) for ✅/❌ examples.
 
 ## Kubernetes Secret Management
 
@@ -473,36 +189,7 @@ When creating Kubernetes secrets from provider resources, follow security best p
 
 **Reasoning**: Not all users want or need Kubernetes secrets created automatically. Some use external secret management (Vault, Sealed Secrets). Making it optional and opt-in prevents unexpected resource creation in clusters.
 
-✅ **GOOD**:
-```hcl
-variable "create_kubernetes_secret" {
-  description = "Whether to create a Kubernetes secret with client credentials"
-  type        = bool
-  default     = false  # Opt-in for security
-}
-
-variable "kubernetes_namespace" {
-  description = "Kubernetes namespace for the secret (required if create_kubernetes_secret is true)"
-  type        = string
-  default     = "default"
-}
-
-resource "kubernetes_secret" "client_credentials" {
-  lifecycle {
-    enabled = var.create_kubernetes_secret
-  }
-
-  metadata {
-    name      = "${var.client_id}-credentials"
-    namespace = var.kubernetes_namespace
-  }
-
-  data = {
-    client_id     = keycloak_openid_client.client.client_id
-    client_secret = keycloak_openid_client.client.client_secret
-  }
-}
-```
+See [opentofu-patterns.md](./references/opentofu-patterns.md#kubernetes-secret-management) for a full ✅ example.
 
 ## Comment Minimalism
 
@@ -515,52 +202,7 @@ Only add comments to explain non-obvious logic, complex algorithms, or important
 
 **Reasoning**: Redundant comments create noise and maintenance burden. Code structure (file names, resource types, variable names) should be self-documenting. Comments are for explaining intention, not repeating what the code says.
 
-✅ **GOOD**:
-```hcl
-# main.tofu
-terraform {
-  required_providers {
-    keycloak = {
-      source  = "mrparkers/keycloak"
-      version = "~> 4.4"
-    }
-  }
-}
-
-provider "keycloak" {
-  client_id  = var.keycloak_client_id
-  url        = var.keycloak_url
-  # Using username/password auth instead of client credentials
-  # because service account tokens don't have realm management permissions
-  username   = var.keycloak_username
-  password   = var.keycloak_password
-}
-```
-
-❌ **BAD**:
-```hcl
-# main.tofu
-
-# Terraform Configuration
-terraform {
-  # Required Providers Block
-  required_providers {
-    # Keycloak Provider
-    keycloak = {
-      source  = "mrparkers/keycloak"  # Provider source
-      version = "~> 4.4"               # Provider version
-    }
-  }
-}
-
-# Keycloak Provider Configuration
-provider "keycloak" {
-  client_id  = var.keycloak_client_id  # Client ID
-  url        = var.keycloak_url        # Keycloak URL
-  username   = var.keycloak_username   # Username
-  password   = var.keycloak_password   # Password
-}
-```
+See [opentofu-patterns.md](./references/opentofu-patterns.md#comment-minimalism) for ✅/❌ examples.
 
 ## Managing Pre-Existing or Unsupported Resources
 
@@ -586,3 +228,11 @@ Before committing OpenTofu code, verify:
 - [ ] Related modules use consistent structure and naming patterns
 - [ ] Variables traced through module boundaries for expected formats
 - [ ] Optional resource attributes pass `null` for empty values (not empty strings/lists)
+
+## References
+
+- **Provider config** — [Version selection & authentication examples](./references/provider-config.md)
+- **Organization** — [File layout, module structure & naming examples](./references/organization.md)
+- **Variables** — [Defaults, URL patterns & tfvars minimalism examples](./references/variables.md)
+- **OpenTofu patterns** — [Conditional creation, K8s secrets & comment examples](./references/opentofu-patterns.md)
+- **Restful provider** — [Managing pre-existing/unsupported resources](./references/restful-provider.md)
