@@ -1,0 +1,25 @@
+name: llmctl-ops
+version: 0.1.0
+description: Ops / infrastructure steering — Helm, Kubernetes, and OpenTofu/Terraform skills plus path-scoped instructions and cloud/IaC documentation MCP servers.
+author: siegenthalerroger
+
+# Include all items in this package's `.apm/` directory.
+includes: auto
+
+dependencies:
+  apm: []
+  mcp:
+    # Cloud / IaC documentation MCPs (read only) — scoped here rather than the
+    # global baseline so their tool surface only loads in ops/infra projects.
+    - name: opentofu-registry
+      registry: false
+      transport: streamable-http
+      url: https://mcp.opentofu.org/mcp
+    - name: microsoft.docs.mcp
+      registry: false
+      transport: streamable-http
+      url: https://learn.microsoft.com/api/mcp
+    - name: aws-knowledge-mcp
+      registry: false
+      transport: http
+      url: https://knowledge-mcp.global.api.aws

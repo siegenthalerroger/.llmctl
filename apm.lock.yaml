@@ -1,171 +1,93 @@
 lockfile_version: '1'
-generated_at: '2026-07-13T16:00:57.294788+00:00'
+generated_at: '2026-07-14T11:15:50.250206+00:00'
+apm_version: 0.25.0
 dependencies: []
-mcp_servers:
-- aws-knowledge-mcp
-- context7
-- github
-- microsoft.docs.mcp
-- opentofu-registry
-mcp_configs:
-  aws-knowledge-mcp:
-    name: aws-knowledge-mcp
-    transport: http
-    registry: false
-    url: https://knowledge-mcp.global.api.aws
-  context7:
-    name: context7
-    transport: http
-    registry: false
-    headers:
-      CONTEXT7_API_KEY: ${CONTEXT7_API_KEY}
-    url: https://mcp.context7.com/mcp
-  github:
-    name: github
-    transport: stdio
-    args:
-    - mcp
-    registry: false
-    command: gh
-  microsoft.docs.mcp:
-    name: microsoft.docs.mcp
-    transport: streamable-http
-    registry: false
-    url: https://learn.microsoft.com/api/mcp
-  opentofu-registry:
-    name: opentofu-registry
-    transport: streamable-http
-    registry: false
-    url: https://mcp.opentofu.org/mcp
+deployments:
+- kind: project-relative
+  target: claude
+  value: .claude/agents/meta-updater.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:5b34d9e5a655956eed04b5dab4188aaebfef1a4722e5829518a02aba5ac2e167
+- kind: project-relative
+  target: claude
+  value: .claude/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:b1524e341e9ff440753b14941d21a0a57852fff8575b2cba5cd7120425948cdd
+- kind: project-relative
+  target: claude
+  value: .claude/skills/meta-update-models
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/meta-update-models/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:4ffdfd2cfa5ca6d3e20895546539ae9aaadb00fe3109deb5cfc3521425a502db
+- kind: project-relative
+  target: claude
+  value: .claude/skills/meta-upstream-sync
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/meta-upstream-sync/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:4f47975b4b71aacf7ddfe0272d14e8eecec86d57c436b84877026cf42d3d97c2
+- kind: project-relative
+  target: claude
+  value: .claude/skills/meta-upstream-sync/references/source-url-reference.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:50aaa33e5ab53a3f91abd2514388b9126ef79de167121e3ed8189a64ff065ec7
+- kind: project-relative
+  target: claude
+  value: .claude/skills/meta-upstream-sync/scripts/check-updates.ps1
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:f40a221058bc32316471fb88324c1ac26299441bfa8abe353f74558a510261d9
 local_deployed_files:
-- .claude/agents/code-reviewer.md
-- .claude/agents/coder-advanced.md
-- .claude/agents/coder-simple.md
-- .claude/agents/explore.md
-- .claude/agents/mermaid.md
 - .claude/agents/meta-updater.md
-- .claude/agents/plan.md
-- .claude/agents/product-manager.md
-- .claude/agents/researcher-advanced.md
-- .claude/agents/ux-expert.md
-- .claude/commands/reflect.md
-- .claude/commands/setup-mcp.md
 - .claude/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py
-- .claude/rules/documentation.md
-- .claude/rules/helm.md
-- .claude/rules/meta.md
-- .claude/rules/tf.md
-- .claude/rules/troubleshooting.md
-- .claude/skills/batch-task-execution
-- .claude/skills/batch-task-execution/SKILL.md
-- .claude/skills/complex-research
-- .claude/skills/complex-research/SKILL.md
-- .claude/skills/helm-charts
-- .claude/skills/helm-charts/SKILL.md
-- .claude/skills/helm-templates
-- .claude/skills/helm-templates/SKILL.md
-- .claude/skills/helm-values
-- .claude/skills/helm-values/SKILL.md
-- .claude/skills/helm-values/references/helm-docs-comments.md
-- .claude/skills/helm-values/references/helm-schema-annotations.md
-- .claude/skills/k8s-standards
-- .claude/skills/k8s-standards/SKILL.md
-- .claude/skills/mermaid-creator
-- .claude/skills/mermaid-creator/SKILL.md
-- .claude/skills/mermaid-creator/references/mermaid-diagram-guide.md
-- .claude/skills/mermaid-creator/references/unicode-symbols.md
-- .claude/skills/meta-agent
-- .claude/skills/meta-agent/SKILL.md
-- .claude/skills/meta-agent/references/COMMON_PATTERNS.md
-- .claude/skills/meta-agent/references/FRONTMATTER.md
-- .claude/skills/meta-agent/references/HANDOFF.md
-- .claude/skills/meta-agent/references/SUBAGENT.md
-- .claude/skills/meta-agent/references/TOOLS.md
-- .claude/skills/meta-hook
-- .claude/skills/meta-hook/SKILL.md
-- .claude/skills/meta-instruction
-- .claude/skills/meta-instruction/SKILL.md
-- .claude/skills/meta-mcp
-- .claude/skills/meta-mcp/SKILL.md
-- .claude/skills/meta-mcp/references/mcp-configuration.md
-- .claude/skills/meta-plugin
-- .claude/skills/meta-plugin/SKILL.md
-- .claude/skills/meta-prompt
-- .claude/skills/meta-prompt/SKILL.md
-- .claude/skills/meta-skill
-- .claude/skills/meta-skill/SKILL.md
-- .claude/skills/meta-skill/references/BODY.md
-- .claude/skills/meta-skill/references/FRONTMATTER.md
-- .claude/skills/meta-skill/references/SPEC.md
-- .claude/skills/meta-skill/references/STRUCTURE.md
 - .claude/skills/meta-update-models
 - .claude/skills/meta-update-models/SKILL.md
 - .claude/skills/meta-upstream-sync
 - .claude/skills/meta-upstream-sync/SKILL.md
 - .claude/skills/meta-upstream-sync/references/source-url-reference.md
 - .claude/skills/meta-upstream-sync/scripts/check-updates.ps1
-- .claude/skills/prd-epic
-- .claude/skills/prd-epic/SKILL.md
-- .claude/skills/prd-feature
-- .claude/skills/prd-feature/SKILL.md
-- .claude/skills/tf-standards
-- .claude/skills/tf-standards/SKILL.md
-- .claude/skills/tf-standards/references/restful-provider.md
-- .claude/skills/troubleshooting
-- .claude/skills/troubleshooting/SKILL.md
 local_deployed_file_hashes:
-  .claude/agents/code-reviewer.md: sha256:975e7eaf780d288e8c13cc13107ee14039404ec39f76df0a3a32d148663b52d0
-  .claude/agents/coder-advanced.md: sha256:9db84e2842424de08ed37ffa717d1f2c815563cce69723de49a9f7116b1db6ee
-  .claude/agents/coder-simple.md: sha256:78f7e2df8e9c22be53deba6de4eee6ad98dd3c1846e3567eb537049489028dbb
-  .claude/agents/explore.md: sha256:b30f6a600a3fb9892a95b5bc2550254feb76b5acdf0831bf2fae8255e153baee
-  .claude/agents/mermaid.md: sha256:6b4a34b37a3443dbe34c378b2757b64b166d1b278799d2d0a983d5f1dd523723
-  .claude/agents/meta-updater.md: sha256:b2b538d0816834f0b09da734e18ee359c3b13ebed02fae49e89d15106db6304e
-  .claude/agents/plan.md: sha256:6ae1cd777e01bf4bfcfd4d3bad3219a350bad634a40267646e01a7dd9387edae
-  .claude/agents/product-manager.md: sha256:c2ec98bf080755d4416f15186263fe1ad8c1f4ceea094bc9c86722e069217206
-  .claude/agents/researcher-advanced.md: sha256:e58fceec2317f027fb7ba2b28546a0f734a74d1915e65bb4e226c4c676144890
-  .claude/agents/ux-expert.md: sha256:c84f3388240e40904b1e8b3ca028d92e7918a315cbe3dd4eb50072bdd458546e
-  .claude/commands/reflect.md: sha256:9a74182b405c73f1cdffebed46f5222cf09b8e51e1cbd74f539523b6ae8e88c3
-  .claude/commands/setup-mcp.md: sha256:84b27c06e2f45c2e1b022704bb862811026c70d9c096af64e337f613e02f9fe3
-  .claude/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py: sha256:d15970a3c4c7be53a17fccac970737e784069b0868553deb481193dccbdf5161
-  .claude/rules/documentation.md: sha256:9b4327e7861d91f02908bea4f0ffd184a31e7a2a7e5ac3957d8bed5acd096e71
-  .claude/rules/helm.md: sha256:b4842e81a213d3e487e4370b342ff9c9b3e1d3b68d44450d31a67b3427de8921
-  .claude/rules/meta.md: sha256:76309cd0612233453744bc5b48b69dbc387eb87191885d7393be0158efbf99a7
-  .claude/rules/tf.md: sha256:3f14322fb1a72ade3fee4bd90f4f98171bc38690dc8f0699662be7959a9baaeb
-  .claude/rules/troubleshooting.md: sha256:80e338947e0ad26a22173a9051b1db8c738810bbeb1d226e21de096dda2ef83a
-  .claude/skills/batch-task-execution/SKILL.md: sha256:576620dbfb897652590ce96bb55c6c01311fc66f74aaa64dae845630ca9ae891
-  .claude/skills/complex-research/SKILL.md: sha256:108b3617ca5c44812d15d855c5f1b8f3f2168da10672b883ba5af8c6f151858e
-  .claude/skills/helm-charts/SKILL.md: sha256:6d42da6e07342dcac6a337238e58775829b465c2161e62e854e9006af4d23b62
-  .claude/skills/helm-templates/SKILL.md: sha256:d6df10a53e8e9e724bc9a0fae07840a69476b08cdc987d062b8dd44fc8fc81d1
-  .claude/skills/helm-values/SKILL.md: sha256:be12b7ef52f8b37928f12d99e4c6da735fb53640f79e61108e6e6f1f16c39464
-  .claude/skills/helm-values/references/helm-docs-comments.md: sha256:ae526241c65047fde4e4eddc216aa60ee538edf8f709108099081493c5c24e23
-  .claude/skills/helm-values/references/helm-schema-annotations.md: sha256:d2a9f6b818b9f64490ada9e8f82de89e17bb3e06abd188c43256481a17d5213e
-  .claude/skills/k8s-standards/SKILL.md: sha256:c4f48e00ebebb3ddd582970fd459bce80abdf6942f9e5bf66a32bfc5c3238d11
-  .claude/skills/mermaid-creator/SKILL.md: sha256:db991adf8aa583e496c81972cc62d5063f52105d5746b518454bb0d9509d439f
-  .claude/skills/mermaid-creator/references/mermaid-diagram-guide.md: sha256:98565693955d9d13ede23f57f2fe7ea5c8b9e0a57e22c198778dcedfd09b6857
-  .claude/skills/mermaid-creator/references/unicode-symbols.md: sha256:5ebb0f799d1d4349876d34111f09ba4dc77ed2f7be55838601524206317c4020
-  .claude/skills/meta-agent/SKILL.md: sha256:a05c5bf4a54f2280069d920de6b141699803e3c54b48baa682f29508ec9370c8
-  .claude/skills/meta-agent/references/COMMON_PATTERNS.md: sha256:8b6dedf4faeafd13b674c7b6110636d616a5d2107619a622249234c41087f04c
-  .claude/skills/meta-agent/references/FRONTMATTER.md: sha256:4e5eb8b6b6e73b3cdb4490527cef4ffcb8788843f1cd5e51603f826972b5205c
-  .claude/skills/meta-agent/references/HANDOFF.md: sha256:e4a590fda11a6751fa2d0a51db125f47891368fa8a635409b6463b7cce5a8c14
-  .claude/skills/meta-agent/references/SUBAGENT.md: sha256:b42d710ea2498286c0474d2d5e2a2b813a88e4cae1d26d68f03874c7557fa1a2
-  .claude/skills/meta-agent/references/TOOLS.md: sha256:211da59512ee04593cfcbe0e6f421cf029040c55c4bbd51dd9d29a896862e365
-  .claude/skills/meta-hook/SKILL.md: sha256:a3918bb3f13a1b5c447931a3d49714056112463ede3b43e63583e8caf1084d34
-  .claude/skills/meta-instruction/SKILL.md: sha256:31c4a1107211060a08d3be3f6e608e4a639c23a88ecf88a84216a2ad61cd1063
-  .claude/skills/meta-mcp/SKILL.md: sha256:173eaa5d0fa1a59be8313ff1a30cc63d621695bd667f02a9ac8dc1f8b5259b35
-  .claude/skills/meta-mcp/references/mcp-configuration.md: sha256:6360a5c73837bb39f54aab6ee4508c0ef19adc0d87c6704fa2e669fd702065ad
-  .claude/skills/meta-plugin/SKILL.md: sha256:724c6fa1dbead3b356a98cf3afd25977ca8cb61af7c026e269bd19de2fc61dc3
-  .claude/skills/meta-prompt/SKILL.md: sha256:e2ac7847145482131336f214feb00e5f1cda3661638f601e22f33545c68dbc43
-  .claude/skills/meta-skill/SKILL.md: sha256:884b2c63eb1e601a21ae55358231e8294d82a1aea27a4355f2307f1add84ecde
-  .claude/skills/meta-skill/references/BODY.md: sha256:06ef839f60ccae8fec03fba97db6dc55fbe87fd74de8f0f990dca24f8277b9ab
-  .claude/skills/meta-skill/references/FRONTMATTER.md: sha256:1c6f4612c44e81f353c14dd4bec52f4ba9a750b18d5d15a40ce0290608c5fd29
-  .claude/skills/meta-skill/references/SPEC.md: sha256:8cbb9ff8e2169bc2b38c0eacf22a0a35cd4eb7f0f0a36c50466450f24ab0dc20
-  .claude/skills/meta-skill/references/STRUCTURE.md: sha256:c9adbeb291e695f7f2c570cc2471ff474beb2dfd50d2130dbe6204ca60b7ffbd
-  .claude/skills/meta-update-models/SKILL.md: sha256:e615bb2914b62e2e6aa3a4f660bec60efd4310f8f6c4da84f10eb9f1fbc539ee
-  .claude/skills/meta-upstream-sync/SKILL.md: sha256:e6f4ae7c1f865828f75dd32cd14ac918da8ed1cc366cd8d2fcb1713cfecb7c60
+  .claude/agents/meta-updater.md: sha256:5b34d9e5a655956eed04b5dab4188aaebfef1a4722e5829518a02aba5ac2e167
+  .claude/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py: sha256:b1524e341e9ff440753b14941d21a0a57852fff8575b2cba5cd7120425948cdd
+  .claude/skills/meta-update-models/SKILL.md: sha256:4ffdfd2cfa5ca6d3e20895546539ae9aaadb00fe3109deb5cfc3521425a502db
+  .claude/skills/meta-upstream-sync/SKILL.md: sha256:4f47975b4b71aacf7ddfe0272d14e8eecec86d57c436b84877026cf42d3d97c2
   .claude/skills/meta-upstream-sync/references/source-url-reference.md: sha256:50aaa33e5ab53a3f91abd2514388b9126ef79de167121e3ed8189a64ff065ec7
   .claude/skills/meta-upstream-sync/scripts/check-updates.ps1: sha256:f40a221058bc32316471fb88324c1ac26299441bfa8abe353f74558a510261d9
-  .claude/skills/prd-epic/SKILL.md: sha256:bf7ae6c82be588309ca2b5fcafde98148115b5fb9a9cf4451b12527be5884291
-  .claude/skills/prd-feature/SKILL.md: sha256:5d80e484940cff1717f403438620daa44ce85bc9fda55044f74a0a2bc0cf7f71
-  .claude/skills/tf-standards/SKILL.md: sha256:41f464eb838f5b9ab9f19aa15c5cc52457ab3a07d41ab17dbe527a85b88534c2
-  .claude/skills/tf-standards/references/restful-provider.md: sha256:d5bdfbf9df191c4acf604607ce732737a51cb3bf3a1819ab69c32df6fe21e8c4
-  .claude/skills/troubleshooting/SKILL.md: sha256:cd1087301b114d7513cb9c9a32f4f7caa8e11af9717c005ccbcd917f763cd543

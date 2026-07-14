@@ -1,5 +1,24 @@
 # Contributing
 
+## Packaging Model
+
+`.llmctl` is an APM **monorepo**: one repository that exposes several independently installable, context-scoped sub-packages under `packages/`, plus repo-local dev tooling at the root. This keeps every context loading only what it needs instead of the whole collection.
+
+| Package | Scope | Contents | Typical install |
+|---|---|---|---|
+| `packages/core` | Global baseline | Coding agents (plan, coder-\*, code-reviewer, explore), researcher, mermaid; troubleshooting/batch/research/mermaid skills; documentation + troubleshooting instructions; universal MCP servers | `apm install -g <repo-location>/packages/core` |
+| `packages/meta` | Global (authoring) | The `meta-*` authoring skills, `setup-mcp` + `reflect` prompts, meta instruction | `apm install -g <repo-location>/packages/meta` |
+| `packages/ops` | Per-project (ops/infra) | Helm/K8s/OpenTofu skills; helm + tf instructions; cloud/IaC doc MCP servers | `apm install <repo>/packages/ops` |
+| `packages/product` | Per-project (product) | PRD skills; product-manager + ux-expert agents | `apm install <repo>/packages/product` |
+| root `.apm/` | Repo-local only | `meta-updater` agent + `meta-update-models` / `meta-upstream-sync` audit skills, frontmatter-validation hook | Deployed only when developing this repo |
+
+### Rules
+
+- **Each sub-package uses the `.apm/` layout.** A package is `packages/<name>/apm.yml` + `packages/<name>/.apm/{agents,skills,prompts,instructions,hooks}/`. Bare `agents/`/`skills/` at a package root are misclassified by APM as a single skill bundle — everything must live under `.apm/`.
+- **Place a new primitive by scope, not by type.** Ask: universal (core), authoring guidance (meta), domain-specific (ops/product or a new package), or operates on *this repo's own files* (root `.apm/`)?
+- **Scope each MCP server to the package whose work needs it.** Universal dev servers (`github`, `context7`) live in `packages/core/apm.yml`; domain servers live in their domain package (cloud/IaC doc servers in `packages/ops/apm.yml`). A server loads only where its package is installed, so keep global tool surface minimal.
+- **Plugins are a later export, not a parallel structure.** For marketplace/external distribution, `apm pack` a sub-package into a `plugin.json` bundle (see [meta-plugin](packages/meta/.apm/skills/meta-plugin/SKILL.md)). Instructions are not a plugin component type, so instruction-bearing packages (ops) stay APM-native.
+
 ## Repository Frontmatter Provenance Convention
 
 This repository defines a local provenance convention for customization files (`*.agent.md`, `*.prompt.md`, `*.instructions.md`, `*/SKILL.md`).
@@ -84,7 +103,7 @@ Both VS Code Copilot and Claude Code use markdown files with YAML frontmatter fo
 - **Model:** Copilot's `model` array is ignored by Claude Code, which defaults to inheriting the conversation model.
 - **Extra fields:** Each tool safely ignores the other's unique fields.
 
-See the [meta-agent skill](.apm/skills/meta-agent/SKILL.md) for full cross-tool compatibility documentation.
+See the [meta-agent skill](packages/meta/.apm/skills/meta-agent/SKILL.md) for full cross-tool compatibility documentation.
 
 ### Skills (`*/SKILL.md`)
 
@@ -93,7 +112,7 @@ Both tools support skill discovery from user-level directories. The [Agent Skill
 - **Discovery:** Copilot uses `chat.agentSkillsLocations` in VS Code settings. Claude Code discovers skills from `~/.claude/skills/`.
 - **Frontmatter:** Both tools read `name` and `description` for discovery. Unknown fields are ignored.
 - **References:** Relative paths to reference files (e.g., `references/*.md`) work in both tools since the folder structure is preserved via symlink.
-- **Descriptions:** follow the directive, naming-first shape defined in the [meta-skill skill](.apm/skills/meta-skill/SKILL.md). Four distinct char budgets govern different surfaces (1024 per-field / 1536 combined discovery / 15k Claude Code total / 8k Codex aggregate) — see meta-skill rather than duplicating the detail here.
+- **Descriptions:** follow the directive, naming-first shape defined in the [meta-skill skill](packages/meta/.apm/skills/meta-skill/SKILL.md). Four distinct char budgets govern different surfaces (1024 per-field / 1536 combined discovery / 15k Claude Code total / 8k Codex aggregate) — see meta-skill rather than duplicating the detail here.
 
 ### Instructions (`*.instructions.md`)
 

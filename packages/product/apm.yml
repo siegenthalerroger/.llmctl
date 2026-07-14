@@ -1,0 +1,11 @@
+name: llmctl-product
+version: 0.1.0
+description: Product steering — Epic/Feature PRD skills and the product-manager and UX-expert agents.
+author: siegenthalerroger
+
+# Include all items in this package's `.apm/` directory.
+includes: auto
+
+dependencies:
+  apm: []
+  mcp: []

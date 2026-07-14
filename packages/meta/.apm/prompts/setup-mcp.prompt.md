@@ -7,7 +7,7 @@ argument-hint: "paste MCP server definitions or a path to an mcp.json"
 skills: ['meta-mcp']
 ---
 
-Convert the MCP server definitions in `${input:servers:paste server config or an mcp.json path}` into an APM `dependencies.mcp` block for [apm.yml](../../apm.yml).
+Convert the MCP server definitions in `${input:servers:paste server config or an mcp.json path}` into an APM `dependencies.mcp` block for [apm.yml](../../../../apm.yml).
 
 Load the [meta-mcp skill](../skills/meta-mcp/SKILL.md) for the schema, transport rules, and the cross-tool config matrix. **Do not generate per-tool files** (`.vscode/mcp.json`, `.mcp.json`, `.codex/config.toml`) — APM produces those on deploy.
 
@@ -19,7 +19,7 @@ Load the [meta-mcp skill](../skills/meta-mcp/SKILL.md) for the schema, transport
 
 ## Output
 
-- A single fenced `yaml` block ready to paste under `dependencies.mcp` in [apm.yml](../../apm.yml).
+- A single fenced `yaml` block ready to paste under `dependencies.mcp` in [apm.yml](../../../../apm.yml).
 - A short list of the `${VAR}` secrets the block references — APM prompts for each value at `apm install` time (no `.env` file to maintain).
 - A one-line flag for any secret that appeared in plaintext in the input (rotate it).
 

@@ -1,0 +1,28 @@
+name: llmctl-core
+version: 0.1.0
+description: Core agent steering — coding agents, research, troubleshooting, diagramming.
+author: siegenthalerroger
+
+# Include all items in this package's `.apm/` directory.
+includes: auto
+
+dependencies:
+  apm: []
+  mcp:
+    # Universal dev MCPs, kept in the global baseline. Domain doc MCPs
+    # (opentofu-registry, aws-knowledge-mcp, microsoft.docs.mcp) live in
+    # packages/ops so they only load in ops/infra projects.
+    #
+    # shuymn/gh-mcp `gh` CLI extension: wraps the official github-mcp-server binary and reuses your `gh` login — no PAT needed.
+    # Optional env: GITHUB_TOOLSETS, GITHUB_READ_ONLY, GITHUB_DYNAMIC_TOOLSETS.
+    - name: github
+      registry: false
+      transport: stdio
+      command: gh
+      args: ["mcp"]
+    - name: context7
+      registry: false
+      transport: http
+      url: https://mcp.context7.com/mcp
+      headers:
+        CONTEXT7_API_KEY: "${CONTEXT7_API_KEY}"

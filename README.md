@@ -2,11 +2,23 @@
 
 `.llmctl` is a collection of agent modes, prompts and skills intended to be directly configured in your agent orchestrator (be that your IDE or CLI tool).
 
-It is _not_ designed to be a library where only selected items are copied or used, though this is of course possible (copy-pasta).
+It is structured as an **APM monorepo of context-scoped packages** so each environment loads only what it needs — a global baseline everywhere, domain packages only where they apply.
 
 ## Quickstart
 
-This repository is an [APM](https://github.com/microsoft/apm) package. APM deploys all content (agents, skills, prompts, instructions, hooks, plugins) to both Copilot and Claude Code user-scope directories — no manual symlinks needed.
+This repository is an [APM](https://github.com/microsoft/apm) monorepo. Each `packages/<name>/` is an independently installable APM package; APM deploys a package's content to both Copilot and Claude Code — no manual symlinks needed.
+
+### Repository layout
+
+| Package | Scope | Provides |
+| --- | --- | --- |
+| `packages/core` | **Global baseline** | Coding agents, research, troubleshooting, diagramming + universal MCP servers |
+| `packages/meta` | **Global** (authoring) | The `meta-*` authoring skills + `setup-mcp` / `reflect` prompts for authoring steering files |
+| `packages/ops` | **Per-project** (ops/infra repos) | Helm / Kubernetes / OpenTofu skills + instructions + cloud/IaC doc MCP servers |
+| `packages/product` | **Per-project** (product work) | PRD skills + product-manager / UX agents |
+| root `.apm/` | **Repo-local only** | `meta-updater` agent + `meta-update-models` / `meta-upstream-sync` audit skills, frontmatter-validation hook |
+
+See [CONTRIBUTING.md](CONTRIBUTING.md#packaging-model) for the packaging rules.
 
 ### Prerequisites
 
@@ -30,35 +42,36 @@ gh extension install shuymn/gh-mcp
 ```bash
 # Install APM (macOS/Linux)
 brew install microsoft/apm/apm
-
 # Install APM (Windows)
 winget install Microsoft.APM
 
-# Clone and deploy to user-scope
+# Clone
 git clone git@github.com:siegenthalerroger/.llmctl.git ~/.llmctl
-apm install -g ~/.llmctl --target copilot,claude
+
+# Global baseline — deploy core + meta to user scope everywhere
+apm install -g ~/.llmctl/packages/core ~/.llmctl/packages/meta --target claude,copilot,codex,agent-skills
 ```
 
-This adds the local .llmctl repository to the `~/.apm/apm.yml` file and deploys:
-
-- Agents → `~/.copilot/agents/` + `~/.claude/agents/`
-- Skills → `~/.agents/skills/` (shared cross-tool)
-- Prompts → `~/.copilot/prompts/` + `~/.claude/commands/` (auto-converted)
-- Instructions → `~/.copilot/copilot-instructions.md` + `~/.claude/rules/`
-- Hooks → `~/.copilot/hooks/` + `~/.claude/settings.json`
-- Plugins → `~/.copilot/plugins/` + Claude plugin registry
-- MCP Servers → `.vscode/mcp.json` + `.mcp.json` / `~/.claude.json` (declared in `apm.yml`)
-
-Upstream dependencies (declared in `apm.yml`) are also installed into `apm_modules/` (git-ignored).
+Add domain packages **per project**, only where they apply:
 
 ```bash
-apm update              # pull latest upstream versions
-apm outdated            # check for available updates
+cd your-ops-repo
+apm install ~/.llmctl/packages/ops
+
+cd your-product-repo
+apm install ~/.llmctl/packages/product
+```
+
+#### Developing this repository
+
+```bash
+cd ~/.llmctl
+apm install
 ```
 
 ## Concept & Contributing
 
-See the [VS Code agent customization docs](https://code.visualstudio.com/docs/agent-customization/overview) for details on what each type of file can achieve. There is an attempt to be tool-neutral, however the supported use-case is initiation of agents from VS Code, as such the naming follows their patterns.
+See the [VS Code agent customization docs](https://code.visualstudio.com/docs/agent-customization/overview) for details on what each type of file can achieve.
 
 | Steering File Type                     | VS Code Copilot | Claude Code                             |
 | -------------------------------------- | --------------- | --------------------------------------- |
@@ -67,7 +80,6 @@ See the [VS Code agent customization docs](https://code.visualstudio.com/docs/ag
 | **Instructions** (`*.instructions.md`) | Supported       | Deployed as **rules** (APM converts)    |
 | **Prompts** (`*.prompt.md`)            | Supported       | Deployed as **commands** (APM converts) |
 | **Hooks** (`*.hook.json`)              | Preview         | Supported (30+ lifecycle events)        |
-| **Plugins**                            | Experimental    | Supported (marketplace + git install)   |
 | **MCP Servers** (`apm.yml`)            | Supported       | Supported                               |
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for adaptations required for cross-tool compatibility and repository conventions.
@@ -88,12 +100,9 @@ Skills follow the [Agent Skills](https://agentskills.io/) standard. A skill is e
 
 Instructions are kept intentionally light, as their main purpose is code-base specific rules and not generic guidelines. Instructions should always be explicitly loaded, either by a relevant `applyTo` pattern or being referenced from a prompt. Instructions cover what Claude would want in a `CLAUDE.md` or `AGENTS.md`, while enabling optionality in their inclusion based on file patterns (or nested referential inclusion).
 
-> [!NOTE]
-> VS Code Copilot has a second, path-independent activation channel: it can auto-apply an instruction by semantically matching its `description` to the task. Give instruction descriptions the same trigger craft as skill descriptions (see the [meta-instruction skill](.apm/skills/meta-instruction/SKILL.md)), not just an `applyTo` glob.
-
 > [!TIP] Instructions & Skills combined
 >
-> Instructions are really useful in VSCode, as the `applyTo` frontmatter, allows us to force the loading of specific files depending on the referenced file-types/-paths. The non-vscode alternatives don't support this, depending on Skills for progressive loading of context.
+> Instructions are really useful in VSCode, as the `applyTo` frontmatter, allows us to force the loading of specific files depending on the referenced file-types/-paths. Other harnesses may support similar functionality either as part of the instructions or as a frontmatter field of skills themselves.
 >
 > We can utilise this, by having instructions strongly suggest the loading of a skill when a certain `applyTo` pattern applies. This reinforces the models own decision making and ensures the correct skills are chosen at the correct time.
 
@@ -107,15 +116,12 @@ Any prompt files must end in `*.prompt.md`.
 
 ### Hooks
 
-Lifecycle hooks run deterministic pre/post actions around agent events (file writes, command execution, session start). VS Code Copilot hooks are in preview; Claude Code supports 30+ hook events. Definitions use the `*.hook.json` convention and are deployed by APM into each target's native location. See the [meta-hook skill](.apm/skills/meta-hook/SKILL.md) and the [`*.hook.json` convention](CONTRIBUTING.md#hooks-hookjson).
+Lifecycle hooks run deterministic pre/post actions around agent events (file writes, command execution, session start). VS Code Copilot hooks are in preview; Claude Code supports 30+ hook events. Definitions use the `*.hook.json` convention and are deployed by APM into each target's native location. See the [meta-hook skill](packages/meta/.apm/skills/meta-hook/SKILL.md) and the [`*.hook.json` convention](CONTRIBUTING.md#hooks-hookjson).
 
-### Plugins
-
-Plugins extend agent capabilities beyond what skills and tools provide. VS Code Copilot plugins are experimental (v1.110+); Claude Code has a production plugin marketplace. See the [meta-plugin skill](.apm/skills/meta-plugin/SKILL.md) for when plugins are appropriate.
 
 ### MCP Servers
 
-MCP (Model Context Protocol) servers add external capabilities — API access, doc/registry search, browser automation — to an agent. Declare each server once in [`apm.yml`](apm.yml) under `dependencies.mcp`; APM translates it to each tool's native config (`.vscode/mcp.json` → `servers`, `.mcp.json`/`~/.claude.json` → `mcpServers`, Codex TOML). Authoring guidance lives in the [meta-mcp skill](.apm/skills/meta-mcp/SKILL.md); use the [`/setup-mcp` prompt](.apm/prompts/setup-mcp.prompt.md) to generate an `apm.yml` block from existing definitions.
+MCP (Model Context Protocol) servers add external capabilities — API access, doc/registry search, browser automation — to an agent. Declare each server once in the `apm.yml` of the package whose work needs it — universal dev servers in [`packages/core/apm.yml`](packages/core/apm.yml), domain servers in their domain package (cloud/IaC doc servers in [`packages/ops/apm.yml`](packages/ops/apm.yml)) — under `dependencies.mcp`; APM translates it to each tool's native config (`.vscode/mcp.json` → `servers`, `.mcp.json`/`~/.claude.json` → `mcpServers`, Codex TOML). Authoring guidance lives in the [meta-mcp skill](packages/meta/.apm/skills/meta-mcp/SKILL.md); use the [`/setup-mcp` prompt](packages/meta/.apm/prompts/setup-mcp.prompt.md) to generate an `apm.yml` block from existing definitions.
 
 ## Tool Guides
 
@@ -137,7 +143,7 @@ apm install github/awesome-copilot/skills/review-and-refactor
 
 ### Recommended MCP Servers
 
-These are recommended additions to the required ones already in [`apm.yml`](apm.yml) — add them to a project scoped `apm.yml` (or generate the block with [`/setup-mcp`](.apm/prompts/setup-mcp.prompt.md)) when a task needs them.
+These are recommended additions to the ones already wired into the packages ([`packages/core/apm.yml`](packages/core/apm.yml) and [`packages/ops/apm.yml`](packages/ops/apm.yml)) — add them to a project scoped `apm.yml` (or generate the block with [`/setup-mcp`](packages/meta/.apm/prompts/setup-mcp.prompt.md)) when a task needs them.
 
 | Server                    | Transport | Provides                                                                             | Secret             |
 | ------------------------- | --------- | ------------------------------------------------------------------------------------ | ------------------ |

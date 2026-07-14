@@ -1,0 +1,11 @@
+name: llmctl-meta
+version: 0.1.0
+description: AI agent steering - skills, prompts and more
+author: siegenthalerroger
+
+# Include all items in this package's `.apm/` directory.
+includes: auto
+
+dependencies:
+  apm: []
+  mcp: []

@@ -141,7 +141,7 @@ Key points:
 
 ## Recommended layout for this repo
 
-1. Author every server in [`apm.yml`](../../../../apm.yml) under `dependencies.mcp`.
+1. Author every server in [`packages/core/apm.yml`](../../../../../../packages/core/apm.yml) under `dependencies.mcp`.
 2. Externalize all secrets to `${VAR}`; APM prompts for each value on install.
 3. Run `apm install -g` to deploy; do not commit the generated `.vscode/mcp.json` / `.mcp.json` / `config.toml`.
 4. Keep server `name`s aligned with any `tools:` references in agents (e.g. `context7/*` in [researcher-advanced.agent.md](../../../agents/researcher-advanced.agent.md)).

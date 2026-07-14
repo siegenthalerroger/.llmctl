@@ -1,11 +1,20 @@
 # Secret Safety
 .env
 
-# Dependency copies
-apm_modules/
-
 # Local / machine-generated settings. NOTE: APM deploys hook wiring to
 # .claude/settings.json (project scope) or ~/.claude/settings.json (user scope),
-# NOT to *.local.json — so prefer `apm install -g` to keep generated wiring out of
-# the repo (see microsoft/apm#1342). This rule still ignores hand-made local overrides.
+# NOT to *.local.json
 .claude/*.local.json
+.claude/settings.json
+
+# APM dependencies
+apm_modules/
+.mcp.json
+.agents/skills/
+.claude/agents
+.claude/hooks
+.claude/rules
+.claude/skills
+.claude/apm-hooks.json
+.github/instructions
+.vscode/mcp.json

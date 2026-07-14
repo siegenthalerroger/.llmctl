@@ -1,25 +1,6 @@
 # TODO
 
-## 1 — Context-Scoped Packaging / Plugin Decomposition
-
-**Goal:** Re-work the repository so it can ship smaller, context-specific APM packages or generalized agent plugins, reducing the amount of customization loaded globally in every context.
-
-**Priority: high — do first.** The current setup is broad and loads more items than are needed in every environment. Deciding the packaging model up front shapes how new dependencies (Section 2) and per-context assets are organized.
-
-### Background
-
-Some assets should only be available in specific repositories or workflows (for example, the `meta-updater` agent only needs to be present in this repository, not globally in all contexts).
-
-### Tasks
-
-- [ ] **1a — Evaluate whether to split the repo into multiple APM packages or plugin bundles by concern/context.**
-- [ ] **1b — Identify customization items that should be scoped to this repository versus globally shared assets.**
-- [ ] **1c — Define a packaging model** (for example repo-local package, reusable plugin, or context-specific bundle) and update the repo structure/docs accordingly.
-- [ ] **1d — Prototype one scoped package/plugin** and verify that deployment behavior matches the intended context boundaries.
-
----
-
-## 2 — Add New Upstream Content as APM Dependencies
+## 1 — Add New Upstream Content as APM Dependencies
 
 **Goal:** Consume beneficial upstream content via `apm.yml` `dependencies.apm` rather than authoring it locally.
 
@@ -27,12 +8,12 @@ Some assets should only be available in specific repositories or workflows (for 
 
 ### Tasks
 
-- [ ] **2a — Survey upstream APM packages** worth consuming — including anything currently tracked only via `metadata.provenance.mirror` (5 reference docs) that a maintained package could replace.
-- [ ] **2b — Add confirmed packages to `apm.yml`** and verify installation with `apm install -g`.
+- [ ] **1a — Survey upstream APM packages** worth consuming — including anything currently tracked only via `metadata.provenance.mirror` (5 reference docs) that a maintained package could replace.
+- [ ] **1b — Add confirmed packages to `apm.yml`** and verify installation with `apm install -g`.
 
 ---
 
-## 3 — Default Permissions / Auto-Approved Commands
+## 2 — Default Permissions / Auto-Approved Commands
 
 **Goal:** Provide a curated set of default permissions — safe, read-only commands (e.g. `git diff`, `diff`, `git status`, `git log`, `ls`) auto-approved without prompting — that deploy to all supported harnesses (`claude`, `copilot`).
 
@@ -52,13 +33,13 @@ Related: the `fewer-permission-prompts` skill derives allow-lists from transcrip
 
 ### Tasks
 
-- [ ] **3a — Investigate APM support** for deploying permission/settings configuration across targets; if unsupported, track upstream (file/find an issue) or deploy out-of-band.
-- [ ] **3b — Define the default allow-list** of safe read-only commands.
-- [ ] **3c — Map the allow-list to each target's native format** and verify the deployed result with `apm install -g`.
+- [ ] **2a — Investigate APM support** for deploying permission/settings configuration across targets; if unsupported, track upstream (file/find an issue) or deploy out-of-band.
+- [ ] **2b — Define the default allow-list** of safe read-only commands.
+- [ ] **2c — Map the allow-list to each target's native format** and verify the deployed result with `apm install -g`.
 
 ---
 
-## 4 — LSP Server Configuration Support
+## 3 — LSP Server Configuration Support
 
 **Goal:** Document and provide cross-tool compatible LSP (Language Server Protocol) server configuration guidance within `.llmctl`, analogous to the MCP support — so agent harnesses can be configured with language servers (diagnostics, hover, go-to-definition, etc.) as a deployable unit via APM.
 
@@ -77,17 +58,20 @@ Agent harnesses increasingly support configuring LSP servers to give agents rich
 
 ### Tasks
 
-- [ ] **4a — Investigate per-tool LSP config support and format** across `claude` and `copilot` (and Codex if relevant); fill in the matrix above from authoritative docs.
-- [ ] **4b — Investigate APM support** for deploying LSP config per target; if unsupported, track upstream (file/find an issue) or deploy out-of-band — mirror the MCP/hooks verification approach.
-- [ ] **4c — Create an LSP configuration reference** as a `meta-lsp` skill (matching the `meta-mcp` pattern: `.apm/skills/meta-lsp/SKILL.md` + references), documenting the per-tool config matrix and any APM block.
-- [ ] **4d — Create a cross-tool LSP setup prompt** (e.g. `.apm/prompts/setup-lsp.prompt.md`), scoped to emit the APM dependency block and delegating schema knowledge to the `meta-lsp` skill.
+- [ ] **3a — Investigate per-tool LSP config support and format** across `claude` and `copilot` (and Codex if relevant); fill in the matrix above from authoritative docs.
+- [ ] **3b — Investigate APM support** for deploying LSP config per target; if unsupported, track upstream (file/find an issue) or deploy out-of-band — mirror the MCP/hooks verification approach.
+- [ ] **3c — Create an LSP configuration reference** as a `meta-lsp` skill (matching the `meta-mcp` pattern: `packages/meta/.apm/skills/meta-lsp/SKILL.md` + references), documenting the per-tool config matrix and any APM block.
+- [ ] **4d — Create a cross-tool LSP setup prompt** (e.g. `packages/meta/.apm/prompts/setup-lsp.prompt.md`), scoped to emit the APM dependency block and delegating schema knowledge to the `meta-lsp` skill.
 - [ ] **4e — Update `README.md`** — add an LSP Servers row to the steering matrix and a subsection referencing the `meta-lsp` skill.
 
 ---
 
-## 5 — Upstream APM Tracking / Add When Needed
+## 4 — Upstream APM Tracking / Add When Needed
 
 **Priority: waiting.** Ongoing tracking and items gated on a demonstrated need.
 
-- [ ] **5a — Track upstream APM evolution (esp. deployed-file gitignore / local-settings targeting).** APM deploys Claude hook wiring only to `settings.json` (project) or `~/.claude/settings.json` (user) — it cannot target the git-ignored `settings.local.json` variant ([hook_integrator.py](https://github.com/microsoft/apm/blob/main/src/apm_cli/integration/hook_integrator.py) hardcodes `config_filename="settings.json"`). Watch microsoft/apm [#1342](https://github.com/microsoft/apm/issues/1342) (related: [#990](https://github.com/microsoft/apm/issues/990), [#290](https://github.com/microsoft/apm/issues/290)). When a `.local`-target option or deployed-file gitignore mode ships, revisit the `.gitignore` comment ([.gitignore:7-10](.gitignore#L7-L10)) and the deploy guidance in [CONTRIBUTING.md:127](CONTRIBUTING.md#L127). More broadly, periodically review APM releases for changes affecting this repo's deploy assumptions.
-- [ ] **5b — First plugin:** Add a plugin bundle when tool/MCP capabilities are insufficient for a task. Authoring guidance lives in the [meta-plugin skill](.apm/skills/meta-plugin/SKILL.md).
+- [ ] **4a — Track upstream APM evolution (esp. deployed-file gitignore / local-settings targeting).** APM deploys Claude hook wiring only to `settings.json` (project) or `~/.claude/settings.json` (user) — it cannot target the git-ignored `settings.local.json` variant ([hook_integrator.py](https://github.com/microsoft/apm/blob/main/src/apm_cli/integration/hook_integrator.py) hardcodes `config_filename="settings.json"`). Watch microsoft/apm [#1342](https://github.com/microsoft/apm/issues/1342) (related: [#990](https://github.com/microsoft/apm/issues/990), [#290](https://github.com/microsoft/apm/issues/290)). When a `.local`-target option or deployed-file gitignore mode ships, revisit the `.gitignore` comment ([.gitignore:7-10](.gitignore#L7-L10)) and the deploy guidance in [CONTRIBUTING.md:127](CONTRIBUTING.md#L127). More broadly, periodically review APM releases for changes affecting this repo's deploy assumptions.
+- [ ] **4b — First plugin:** Add a plugin bundle when tool/MCP capabilities are insufficient for a task. Authoring guidance lives in the [meta-plugin skill](packages/meta/.apm/skills/meta-plugin/SKILL.md).
+- [ ] **4c — Track two APM 0.25 environment issues found during clean redeploy.**
+  1. **Aggregator not `-g`-installable (aggregator removed, reinstate later).** A prototyped `packages/global` aggregator (an `apm.yml` with only `dependencies.apm` → `../core`, `../meta`) resolved its transitive *local-path* deps but deployed **zero** primitives at user scope (worked at project scope). It was **removed** to avoid documenting a broken command; global install names `core` + `meta` directly for now. **To reinstate:** recreate `packages/global/apm.yml` (deps: `./../core`, `./../meta`, + third-party global recs), point `~/.apm/apm.yml` at it, and make it the single-command global profile + home for third-party global recommendations. File/find an upstream APM issue for transitive local-path deploy at `-g`; do this once it's fixed.
+  2. **`copilot-cowork` + multiple OneDrive mounts** aborts any global install at lockfile generation (`--exclude copilot-cowork` does not help). Workaround: export `APM_COPILOT_COWORK_SKILLS_DIR` to a single dir. Noted in README prerequisites.
