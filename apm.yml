@@ -11,18 +11,10 @@ dependencies:
 
 scripts: {}
 
-# Plugin marketplace (TODO 6). Consumed by claude.ai/Cowork + Claude Desktop/Code
-# via `/plugin marketplace add siegenthalerroger/.llmctl`. `apm pack` generates
-# .claude-plugin/marketplace.json (Claude) and .agents/plugins/marketplace.json
-# (Codex) from this block; both are committed as the explicit exception to the
-# "don't commit machine-generated wiring" rule (see CONTRIBUTING.md).
-#
-# REDUCED FIDELITY vs `apm install`: a plugin/marketplace install carries only
-# skills, agents, and commands. Instructions and MCP servers do NOT travel —
-# Claude's plugin schema has no slot for them and `apm pack` drops them. Use
-# `apm install <repo>/packages/<name>` for the full-fidelity deploy.
+# REDUCED FIDELITY vs `apm install`, only intended where the full fidelity of `apm install`
+# is not available (e.g. in claude.ai's web UI).
 marketplace:
-  description: "llmctl — personal agent steering: coding, research, authoring, ops, and product skills & agents."
+  description: ".llmctl — personal agent steering: coding, research, authoring, ops, and product."
   owner:
     name: siegenthalerroger
     url: https://github.com/siegenthalerroger
