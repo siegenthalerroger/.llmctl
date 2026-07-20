@@ -75,3 +75,39 @@ Agent harnesses increasingly support configuring LSP servers to give agents rich
 - [ ] **4c — Track two APM 0.25 environment issues found during clean redeploy.**
   1. **Aggregator not `-g`-installable (aggregator removed, reinstate later).** A prototyped `packages/global` aggregator (an `apm.yml` with only `dependencies.apm` → `../core`, `../meta`) resolved its transitive *local-path* deps but deployed **zero** primitives at user scope (worked at project scope). It was **removed** to avoid documenting a broken command; global install names `core` + `meta` directly for now. **To reinstate:** recreate `packages/global/apm.yml` (deps: `./../core`, `./../meta`, + third-party global recs), point `~/.apm/apm.yml` at it, and make it the single-command global profile + home for third-party global recommendations. File/find an upstream APM issue for transitive local-path deploy at `-g`; do this once it's fixed.
   2. **`copilot-cowork` + multiple OneDrive mounts** aborts any global install at lockfile generation (`--exclude copilot-cowork` does not help). Workaround: export `APM_COPILOT_COWORK_SKILLS_DIR` to a single dir. Noted in README prerequisites.
+
+---
+
+## 5 — Fix "Allowed Tools" for Agents the APM Way
+
+**Goal:** Express each agent's tool policy once, in an APM-native form that deploys correctly to every target, instead of the current hand-maintained dual-stack of Claude Code fields (`disallowedTools`) and Copilot fields (`tools:`) in the same frontmatter.
+
+**Priority: high (actively breaking).** The current dual-stack metadata breaks in weird ways across harnesses — e.g. a Copilot `tools:` array makes an agent *unspawnable* on Claude Code, because Claude parses the field literally, resolves entries against real tool names, and refuses to spawn when none resolve (rather than inheriting all tools). See the cautionary comment in [mermaid.agent.md](packages/core/.apm/agents/mermaid.agent.md) and the "Tools field" section of the [meta-agent skill](packages/meta/.apm/skills/meta-agent/SKILL.md).
+
+### Background
+
+Every `*.agent.md` currently carries per-harness tool metadata side by side (Copilot `tools:`/`user-invocable:`/`model:` vs Claude Code `disallowedTools:`/`skills:`), and the two stacks have incompatible semantics for how tool lists resolve and what happens when they don't. This needs a single source-of-truth tool policy that APM maps to each target's native format — mirroring how MCP is declared once in `apm.yml` and deployed per-target.
+
+### Tasks
+
+- [ ] **5a — Investigate APM's agent tool-policy support** — determine whether APM can normalize a single tool declaration into each target's native frontmatter (Claude Code `tools`/`disallowedTools`, Copilot `tools:`), and confirm the resolution/fallback semantics per harness. If unsupported, track upstream (file/find an issue).
+- [ ] **5b — Define the canonical tool-policy convention** — decide the single-source form (prefer structural constraints per [CLAUDE.md](CLAUDE.md) authoring rules) and document it in the [meta-agent skill](packages/meta/.apm/skills/meta-agent/SKILL.md).
+- [ ] **5c — Migrate all agents** across `packages/*/.apm/agents/` to the canonical form and verify each spawns on both `claude` and `copilot` after `apm install -g`.
+
+---
+
+## 6 — Distribute via Plugin Marketplace (Web-Based Claude & Others)
+
+**Goal:** Make `.llmctl` content loadable by web-based Claude (and other harnesses that consume plugins) by publishing a plugin marketplace and whatever packaging/hosting is required.
+
+**Priority: medium (broadens reach beyond local APM deploy).**
+
+### Background
+
+Today content is deployed locally via `apm install`. Web-based Claude and similar clients load steering content through a plugin marketplace rather than a local APM install, so distribution there requires publishing a marketplace manifest plus bundled plugin(s). Authoring guidance for plugin bundles lives in the [meta-plugin skill](packages/meta/.apm/skills/meta-plugin/SKILL.md); this is the concrete driver for [4b](#4--upstream-apm-tracking--add-when-needed) (first plugin).
+
+### Tasks
+
+- [ ] **6a — Investigate marketplace requirements** — the manifest format, hosting, and packaging needed to publish for web-based Claude (and any other targeted clients); confirm what APM can generate vs. what must be authored/hosted out-of-band.
+- [ ] **6b — Define the plugin bundle(s)** — decide which packages/primitives to bundle for external consumption (per the [meta-plugin skill](packages/meta/.apm/skills/meta-plugin/SKILL.md)), keeping skill-discovery budget in mind.
+- [ ] **6c — Publish and verify the marketplace** — build the marketplace manifest, host it, and confirm content loads from web-based Claude end-to-end.
