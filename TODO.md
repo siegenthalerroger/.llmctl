@@ -96,18 +96,25 @@ Every `*.agent.md` currently carries per-harness tool metadata side by side (Cop
 
 ---
 
-## 6 — Distribute via Plugin Marketplace (Web-Based Claude & Others)
+## 6 — Distribute via Plugin Marketplace (claude.ai Cowork & Claude Desktop/Code)
 
-**Goal:** Make `.llmctl` content loadable by web-based Claude (and other harnesses that consume plugins) by publishing a plugin marketplace and whatever packaging/hosting is required.
+**Goal:** Make `.llmctl` content loadable on the one surface APM can't deploy to — **claude.ai's Cowork** (plus Claude Desktop and Claude Code) — by publishing a plugin marketplace. Built and verified locally; the actual publish (commit + push, then add in the live UI) is left to the user.
 
 **Priority: medium (broadens reach beyond local APM deploy).**
 
-### Background
+### Background & corrected premise (6a findings)
 
-Today content is deployed locally via `apm install`. Web-based Claude and similar clients load steering content through a plugin marketplace rather than a local APM install, so distribution there requires publishing a marketplace manifest plus bundled plugin(s). Authoring guidance for plugin bundles lives in the [meta-plugin skill](packages/meta/.apm/skills/meta-plugin/SKILL.md); this is the concrete driver for [4b](#4--upstream-apm-tracking--add-when-needed) (first plugin).
+The original framing ("web-based Claude") was imprecise. Verified against first-party docs + Claude Code 2.1.205:
+
+- **A plugin marketplace reaches Claude Code CLI, Claude Desktop, and claude.ai Cowork** — *"Plugins are available in Cowork and Code. They aren't used in Chat."* It does **NOT** reach claude.ai **Chat** (that needs uploaded/org-provisioned **Custom Skills**, 200-char description cap — a separate future track) or **hosted ChatGPT** (separate Custom-GPT/Actions ecosystem — out of scope).
+- **Cowork "Add marketplace" takes a Git repository** (`owner/repo` or git URL) — not a GitHub Pages / static `marketplace.json` URL, and no branch selector in its UI (tracks the default branch).
+- **APM 0.26 generates the whole marketplace** — a `marketplace:` block in root `apm.yml` + `apm pack` emits `.claude-plugin/marketplace.json` (Claude) and `.agents/plugins/marketplace.json` (Codex). Nothing is authored out-of-band.
+- **The plugin path is reduced-fidelity vs `apm install`:** it carries **skills + commands** only. **Instructions, MCP servers, and agents do NOT travel** (no instructions component; `apm pack` drops MCP; the plugin `agents` field does not load in 2.1.205). `apm install` stays the full-fidelity deploy.
 
 ### Tasks
 
-- [ ] **6a — Investigate marketplace requirements** — the manifest format, hosting, and packaging needed to publish for web-based Claude (and any other targeted clients); confirm what APM can generate vs. what must be authored/hosted out-of-band.
-- [ ] **6b — Define the plugin bundle(s)** — decide which packages/primitives to bundle for external consumption (per the [meta-plugin skill](packages/meta/.apm/skills/meta-plugin/SKILL.md)), keeping skill-discovery budget in mind.
-- [ ] **6c — Publish and verify the marketplace** — build the marketplace manifest, host it, and confirm content loads from web-based Claude end-to-end.
+- [x] **6a — Investigate marketplace requirements** — done (findings above). APM generates both marketplace manifests; hosting is the repo itself (Cowork clones it via `owner/repo`).
+- [x] **6b — Define the plugin bundle(s)** — one plugin per package (`llmctl-core`, `llmctl-meta`, `llmctl-ops`, `llmctl-product`), each a thin `packages/<name>/.claude-plugin/plugin.json` pointing at its `.apm/` dirs. Skills-only (+ meta commands) by decision; agents/instructions/MCP remain `apm install`-only.
+- [x] **6c — Build & verify locally** — `marketplace:` block added to `apm.yml`; `apm pack` generates both manifests (committed as the documented exception); `apm marketplace check` + `claude plugin validate .` pass; local `claude plugin install` confirmed skills load (core 4, meta 9 incl. `reflect.prompt`/`setup-mcp.prompt`) and confirmed agents/instructions/MCP drop.
+- [ ] **6d — Publish (user)** — commit the manifests + thin `plugin.json`s, push to `main`, then in claude.ai/Cowork **Add marketplace → `siegenthalerroger/.llmctl`** and install a plugin end-to-end. Optionally host the marketplace in a dedicated repo (`git-subdir` sources) if URL/non-clone consumers are ever targeted.
+- [ ] **6e — (follow-up) claude.ai Chat via Custom Skills** — separate track: package skills as claude.ai-uploadable Custom Skills (≤200-char descriptions vs. this repo's long directive ones). Not a marketplace. See [meta-plugin skill](packages/meta/.apm/skills/meta-plugin/SKILL.md).

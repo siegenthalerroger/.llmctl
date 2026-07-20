@@ -1,0 +1,38 @@
+{
+  "name": "llmctl",
+  "description": "llmctl — personal agent steering: coding, research, authoring, ops, and product skills & agents.",
+  "owner": {
+    "name": "siegenthalerroger",
+    "url": "https://github.com/siegenthalerroger"
+  },
+  "plugins": [
+    {
+      "name": "llmctl-core",
+      "description": "Core steering skills — research, troubleshooting, batch execution, and Mermaid diagramming.",
+      "version": "0.1.0",
+      "category": "Development",
+      "source": "./packages/core"
+    },
+    {
+      "name": "llmctl-meta",
+      "description": "Meta authoring skills for agents, skills, prompts, instructions, hooks, MCP, and plugins.",
+      "version": "0.1.0",
+      "category": "Development",
+      "source": "./packages/meta"
+    },
+    {
+      "name": "llmctl-ops",
+      "description": "Ops / infrastructure steering — Helm, Kubernetes, and OpenTofu/Terraform skills.",
+      "version": "0.1.0",
+      "category": "DevOps",
+      "source": "./packages/ops"
+    },
+    {
+      "name": "llmctl-product",
+      "description": "Product steering skills — Epic and Feature PRD authoring.",
+      "version": "0.1.0",
+      "category": "Product",
+      "source": "./packages/product"
+    }
+  ]
+}

@@ -18,3 +18,9 @@ apm_modules/
 .claude/apm-hooks.json
 .github/instructions
 .vscode/mcp.json
+# APM pack scratch bundles (plugin-format output of `apm pack`)
+build/
+
+# The generated marketplace manifests must be in the repo web apps to load them:
+!.claude-plugin/marketplace.json
+!.agents/plugins/marketplace.json

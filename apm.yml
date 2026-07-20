@@ -10,3 +10,41 @@ dependencies:
   mcp: []
 
 scripts: {}
+
+# Plugin marketplace (TODO 6). Consumed by claude.ai/Cowork + Claude Desktop/Code
+# via `/plugin marketplace add siegenthalerroger/.llmctl`. `apm pack` generates
+# .claude-plugin/marketplace.json (Claude) and .agents/plugins/marketplace.json
+# (Codex) from this block; both are committed as the explicit exception to the
+# "don't commit machine-generated wiring" rule (see CONTRIBUTING.md).
+#
+# REDUCED FIDELITY vs `apm install`: a plugin/marketplace install carries only
+# skills, agents, and commands. Instructions and MCP servers do NOT travel —
+# Claude's plugin schema has no slot for them and `apm pack` drops them. Use
+# `apm install <repo>/packages/<name>` for the full-fidelity deploy.
+marketplace:
+  description: "llmctl — personal agent steering: coding, research, authoring, ops, and product skills & agents."
+  owner:
+    name: siegenthalerroger
+    url: https://github.com/siegenthalerroger
+  outputs:
+    claude: {}
+    codex: {}
+  versioning:
+    strategy: lockstep
+  packages:
+    - name: llmctl-core
+      source: ./packages/core
+      category: Development
+      description: Core steering skills — research, troubleshooting, batch execution, and Mermaid diagramming.
+    - name: llmctl-meta
+      source: ./packages/meta
+      category: Development
+      description: Meta authoring skills for agents, skills, prompts, instructions, hooks, MCP, and plugins.
+    - name: llmctl-ops
+      source: ./packages/ops
+      category: DevOps
+      description: Ops / infrastructure steering — Helm, Kubernetes, and OpenTofu/Terraform skills.
+    - name: llmctl-product
+      source: ./packages/product
+      category: Product
+      description: Product steering skills — Epic and Feature PRD authoring.

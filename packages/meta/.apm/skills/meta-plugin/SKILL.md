@@ -126,14 +126,20 @@ For full field definitions and constraints, see the platform references:
 ### Marketplace distribution
 
 - Publish via marketplace indexes (`marketplace.json`) and versioned entries.
-- Common source types include `github`, `url`, `git-subdir`, and `npm`.
+- Common source types include a relative path (same-repo, resolved from the marketplace root), `github`, `url`, `git-subdir`, and `npm`.
 - Use pinned versions/refs and dependency constraints for reproducibility.
 
 ### APM packaging
 
-- `apm pack` produces a plugin-format distributable bundle.
-- Bundles include `plugin.json` plus component directories and lock/integrity metadata.
-- Consumers install bundle artifacts with `apm install`.
+- `apm pack` produces a plugin-format distributable bundle (`plugin.json` + component directories + lock/integrity metadata), consumed with `apm install`.
+- `apm pack` ALSO generates the marketplace index from a `marketplace:` block in `apm.yml` — emitting `.claude-plugin/marketplace.json` (Claude) and, when `outputs` includes `codex`, `.agents/plugins/marketplace.json`. The marketplace is NOT authored/hosted out-of-band; APM builds it. `apm marketplace init` scaffolds the block, `apm marketplace check` validates entries resolve, and `claude plugin validate .` checks the emitted manifest.
+
+### Consumer reach and fidelity (verified against Claude Code 2.1.205 / claude.ai Cowork)
+
+A Claude plugin marketplace reaches **Claude Code CLI, the Claude Desktop app, and claude.ai's Cowork surface** — *"Plugins are available in Cowork and Code. They aren't used in Chat."* It does NOT reach claude.ai **Chat** (use uploaded/org-provisioned Custom Skills there) or **hosted ChatGPT** (a separate Custom-GPT/Actions ecosystem).
+
+- **Cowork "Add marketplace"** takes a **Git repository** (`owner/repo` or an `https://…` git URL; GitLab/Bitbucket public too) — NOT a GitHub Pages / static `marketplace.json` URL (that is Claude Code CLI-only), and its UI exposes **no branch field** (tracks the default branch; pin versions at the plugin-source level instead).
+- **A plugin install is reduced-fidelity vs. `apm install`.** It carries **skills** (`skills` field accepts a directory) and **commands** (`commands` field; APM renames `*.prompt.md` → `*.prompt`). It does NOT carry **instructions** (no plugin component — `apm pack` copies them in but Claude ignores them) or **MCP servers** (`apm pack` drops them). **Agents** load only from a default `agents/` directory at the plugin root — the `agents` field itself does not load them; point a real `agents/` dir (or symlink) at them, or ship agents via `apm install`. Use `apm install` for full-fidelity deploys (instructions + MCP + agents).
 
 ### Private/managed marketplaces
 

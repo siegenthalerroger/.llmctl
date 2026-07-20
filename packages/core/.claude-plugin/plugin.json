@@ -1,0 +1,7 @@
+{
+  "name": "llmctl-core",
+  "version": "0.1.0",
+  "description": "Core steering skills — research, troubleshooting, batch execution, and Mermaid diagramming.",
+  "author": { "name": "siegenthalerroger" },
+  "skills": "./.apm/skills/"
+}

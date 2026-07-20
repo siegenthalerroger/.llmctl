@@ -1,0 +1,7 @@
+{
+  "name": "llmctl-ops",
+  "version": "0.1.0",
+  "description": "Ops / infrastructure steering — Helm, Kubernetes, and OpenTofu/Terraform skills.",
+  "author": { "name": "siegenthalerroger" },
+  "skills": "./.apm/skills/"
+}
