@@ -11,6 +11,8 @@ The `tools` field in agent frontmatter controls which capabilities an agent can 
 - **Performance**: Reducing decision overhead by limiting options
 - **Maintainability**: Documenting intentional design decisions
 
+> **Dual-deployed agents (default): omit `tools:`; restrict via the Claude-only `disallowedTools:` denylist.** A Copilot `tools:` array makes Claude Code refuse to spawn the agent (see [SKILL.md "Tools field"](../SKILL.md#tools-field)). The `tools:` examples in this document are **Copilot-only-file** usage.
+
 ## Tool Configuration Strategies
 
 ### Enable All Tools (Default)
@@ -58,6 +60,8 @@ tools: ['read', 'search']
 - Specialized agents with well-defined responsibilities
 - Read-only agents (reviewers, analyzers, documenters)
 - Agents that need controlled edit access
+
+**Copilot-only file.** If this file must also run on Claude Code, drop the `tools:` array — see [Claude Code Tool Names](#claude-code-tool-names) below for why this exact array makes Claude Code refuse to spawn the agent.
 
 **Benefits:**
 - Clear capability boundaries
@@ -165,16 +169,12 @@ Claude Code uses a different tool ecosystem from Copilot. Its built-in tools use
 - `WebFetch`, `WebSearch` - External content access
 - `NotebookEdit` - Jupyter notebook editing
 
-**Cross-tool compatibility:** When Copilot's `tools` array is present, Claude Code cannot parse it and falls back to inheriting all tools from the parent conversation. Use the Claude-only `disallowedTools` field (comma-separated string) to deny specific tools:
+**Dual-deployed default:** omit `tools:`; restrict via the Claude-only `disallowedTools:` denylist (comma-separated, ignored by Copilot). A Copilot `tools:` array makes Claude Code refuse to spawn the agent — see [SKILL.md "Tools field"](../SKILL.md#tools-field) for the full rule and the Copilot trade-off.
 
 ```yaml
-# Copilot tools (array format)
-tools: ['read', 'search']
-# Claude Code restriction (comma-separated string, ignored by Copilot)
+# No `tools:` — both platforms inherit all tools; Claude is scoped by the denylist.
 disallowedTools: Edit, Write, Bash
 ```
-
-This gives read-only behavior in both tools using a single file.
 
 ### MCP Server Tools
 

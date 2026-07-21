@@ -23,11 +23,11 @@
 
 Each harness expresses its command allow-list differently, and it's unconfirmed whether APM can deploy permission/settings blocks per target (it currently handles skills, agents, prompts, instructions, hooks, and MCP).
 
-| Tool | File | Setting (to verify) |
-|---|---|---|
-| Claude Code | `settings.json` | `permissions.allow` — e.g. `Bash(git diff:*)`, `Bash(diff:*)` |
-| VS Code Copilot | `settings.json` | terminal auto-approve allow-list (confirm exact key) |
-| APM | `apm.yml` | confirm whether permission/settings deployment is supported |
+| Tool            | File            | Setting (to verify)                                           |
+| --------------- | --------------- | ------------------------------------------------------------- |
+| Claude Code     | `settings.json` | `permissions.allow` — e.g. `Bash(git diff:*)`, `Bash(diff:*)` |
+| VS Code Copilot | `settings.json` | terminal auto-approve allow-list (confirm exact key)          |
+| APM             | `apm.yml`       | confirm whether permission/settings deployment is supported   |
 
 Related: the `fewer-permission-prompts` skill derives allow-lists from transcripts — useful as a source for the default set.
 
@@ -49,12 +49,12 @@ Related: the `fewer-permission-prompts` skill derives allow-lists from transcrip
 
 Agent harnesses increasingly support configuring LSP servers to give agents richer code intelligence. As with MCP, the config format likely differs across tools in file location and structure, and APM's ability to deploy per-target LSP config is unconfirmed. The specifics below need to be investigated and confirmed against current docs before authoring.
 
-| Tool | File | Format | Key/Section |
-|---|---|---|---|
-| VS Code Copilot | _(to verify)_ | _(to verify)_ | _(to verify)_ |
-| Claude Code | _(to verify)_ | _(to verify)_ | _(to verify)_ |
-| OpenAI Codex CLI | _(to verify)_ | _(to verify)_ | _(to verify)_ |
-| APM | `apm.yml` | YAML | confirm whether `dependencies.lsp` (or equivalent) is supported |
+| Tool             | File          | Format        | Key/Section                                                     |
+| ---------------- | ------------- | ------------- | --------------------------------------------------------------- |
+| VS Code Copilot  | _(to verify)_ | _(to verify)_ | _(to verify)_                                                   |
+| Claude Code      | _(to verify)_ | _(to verify)_ | _(to verify)_                                                   |
+| OpenAI Codex CLI | _(to verify)_ | _(to verify)_ | _(to verify)_                                                   |
+| APM              | `apm.yml`     | YAML          | confirm whether `dependencies.lsp` (or equivalent) is supported |
 
 ### Tasks
 
@@ -73,26 +73,10 @@ Agent harnesses increasingly support configuring LSP servers to give agents rich
 - [ ] **4a — Track upstream APM evolution (esp. deployed-file gitignore / local-settings targeting).** APM deploys Claude hook wiring only to `settings.json` (project) or `~/.claude/settings.json` (user) — it cannot target the git-ignored `settings.local.json` variant ([hook_integrator.py](https://github.com/microsoft/apm/blob/main/src/apm_cli/integration/hook_integrator.py) hardcodes `config_filename="settings.json"`). Watch microsoft/apm [#1342](https://github.com/microsoft/apm/issues/1342) (related: [#990](https://github.com/microsoft/apm/issues/990), [#290](https://github.com/microsoft/apm/issues/290)). When a `.local`-target option or deployed-file gitignore mode ships, revisit the `.gitignore` comment ([.gitignore:7-10](.gitignore#L7-L10)) and the deploy guidance in [CONTRIBUTING.md:127](CONTRIBUTING.md#L127). More broadly, periodically review APM releases for changes affecting this repo's deploy assumptions.
 - [ ] **4b — First plugin:** Add a plugin bundle when tool/MCP capabilities are insufficient for a task. Authoring guidance lives in the [meta-plugin skill](packages/meta/.apm/skills/meta-plugin/SKILL.md).
 - [ ] **4c — Track two APM 0.25 environment issues found during clean redeploy.**
+
   1. **Aggregator not `-g`-installable (aggregator removed, reinstate later).** A prototyped `packages/global` aggregator (an `apm.yml` with only `dependencies.apm` → `../core`, `../meta`) resolved its transitive *local-path* deps but deployed **zero** primitives at user scope (worked at project scope). It was **removed** to avoid documenting a broken command; global install names `core` + `meta` directly for now. **To reinstate:** recreate `packages/global/apm.yml` (deps: `./../core`, `./../meta`, + third-party global recs), point `~/.apm/apm.yml` at it, and make it the single-command global profile + home for third-party global recommendations. File/find an upstream APM issue for transitive local-path deploy at `-g`; do this once it's fixed.
   2. **`copilot-cowork` + multiple OneDrive mounts** aborts any global install at lockfile generation (`--exclude copilot-cowork` does not help). Workaround: export `APM_COPILOT_COWORK_SKILLS_DIR` to a single dir. Noted in README prerequisites.
-
----
-
-## 5 — Fix "Allowed Tools" for Agents the APM Way
-
-**Goal:** Express each agent's tool policy once, in an APM-native form that deploys correctly to every target, instead of the current hand-maintained dual-stack of Claude Code fields (`disallowedTools`) and Copilot fields (`tools:`) in the same frontmatter.
-
-**Priority: high (actively breaking).** The current dual-stack metadata breaks in weird ways across harnesses — e.g. a Copilot `tools:` array makes an agent *unspawnable* on Claude Code, because Claude parses the field literally, resolves entries against real tool names, and refuses to spawn when none resolve (rather than inheriting all tools). See the cautionary comment in [mermaid.agent.md](packages/core/.apm/agents/mermaid.agent.md) and the "Tools field" section of the [meta-agent skill](packages/meta/.apm/skills/meta-agent/SKILL.md).
-
-### Background
-
-Every `*.agent.md` currently carries per-harness tool metadata side by side (Copilot `tools:`/`user-invocable:`/`model:` vs Claude Code `disallowedTools:`/`skills:`), and the two stacks have incompatible semantics for how tool lists resolve and what happens when they don't. This needs a single source-of-truth tool policy that APM maps to each target's native format — mirroring how MCP is declared once in `apm.yml` and deployed per-target.
-
-### Tasks
-
-- [ ] **5a — Investigate APM's agent tool-policy support** — determine whether APM can normalize a single tool declaration into each target's native frontmatter (Claude Code `tools`/`disallowedTools`, Copilot `tools:`), and confirm the resolution/fallback semantics per harness. If unsupported, track upstream (file/find an issue).
-- [ ] **5b — Define the canonical tool-policy convention** — decide the single-source form (prefer structural constraints per [CLAUDE.md](CLAUDE.md) authoring rules) and document it in the [meta-agent skill](packages/meta/.apm/skills/meta-agent/SKILL.md).
-- [ ] **5c — Migrate all agents** across `packages/*/.apm/agents/` to the canonical form and verify each spawns on both `claude` and `copilot` after `apm install -g`.
+- [ ] **4d — Track APM per-target agent tool-policy mapping.** APM 0.26.0 copies agent frontmatter verbatim to every target (no per-target normalization, unlike hooks), so a Copilot `tools:` array deploys unchanged to `~/.claude/agents/` and makes the agent unspawnable on Claude Code. Repo agents work around this by omitting `tools:` and scoping Claude via `disallowedTools` (see [meta-agent skill](packages/meta/.apm/skills/meta-agent/SKILL.md#tools-field)); the trade-off is that Copilot loses allow-list scoping (inherits all tools). Watch microsoft/apm [#2108](https://github.com/microsoft/apm/issues/2108) (portable agent semantics) under epic [#2112](https://github.com/microsoft/apm/issues/2112); related: [#293](https://github.com/microsoft/apm/issues/293) (consumer tool overrides), [#2261](https://github.com/microsoft/apm/issues/2261) (per-file target declaration — would let us stop deploying `plan`/`explore` to Claude), [#581](https://github.com/microsoft/apm/issues/581) (declined intra-file translation precedent). When per-target agent frontmatter mapping ships, restore precise Copilot allow-lists.
 
 ---
 
@@ -116,5 +100,5 @@ The original framing ("web-based Claude") was imprecise. Verified against first-
 - [x] **6a — Investigate marketplace requirements** — done (findings above). APM generates both marketplace manifests; hosting is the repo itself (Cowork clones it via `owner/repo`).
 - [x] **6b — Define the plugin bundle(s)** — one plugin per package (`llmctl-core`, `llmctl-meta`, `llmctl-ops`, `llmctl-product`), each a thin `packages/<name>/.claude-plugin/plugin.json` pointing at its `.apm/` dirs. Skills-only (+ meta commands) by decision; agents/instructions/MCP remain `apm install`-only.
 - [x] **6c — Build & verify locally** — `marketplace:` block added to `apm.yml`; `apm pack` generates both manifests (committed as the documented exception); `apm marketplace check` + `claude plugin validate .` pass; local `claude plugin install` confirmed skills load (core 4, meta 9 incl. `reflect.prompt`/`setup-mcp.prompt`) and confirmed agents/instructions/MCP drop.
-- [ ] **6d — Publish (user)** — commit the manifests + thin `plugin.json`s, push to `main`, then in claude.ai/Cowork **Add marketplace → `siegenthalerroger/.llmctl`** and install a plugin end-to-end. Optionally host the marketplace in a dedicated repo (`git-subdir` sources) if URL/non-clone consumers are ever targeted.
-- [ ] **6e — (follow-up) claude.ai Chat via Custom Skills** — separate track: package skills as claude.ai-uploadable Custom Skills (≤200-char descriptions vs. this repo's long directive ones). Not a marketplace. See [meta-plugin skill](packages/meta/.apm/skills/meta-plugin/SKILL.md).
+- [x] **6d — Publish (user)** — commit the manifests + thin `plugin.json`s, push to `main`, then in claude.ai/Cowork **Add marketplace → `siegenthalerroger/.llmctl`** and install a plugin end-to-end. Optionally host the marketplace in a dedicated repo (`git-subdir` sources) if URL/non-clone consumers are ever targeted.
+- [x] **6e — (follow-up) claude.ai Chat via Custom Skills** — separate track: package skills as claude.ai-uploadable Custom Skills (≤200-char descriptions vs. this repo's long directive ones). Not a marketplace. See [meta-plugin skill](packages/meta/.apm/skills/meta-plugin/SKILL.md).
