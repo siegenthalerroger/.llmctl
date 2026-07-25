@@ -30,7 +30,7 @@ disallowedTools: Edit, Write, NotebookEdit
 metadata:
   provenance:
     adaptedFrom:
-      - "https://github.com/microsoft/vscode-copilot-chat/blob/0fe577470ae57399e3875f142b5f57a63e94898b/src/extension/agents/vscode-node/planAgentProvider.ts"
+      - "https://github.com/microsoft/vscode/blob/main/extensions/copilot/src/extension/agents/vscode-node/planAgentProvider.ts"
   modelProfile:
     specialisation: REASONING
     cost: HIGH
