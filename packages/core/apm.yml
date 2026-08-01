@@ -14,6 +14,9 @@ dependencies:
     # interrogates the request first.
     - mattpocock/skills/skills/productivity/grilling#2ab958093e83e0ec752e6c1c5932da465bf23e0c
     - mattpocock/skills/skills/productivity/grill-me#2ab958093e83e0ec752e6c1c5932da465bf23e0c
+    # blader/humanizer (MIT) — prose de-slopping for README/CONTRIBUTING/PRD
+    # text: 33 numbered patterns from Wikipedia's "Signs of AI writing".
+    - blader/humanizer#523374dee72d67c7b2b5f858ea0094ffda49c3ac
   mcp:
     # Universal dev MCPs, kept in the global baseline. Domain doc MCPs
     # (opentofu-registry, aws-knowledge-mcp, microsoft.docs.mcp) live in
