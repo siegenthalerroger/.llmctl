@@ -65,7 +65,7 @@ Rules:
 - `took` is **single-line** — block scalars (`|`, `>`) are not parsed and their content is lost
 - `took` is optional; its absence means the whole file derives from that upstream
 - Forms may be mixed within one array (a plain URL string alongside `url`/`took` objects)
-- An object entry **must** carry `url`. An entry with only `took` is skipped, and if no other entry supplies a URL the file drops out of the audit silently — see the validator rule in TODO **5b**
+- An object entry **must** carry `url`. An entry with only `took` is skipped, and if no other entry supplies a URL the file drops out of the audit entirely — silently, with no error and no row in the output. Check that a provenance block still yields at least one URL after editing it; a file that stops being tracked looks identical to one that has nothing to track
 
 ### Keeping `took` minimal
 
@@ -73,8 +73,8 @@ Rules:
 
 - **Wholly derived or near-verbatim files** — if almost any upstream change would matter, there is nothing to dismiss. The string form already says "this whole file derives from that upstream", which is shorter and more accurate. Adding `took` there misreads a copy as a selective adaptation
 - **Never write a "Not taken" or "Original locally" half** — see above; both are open sets that rot silently
-- **Never record point-in-time measurements** (line-overlap percentages, file sizes, line counts). Both sides move, so the number is wrong by the next release and no process refreshes it. The label carries the same signal durably; keep any measurement in the commit or the TODO item that motivated it
-- **Do not overload the field.** `took` records *what was taken*. Licensing problems belong in the TODO's licensing item; putting them here turns the one place a reader looks for scope into something they have to skim
+- **Never record point-in-time measurements** (line-overlap percentages, file sizes, line counts). Both sides move, so the number is wrong by the next release and no process refreshes it. The label carries the same signal durably; put any measurement in the commit message that motivated the change
+- **Do not overload the field.** `took` records *what was taken*. Licensing concerns, follow-up work, and open questions go wherever the project tracks work — putting them here turns the one place a reader looks for scope into something they have to skim
 - A short note on **why the URL is not a line-for-line comparison base** (upstream moved or restructured the adapted path) does belong — it changes how the next reviewer reads the diff
 
 ## Supported URL Formats
