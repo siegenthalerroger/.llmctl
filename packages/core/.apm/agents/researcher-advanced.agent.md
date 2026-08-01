@@ -20,7 +20,7 @@ metadata:
   provenance:
     adaptedFrom:
       - url: "https://github.com/arisng/github-copilot-fc/blob/main/agents/generic-research/cli/generic-research-cli.agent.md"
-        took: "Inspiration only. The phased plan-gather-synthesise workflow shape. Upstream restructured the adapted path, so this is not a line-for-line comparison base."
+        took: "Inspiration only. The phased plan-gather-synthesise workflow shape."
   modelProfile:
     specialisation: LONG-CONTEXT
     cost: MEDIUM
