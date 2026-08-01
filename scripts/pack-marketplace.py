@@ -10,6 +10,8 @@ a marketplace manifest across a `..` boundary, so the two halves run separately:
   1. here   `apm install` + `apm pack -o <marketplace>/plugins` per package
              -> plugins/<name>-<version>/ with plugin.json, the skills/agents/
                 commands, and an embedded apm.lock.yaml
+             then strip upstream repo scaffolding (CI config, repo docs,
+             nested plugin manifests) out of the vendored skills/
   2. there  `apm pack` -> .claude-plugin/marketplace.json (Claude)
                        + .agents/plugins/marketplace.json (Codex)
 
@@ -41,6 +43,28 @@ PACKAGES = os.path.join(REPO, "packages")
 # working tree clean — the bundle carries its own enriched apm.lock.yaml.
 TRANSIENT = (".claude", ".agents", ".github/instructions", "apm_modules",
              ".mcp.json", ".vscode/mcp.json", "apm.lock.yaml", "build")
+
+# A vendored upstream skill arrives as whatever its repo happens to contain.
+# When the skill's SKILL.md sits at its repo root (e.g. blader/humanizer), APM
+# copies the *entire* repo into skills/<name>/ — CI config, packaging
+# manifests, repo-level docs. A plugin host reads none of it.
+#
+# `.claude-plugin/` is the one that matters beyond disk noise: hosts scan for
+# `.claude-plugin/plugin.json` to detect a plugin, so leaving a vendored copy
+# inside skills/ ships a plugin manifest nested inside a plugin bundle.
+VENDOR_CRUFT_DIRS = (".github", ".gitlab", ".circleci", ".vscode", ".idea",
+                     ".claude-plugin", ".git", "node_modules")
+VENDOR_CRUFT_FILES = ("apm.yml", "apm.lock.yaml", ".apm-pin", ".gitignore",
+                      ".gitattributes", ".editorconfig", "AGENTS.md",
+                      "CLAUDE.md", "GEMINI.md", "README.md", "CONTRIBUTING.md",
+                      "CODE_OF_CONDUCT.md", "SECURITY.md", "SUPPORT.md",
+                      "package.json", "package-lock.json", "pnpm-lock.yaml",
+                      "renovate.json")
+
+# Attribution has to travel with the code — MIT requires the notice to be
+# carried, Apache-2.0 the licence text — and the generated THIRD-PARTY-NOTICES
+# depends on these surviving. Never strip them, whatever else matches above.
+KEEP_PREFIXES = ("LICENSE", "LICENCE", "NOTICE", "COPYING")
 
 
 def scalar(path, key):
@@ -106,6 +130,42 @@ def relocate_manifest(bundle_dir):
     os.makedirs(nested_dir, exist_ok=True)
     shutil.move(root, os.path.join(nested_dir, "plugin.json"))
     return True
+
+
+def strip_vendor_cruft(bundle_dir):
+    """Drop upstream repo scaffolding from vendored skills in a packed bundle.
+
+    Scoped to `skills/<name>/` only. The bundle root is left alone because
+    relocate_manifest puts the plugin's own manifest in `.claude-plugin/`
+    there, and the root `apm.lock.yaml` is what THIRD-PARTY-NOTICES is
+    generated from.
+
+    Deliberately a denylist of known scaffolding rather than an allowlist of
+    known content: a skill may legitimately ship `scripts/`, `references/`,
+    `assets/`, or anything else its SKILL.md links to, and silently dropping
+    one of those breaks the skill at runtime with no error. Anything
+    unrecognised stays — a few stale KB is cheaper than a broken skill.
+    """
+    skills_dir = os.path.join(bundle_dir, "skills")
+    if not os.path.isdir(skills_dir):
+        return []
+    dropped = []
+    for skill in sorted(os.listdir(skills_dir)):
+        root = os.path.join(skills_dir, skill)
+        if not os.path.isdir(root):
+            continue
+        for entry in sorted(os.listdir(root)):
+            if entry.upper().startswith(KEEP_PREFIXES):
+                continue
+            target = os.path.join(root, entry)
+            if os.path.isdir(target) and entry in VENDOR_CRUFT_DIRS:
+                shutil.rmtree(target, ignore_errors=True)
+            elif os.path.isfile(target) and entry in VENDOR_CRUFT_FILES:
+                os.remove(target)
+            else:
+                continue
+            dropped.append("%s/%s" % (skill, entry))
+    return dropped
 
 
 def prune(plugins_dir, name, keep):
@@ -180,6 +240,10 @@ def main():
         if not ok:
             return 1
         bundle = "%s-%s" % (name, version)
+        dropped = strip_vendor_cruft(os.path.join(plugins_dir, bundle))
+        if dropped:
+            print("       stripped %d vendored path(s): %s"
+                  % (len(dropped), ", ".join(dropped)))
         if not relocate_manifest(os.path.join(plugins_dir, bundle)):
             sys.stderr.write("%s: packed bundle has no plugin.json\n" % name)
             return 1

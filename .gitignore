@@ -10,6 +10,10 @@
 # APM pack scratch bundles
 build/
 
+# Python bytecode.
+__pycache__/
+*.py[cod]
+
 # APM dependencies
 apm_modules/
 .mcp.json
