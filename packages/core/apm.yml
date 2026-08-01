@@ -1,13 +1,19 @@
 name: llmctl-core
 version: 0.1.0
-description: Core agent steering — coding agents, research, troubleshooting, diagramming.
+description: Core agent steering — domain-neutral planning, exploration and execution agents, research, troubleshooting, diagramming.
 author: siegenthalerroger
 
 # Include all items in this package's `.apm/` directory.
 includes: auto
 
 dependencies:
-  apm: []
+  apm:
+    # mattpocock/skills (MIT) — requirement extraction before planning:
+    # `grilling` is the reusable model-invoked loop, `grill-me` the /-entry
+    # point. Complements the `plan` agent, which researches and plans but never
+    # interrogates the request first.
+    - mattpocock/skills/skills/productivity/grilling#2ab958093e83e0ec752e6c1c5932da465bf23e0c
+    - mattpocock/skills/skills/productivity/grill-me#2ab958093e83e0ec752e6c1c5932da465bf23e0c
   mcp:
     # Universal dev MCPs, kept in the global baseline. Domain doc MCPs
     # (opentofu-registry, aws-knowledge-mcp, microsoft.docs.mcp) live in

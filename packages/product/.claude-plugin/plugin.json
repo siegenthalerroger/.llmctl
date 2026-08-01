@@ -1,7 +1,0 @@
-{
-  "name": "llmctl-product",
-  "version": "0.1.0",
-  "description": "Product steering skills — Epic and Feature PRD authoring.",
-  "author": { "name": "siegenthalerroger" },
-  "skills": "./.apm/skills/"
-}

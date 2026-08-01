@@ -35,10 +35,7 @@ Once tasks are confirmed:
 
 ## Sub-Agent Task Sizing
 
-Choose the right worker tier and enforce sizing discipline. See agent definitions for full details:
-
-- [Simple Coder](../../agents/coder-simple.agent.md)
-- [Advanced Coder](../../agents/coder-advanced.agent.md)
+Choose the right worker tier and enforce sizing discipline. Tier by **how much context the task spans**, not by how large its output is. Both tiers execute any kind of work — code, configuration, IaC, documentation, specs. Read the *Executor (Focused)* and *Executor (Broad)* agent definitions for full details.
 
 ### Definition of "touch"
 
@@ -46,18 +43,18 @@ A file is **touched** if it must be **read for context** or **edited**. Count bo
 
 A task that edits 2 files but must consult 4 others to produce correct output touches 6 files — even though only 2 files change.
 
-### Coder (Simple) — ≤5 files touched, single component
+### Executor (Focused) — ≤5 files touched, single component
 
-- One task = one concrete outcome within a single component or module
+- One task = one concrete outcome within a single component, module, or document
 - Do not batch multiple file creations/rewrites into a single request
 - Keep each request narrowly scoped enough that a failed result can be reverted or retried without collateral edits
 - Prefer a short sequence of tiny tasks over a single broad "small" task as failures are isolated and retries are cheap
 
-### Coder (Advanced) — 6+ files touched or cross-component
+### Executor (Broad) — 6+ files touched or cross-component
 
 - Use when a task requires cross-component reasoning or sustained context across many files
-- Coder (Advanced) may internally delegate isolated subtasks to Coder (Simple)
-- Prefer Coder (Advanced) over a chain of Coder (Simple) calls when subtasks share significant context that would need to be re-explained in each prompt
+- Executor (Broad) may internally delegate isolated subtasks to Executor (Focused)
+- Prefer Executor (Broad) over a chain of Executor (Focused) calls when subtasks share significant context that would need to be re-explained in each prompt
 
 ## Conversational Agents as Subagents
 

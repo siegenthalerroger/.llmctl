@@ -11,4 +11,6 @@ paths: ["**/*.tofu", "**/*.tf"]
 
 When working with `.tf` or `.tofu` files, load and read the following skill **before making any edits**. Do not defer loading until a later turn.
 
-- [TF Standards and Patterns](../skills/tf-standards/SKILL.md)
+- [TF Standards and Patterns](../skills/tf-standards/SKILL.md) — authoring conventions for the source text.
+
+Also load the `terraform-skill` skill when the task touches execution or operational risk: state operations, plan/apply/destroy safety, CI drift, module testing, or provider upgrades.

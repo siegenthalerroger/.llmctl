@@ -1,0 +1,31 @@
+name: llmctl-workflow
+version: 0.1.0
+description: Code delivery steering — the code-reviewer agent plus TDD, git worktrees, merge-conflict resolution, code-review reception, and lint pipelines.
+author: siegenthalerroger
+
+# Include all items in this package's `.apm/` directory — currently the
+# code-reviewer agent, which lives here rather than in `core` because reviewing
+# a change set is code work, not part of the domain-neutral baseline.
+includes: auto
+
+dependencies:
+  apm:
+    # obra/superpowers (MIT) — self-contained skills only. The Superpowers
+    # bootstrap (`using-superpowers` + its session-start hook) is deliberately
+    # NOT consumed: it mandates skill invocation before any response and would
+    # conflict with this repo's own steering.
+    - obra/superpowers/skills/using-git-worktrees#44c9b2d6e889982ac18c27d05a19fefe335194e1
+    - obra/superpowers/skills/receiving-code-review#44c9b2d6e889982ac18c27d05a19fefe335194e1
+    # mattpocock/skills (MIT) — standalone skills; both soft-reference an
+    # optional CONTEXT.md and degrade cleanly when it is absent. The skills
+    # requiring `/setup-matt-pocock-skills` (code-review, to-spec, to-tickets,
+    # triage, implement, wayfinder) are deliberately excluded.
+    - mattpocock/skills/skills/engineering/tdd#2ab958093e83e0ec752e6c1c5932da465bf23e0c
+    - mattpocock/skills/skills/engineering/resolving-merge-conflicts#2ab958093e83e0ec752e6c1c5932da465bf23e0c
+    # rshade/agent-skills (Apache-2.0) — detects the project's lint/validation
+    # tools, builds a pipeline, and runs it to zero errors with an atomic fix
+    # protocol. The sibling linter wrappers (markdownlint, actionlint,
+    # shellcheck, commitlint) are deterministic checks and belong in CI or a
+    # hook, not in the skill-discovery budget.
+    - rshade/agent-skills/skills/lint-fix#68cd2523ca9b989d11a54e65f5e7c7226dbe051c
+  mcp: []

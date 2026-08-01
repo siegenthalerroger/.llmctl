@@ -9,34 +9,9 @@ dependencies:
   apm: []
   mcp: []
 
-scripts: {}
-
-# REDUCED FIDELITY vs `apm install`, only intended where the full fidelity of `apm install`
-# is not available (e.g. in claude.ai's web UI).
-marketplace:
-  description: ".llmctl — personal agent steering: coding, research, authoring, ops, and product."
-  owner:
-    name: siegenthalerroger
-    url: https://github.com/siegenthalerroger
-  outputs:
-    claude: {}
-    codex: {}
-  versioning:
-    strategy: lockstep
-  packages:
-    - name: llmctl-core
-      source: ./packages/core
-      category: Development
-      description: Core steering skills — research, troubleshooting, batch execution, and Mermaid diagramming.
-    - name: llmctl-meta
-      source: ./packages/meta
-      category: Development
-      description: Meta authoring skills for agents, skills, prompts, instructions, hooks, MCP, and plugins.
-    - name: llmctl-ops
-      source: ./packages/ops
-      category: DevOps
-      description: Ops / infrastructure steering — Helm, Kubernetes, and OpenTofu/Terraform skills.
-    - name: llmctl-product
-      source: ./packages/product
-      category: Product
-      description: Product steering skills — Epic and Feature PRD authoring.
+# The marketplace lives in the sibling `.llmctl-marketplace` repository
+# REDUCED FIDELITY vs `apm install`, only intended where the full fidelity of
+# `apm install` is not available (e.g. in claude.ai's Cowork).
+# This script packs every package into it and regenerates both manifests there.
+scripts:
+  pack-marketplace: "python scripts/pack-marketplace.py"

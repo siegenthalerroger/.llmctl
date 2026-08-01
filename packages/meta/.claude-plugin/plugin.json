@@ -1,8 +1,0 @@
-{
-  "name": "llmctl-meta",
-  "version": "0.1.0",
-  "description": "Meta authoring skills for agents, skills, prompts, instructions, hooks, MCP, and plugins.",
-  "author": { "name": "siegenthalerroger" },
-  "skills": "./.apm/skills/",
-  "commands": ["./.apm/prompts/"]
-}

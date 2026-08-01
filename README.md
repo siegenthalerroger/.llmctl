@@ -8,15 +8,16 @@ It is structured as an **APM monorepo of context-scoped packages** so each envir
 
 This repository is an [APM](https://github.com/microsoft/apm) monorepo. Each `packages/<name>/` is an independently installable APM package; APM deploys a package's content to both Copilot and Claude Code — no manual symlinks needed.
 
-### Repository layout
+### Available packages
 
 | Package | Scope | Provides |
 | --- | --- | --- |
-| `packages/core` | **Global baseline** | Coding agents, research, troubleshooting, diagramming + universal MCP servers |
-| `packages/meta` | **Global** (authoring) | The `meta-*` authoring skills + `setup-mcp` / `reflect` prompts for authoring steering files |
-| `packages/ops` | **Per-project** (ops/infra repos) | Helm / Kubernetes / OpenTofu skills + instructions + cloud/IaC doc MCP servers |
-| `packages/product` | **Per-project** (product work) | PRD skills + product-manager / UX agents |
-| root `.apm/` | **Repo-local only** | `meta-updater` agent + `meta-update-models` / `meta-upstream-sync` audit skills, frontmatter-validation hook |
+| `packages/core` | **Global baseline** | Domain-neutral planning / exploration / execution agents, research, troubleshooting, diagramming + universal MCP servers |
+| `packages/meta` | Agent steering | The `meta-*` authoring skills + `setup-mcp` / `reflect` prompts for authoring steering files |
+| `packages/workflow` | Coding | Code delivery — the code-reviewer agent + TDD, git worktrees, merge conflicts, code-review reception, lint pipelines |
+| `packages/ops` | IT Operations | Helm / Kubernetes / OpenTofu skills + instructions + cloud/IaC doc MCP servers |
+| `packages/product` | Product development | PRD skills + product-manager / UX agents |
+| _root `.apm/`_ | _**Repo-local only**_ | _`meta-updater` agent + `meta-update-models` / `meta-upstream-sync` audit skills, frontmatter-validation hook_ |
 
 See [CONTRIBUTING.md](CONTRIBUTING.md#packaging-model) for the packaging rules.
 
@@ -48,9 +49,11 @@ winget install Microsoft.APM
 # Clone
 git clone git@github.com:siegenthalerroger/.llmctl.git ~/.llmctl
 
-# Global baseline — deploy core + meta to user scope everywhere
-apm install -g ~/.llmctl/packages/core ~/.llmctl/packages/meta --target claude,copilot,codex,agent-skills
+# Global baseline — deploy core + meta + workflow to user scope everywhere
+apm install -g ~/.llmctl/packages/core ~/.llmctl/packages/meta ~/.llmctl/packages/workflow --target claude,copilot,codex,agent-skills
 ```
+
+`packages/core` is deliberately domain-neutral: its executor agents run any well-specified task — code, configuration, IaC, docs, specs — tiered by how much context the work spans. Everything code-specific lives in `packages/workflow`, which is mostly upstream skills pulled in as pinned APM dependencies. Drop `workflow` from the command above (or install it per project) if a context does no code work, or if you do not want third-party steering in the global baseline.
 
 Add domain packages **per project**, only where they apply:
 
@@ -68,6 +71,16 @@ apm install ~/.llmctl/packages/product
 cd ~/.llmctl
 apm install
 ```
+
+### Plugin marketplace
+
+For hosts that only accept marketplace content — claude.ai **Cowork**, Claude Desktop, Claude Code — the packages are also published as plugin bundles from a separate repository, [`.llmctl-marketplace`](https://github.com/siegenthalerroger/.llmctl-marketplace). A plugin host clones that repo and reads each bundle as committed, so upstream APM dependencies are vendored into the bundles at pack time.
+
+```bash
+python scripts/pack-marketplace.py   # or: apm run pack-marketplace
+```
+
+This is a **reduced-fidelity** path — rely on skills and commands travelling, and use `apm install` where agents, instructions, or MCP servers matter. See the [packaging rules](CONTRIBUTING.md#rules).
 
 ## Concept & Contributing
 
@@ -173,67 +186,6 @@ Recommended configuration properties:
   "chat.agent.enabled": true,
   "chat.customAgentInSubagent.enabled": true,
   "chat.includeReferencedInstructions": true,
-  "chat.instructionsFilesLocations": {
-    ".agents/instructions": true,
-    ".claude/rules": true,
-    ".copilot/instructions": true,
-    ".github/instructions": true,
-    "~/.llmctl/instructions": true,
-    "~/.agents/instructions": false,
-    "~/.claude/rules": false,
-    "~/.copilot/instructions": false,
-    "~/.github/instructions": false
-  },
-  "chat.promptFilesLocations": {
-    ".agents/prompts": true,
-    ".claude/commands": true,
-    ".copilot/prompts": true,
-    ".github/prompts": true,
-    "~/.llmctl/prompts": true,
-    "~/.agents/prompts": false,
-    "~/.claude/commands": false,
-    "~/.copilot/prompts": false,
-    "~/.github/prompts": false
-  },
-  "chat.agentSkillsLocations": {
-    ".agents/skills": true,
-    ".claude/skills": true,
-    ".copilot/skills": true,
-    ".github/skills": true,
-    "~/.llmctl/skills": true,
-    "~/.agents/skills": false,
-    "~/.claude/skills": false,
-    "~/.copilot/skills": false,
-    "~/.github/skills": false
-  },
-  "chat.agentFilesLocations": {
-    ".agents/agents": true,
-    ".claude/agents": true,
-    ".copilot/agents": true,
-    ".github/agents": true,
-    "~/.llmctl/agents": true,
-    "~/.agents/agents": false,
-    "~/.claude/agents": false,
-    "~/.copilot/agents": false,
-    "~/.github/agents": false
-  },
-  "chat.hookFilesLocations": {
-    ".agents/hooks": true,
-    ".claude/hooks": true,
-    ".claude/settings.json": true,
-    ".claude/settings.local.json": true,
-    ".copilot/hooks": true,
-    ".github/hooks": true,
-    "~/.llmctl/hooks": true,
-    "~/.agents/hooks": false,
-    "~/.claude/hooks": false,
-    "~/.claude/settings.json": false,
-    "~/.copilot/hooks": false,
-    "~/.github/hooks": false
-  },
-  "chat.pluginLocations": {
-    "~/.llmctl/plugins": true
-  },
   "chat.tools.terminal.autoApprove": {
     "Test-Path": true,
     "podman ps": true,

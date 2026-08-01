@@ -1,13 +1,15 @@
 ---
 name: "tf-standards"
-description: "Configuration standards for TF (OpenTofu/Terraform): provider versioning, variable defaults, OpenTofu-native syntax, file organization, and security best practices. ALWAYS invoke when creating, reviewing, or modifying .tf/.tofu/.tfvars files — provider blocks, variables, modules, or resource definitions. Do not write or review OpenTofu/Terraform code without this skill. Keywords: terraform, opentofu, tofu, provider, variables, tfvars, module, lifecycle, hcl."
+description: "Authoring conventions for TF (OpenTofu/Terraform) source files: provider version pinning and auth patterns, variable/tfvars defaults and validation, OpenTofu-native syntax, and file/module organization. ALWAYS invoke when creating, reviewing, or modifying .tf/.tofu/.tfvars content — provider blocks, variables, modules, or resource definitions. Covers how the code is written, not how it is run: state operations, drift, CI/CD pipelines, module testing, and provider-upgrade risk belong to the `terraform-skill` skill. Do not write or review OpenTofu/Terraform source without this skill. Keywords: terraform, opentofu, tofu, provider, variables, tfvars, module, lifecycle, hcl."
 ---
 
 # TF Standards and Patterns
 
-Standards and conventions for writing TF (OpenTofu/Terraform) infrastructure code, focusing on provider configuration, variable management, TF-specific syntax, and code organization.
+Authoring conventions for TF (OpenTofu/Terraform) infrastructure code: provider configuration, variable management, TF-specific syntax, and code organization.
 
 Worked ✅/❌ examples live in `references/` and are linked from each rule — load them on demand rather than reading them all up front.
+
+**Scope boundary.** This skill governs the *source text*. Execution and operational risk — state operations and recovery, plan/apply and destroy safety, CI drift, module testing frameworks, provider upgrades, compliance scanning — are owned by the `terraform-skill` skill installed as an APM dependency of this package. Invoke both when a task spans authoring and execution.
 
 ## Provider Documentation Research
 
