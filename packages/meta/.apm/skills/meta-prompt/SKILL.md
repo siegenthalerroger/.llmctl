@@ -5,7 +5,8 @@ license: "MIT"
 metadata:
   provenance:
     adaptedFrom:
-      - "https://github.com/github/awesome-copilot/blob/main/instructions/prompt.instructions.md"
+      - url: "https://github.com/github/awesome-copilot/blob/main/instructions/prompt.instructions.md"
+        took: "Structural echo only. The prompt-file authoring guide framing."
     authoritativeSpec:
       - "https://code.visualstudio.com/docs/copilot/customization/prompt-files"
 ---

@@ -90,6 +90,18 @@ metadata:
     adaptedFrom: "https://github.com/example-upstream/skills/tree/main/excel-processing"
 ```
 
+A plain string (or array of strings) means the **whole file** derives from that upstream. When only part of it landed locally, use the `url`/`took` object form — a fidelity label, then what was taken:
+
+```yaml
+metadata:
+  provenance:
+    adaptedFrom:
+      - url: "https://github.com/example-upstream/skills/tree/main/excel-processing"
+        took: "Partly derived. The column-mapping rules."
+```
+
+`took` is single-line. Labels: `Inspiration only.` / `Structural echo only.` / `Partly derived.` / `Largely derived.` It lets the `meta-upstream-sync` audit close an upstream change without a merge review when the change touches nothing on the list. Never record what was *not* taken, or a line-overlap measurement — both rot without any local change to trigger a refresh.
+
 > **APM-first rule:** Before creating a `mirror` entry, verify the upstream content isn't available as an APM package. APM dependencies (declared in `apm.yml`) don't need provenance tracking — they're managed externally. Use `mirror` only for exceptional cases where APM cannot manage the content.
 
 - `metadata.provenance.mirror`: canonical upstream URL for exact copies

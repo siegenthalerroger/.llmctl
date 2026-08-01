@@ -35,17 +35,32 @@ metadata:
     mirror: "https://example.com/canonical/upstream"           # single string — exact copy
     adaptedFrom:                                               # array — synthesised from
       - "https://github.com/org-a/repo/blob/main/skill.md"
-      - "https://github.com/org-b/repo/blob/main/skill.md"
+      - url: "https://github.com/org-b/repo/blob/main/skill.md"   # partial adaptation
+        took: "Inspiration only. The severity-tiering concept."
     authoritativeSpec:                                          # array — format specifications
       - "https://code.visualstudio.com/docs/copilot/customization/custom-agents"
       - "https://code.claude.com/docs/en/sub-agents"
 ```
 
 - `metadata.provenance.mirror` (string): Canonical upstream URL for files that are exact copies. Tracked by the update script as `mirror` mode (replace from upstream).
-- `metadata.provenance.adaptedFrom` (string or array): URL or list of URLs when local content is adapted/synthesised from upstream sources. Tracked by the update script as `adapted` mode (merge review).
+- `metadata.provenance.adaptedFrom` (string, array of URLs, or array of `url`/`took` objects): where local content was adapted/synthesised from. Tracked by the update script as `adapted` mode (merge review).
 - `metadata.provenance.authoritativeSpec` (array): URLs of authoritative specifications that define the file format, frontmatter schema, or behavioral contract. Informational only — not tracked for content drift.
 
 `adaptedFrom` takes precedence when both `mirror` and `adaptedFrom` exist.
+
+#### Scoping an adaptation with `took`
+
+A bare URL means **the whole file** derives from that upstream. Add `took` only when part of it did, so a drift review can be closed without opening the upstream diff: if the upstream change touches nothing on the list, there is nothing to merge.
+
+Shape is **a fidelity label, then what was taken** — `Inspiration only.` / `Structural echo only.` / `Partly derived.` / `Largely derived.`
+
+Three rules keep it from rotting:
+
+- **Never record what was *not* taken** (or what is original locally). That is an open set — upstream can add sections indefinitely, so the list is wrong the moment upstream grows, and no local change ever triggers a refresh. What *was* taken is bounded by the local file, so it only goes stale when someone is already editing that file.
+- **Never record measurements** (line-overlap percentages, sizes, counts). Both sides move; the label carries the same signal durably. Keep numbers in the commit or the TODO item that motivated them.
+- **Never overload it.** `took` records what was taken — nothing else. Licensing problems belong in the TODO's licensing item. The one exception: a short note on why the URL is *not* a line-for-line comparison base (upstream moved or restructured the adapted path) belongs, because it changes how the next reviewer reads the diff.
+
+Full rules and parser behaviour: [source-url-reference.md](.apm/skills/meta-upstream-sync/references/source-url-reference.md).
 
 This is a **repository convention**, not a universal standard.
 

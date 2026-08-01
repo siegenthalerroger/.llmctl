@@ -191,7 +191,7 @@ Additional metadata about the agent. Can contain any custom key-value pairs. Com
 
 **Provenance** is grouped under `metadata.provenance`:
 - `provenance.mirror` (string): Canonical upstream URL for exact copies
-- `provenance.adaptedFrom` (string or array): URL or list of URLs when adapted/synthesised from upstream sources
+- `provenance.adaptedFrom` (string, array of URLs, or array of `url`/`took` objects): where adapted/synthesised content came from. String and array forms mean the **whole file** derives from those upstreams; use the `url`/`took` object form for a **partial** adaptation, where `took` gives a fidelity label plus what was taken
 - `provenance.authoritativeSpec` (array): URLs of authoritative specifications defining the file format (informational only)
 
 #### `metadata.modelProfile`
@@ -236,6 +236,17 @@ metadata:
       - "https://github.com/org-b/copilot-rules/blob/main/instructions/owasp.instructions.md"
   tags: ["security", "compliance"]
 ```
+
+**Example (partial adaptation — only part of the upstream was taken):**
+```yaml
+metadata:
+  provenance:
+    adaptedFrom:
+      - url: "https://github.com/org-a/skills/blob/main/skills/security/SKILL.md"
+        took: "Inspiration only. The threat-model checklist and severity tiers."
+```
+
+A fidelity label (`Inspiration only.` / `Structural echo only.` / `Partly derived.` / `Largely derived.`) then what was taken — nothing else. `took` exists so the drift audit can dismiss an upstream change without opening the diff: if the change touches nothing on the list, there is nothing to merge. Never add what was *not* taken — upstream can grow indefinitely, so that list rots without any local change to trigger a refresh.
 
 **Example (authoritative spec for dual-tool compatibility):**
 ```yaml

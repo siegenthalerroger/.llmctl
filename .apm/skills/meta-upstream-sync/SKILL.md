@@ -51,6 +51,7 @@ This skill audits **locally-committed files** that declare `metadata.provenance.
 | `mirror` | `update_available` | Replace from upstream |
 | `adapted` (single source) | `update_available` | Merge review |
 | `adapted` (multi-source) | one or more `update_available` | Synthesised merge review across all changed upstreams |
+| `adapted` (any) + `took` present | `update_available` | Scope the merge review to `took` first — if the upstream change touches nothing on its list, close as no action and say so |
 | any | `up_to_date` | No action |
 
 ### Multi-source Synthesis
@@ -121,7 +122,8 @@ Bootstrap check for an uncommitted local file (explicitly guarded):
 - No local manifest is required.
 - Comparison uses commit date only: upstream latest commit date for source path vs local file last git commit date.
 - Supported source format is currently GitHub repository/tree/blob URLs.
-- `metadata.provenance.adaptedFrom` may be a single URL string or a YAML array of URLs for files synthesised from multiple upstream sources.
+- `metadata.provenance.adaptedFrom` may be a single URL string, a YAML array of URLs, or an array of `url`/`took` objects. String and array forms mean the whole file derives from those upstreams; `took` narrows it to a partial adaptation and is echoed on the result row. See [Source URL Reference](./references/source-url-reference.md).
+- When recording a new partial adaptation, write `took` as a fidelity label followed by what was taken, and nothing else — e.g. `Inspiration only. The severity-tiering concept.` Never add a "Not taken" half, an "Original locally" half, or a measurement.
 - When a file has multiple upstreams, each is checked independently and output shows one row per upstream. See the Multi-source Synthesis section above for the recommended grouping procedure.
 - `upstreamChanges` commit summaries are opt-in via `-IncludeChangeDetails` to keep the default output concise.
 - Use `-MaxChangeCommits` to cap detailed commit payload size for targeted checks (default: `5`).

@@ -17,7 +17,9 @@ disallowedTools: Edit, Write, NotebookEdit
 # Metadata fields
 metadata:
   provenance:
-    adaptedFrom: "https://github.com/obra/superpowers/blob/main/agents/code-reviewer.md"
+    adaptedFrom:
+      - url: "https://github.com/obra/superpowers/blob/main/skills/requesting-code-review/code-reviewer.md"
+        took: "Inspiration only. The severity-tiering concept and the location / why-it-matters / how-to-fix evidence standard."
   modelProfile:
     specialisation: CODE
     cost: HIGH

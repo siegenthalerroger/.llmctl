@@ -5,7 +5,8 @@ license: "MIT"
 metadata:
   provenance:
     adaptedFrom:
-      - "https://github.com/github/awesome-copilot/blob/main/instructions/agent-skills.instructions.md"
+      - url: "https://github.com/github/awesome-copilot/blob/main/instructions/agent-skills.instructions.md"
+        took: "Structural echo only. The section skeleton for a skill-authoring guide."
     authoritativeSpec:
       - "https://agentskills.io/"
       - "https://code.claude.com/docs/en/skills"

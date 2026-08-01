@@ -2,6 +2,11 @@
 name: "batch-task-execution"
 description: "Guidelines for planning and executing batches of tasks from todo lists, backlogs, or multi-item requests. ALWAYS invoke when asked to work through a list of tasks, start multiple sub-agents in parallel, or tackle several items at once. Do not fan out sub-agents or start a multi-item batch without this skill — it covers task confirmation, parallelisation, and overlap detection. Keywords: batch, todo list, backlog, parallel, sub-agents, multi-item, overlap."
 license: ""
+metadata:
+  provenance:
+    adaptedFrom:
+      - url: "https://github.com/obra/superpowers/blob/main/skills/subagent-driven-development/SKILL.md"
+        took: "Partly derived. The dispatch-brief contract, the DONE/DONE_WITH_CONCERNS/NEEDS_CONTEXT/BLOCKED outcome protocol, the spec-compliance-before-quality review order, the fix-round cap with explicit adjudication, and the ledger-survives-compaction rule."
 ---
 
 # Batch Task Execution
@@ -56,6 +61,62 @@ A task that edits 2 files but must consult 4 others to produce correct output to
 - Executor (Broad) may internally delegate isolated subtasks to Executor (Focused)
 - Prefer Executor (Broad) over a chain of Executor (Focused) calls when subtasks share significant context that would need to be re-explained in each prompt
 
+## Dispatch Briefs
+
+A sub-agent starts cold. It inherits none of the session — not the user's wording, not decisions made earlier in the batch, not files already read. Construct the exact context each task needs.
+
+Every dispatch contains:
+
+- **One line on where the task sits in the batch** — enough orientation to make sensible local choices, no more
+- **The exact values verbatim** — names, paths, versions, identifiers, command flags. State them **once**, in one place; never restate them in the surrounding prose, or the agent has two sources of truth and will pick the wrong one
+- **Interfaces and decisions produced by earlier tasks** in this batch that this task must match
+- **Ambiguities already resolved with the user**, as rulings — so the agent does not re-litigate them
+- **Where to report** — the file path or response format the result must land in
+
+❌ Never dispatch with "continue what we were doing" or a reference to earlier conversation.
+❌ Never let the agent infer an exact value it could get wrong; if it matters, write it down.
+
+## Handling Sub-Agent Outcomes
+
+Require every dispatch to close with one of four statuses, and handle each differently:
+
+| Status | Meaning | What to do |
+| --- | --- | --- |
+| `DONE` | Work complete | Review it (below) before starting the next task |
+| `DONE_WITH_CONCERNS` | Complete, but the agent flagged doubts | Read the concerns. Correctness doubts: resolve before review. Observational: record and proceed |
+| `NEEDS_CONTEXT` | Missing information it could not obtain | Supply the missing context, then re-dispatch |
+| `BLOCKED` | Cannot complete | Classify the blocker — missing context, wrong worker tier, scope too large, or a defective task — and fix that cause |
+
+❌ Never re-dispatch an unchanged prompt after a failure. A retry with no change is a guess.
+❌ Never silently absorb a `BLOCKED` result into your own work; report it.
+
+## Review Each Task Before Starting the Next
+
+Review the diff the task produced, not the whole tree. Run two stages, in this order:
+
+1. **Spec compliance** — does the result do what the brief asked, with nothing missing and nothing extra? Check against the brief, not against your memory of the request.
+2. **Quality** — tests, existing patterns, maintainability. Dispatch the *Code Reviewer* agent for code changes.
+
+Stage 1 first: quality feedback on work that solves the wrong problem is wasted.
+
+After the last task, run **one review across the whole batch** — cross-task inconsistencies are invisible to per-task reviews.
+
+### Fix rounds are capped
+
+Cap fix rounds at **five per task**:
+
+- Rounds 1–3: send the open findings back to the same executor
+- Rounds 4–5: dispatch a fresh *Executor (Broad)* with the findings and the original brief
+
+At the cap, rule explicitly on every finding still open:
+
+- **Reviewer is wrong or the point is contestable** → record why the current result stands
+- **Real but not blocking** → record it as deferred, with the follow-up
+- **Real and load-bearing** → stop the batch and report to the user
+
+❌ Never discard a finding without a written ruling.
+❌ Never continue past the cap hoping the next round converges.
+
 ## Conversational Agents as Subagents
 
 `mcp_runSubagent` is **single-shot** — the agent receives one prompt and returns one response. It cannot ask the user follow-up questions.
@@ -95,6 +156,7 @@ TODO lists go stale. Before executing:
 
 ## After Execution
 
-- Update the TODO / tracking file to reflect completed items immediately
+- Update the TODO / tracking file **as each task closes**, not once at the end — a long batch will outlive the context window, and the tracking file is what survives compaction. Trust it over session memory when the two disagree
+- Record deferred and overruled findings in the tracking file alongside the completed items, with the ruling
 - Report what was done, what was skipped, and any follow-ups required
 - Do not create separate summary markdown files unless explicitly requested

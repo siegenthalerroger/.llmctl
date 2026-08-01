@@ -4,8 +4,10 @@ description: "Configuration standards for Kubernetes manifests: resource naming,
 metadata:
   provenance:
     adaptedFrom:
-      - "https://github.com/github/awesome-copilot/blob/main/instructions/kubernetes-deployment-best-practices.instructions.md"
-      - "https://github.com/github/awesome-copilot/blob/main/instructions/kubernetes-manifests.instructions.md"
+      - url: "https://github.com/github/awesome-copilot/blob/main/instructions/kubernetes-deployment-best-practices.instructions.md"
+        took: "Inspiration only. The topic coverage — labels and metadata, security context, probes, resource requests."
+      - url: "https://github.com/github/awesome-copilot/blob/main/instructions/kubernetes-manifests.instructions.md"
+        took: "Inspiration only. The manifest-authoring framing."
 ---
 
 # Kubernetes Standards and Patterns

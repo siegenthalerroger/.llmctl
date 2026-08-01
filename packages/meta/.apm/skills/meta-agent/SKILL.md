@@ -4,7 +4,9 @@ description: "Guidelines for authoring, reviewing, and hardening custom agent/su
 license: "MIT"
 metadata:
   provenance:
-    adaptedFrom: "https://github.com/github/awesome-copilot/blob/main/instructions/agents.instructions.md"
+    adaptedFrom:
+      - url: "https://github.com/github/awesome-copilot/blob/main/instructions/agents.instructions.md"
+        took: "Structural echo only. The shape of a checklist-driven agent-authoring guide."
     authoritativeSpec:
       - "https://code.visualstudio.com/docs/agent-customization/custom-agents"
       - "https://code.claude.com/docs/en/sub-agents"
@@ -158,7 +160,7 @@ Prefer fields documented by the target client, and label platform-specific examp
 **Provenance metadata convention (recommended across all customization files):**
 
 - **`metadata.provenance.mirror`** (string): Canonical upstream URL for files that are exact copies
-- **`metadata.provenance.adaptedFrom`** (string or array): URL or list of URLs when this file is a local adaptation/fork of upstream sources
+- **`metadata.provenance.adaptedFrom`** (string, array of URLs, or array of `url`/`took` objects): where a local adaptation came from. String/array = the whole file derives from those upstreams; `url` + `took` = a partial adaptation, where `took` is a fidelity label plus what was taken (never what was not)
 - **`metadata.provenance.authoritativeSpec`** (array): URLs of authoritative specifications that define the file format or behavioral contract (informational only, not tracked for drift)
 
 Use this same convention for prompt, instruction, skill, and agent frontmatter to keep source tracking consistent.

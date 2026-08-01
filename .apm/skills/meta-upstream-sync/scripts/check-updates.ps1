@@ -137,6 +137,66 @@ function Get-FrontmatterBlock {
     return ""
 }
 
+function Get-AdaptedEntriesFromFrontmatter {
+    <#
+      Parse `metadata.provenance.adaptedFrom` into url/took pairs.
+
+      Three accepted forms:
+        adaptedFrom: "https://..."                          whole file, one upstream
+        adaptedFrom:
+          - "https://..."                                   whole file, several upstreams
+        adaptedFrom:
+          - url: "https://..."                              partial adaptation
+            took: "what was taken; what was not"
+
+      `took` is single-line only (block scalars are not parsed) and is optional —
+      its absence means the whole file derives from that upstream.
+
+      Line-based rather than one regex: the object form nests, and a regex that
+      tries to span it silently matches nothing, which drops the file from the
+      audit without an error.
+    #>
+    param([string]$Frontmatter)
+
+    $entries = New-Object System.Collections.Generic.List[object]
+    $lines = $Frontmatter -split '\r?\n'
+    $keyIndent = -1
+
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        $line = $lines[$i]
+
+        if ($keyIndent -lt 0) {
+            if ($line -match '^(?<indent>[ \t]*)adaptedFrom[ \t]*:[ \t]*(?<inline>.*)$') {
+                $keyIndent = $Matches.indent.Length
+                $inline = $Matches.inline.Trim()
+                if ($inline -match '^["'']?(?<url>https?://[^"''\s]+?)["'']?$') {
+                    $entries.Add([pscustomobject]@{ url = $Matches.url; took = '' })
+                    return $entries
+                }
+            }
+            continue
+        }
+
+        if ($line.Trim() -eq '') { continue }
+
+        # The block ends at the first line indented no deeper than the key itself.
+        $indent = ($line -replace '^([ \t]*).*$', '$1').Length
+        if ($indent -le $keyIndent) { break }
+
+        if ($line -match '^[ \t]*-[ \t]*url[ \t]*:[ \t]*["'']?(?<url>https?://[^"''\s]+?)["'']?[ \t]*$') {
+            $entries.Add([pscustomobject]@{ url = $Matches.url; took = '' })
+        }
+        elseif ($line -match '^[ \t]*-[ \t]*["'']?(?<url>https?://[^"''\s]+?)["'']?[ \t]*$') {
+            $entries.Add([pscustomobject]@{ url = $Matches.url; took = '' })
+        }
+        elseif ($line -match '^[ \t]*took[ \t]*:[ \t]*(?<took>.+?)[ \t]*$' -and $entries.Count -gt 0) {
+            $entries[$entries.Count - 1].took = ($Matches.took.Trim() -replace '^["'']', '' -replace '["'']$', '')
+        }
+    }
+
+    return $entries
+}
+
 function Get-TrackEntriesFromFile {
     param(
         [string]$Repo,
@@ -157,31 +217,19 @@ function Get-TrackEntriesFromFile {
         $sourceUrl = $Matches.url.Trim()
     }
 
-    # Collect metadata.provenance.adaptedFrom (single URL or YAML array => adapted)
-    $adaptedUrls = New-Object System.Collections.Generic.List[string]
-
-    # Match YAML array form:  adaptedFrom:\n    - "url1"\n    - "url2"
-    if ($frontmatter -match '(?ms)^\s*adaptedFrom\s*:[ \t]*\r?\n(?<block>(?:[ \t]+-[ \t]*["'']?https?://[^"''\r\n]+["'']?[ \t]*\r?\n?)+)') {
-        $block = $Matches.block
-        $arrayMatches = [regex]::Matches($block, '(?m)-\s*["'']?(?<url>https?://[^"''\r\n]+?)["'']?\s*$')
-        foreach ($m in $arrayMatches) {
-            $adaptedUrls.Add($m.Groups['url'].Value.Trim())
-        }
-    }
-    # Match single-value form:  adaptedFrom: "url"
-    elseif ($frontmatter -match '(?m)^\s*adaptedFrom\s*:\s*["'']?(?<url>https?://[^"''\r\n]+)') {
-        $adaptedUrls.Add($Matches.url.Trim())
-    }
+    # Collect metadata.provenance.adaptedFrom (string, array, or url/took objects)
+    $adapted = Get-AdaptedEntriesFromFrontmatter -Frontmatter $frontmatter
 
     $entries = New-Object System.Collections.Generic.List[object]
 
     # Adapted entries (one per upstream URL)
-    foreach ($url in $adaptedUrls) {
+    foreach ($a in $adapted) {
         $entries.Add([pscustomobject]@{
             id        = $relativePath
             mode      = 'adapted'
             localPath = $relativePath
-            sourceUrl = $url
+            sourceUrl = $a.url
+            took      = $a.took
         })
     }
 
@@ -192,6 +240,7 @@ function Get-TrackEntriesFromFile {
             mode      = 'mirror'
             localPath = $relativePath
             sourceUrl = $sourceUrl
+            took      = ''
         })
     }
 
@@ -435,6 +484,7 @@ foreach ($item in $trackedEntries) {
                 localPath       = $item.localPath
                 mode            = $item.mode
                 sourceUrl       = $item.sourceUrl
+                took            = $item.took
                 status          = 'missing_local_commit'
                 recommendation  = 'commit_local_file_first'
                 recommendUpdate = $false
@@ -462,6 +512,7 @@ foreach ($item in $trackedEntries) {
                 localPath       = $item.localPath
                 mode            = $item.mode
                 sourceUrl       = $item.sourceUrl
+                took            = $item.took
                 status          = 'fetch_failed'
                 recommendation  = 'check_source_url'
                 recommendUpdate = $false
@@ -480,6 +531,7 @@ foreach ($item in $trackedEntries) {
             localPath       = $item.localPath
             mode            = $item.mode
             sourceUrl       = $item.sourceUrl
+            took            = $item.took
             status          = 'update_available'
             recommendation  = $bootstrapRecommendation
             recommendUpdate = $true
@@ -508,6 +560,7 @@ foreach ($item in $trackedEntries) {
             localPath       = $item.localPath
             mode            = $item.mode
             sourceUrl       = $item.sourceUrl
+            took            = $item.took
             status          = 'fetch_failed'
             recommendation  = 'check_source_url'
             recommendUpdate = $false
@@ -563,6 +616,7 @@ foreach ($item in $trackedEntries) {
         localPath       = $item.localPath
         mode            = $item.mode
         sourceUrl       = $item.sourceUrl
+        took            = $item.took
         status          = $status
         recommendation  = $recommendation
         recommendUpdate = $recommendUpdate
