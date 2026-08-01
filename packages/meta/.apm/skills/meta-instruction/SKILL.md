@@ -4,6 +4,9 @@ description: "Guidelines for authoring instruction files (.instructions.md, alwa
 license: ""
 metadata:
   provenance:
+    adaptedFrom:
+      - url: "https://github.com/netresearch/agent-rules-skill/blob/main/skills/agent-rules/SKILL.md"
+        took: "Partly derived. The Detect/Extract/Draft/Verify bootstrap loop, the root-as-thin-index plus scoped-children model with explicit precedence, the root-file section skeleton, the generate-vs-curate split, and the run-the-command and exact-path verification rules."
     authoritativeSpec:
       - "https://code.visualstudio.com/docs/agent-customization/custom-instructions"
       - "https://code.claude.com/docs/en/memory"
@@ -138,7 +141,7 @@ license: ""
 For cross-file provenance consistency, instruction frontmatter may also include:
 
 - `metadata.provenance.mirror` (optional): Canonical upstream URL for exact copies
-- `metadata.provenance.adaptedFrom` (optional): URL (string) or list of URLs (array) when adapted/synthesised from upstream sources
+- `metadata.provenance.adaptedFrom` (optional): URL string or array when the whole file is adapted/synthesised from upstream; an array of `url`/`took` objects when only part of the upstream was taken, with `took` giving a fidelity label plus what was taken
 
 Use the same `metadata.provenance` convention for prompt, instruction, skill, and agent files.
 
@@ -175,6 +178,32 @@ paths: ["tests/**/*.test.{js,ts}"]
 - Use `{ext1,ext2}` for multiple extensions
 - Keep `applyTo` and `paths` semantically aligned when both are present
 - Test patterns match intended files
+
+### Scoping by Directory
+
+Glob scoping (`applyTo` / `paths`) is one axis. The other is **file placement**: a root context file plus scoped context files in subdirectories that have genuinely different conventions.
+
+- Keep the root file thin and make it the **index** — it is auto-loaded into every session and each line is budget never reclaimed
+- Push depth into scoped files; they load on demand and can afford detail the root cannot
+- Create a scoped file only where a directory's conventions actually differ (different language, test runner, or boundaries). An empty scoped file is pure overhead
+- **State precedence explicitly** in the root file's scope index — which child covers what, and which wins on conflict. Harness merge behaviour differs (Codex resolves by proximity to the working directory; others do not), so never leave precedence implicit
+- Where a scoped file intentionally overrides a root rule, say so in the scoped file rather than relying on ordering
+
+## Bootstrapping a Repository That Has No Instructions
+
+Writing a repository's first instruction file is a different job from editing an existing one, and it fails in a specific way: drafting from impressions rather than from what the repository already declares.
+
+Work **Detect → Extract → Draft → Verify**, in that order:
+
+1. **Detect** the stack, workspace layout, and quality gates from manifests, lockfiles, linter config, and CI workflows — what CI *runs* is the real standard
+2. **Extract** commands, thresholds, and architectural boundaries as literal values from those machine-readable sources, not from prose describing them
+3. **Draft** only the residue that a senior engineer who knows the stack could not derive from the code
+4. **Verify** before shipping — **run** every documented command, match every documented path exactly, and re-derive every number from its config
+
+❌ Never document a command without running it: an instruction naming a target that does not exist costs more tokens than it saves, because the agent tries it and then debugs a phantom.
+❌ Never trust an existing instruction file's claims when updating it — extract current state, compare, fix the discrepancies. Refreshing dates and counts is not verification.
+
+Full procedure, root-file section skeleton, generate-vs-curate split, and directory-coverage guidance: [`references/bootstrapping.md`](references/bootstrapping.md).
 
 ## Authority and Conflict Boundaries
 
@@ -451,6 +480,9 @@ Most gains come from clearer rules, examples, and rationale rather than model-sp
 
 ## Additional Resources
 
+- [`references/bootstrapping.md`](references/bootstrapping.md) — producing a repository's first root and scoped context files
+- [agents.md convention](https://agents.md/)
+- [netresearch/agent-rules-skill](https://github.com/netresearch/agent-rules-skill) — script-driven AGENTS.md generator; source for the bootstrap procedure above
 - [Custom Instructions Documentation](https://code.visualstudio.com/docs/agent-customization/custom-instructions)
 - [Memory and Root Context Files](https://code.claude.com/docs/en/memory)
 - [Awesome Copilot Instructions Collection](https://github.com/github/awesome-copilot/tree/main/instructions)
