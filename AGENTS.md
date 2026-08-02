@@ -25,8 +25,20 @@ This is a quick reference, see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed d
 - **Prompts:** one slash-command per file. Keep the body concise.
 - **Hooks:** deterministic, event-driven guardrails/side-effects only — not behavioral steering. Prefer cross-platform (Python/Node) scripts. Name definition files `*.hook.json`.
 - **Plugins:** bundled distribution of multiple components. Add only when shipping a curated subset for marketplace/external use.
-- **Provenance:** track upstream sources via `metadata.provenance.{mirror,adaptedFrom,authoritativeSpec}` — prefer APM dependencies over vendored copies.
+- **Provenance:** track upstream sources via `metadata.provenance.{adaptedFrom,authoritativeSpec}` — prefer APM dependencies over vendored copies. On the object form, `license` (upstream SPDX id) and `fidelity` (`inspiration-only`/`structural-echo`/`partly-derived`/`largely-derived`) are required wherever expression was copied; `took` records only what was taken.
+- **Licensing:** `*.md` is CC-BY-SA-4.0, everything else MIT — see [LICENSE](LICENSE). A file adapting an upstream whose terms the default cannot satisfy declares a top-level `license:` in its frontmatter. Run `apm run check-licenses` after touching provenance or adding a dependency.
+
+## Commits
+
+Conventional — the type sizes the release bump, so it is not decoration:
+
+```text
+<type>(<scope>): <description>
+```
+
+`type` ∈ `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`; `!` before the colon marks a breaking change. `scope` is the package (`core`, `meta`, `ops`, `product`, `workflow`) or, outside `packages/`, the area (`scripts`, `docs`, `ci`). Which package a commit releases comes from the paths it touched; a scope that disagrees with those paths is reported by `release.py`. See [CONTRIBUTING.md](CONTRIBUTING.md#commit-convention).
 
 ## Do not do
 
 - Don't ignore the conventions defined in this repository, see [CONTRIBUTING.md](CONTRIBUTING.md)
+- Don't hand-edit generated files: anything under the marketplace repo's `plugins/`, either `marketplace.json`, or `THIRD-PARTY-NOTICES.md`. Regenerate instead.

@@ -20,8 +20,86 @@
 - **Scope each MCP server to the package whose work needs it.** Universal dev servers (`github`, `context7`) live in `packages/core/apm.yml`; domain servers live in their domain package (cloud/IaC doc servers in `packages/ops/apm.yml`). A server loads only where its package is installed, so keep global tool surface minimal.
 - **Consume upstream content as a pinned `dependencies.apm` entry, never a vendored copy** (see the APM-first rule below). Use the git subdir form to take a single skill out of a larger repo — `owner/repo/path/to/skill#<sha>` — and always pin a commit or tag; an unpinned entry tracks the default branch and drifts. Scope the dependency to the package whose work needs it, exactly like MCP servers, and record in a comment why that upstream was chosen and what was deliberately left behind. Bump with `apm outdated` → `apm update --dry-run` → `apm update -y`.
 - **The marketplace is a separate repository.** Manifests and packed plugin bundles live in [`.llmctl-marketplace`](https://github.com/siegenthalerroger/.llmctl-marketplace), not here. A plugin host (claude.ai Cowork, Claude Desktop/Code) clones the marketplace repo and reads each `packages[].source` path *as committed* — it never runs `apm install` — so any package carrying APM dependencies has to be published as a bundle with those skills already vendored into it. Keeping that generated output out of this repo is the point of the split; `apm pack` also refuses to write a manifest across a `..` boundary, which rules out generating it here.
-- **Publish with `python scripts/pack-marketplace.py`** (or `apm run pack-marketplace`). It runs `apm install` + `apm pack -o <marketplace>/plugins` for every package, cleans the transient deploy output back out of the package directory, prunes superseded bundles, syncs each `source:`/`version:` in the marketplace `apm.yml`, and regenerates both manifests there. Point it elsewhere with `--marketplace PATH` or `LLMCTL_MARKETPLACE_DIR`. Never hand-edit anything under `plugins/` or either `marketplace.json`. Keep every package at the same version (`lockstep`).
+- **Publish with `python scripts/release.py`** (or `apm run release`), which derives each package's version bump from its commits and then calls `scripts/pack-marketplace.py`. The packing script runs `apm install` + `apm pack -o <marketplace>/plugins` for every package, cleans the transient deploy output back out of the package directory, prunes superseded bundles, propagates the licence files, syncs each `source:`/`version:` in the marketplace `apm.yml`, and regenerates both manifests there. Point it elsewhere with `--marketplace PATH` or `LLMCTL_MARKETPLACE_DIR`. Never hand-edit anything under `plugins/`, either `marketplace.json`, or `THIRD-PARTY-NOTICES.md` — all four are generated. **Packages version independently** (`per_package`); see [Releasing](#releasing).
 - **The plugin path is reduced-fidelity; `apm install` remains the full deploy.** Treat **skills** and **commands** (prompts) as the only primitives you can rely on reaching a marketplace consumer. APM 0.26 does pack `agents/`, `instructions/`, and `.mcp.json` into the bundle, but whether a given host loads them is version-dependent and unverified — and packed MCP entries lose their `headers` (so an API-keyed server will not authenticate). Use `apm install` where those primitives matter. The marketplace also does not reach claude.ai Chat or hosted ChatGPT.
+
+## Content Strategy: APM-First
+
+APM is the primary mechanism for consuming upstream content. Prefer declaring upstream packages in `apm.yml` and installing them into the git-ignored `apm_modules/` directory. Only create local copies when upstream content cannot be managed by APM.
+
+| Category | When to use | Provenance field | Storage / update |
+|---|---:|---|---|
+| APM dependency (default) | Upstream package available as APM | none required (declare in `apm.yml`) | Installed to `apm_modules/` (git-ignored). Update with `apm install -g` |
+| Adapted / synthesised (local) | Any local copy of upstream material, from a light borrowing to a near-verbatim carry-over — only if APM cannot manage it | `metadata.provenance.adaptedFrom` | Tracked by `meta-upstream-sync` for drift detection; file lives in repo |
+
+### APM dependency (default)
+
+- Default for any content available from an APM-compatible upstream source.
+- To add: declare the package in `apm.yml` and run `apm install -g`.
+- Installed into `apm_modules/` (git-ignored). No `metadata.provenance` tracking is required for pure APM dependencies.
+- Do NOT vendor upstream content by copying files into this repository.
+
+### Adapted / synthesised (local)
+
+- Use whenever anything at all was taken from an upstream file that APM cannot manage — whether the local file restructures the material for local conventions, synthesises several sources, or carries most of one upstream across near-verbatim.
+- Add `metadata.provenance.adaptedFrom` listing upstream sources, and set each entry's `fidelity` to say how much was taken. These files are tracked by `meta-upstream-sync` for drift and merge-review workflows.
+- Before adding one, verify the upstream isn't available as an APM package.
+
+Local-only skills (not available upstream) remain directly in this repository.
+
+## Cross-Tool Compatibility
+
+### Agents (`*.agent.md`)
+
+Both VS Code Copilot and Claude Code use markdown files with YAML frontmatter for agent definitions. Each tool safely ignores frontmatter fields it doesn't recognize, so a single file can work for both.
+
+- **Shared fields:** `name`, `description`, and the markdown body (system prompt) are fully compatible.
+- **Tools:** Copilot and Claude Code have different tool ecosystems. **Omit `tools:`; scope Claude Code via the Claude-only `disallowedTools` denylist.** A Copilot `tools:` array does **not** fall back to inherit-all on Claude Code — Claude parses it as a strict allowlist and refuses to spawn the agent when no entry resolves. APM copies agent frontmatter verbatim to every target, so a shared file cannot carry a Copilot allowlist. See the [meta-agent skill "Tools field"](packages/meta/.apm/skills/meta-agent/SKILL.md#tools-field).
+- **Model:** the active `model:` is a single Claude Code value (alias / full ID / `inherit`) resolved from `metadata.modelProfile`, alongside a Claude-Code `effort:` value; the multi-provider ranking lives in a non-functional comment. Copilot does not recognize the alias and is expected to fall back to its default model.
+- **Extra fields:** Each tool safely ignores the other's unique fields.
+
+See the [meta-agent skill](packages/meta/.apm/skills/meta-agent/SKILL.md) for full cross-tool compatibility documentation.
+
+### Skills (`*/SKILL.md`)
+
+Both tools support skill discovery from user-level directories. The [Agent Skills](https://agentskills.io/) standard (`SKILL.md` + folder structure) is shared — no format changes are needed.
+
+- **Discovery:** Copilot uses `chat.agentSkillsLocations` in VS Code settings. Claude Code discovers skills from `~/.claude/skills/`.
+- **Frontmatter:** Both tools read `name` and `description` for discovery. Unknown fields are ignored.
+- **References:** Relative paths to reference files (e.g., `references/*.md`) work in both tools since the folder structure is preserved via symlink.
+- **Descriptions:** follow the directive, naming-first shape defined in the [meta-skill skill](packages/meta/.apm/skills/meta-skill/SKILL.md). Four distinct char budgets govern different surfaces (1024 per-field / 1536 combined discovery / 15k Claude Code total / 8k Codex aggregate) — see meta-skill rather than duplicating the detail here.
+
+### Instructions (`*.instructions.md`)
+
+Copilot calls these "Instructions" and Claude Code calls them "Rules" — both auto-load behavioral guidelines when matching file patterns are referenced. Each tool uses a different frontmatter key for path-scoping, but both safely ignore unknown keys, so a single file works for both.
+
+- **Shared fields:** `name`, `description`, and the markdown body are fully compatible.
+- **Path-scoping:** Copilot uses `applyTo` (string or array); Claude Code uses `paths` (array of strings). Include both in the frontmatter with `# Copilot` / `# Claude Code` comments.
+- **Discovery:** Copilot uses `chat.instructionsFilesLocations` in VS Code settings. Claude Code discovers rules from `~/.claude/rules/`.
+
+### Prompts (`*.prompt.md`)
+
+VSCode Prompts map to Claude Code Commands (`.claude/commands/`) — both create user-invocable slash commands. Commands are superseded by Skills in Claude Code; this mapping is for basic compatibility only.
+
+### Hooks (`*.hook.json`)
+
+Standalone hook definition files use the `*.hook.json` extension — a repository naming convention analogous to `*.agent.md` / `*.prompt.md` / `*.instructions.md`. It is a strict subset of `*.json`, so it does not change how any harness discovers hooks:
+
+- **VS Code Copilot** loads all `*.json` in a configured hook folder (`chat.hookFilesLocations`, and the `.github/hooks/*.json` default), so `*.hook.json` is discovered normally.
+- **Claude Code** reads hooks from `settings.json`, not by scanning a `hooks/` directory, so the source filename is irrelevant to it.
+- **APM** discovers hook primitives by glob (not a fixed filename) and rewrites them into each target's native location on deploy.
+
+The fixed names `hooks.json` / `hooks/hooks.json` apply only inside **plugin** bundles, not to standalone hook files.
+
+**Author one canonical hook, let APM transform it.** Write hooks in APM's canonical (Claude-Code-style) schema — a top-level `hooks` object keyed by lifecycle event, each entry carrying a `matcher` and a `hooks` array of `{ "type": "command", ... }`:
+
+```json
+{ "hooks": { "PostToolUse": [ { "matcher": "Edit|Write", "hooks": [ { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/.apm/hooks/<script>\"", "timeout": 15 } ] } ] } }
+```
+
+APM is target-aware and reconciles event names, matchers, and paths per harness on deploy, so do **not** hand-maintain per-target variants. Use the portable `${CLAUDE_PLUGIN_ROOT}` root token (recognized by Claude and by Claude-compatible VS Code plugins) rather than a harness-specific token like `${workspaceFolder}`. APM hook support is still maturing — verify the deployed result with `apm install -g` before relying on it.
+
+**Do not commit machine-generated hook wiring.** APM deploys hooks into each target's native location (e.g. `~/.claude/settings.json` at user scope). Personal or machine-generated Claude settings belong in `.claude/settings.local.json`, which is git-ignored; `.claude/settings.json` is left free for intentional, shared project settings should you ever want them committed.
 
 ## Repository Frontmatter Provenance Convention
 
@@ -32,39 +110,48 @@ Provenance fields are grouped under `metadata.provenance` in YAML frontmatter:
 ```yaml
 metadata:
   provenance:
-    mirror: "https://example.com/canonical/upstream"           # single string — exact copy
-    adaptedFrom:                                               # array — synthesised from
+    adaptedFrom:                                               # string, or array — synthesised from
       - "https://github.com/org-a/repo/blob/main/skill.md"
-      - url: "https://github.com/org-b/repo/blob/main/skill.md"   # partial adaptation
-        took: "Inspiration only. The severity-tiering concept."
+      - url: "https://github.com/org-b/repo/blob/main/skill.md"   # scoped adaptation
+        license: MIT                                              # SPDX id of the upstream
+        fidelity: inspiration-only                                # obligation level
+        took: "The severity-tiering concept."
     authoritativeSpec:                                          # array — format specifications
       - "https://code.visualstudio.com/docs/copilot/customization/custom-agents"
       - "https://code.claude.com/docs/en/sub-agents"
 ```
 
-- `metadata.provenance.mirror` (string): Canonical upstream URL for files that are exact copies. Tracked by the update script as `mirror` mode (replace from upstream).
-- `metadata.provenance.adaptedFrom` (string, array of URLs, or array of `url`/`took` objects): where local content was adapted/synthesised from. Tracked by the update script as `adapted` mode (merge review).
-- `metadata.provenance.authoritativeSpec` (array): URLs of authoritative specifications that define the file format, frontmatter schema, or behavioral contract. Informational only — not tracked for content drift.
+- `metadata.provenance.adaptedFrom` (string, array of URLs, or array of objects): where local content was adapted/synthesised from. Tracked by the update script for content drift, which recommends a merge review against upstream.
+- `metadata.provenance.authoritativeSpec` (array): authoritative specifications that define the file format, frontmatter schema, or behavioral contract. Not tracked for content drift. A bare URL string means **cited only, nothing reproduced**, and carries no obligation; if a reference file reproduces a spec's wording or tables, switch that entry to the object form so the licence is recorded. Vendor documentation sites generally grant no reuse rights at all, so there the fix is rewriting, not attribution.
 
-`adaptedFrom` takes precedence when both `mirror` and `adaptedFrom` exist.
+#### Scoping an adaptation with `fidelity` and `took`
 
-#### Scoping an adaptation with `took`
+A bare URL means **the whole file** derives from that upstream. Prefer the object form, which scopes the adaptation and records the terms it arrives under, so a drift review can be closed without opening the upstream diff: if the upstream change touches nothing on the list, there is nothing to merge.
 
-A bare URL means **the whole file** derives from that upstream. Add `took` only when part of it did, so a drift review can be closed without opening the upstream diff: if the upstream change touches nothing on the list, there is nothing to merge.
+`fidelity` is the obligation level:
 
-Shape is **a fidelity label, then what was taken** — `Inspiration only.` / `Structural echo only.` / `Partly derived.` / `Largely derived.`
+| Value | Meaning | Upstream terms attach? |
+| --- | --- | --- |
+| `inspiration-only` | an idea or approach, no expression | no |
+| `structural-echo` | the shape or section skeleton | no |
+| `partly-derived` | some passages carried over | **yes** |
+| `largely-derived` | most of the file, up to a near-verbatim copy | **yes** |
 
-Three rules keep it from rotting:
+Absent means whole-file derivation, treated as `largely-derived`.
+
+`license` is the SPDX id of the **upstream**, not of this file — `NONE` when the upstream has no LICENSE file, which grants no rights at all and is only safe at `inspiration-only`. It is required wherever `fidelity` implies an obligation, because it decides what the local file may be licensed under. [scripts/check-licenses.py](scripts/check-licenses.py) enforces this; see [Licensing](#licensing) below.
+
+`took` then records **what was taken**, and nothing else. Three rules keep it from rotting:
 
 - **Never record what was *not* taken** (or what is original locally). That is an open set — upstream can add sections indefinitely, so the list is wrong the moment upstream grows, and no local change ever triggers a refresh. What *was* taken is bounded by the local file, so it only goes stale when someone is already editing that file.
-- **Never record measurements** (line-overlap percentages, sizes, counts). Both sides move; the label carries the same signal durably. Keep numbers in the commit or the TODO item that motivated them.
-- **Never overload it.** `took` records what was taken — nothing else. Licensing problems belong in the TODO's licensing item. The one exception: a short note on why the URL is *not* a line-for-line comparison base (upstream moved or restructured the adapted path) belongs, because it changes how the next reviewer reads the diff.
+- **Never record measurements** (line-overlap percentages, sizes, counts). Both sides move; `fidelity` carries the same signal durably. Keep numbers in the commit or the TODO item that motivated them.
+- **Never overload it.** `took` records what was taken — nothing else. Licensing belongs in the sibling `license:` field, and the obligation level in `fidelity:`. The one exception: a short note on why the URL is *not* a line-for-line comparison base (upstream moved or restructured the adapted path) belongs, because it changes how the next reviewer reads the diff.
 
 Full rules and parser behaviour: [source-url-reference.md](.apm/skills/meta-upstream-sync/references/source-url-reference.md).
 
 This is a **repository convention**, not a universal standard.
 
-> **APM-first rule:** If upstream content is available as an APM package, consume it as a dependency in `apm.yml` rather than copying it locally. Use `adaptedFrom` or `mirror` only for content that cannot be APM-managed.
+> **APM-first rule:** If upstream content is available as an APM package, consume it as a dependency in `apm.yml` rather than copying it locally. Use `adaptedFrom` only for content that cannot be APM-managed.
 
 ### Portable vs. private frontmatter in SKILL.md
 
@@ -137,96 +224,6 @@ Authoritative sources are maintained in the `meta-update-models` skill frontmatt
 
 > **Note:** The active `model:` value is a single alias (or full ID / `inherit`) read by Claude Code — the primary harness. VS Code Copilot's `model:` expects provider-suffixed display strings, so the alias is not a valid Copilot model; Copilot is the secondary harness here and is expected to fall back to its default model. The multi-provider ranking is kept only as a **non-functional comment** — no harness reads it. `metadata.modelProfile` is a local repository convention, ignored by all tools.
 
-## Cross-Tool Compatibility
-
-### Agents (`*.agent.md`)
-
-Both VS Code Copilot and Claude Code use markdown files with YAML frontmatter for agent definitions. Each tool safely ignores frontmatter fields it doesn't recognize, so a single file can work for both.
-
-- **Shared fields:** `name`, `description`, and the markdown body (system prompt) are fully compatible.
-- **Tools:** Copilot and Claude Code have different tool ecosystems. **Omit `tools:`; scope Claude Code via the Claude-only `disallowedTools` denylist.** A Copilot `tools:` array does **not** fall back to inherit-all on Claude Code — Claude parses it as a strict allowlist and refuses to spawn the agent when no entry resolves. APM copies agent frontmatter verbatim to every target, so a shared file cannot carry a Copilot allowlist. See the [meta-agent skill "Tools field"](packages/meta/.apm/skills/meta-agent/SKILL.md#tools-field).
-- **Model:** the active `model:` is a single Claude Code value (alias / full ID / `inherit`) resolved from `metadata.modelProfile`, alongside a Claude-Code `effort:` value; the multi-provider ranking lives in a non-functional comment. Copilot does not recognize the alias and is expected to fall back to its default model.
-- **Extra fields:** Each tool safely ignores the other's unique fields.
-
-See the [meta-agent skill](packages/meta/.apm/skills/meta-agent/SKILL.md) for full cross-tool compatibility documentation.
-
-### Skills (`*/SKILL.md`)
-
-Both tools support skill discovery from user-level directories. The [Agent Skills](https://agentskills.io/) standard (`SKILL.md` + folder structure) is shared — no format changes are needed.
-
-- **Discovery:** Copilot uses `chat.agentSkillsLocations` in VS Code settings. Claude Code discovers skills from `~/.claude/skills/`.
-- **Frontmatter:** Both tools read `name` and `description` for discovery. Unknown fields are ignored.
-- **References:** Relative paths to reference files (e.g., `references/*.md`) work in both tools since the folder structure is preserved via symlink.
-- **Descriptions:** follow the directive, naming-first shape defined in the [meta-skill skill](packages/meta/.apm/skills/meta-skill/SKILL.md). Four distinct char budgets govern different surfaces (1024 per-field / 1536 combined discovery / 15k Claude Code total / 8k Codex aggregate) — see meta-skill rather than duplicating the detail here.
-
-### Instructions (`*.instructions.md`)
-
-Copilot calls these "Instructions" and Claude Code calls them "Rules" — both auto-load behavioral guidelines when matching file patterns are referenced. Each tool uses a different frontmatter key for path-scoping, but both safely ignore unknown keys, so a single file works for both.
-
-- **Shared fields:** `name`, `description`, and the markdown body are fully compatible.
-- **Path-scoping:** Copilot uses `applyTo` (string or array); Claude Code uses `paths` (array of strings). Include both in the frontmatter with `# Copilot` / `# Claude Code` comments.
-- **Discovery:** Copilot uses `chat.instructionsFilesLocations` in VS Code settings. Claude Code discovers rules from `~/.claude/rules/`.
-
-### Prompts (`*.prompt.md`)
-
-VSCode Prompts map to Claude Code Commands (`.claude/commands/`) — both create user-invocable slash commands. Commands are superseded by Skills in Claude Code; this mapping is for basic compatibility only.
-
-### Hooks (`*.hook.json`)
-
-Standalone hook definition files use the `*.hook.json` extension — a repository naming convention analogous to `*.agent.md` / `*.prompt.md` / `*.instructions.md`. It is a strict subset of `*.json`, so it does not change how any harness discovers hooks:
-
-- **VS Code Copilot** loads all `*.json` in a configured hook folder (`chat.hookFilesLocations`, and the `.github/hooks/*.json` default), so `*.hook.json` is discovered normally.
-- **Claude Code** reads hooks from `settings.json`, not by scanning a `hooks/` directory, so the source filename is irrelevant to it.
-- **APM** discovers hook primitives by glob (not a fixed filename) and rewrites them into each target's native location on deploy.
-
-The fixed names `hooks.json` / `hooks/hooks.json` apply only inside **plugin** bundles, not to standalone hook files.
-
-**Author one canonical hook, let APM transform it.** Write hooks in APM's canonical (Claude-Code-style) schema — a top-level `hooks` object keyed by lifecycle event, each entry carrying a `matcher` and a `hooks` array of `{ "type": "command", ... }`:
-
-```json
-{ "hooks": { "PostToolUse": [ { "matcher": "Edit|Write", "hooks": [ { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/.apm/hooks/<script>\"", "timeout": 15 } ] } ] } }
-```
-
-APM is target-aware and reconciles event names, matchers, and paths per harness on deploy, so do **not** hand-maintain per-target variants. Use the portable `${CLAUDE_PLUGIN_ROOT}` root token (recognized by Claude and by Claude-compatible VS Code plugins) rather than a harness-specific token like `${workspaceFolder}`. APM hook support is still maturing — verify the deployed result with `apm install -g` before relying on it.
-
-**Do not commit machine-generated hook wiring.** APM deploys hooks into each target's native location (e.g. `~/.claude/settings.json` at user scope). Personal or machine-generated Claude settings belong in `.claude/settings.local.json`, which is git-ignored; `.claude/settings.json` is left free for intentional, shared project settings should you ever want them committed.
-
-## Deprecated Fields
-
-### `infer:` (agent frontmatter)
-
-The `infer:` field was an early experiment for automatic agent selection. It is now deprecated — VS Code Copilot removed support. Use `description` for discoverability and `disable-model-invocation: true` for agents that should not be auto-selected.
-
-## Content Strategy: APM-First
-
-APM is the primary mechanism for consuming upstream content. Prefer declaring upstream packages in `apm.yml` and installing them into the git-ignored `apm_modules/` directory. Only create local copies when upstream content cannot be managed by APM.
-
-| Category | When to use | Provenance field | Storage / update |
-|---|---:|---|---|
-| APM dependency (default) | Upstream package available as APM | none required (declare in `apm.yml`) | Installed to `apm_modules/` (git-ignored). Update with `apm install -g` |
-| Adapted / synthesised (local) | Significant local rewrite or merge of multiple sources | `metadata.provenance.adaptedFrom` | Tracked by `meta-upstream-sync` for drift detection; file lives in repo |
-| Mirror (legacy / exceptional) | Exact local copy of an upstream file (only if APM cannot manage it) | `metadata.provenance.mirror` | Tracked by `meta-upstream-sync`. Deprecated when upstream is APM-available |
-
-### APM dependency (default)
-
-- Default for any content available from an APM-compatible upstream source.
-- To add: declare the package in `apm.yml` and run `apm install -g`.
-- Installed into `apm_modules/` (git-ignored). No `metadata.provenance` tracking is required for pure APM dependencies.
-- Do NOT vendor upstream content by copying files into this repository.
-
-### Adapted / synthesised (local)
-
-- Use when the local file contains substantial original content, restructures the upstream material for local conventions, or synthesises multiple upstream sources.
-- Add `metadata.provenance.adaptedFrom` listing upstream sources. These files are tracked by `meta-upstream-sync` for drift and merge-review workflows.
-
-### Mirror (legacy / exceptional)
-
-- Use only when an exact copy of an upstream file is necessary and APM cannot manage the upstream source (for example, an internal VS Code file not packaged for APM).
-- Mark with `metadata.provenance.mirror`. Mirrors are tracked by `meta-upstream-sync` but are deprecated for content that can be consumed via APM.
-- Before creating a mirror, verify the upstream isn't available as an APM package.
-
-Local-only skills (not available upstream) remain directly in this repository.
-
 ## Upstream Update Tooling
 
 The `meta-updater` agent and `meta-upstream-sync` skill audit **locally-committed files** with provenance declarations. APM dependencies are updated separately via `apm install -g`.
@@ -242,3 +239,47 @@ For CI or non-`gh` environments, supply a **Fine-grained Personal Access Token**
 - No write permissions are required for update checks
 
 Provide the token via `GITHUB_TOKEN`/`GH_TOKEN`, or pass `-GitHubToken` to `./.apm/skills/meta-upstream-sync/scripts/check-updates.ps1`.
+
+## Licensing
+
+`.llmctl` is licensed under a split, because it is two different kinds of thing — see [LICENSE](LICENSE) for the authoritative statement:
+
+| What | Licence |
+| --- | --- |
+| Every `*.md` file — skills, agents, prompts, instructions, `references/`, repo docs | **CC-BY-SA-4.0** |
+| Everything else — `scripts/`, hooks, `*.py`, `*.ps1`, `*.json`, `*.yml` | **MIT** |
+
+Three rules follow from that, and [scripts/check-licenses.py](scripts/check-licenses.py) enforces all three:
+
+- **The content half is copyleft.** Adapting a `*.md` file from here means releasing your adaptation under CC-BY-SA-4.0 too. That is deliberate.
+- **A file's provenance decides its licence.** Where `metadata.provenance` records an obligation-bearing `fidelity`, the upstream's `license` constrains what the local file may be licensed under: MIT upstream permits either default; CC-BY-SA-4.0 upstream forces CC-BY-SA-4.0; Apache-2.0 and GPL-3.0 upstreams force their own licence and need a per-file override; `NONE` permits nothing beyond `inspiration-only`. Declare an override with a **top-level `license:` field** in the file's frontmatter — that always wins over the table above.
+- **Attribution is generated, never hand-written.** `THIRD-PARTY-NOTICES.md` in the marketplace repo is produced by [scripts/gen-notices.py](scripts/gen-notices.py) from provenance metadata plus each bundle's `apm.lock.yaml`. Sources whose terms attach land under *Notices*; everything else, including `inspiration-only` sources and upstreams with no licence at all, is still credited under *Acknowledgements*.
+
+Adding a dependency or an adaptation from a **new** upstream means recording its licence in [scripts/dependency-licenses.yml](scripts/dependency-licenses.yml) or the entry's `license:` field. Run `apm run check-licenses` before opening a PR.
+
+## Commit Convention
+
+Commits are **conventional**:
+
+```text
+<type>(<scope>): <description>
+```
+
+- `type` — `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`. Append `!` before the colon for a breaking change (`refactor(core)!: …`).
+- `scope` — the package the change lands in: `core`, `meta`, `ops`, `product`, `workflow`. For anything outside `packages/`, use the area instead: `scripts`, `docs`, `ci`.
+
+[scripts/release.py](scripts/release.py) reads commits to size each package's next bump: `!` or a `BREAKING CHANGE` trailer → major, `feat` → minor, anything else → patch.
+
+**Which package a commit releases is decided by the paths it touched, not by the scope.** Paths are what actually changed and cannot be mistyped. The scope is still checked: when it names something other than the package the change landed in, `release.py` prints the mismatch rather than silently ignoring it, so a typo surfaces instead of quietly mis-labelling history.
+
+## Releasing
+
+Packages version **independently** (`marketplace.versioning.strategy: per_package`). A change to `ops` moves `ops` only, so a version number always means something changed in that package.
+
+```bash
+apm run release-check          # gates only, writes nothing
+apm run release -- --dry-run   # show the derived bumps
+apm run release                # bump, pack, commit, tag both repos
+```
+
+`release.py` finds each package's last `llmctl-<package>@<version>` tag, reads the commits since that touched `packages/<package>/`, derives the bump, writes it to `packages/<package>/apm.yml` and the marketplace manifest, then packs and tags. `--update-deps` runs the `apm outdated` → `apm update` loop first, so a moved dependency SHA ships as an ordinary release. Everything runs locally; GitHub Actions only calls the same scripts.
