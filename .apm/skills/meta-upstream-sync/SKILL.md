@@ -6,19 +6,18 @@ compatibility: "Primary automation requires PowerShell 7+ to run ./scripts/check
 
 # meta-upstream-sync
 
-Deterministically audit local files by discovering `metadata.provenance.mirror` and `metadata.provenance.adaptedFrom` in frontmatter, then comparing upstream and local commit dates.
+Deterministically audit local files by discovering `metadata.provenance.adaptedFrom` in frontmatter, then comparing upstream and local commit dates.
 
 ## Scope
 
-This skill audits **locally-committed files** that declare `metadata.provenance.mirror` or `metadata.provenance.adaptedFrom` in their frontmatter. It does NOT manage APM dependencies — content available from APM-compatible upstream sources should be consumed via `apm.yml` and updated with `apm install -g`.
+This skill audits **locally-committed files** that declare `metadata.provenance.adaptedFrom` in their frontmatter. It does NOT manage APM dependencies — content available from APM-compatible upstream sources should be consumed via `apm.yml` and updated with `apm install -g`.
 
 ### Decision: APM Dependency or Local Tracking?
 
 | Question | Yes → | No → |
 |---|---|---|
 | Is the upstream content available as an APM package? | Use APM dependency (remove local file, add to `apm.yml`) | Continue below |
-| Is the local file a verbatim copy of upstream? | Use `mirror` (exceptional — verify APM isn't available first) | Continue below |
-| Is the local file adapted/synthesised from upstream? | Use `adaptedFrom` + this skill for drift detection | No tracking needed |
+| Did any of the local file come from upstream? | Use `adaptedFrom` + this skill for drift detection, and set `fidelity` to how much was taken | No tracking needed |
 
 ## Compatibility
 
@@ -34,7 +33,7 @@ This skill audits **locally-committed files** that declare `metadata.provenance.
 
 ## Workflow
 
-1. [ ] Ensure target files include frontmatter with `metadata.provenance.mirror` (mirror) or `metadata.provenance.adaptedFrom` (adapted).
+1. [ ] Ensure target files include frontmatter with `metadata.provenance.adaptedFrom`.
 1. [ ] Run [Update Checker](./scripts/check-updates.ps1). When a specific target is already identified, use `-IncludePath` to scope the run — do not run a broad discovery scan first. The script compares each upstream's latest commit date with the local file's last git commit date.
 1. [ ] Classify each upstream check as `up_to_date`, `update_available`, `missing_local_commit`, or `fetch_failed`.
 1. [ ] For new/uncommitted local files that should be bootstrapped from upstream, add `-AllowNoLocalCommit` (guarded mode) so they can be treated as actionable `update_available` entries. Combine with `-IncludePath` in a single invocation when the target is already known.
@@ -44,13 +43,12 @@ This skill audits **locally-committed files** that declare `metadata.provenance.
 
 ### Recommendation Matrix
 
-| Mode | Status | Action |
+| Case | Status | Action |
 |---|---|---|
-| `mirror` | `update_available` + APM-eligible | Recommend converting to APM dependency |
-| `mirror` | `update_available` | Replace from upstream |
-| `adapted` (single source) | `update_available` | Merge review |
-| `adapted` (multi-source) | one or more `update_available` | Synthesised merge review across all changed upstreams |
-| `adapted` (any) + `took` present | `update_available` | Scope the merge review to `took` first — if the upstream change touches nothing on its list, close as no action and say so |
+| APM-eligible upstream | `update_available` | Recommend converting to an APM dependency |
+| Single source | `update_available` | Merge review |
+| Multi-source | one or more `update_available` | Synthesised merge review across all changed upstreams |
+| `took` present | `update_available` | Scope the merge review to `took` first — if the upstream change touches nothing on its list, close as no action and say so |
 | any | `up_to_date` | No action |
 
 ### Multi-source Synthesis

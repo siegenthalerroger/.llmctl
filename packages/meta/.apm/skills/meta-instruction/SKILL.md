@@ -140,7 +140,6 @@ paths: ["**/*.py"]
 
 For cross-file provenance consistency, instruction frontmatter may also include:
 
-- `metadata.provenance.mirror` (optional): Canonical upstream URL for exact copies
 - `metadata.provenance.adaptedFrom` (optional): URL string or array when the whole file is adapted/synthesised from upstream; an array of `url`/`took` objects when only part of the upstream was taken, with `took` giving a fidelity label plus what was taken
 
 Use the same `metadata.provenance` convention for prompt, instruction, skill, and agent files.

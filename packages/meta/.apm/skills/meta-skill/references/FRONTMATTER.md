@@ -81,31 +81,32 @@ When documenting where content came from, add provenance under `metadata.provena
 ```yaml
 metadata:
   provenance:
-    mirror: "https://github.com/example-org/skills/tree/main/excel-processing"
-```
-
-```yaml
-metadata:
-  provenance:
     adaptedFrom: "https://github.com/example-upstream/skills/tree/main/excel-processing"
 ```
 
-A plain string (or array of strings) means the **whole file** derives from that upstream. When only part of it landed locally, use the `url`/`took` object form — a fidelity label, then what was taken:
+A plain string (or array of strings) means the **whole file** derives from that upstream. Prefer the object form, which scopes the adaptation and records the terms it arrives under:
 
 ```yaml
 metadata:
   provenance:
     adaptedFrom:
       - url: "https://github.com/example-upstream/skills/tree/main/excel-processing"
-        took: "Partly derived. The column-mapping rules."
+        license: MIT              # SPDX id of the upstream, or NONE
+        fidelity: partly-derived  # how much of it landed here
+        took: "The column-mapping rules."
 ```
 
-`took` is single-line. Labels: `Inspiration only.` / `Structural echo only.` / `Partly derived.` / `Largely derived.` It lets the `meta-upstream-sync` audit close an upstream change without a merge review when the change touches nothing on the list. Never record what was *not* taken, or a line-overlap measurement — both rot without any local change to trigger a refresh.
+**`fidelity`** is the obligation level, one of `inspiration-only` / `structural-echo` / `partly-derived` / `largely-derived`. Absent means whole-file derivation, treated as `largely-derived`. The first two mean only ideas or structure were taken, so no upstream terms attach; the last two mean expression was copied, so they do.
 
-> **APM-first rule:** Before creating a `mirror` entry, verify the upstream content isn't available as an APM package. APM dependencies (declared in `apm.yml`) don't need provenance tracking — they're managed externally. Use `mirror` only for exceptional cases where APM cannot manage the content.
+**`license`** is the SPDX id of the **upstream**, not of this file. It is required whenever `fidelity` implies an obligation, because it decides what this file may be licensed under: `scripts/check-licenses.py` rejects a file whose own licence cannot satisfy it. Record `NONE` for an upstream with no LICENSE file — that grants no rights at all, and is only safe at `inspiration-only`.
 
-- `metadata.provenance.mirror`: canonical upstream URL for exact copies
-- `metadata.provenance.adaptedFrom`: source URL (string) or list of URLs (array) when locally adapted/synthesised
-- `metadata.provenance.authoritativeSpec`: array of URLs for authoritative format specifications (informational only)
+**`took`** is single-line and records *what was taken*, nothing else. It lets the `meta-upstream-sync` audit close an upstream change without a merge review when the change touches nothing on the list. Never record what was *not* taken, or a line-overlap measurement — both rot without any local change to trigger a refresh.
+
+A file whose upstream obligation cannot be met by the repository default licence declares its own with a top-level `license:` field; see [LICENSE](../../../../../../LICENSE).
+
+> **APM-first rule:** Before creating an `adaptedFrom` entry, verify the upstream content isn't available as an APM package. APM dependencies (declared in `apm.yml`) don't need provenance tracking — they're managed externally. Copy locally only where APM cannot manage the content.
+
+- `metadata.provenance.adaptedFrom`: source URL (string), list of URLs (array), or the object form above, for anything taken from an upstream — from a borrowed idea up to a near-verbatim carry-over, with `fidelity` saying which
+- `metadata.provenance.authoritativeSpec`: authoritative specifications defining the format. A bare URL string means **cited only, nothing reproduced**, which carries no obligation. If a reference file reproduces a spec's tables or wording, switch that entry to the object form and give it a `license`/`fidelity` — a vendor documentation site usually grants no reuse rights at all, and the fix is rewriting rather than attribution
 
 Use this same convention for prompt, instruction, skill, and agent files.

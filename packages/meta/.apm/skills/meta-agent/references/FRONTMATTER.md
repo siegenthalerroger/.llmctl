@@ -190,9 +190,8 @@ Additional metadata about the agent. Can contain any custom key-value pairs. Com
 - `tags`: Additional categorization tags
 
 **Provenance** is grouped under `metadata.provenance`:
-- `provenance.mirror` (string): Canonical upstream URL for exact copies
-- `provenance.adaptedFrom` (string, array of URLs, or array of `url`/`took` objects): where adapted/synthesised content came from. String and array forms mean the **whole file** derives from those upstreams; use the `url`/`took` object form for a **partial** adaptation, where `took` gives a fidelity label plus what was taken
-- `provenance.authoritativeSpec` (array): URLs of authoritative specifications defining the file format (informational only)
+- `provenance.adaptedFrom` (string, array of URLs, or array of objects): where content taken from an upstream came from — a borrowed idea up to a near-verbatim carry-over. String and array forms mean the **whole file** derives from those upstreams; the object form scopes the adaptation and records the terms it arrives under, via `url` / `license` / `fidelity` / `took`
+- `provenance.authoritativeSpec` (array): authoritative specifications defining the file format. A bare URL string means **cited only, nothing reproduced** — no obligation. Use the object form for an entry whose wording or tables were reproduced locally
 
 #### `metadata.modelProfile`
 
@@ -220,11 +219,11 @@ metadata:
     minDate: "2025-01-01"
 ```
 
-**Example (mirror):**
+**Example (single source):**
 ```yaml
 metadata:
   provenance:
-    mirror: "https://github.com/example/agents/blob/main/security.agent.md"
+    adaptedFrom: "https://github.com/example/agents/blob/main/security.agent.md"
 ```
 
 **Example (synthesised from multiple sources):**
@@ -237,16 +236,22 @@ metadata:
   tags: ["security", "compliance"]
 ```
 
-**Example (partial adaptation — only part of the upstream was taken):**
+**Example (scoped adaptation — only part of the upstream was taken):**
 ```yaml
 metadata:
   provenance:
     adaptedFrom:
       - url: "https://github.com/org-a/skills/blob/main/skills/security/SKILL.md"
-        took: "Inspiration only. The threat-model checklist and severity tiers."
+        license: MIT
+        fidelity: inspiration-only
+        took: "The threat-model checklist and severity tiers."
 ```
 
-A fidelity label (`Inspiration only.` / `Structural echo only.` / `Partly derived.` / `Largely derived.`) then what was taken — nothing else. `took` exists so the drift audit can dismiss an upstream change without opening the diff: if the change touches nothing on the list, there is nothing to merge. Never add what was *not* taken — upstream can grow indefinitely, so that list rots without any local change to trigger a refresh.
+`fidelity` is the obligation level — `inspiration-only` / `structural-echo` / `partly-derived` / `largely-derived`, absent meaning whole-file derivation. The first two mean only ideas or structure were taken, so no upstream terms attach; the last two mean expression was copied, so they do.
+
+`license` is the SPDX id of the **upstream**, not of this file. It is required wherever `fidelity` implies an obligation, because it decides what this file may be licensed under — `scripts/check-licenses.py` rejects a file whose own licence cannot satisfy it. Record `NONE` for an upstream with no LICENSE file: that grants no rights at all, and is only safe at `inspiration-only`.
+
+`took` records what was taken and nothing else, so the drift audit can dismiss an upstream change without opening the diff: if the change touches nothing on the list, there is nothing to merge. Never add what was *not* taken — upstream can grow indefinitely, so that list rots without any local change to trigger a refresh.
 
 **Example (authoritative spec for dual-tool compatibility):**
 ```yaml
@@ -363,7 +368,7 @@ metadata:
   author: "Security Team"
   version: "2.1.0"
   provenance:
-    mirror: "https://github.com/example/security-agents"
+    adaptedFrom: "https://github.com/example/security-agents"
     authoritativeSpec:
       - "https://code.claude.com/docs/en/sub-agents"
       - "https://code.visualstudio.com/docs/copilot/customization/custom-agents"

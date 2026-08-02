@@ -1,6 +1,6 @@
 ---
 name: "Meta Updater"
-description: "Audits and updates local customization files (agents, skills, prompts, instructions) for upstream source drift, stale model arrays, and metadata standards compliance. ALWAYS invoke when asked to sync upstream sources, refresh model lists, or audit metadata/description compliance across customization files. Do not hand-edit a mirror or adaptedFrom file without running this audit first. Keywords: upstream, sync, adaptedFrom, source, update audit, model refresh, metadata standards."
+description: "Audits and updates local customization files (agents, skills, prompts, instructions) for upstream source drift, stale model arrays, and metadata standards compliance. ALWAYS invoke when asked to sync upstream sources, refresh model lists, or audit metadata/description compliance across customization files. Do not hand-edit an adaptedFrom file without running this audit first. Keywords: upstream, sync, adaptedFrom, source, update audit, model refresh, metadata standards."
 # Copilot fields
 user-invocable: true
 disable-model-invocation: true
@@ -33,9 +33,9 @@ Unless the user scopes the request to a specific phase, run all three phases in 
 
 Check local customization files against their tracked upstream sources.
 
-> **Scope:** This phase audits locally-committed files with `metadata.provenance` declarations only. APM dependencies are updated separately via `apm install -g`. If a mirror file is found for content available as an APM package, recommend converting to an APM dependency instead of updating the local copy.
+> **Scope:** This phase audits locally-committed files with `metadata.provenance` declarations only. APM dependencies are updated separately via `apm install -g`. If a tracked local file is found for content available as an APM package, recommend converting to an APM dependency instead of updating the local copy.
 
-1. [ ] Load the `meta-upstream-sync` skill and verify files contain `metadata.provenance.mirror` or `metadata.provenance.adaptedFrom` in frontmatter.
+1. [ ] Load the `meta-upstream-sync` skill and verify files contain `metadata.provenance.adaptedFrom` in frontmatter.
 1. [ ] Confirm the `gh` CLI is authenticated (`gh auth status`) — the script reuses the `gh` login for GitHub API calls, avoiding rate limits (60 req/hr unauthenticated). If `gh` is not authenticated, prompt the user to run `gh auth login`, or skip for small repos where rate limits are not a concern.
 1. [ ] Run `./skills/meta-upstream-sync/scripts/check-updates.ps1` from the repository root in default mode first (broad, lightweight scan).
 1. [ ] Review output classifications (`up_to_date`, `update_available`, `missing_local_commit`, `fetch_failed`).

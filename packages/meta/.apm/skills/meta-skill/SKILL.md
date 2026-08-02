@@ -76,7 +76,6 @@ description: "Toolkit and guidelines for an example usecase. Use when asked to d
 | `license` | No | Optional license string or reference |
 | `compatibility` | No | Optional note about environment requirements when truly needed, max 500 characters |
 | `allowed-tools` | No | Experimental spec field for pre-approved tools where supported |
-| `metadata.provenance.mirror` | No | Canonical upstream URL for exact copies |
 | `metadata.provenance.adaptedFrom` | No | URL (string) or list of URLs (array) when adapted/synthesised from upstream sources |
 | `metadata.provenance.authoritativeSpec` | No | Array of URLs for authoritative format specifications (informational only) |
 

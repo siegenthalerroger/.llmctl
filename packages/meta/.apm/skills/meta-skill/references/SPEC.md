@@ -51,12 +51,11 @@ metadata:
   author: example-org
   version: "1.0"
   provenance:
-    mirror: https://github.com/example-org/skills/tree/main/pdf-processing
     adaptedFrom: https://github.com/example-upstream/skills/tree/main/pdf-processing
 ---
 ```
 
-> **Note:** `mirror` is for exceptional cases where APM cannot manage the upstream content. Prefer APM dependencies for content available upstream. See `CONTRIBUTING.md` for the full content strategy.
+> **Note:** `adaptedFrom` is for exceptional cases where APM cannot manage the upstream content. Prefer APM dependencies for content available upstream. See `CONTRIBUTING.md` for the full content strategy.
 
 | Field           | Required | Constraints                                                                                          |
 | --------------- | -------- | ---------------------------------------------------------------------------------------------------- |
@@ -167,7 +166,7 @@ The optional `metadata` field:
 * A map from string keys to string values
 * Clients can use this to store additional properties not defined by the Agent Skills spec
 * We recommend making your key names reasonably unique to avoid accidental conflicts
-* For provenance, we recommend grouping under `metadata.provenance`: `mirror` (canonical origin, single string), `adaptedFrom` (adaptation origin; string or array of URLs), and `authoritativeSpec` (format specifications; array of URLs, informational only)
+* For provenance, we recommend grouping under `metadata.provenance`: `adaptedFrom` (upstream origin; string or array of URLs) and `authoritativeSpec` (format specifications; array of URLs, informational only)
 
 Example:
 
@@ -176,7 +175,6 @@ metadata:
   author: example-org
   version: "1.0"
   provenance:
-    mirror: https://github.com/example-org/skills/tree/main/pdf-processing
     adaptedFrom: https://github.com/example-upstream/skills/tree/main/pdf-processing
 ```
 
