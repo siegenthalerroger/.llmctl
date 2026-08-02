@@ -1,7 +1,6 @@
 ---
 name: "helm-values"
 description: "Authoring values.yaml in Helm charts with mandatory helm-docs documentation comments and helm-schema type annotations. ALWAYS invoke when creating or editing values.yaml, adding value descriptions, generating values.schema.json or README docs, setting up helm-docs/helm-schema pre-commit hooks, or reviewing values for missing annotations. Do not add or edit a values.yaml entry without this skill — every value needs its annotation; for chart structure use helm-charts, for templates/ use helm-templates. Keywords: helm, values.yaml, helm-docs, helm-schema, values.schema.json, annotations, documentation, schema, pre-commit."
-license: ""
 metadata:
   provenance:
     authoritativeSpec:

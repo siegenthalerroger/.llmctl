@@ -1,7 +1,6 @@
 ---
 name: "troubleshooting"
 description: "Behavioral rules for diagnosis and root-cause analysis: failures, tool quirks, command hangs, version-dependent behavior, and Docker container debugging (terminal state, script execution, entrypoint overrides, busybox differences). ALWAYS invoke when a command fails, hangs, or behaves unexpectedly, before editing configuration to fix it. Do not guess at a fix or change config without first diagnosing root cause via this skill. Keywords: troubleshoot, diagnose, debug, root cause, logs, version skew, docker, container, secret, hang."
-license: ""
 ---
 
 # Troubleshooting Workflow

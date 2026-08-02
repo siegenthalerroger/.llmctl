@@ -4,7 +4,9 @@ description: "Creates and reviews type-aware Epic PRDs (platform, engine, domain
 metadata:
   provenance:
     adaptedFrom:
-      - "https://github.com/github/awesome-copilot/blob/main/skills/breakdown-epic-pm/SKILL.md"
+      - url: "https://github.com/github/awesome-copilot/blob/main/skills/breakdown-epic-pm/SKILL.md"
+        license: MIT
+        fidelity: largely-derived
 ---
 
 # Epic Product Requirements Document (PRD) Prompt

@@ -1,12 +1,13 @@
 ---
 name: "meta-skill"
 description: "Guidelines and specifications for authoring high-quality Agent Skills (SKILL.md, frontmatter, references, scripts). ALWAYS invoke when creating, reviewing, or improving an AI agent skill, designing skill structure, writing a skill description, or auditing skill discovery and activation behavior. Do not write or edit a SKILL.md file, its frontmatter, or its references/ folder without first loading this skill. Keywords: skill, SKILL.md, agent skill, frontmatter, description, references, progressive disclosure."
-license: "MIT"
 metadata:
   provenance:
     adaptedFrom:
       - url: "https://github.com/github/awesome-copilot/blob/main/instructions/agent-skills.instructions.md"
-        took: "Structural echo only. The section skeleton for a skill-authoring guide."
+        license: MIT
+        fidelity: structural-echo
+        took: "The section skeleton for a skill-authoring guide."
     authoritativeSpec:
       - "https://agentskills.io/"
       - "https://code.claude.com/docs/en/skills"

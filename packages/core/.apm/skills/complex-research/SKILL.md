@@ -1,7 +1,6 @@
 ---
 name: "complex-research"
 description: "Guidelines for delegating complex research tasks that need multi-source investigation, synthesis, and comprehensive analysis. ALWAYS invoke when research needs extensive web searches, documentation queries, repository exploration, or cross-referencing multiple sources — delegate to a researcher agent rather than researching inline. Do not run a large multi-source investigation in the main thread without this skill. Keywords: research, multi-source, synthesis, delegate, investigation, cross-reference."
-license: ""
 ---
 
 # Complex Research Delegation

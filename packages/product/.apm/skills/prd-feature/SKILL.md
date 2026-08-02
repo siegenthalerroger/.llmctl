@@ -4,7 +4,9 @@ description: "Creates type-aware Feature PRDs derived from a parent epic (platfo
 metadata:
   provenance:
     adaptedFrom:
-      - "https://github.com/github/awesome-copilot/blob/main/skills/breakdown-feature-prd/SKILL.md"
+      - url: "https://github.com/github/awesome-copilot/blob/main/skills/breakdown-feature-prd/SKILL.md"
+        license: MIT
+        fidelity: largely-derived
 ---
 
 # Feature PRD Prompt

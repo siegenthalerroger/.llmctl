@@ -19,7 +19,10 @@ disallowedTools: Edit, Write, NotebookEdit
 # Metadata fields
 metadata:
   provenance:
-    mirror: "https://github.com/microsoft/vscode/blob/main/extensions/copilot/src/extension/agents/vscode-node/exploreAgentProvider.ts"
+    adaptedFrom:
+      - url: "https://github.com/microsoft/vscode/blob/main/extensions/copilot/src/extension/agents/vscode-node/exploreAgentProvider.ts"
+        license: MIT
+        fidelity: largely-derived
   modelProfile:
     specialisation: LONG-CONTEXT
     cost: LOW

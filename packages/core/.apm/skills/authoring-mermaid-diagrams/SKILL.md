@@ -1,7 +1,6 @@
 ---
 name: "authoring-mermaid-diagrams"
 description: "Authors, repairs and validates Mermaid diagrams: picks the diagram type from what the reader must learn, writes the frontmatter config and accessibility header, and checks the source before it ships. ALWAYS invoke when asked to draw, diagram, chart or visualise something, to document an architecture or a flow, or when a diagram fails to render. Do not hand-write a mermaid code block from recall — opening keywords, beta suffixes and per-renderer support are version-specific and this skill pins them. Keywords: mermaid, diagram, flowchart, sequence, class, ER, state, C4, architecture, gantt, mindmap, gitGraph, swimlane, parse error, render error."
-license: "MIT"
 metadata:
   provenance:
     authoritativeSpec:

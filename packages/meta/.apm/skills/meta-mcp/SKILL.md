@@ -1,7 +1,6 @@
 ---
 name: "meta-mcp"
 description: "Guidelines for configuring MCP (Model Context Protocol) servers and curating their tool surface — `dependencies.mcp` in apm.yml, the `servers` vs `mcpServers` key split, stdio/http/sse transports, and secret handling. ALWAYS load when adding, reviewing, or debugging MCP servers, or generating MCP config for any agent harness or APM. Do not hand-maintain per-target MCP config files or add a server without checking its impact on exposed tool count. Keywords: mcp, server, Model Context Protocol, mcpServers, servers, apm.yml, dependencies.mcp, stdio, http, sse, transport, secret, .mcp.json, mcp.json."
-license: ""
 metadata:
   provenance:
     authoritativeSpec:

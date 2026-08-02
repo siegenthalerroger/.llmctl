@@ -30,7 +30,9 @@ disallowedTools: Edit, Write, NotebookEdit
 metadata:
   provenance:
     adaptedFrom:
-      - "https://github.com/microsoft/vscode/blob/main/extensions/copilot/src/extension/agents/vscode-node/planAgentProvider.ts"
+      - url: "https://github.com/microsoft/vscode/blob/main/extensions/copilot/src/extension/agents/vscode-node/planAgentProvider.ts"
+        license: MIT
+        fidelity: largely-derived
   modelProfile:
     specialisation: REASONING
     cost: HIGH

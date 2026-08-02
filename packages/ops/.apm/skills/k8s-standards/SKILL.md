@@ -5,9 +5,13 @@ metadata:
   provenance:
     adaptedFrom:
       - url: "https://github.com/github/awesome-copilot/blob/main/instructions/kubernetes-deployment-best-practices.instructions.md"
-        took: "Inspiration only. The topic coverage — labels and metadata, security context, probes, resource requests."
+        license: MIT
+        fidelity: inspiration-only
+        took: "The topic coverage — labels and metadata, security context, probes, resource requests."
       - url: "https://github.com/github/awesome-copilot/blob/main/instructions/kubernetes-manifests.instructions.md"
-        took: "Inspiration only. The manifest-authoring framing."
+        license: MIT
+        fidelity: inspiration-only
+        took: "The manifest-authoring framing."
 ---
 
 # Kubernetes Standards and Patterns

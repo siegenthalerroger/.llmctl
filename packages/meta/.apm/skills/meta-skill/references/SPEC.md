@@ -1,12 +1,12 @@
 ---
-source: "https://agentskills.io/specification.md"
+license: Apache-2.0
+metadata:
+  provenance:
+    adaptedFrom:
+      - url: "https://github.com/agentskills/agentskills/blob/main/docs/specification.mdx"
+        license: Apache-2.0
+        fidelity: largely-derived
 ---
-
-## Documentation Index
-
-Fetch the complete documentation index at: https://agentskills.io/llms.txt
-
-Use this file to discover all available pages before exploring further.
 
 # Specification
 

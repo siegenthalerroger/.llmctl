@@ -1,7 +1,6 @@
 ---
 name: "helm-templates"
 description: "Authoring Helm chart templates: _helpers.tpl named templates, Go template patterns, whitespace control, hooks, and template testing. ALWAYS invoke when creating or modifying files under templates/, writing _helpers.tpl, using Go template functions (include, toYaml, nindent), implementing Helm hooks, or linting/unit-testing templates. Do not write or edit a file under templates/ without this skill — for chart structure and dependencies use helm-charts, for values.yaml use helm-values. Keywords: helm, templates, _helpers.tpl, named templates, Go template, include, toYaml, nindent, hooks, helm lint."
-license: ""
 metadata:
   provenance:
     authoritativeSpec:

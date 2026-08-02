@@ -20,7 +20,10 @@ disallowedTools: Bash
 # Metadata fields
 metadata:
   provenance:
-    adaptedFrom: "https://github.com/github/awesome-copilot/blob/main/agents/se-ux-ui-designer.agent.md"
+    adaptedFrom:
+      - url: "https://github.com/github/awesome-copilot/blob/main/agents/se-ux-ui-designer.agent.md"
+        license: MIT
+        fidelity: largely-derived
   modelProfile:
     specialisation: NONE
     cost: MEDIUM

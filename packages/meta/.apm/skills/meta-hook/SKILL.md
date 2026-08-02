@@ -1,7 +1,6 @@
 ---
 name: "meta-hook"
 description: "Guidelines for authoring deterministic lifecycle hooks — frontmatter `hooks:` fields, `hooks/*.json` files, and hook primitives across agent harnesses and APM packaging. ALWAYS load when creating, reviewing, or debugging hooks that run before/after tool calls, file writes, sessions, or other lifecycle events. Do not reach for stronger instruction or skill prose to force behavior that must always happen — use a hook instead. Keywords: hook, lifecycle, PreToolUse, PostToolUse, PostFileWrite, SessionStart, matcher, command."
-license: ""
 metadata:
   provenance:
     authoritativeSpec:

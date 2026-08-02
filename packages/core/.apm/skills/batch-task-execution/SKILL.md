@@ -1,12 +1,13 @@
 ---
 name: "batch-task-execution"
 description: "Guidelines for planning and executing batches of tasks from todo lists, backlogs, or multi-item requests. ALWAYS invoke when asked to work through a list of tasks, start multiple sub-agents in parallel, or tackle several items at once. Do not fan out sub-agents or start a multi-item batch without this skill — it covers task confirmation, parallelisation, and overlap detection. Keywords: batch, todo list, backlog, parallel, sub-agents, multi-item, overlap."
-license: ""
 metadata:
   provenance:
     adaptedFrom:
       - url: "https://github.com/obra/superpowers/blob/main/skills/subagent-driven-development/SKILL.md"
-        took: "Partly derived. The dispatch-brief contract, the DONE/DONE_WITH_CONCERNS/NEEDS_CONTEXT/BLOCKED outcome protocol, the spec-compliance-before-quality review order, the fix-round cap with explicit adjudication, and the ledger-survives-compaction rule."
+        license: MIT
+        fidelity: partly-derived
+        took: "The dispatch-brief contract, the DONE/DONE_WITH_CONCERNS/NEEDS_CONTEXT/BLOCKED outcome protocol, the spec-compliance-before-quality review order, the fix-round cap with explicit adjudication, and the ledger-survives-compaction rule."
 ---
 
 # Batch Task Execution

@@ -1,0 +1,44 @@
+# Licence
+
+Copyright (c) 2026 Roger Siegenthaler
+
+`.llmctl` is licensed under a split, because it is two different kinds of thing:
+prose that is meant to be read and adapted, and tooling that is meant to be run.
+
+| What | Licence | Full text |
+| --- | --- | --- |
+| **Documentation and steering content** — every `*.md` file: skills, agents, prompts, instructions, `references/`, and the repository docs (`README.md`, `CONTRIBUTING.md`, `AGENTS.md`, `TODO.md`) | **CC-BY-SA-4.0** | [LICENSES/CC-BY-SA-4.0.txt](LICENSES/CC-BY-SA-4.0.txt) |
+| **Everything else** — `scripts/`, hooks, and all `*.py`, `*.ps1`, `*.json`, `*.yml` files | **MIT** | [LICENSES/MIT.txt](LICENSES/MIT.txt) |
+
+The SPDX expression for the repository as a whole is `MIT AND CC-BY-SA-4.0`.
+
+## What ShareAlike means here
+
+The content half is copyleft. If you adapt a skill, an agent, or any other `*.md`
+file from this repository, your adaptation must be released under CC-BY-SA-4.0 as
+well, with attribution and an indication that you changed it. Using the content
+as-is, including commercially, is unrestricted.
+
+The MIT half carries no such condition — copy the scripts wherever you like, keep
+the notice.
+
+## Per-file exceptions
+
+A file may override the default for its path by declaring a top-level `license:`
+field in its YAML frontmatter. This happens where the file adapts third-party
+content whose own terms cannot be satisfied by the default above. **The frontmatter
+declaration always wins over the table.**
+
+Where a file carries an upstream obligation, its `metadata.provenance` records the
+upstream URL, that upstream's licence, and how much was taken. Attribution and
+statements of change for every such file are collected in the generated
+`THIRD-PARTY-NOTICES.md` published alongside each plugin bundle in
+[`.llmctl-marketplace`](https://github.com/siegenthalerroger/.llmctl-marketplace).
+
+## Third-party content
+
+Plugin bundles additionally vendor upstream skills consumed as pinned APM
+dependencies. Those keep their own licences — MIT and Apache-2.0
+([LICENSES/Apache-2.0.txt](LICENSES/Apache-2.0.txt)) — and are enumerated, with
+attribution, in the generated `THIRD-PARTY-NOTICES.md`. Nothing in this file
+relicenses them.

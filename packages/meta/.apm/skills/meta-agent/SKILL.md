@@ -1,12 +1,13 @@
 ---
 name: "meta-agent"
 description: "Guidelines for authoring, reviewing, and hardening custom agent/subagent files (agents, modes, personas) across coding-agent harnesses. ALWAYS use when creating a new agent, reviewing or auditing an existing agent definition, designing multi-agent handoffs or orchestration, or scoping an agent's tools and description. Do not draft, edit, or approve a *.agent.md file, tool list, or handoff config without this skill first. Keywords: agent, mode, subagent, persona, handoff, orchestration, tool policy, description."
-license: "MIT"
 metadata:
   provenance:
     adaptedFrom:
       - url: "https://github.com/github/awesome-copilot/blob/main/instructions/agents.instructions.md"
-        took: "Structural echo only. The shape of a checklist-driven agent-authoring guide."
+        license: MIT
+        fidelity: structural-echo
+        took: "The shape of a checklist-driven agent-authoring guide."
     authoritativeSpec:
       - "https://code.visualstudio.com/docs/agent-customization/custom-agents"
       - "https://code.claude.com/docs/en/sub-agents"

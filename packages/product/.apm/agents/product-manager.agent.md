@@ -23,8 +23,12 @@ skills: ['prd-epic', 'prd-feature']
 metadata:
   provenance:
     adaptedFrom:
-      - "https://github.com/github/awesome-copilot/blob/main/agents/prd.agent.md"
-      - "https://github.com/github/awesome-copilot/blob/main/agents/se-product-manager-advisor.agent.md"
+      - url: "https://github.com/github/awesome-copilot/blob/main/agents/prd.agent.md"
+        license: MIT
+        fidelity: largely-derived
+      - url: "https://github.com/github/awesome-copilot/blob/main/agents/se-product-manager-advisor.agent.md"
+        license: MIT
+        fidelity: largely-derived
   modelProfile:
     specialisation: REASONING
     cost: MEDIUM

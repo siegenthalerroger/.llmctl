@@ -1,12 +1,13 @@
 ---
 name: "meta-instruction"
 description: "Guidelines for authoring instruction files (.instructions.md, always-on root context files, path-scoped rules) that define coding standards, project conventions, and behavioral rules. ALWAYS load when asked to create, review, or improve instruction/rule files, define project conventions, set coding standards, or configure AI assistant behavioral rules. Do not hand-write instruction frontmatter, activation scoping, or rule structure without this skill — description-based discovery and the shared instruction budget are easy to get wrong. Keywords: instructions, rules, conventions, standards, guidelines, applyTo, paths, root context, patterns."
-license: ""
 metadata:
   provenance:
     adaptedFrom:
       - url: "https://github.com/netresearch/agent-rules-skill/blob/main/skills/agent-rules/SKILL.md"
-        took: "Partly derived. The Detect/Extract/Draft/Verify bootstrap loop, the root-as-thin-index plus scoped-children model with explicit precedence, the root-file section skeleton, the generate-vs-curate split, and the run-the-command and exact-path verification rules."
+        license: CC-BY-SA-4.0
+        fidelity: partly-derived
+        took: "The Detect/Extract/Draft/Verify bootstrap loop, the root-as-thin-index plus scoped-children model with explicit precedence, the root-file section skeleton, the generate-vs-curate split, and the run-the-command and exact-path verification rules."
     authoritativeSpec:
       - "https://code.visualstudio.com/docs/agent-customization/custom-instructions"
       - "https://code.claude.com/docs/en/memory"
@@ -126,7 +127,6 @@ description: "Coding standards and style conventions for Python files"
 applyTo: "**/*.py"
 # Claude Code
 paths: ["**/*.py"]
-license: ""
 ---
 ```
 
@@ -230,7 +230,7 @@ Full procedure, root-file section skeleton, generate-vs-curate split, and direct
 
 ### Context-File Injection Facts
 
-- Always-on root context files are delivered as a user message after the system prompt, not as system-prompt text — treat compliance as advisory, not deterministic. Use a hook for anything that must happen every time (see meta-hook)
+- An always-on root context file arrives in the conversation the way a user turn does, once the system prompt is already in place — it does not become part of that prompt. Expect it to influence behaviour, not to guarantee it, and reach for a hook whenever something has to happen every single time (see meta-hook)
 - Anthropic targets under 200 lines for root memory files; keep always-loaded root files far leaner in practice (<60 lines) by moving procedures and domain facts into on-demand skills or path-scoped instructions instead
 - Codex: root instruction docs are capped at 32 KiB with proximity-based concatenation — files closer to the working directory take precedence over ancestor files
 - HTML comments are stripped before injection — use them for zero-token maintainer notes that the model never sees

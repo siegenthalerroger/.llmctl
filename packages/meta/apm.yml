@@ -2,6 +2,7 @@ name: llmctl-meta
 version: 0.2.0
 description: AI agent steering - skills, prompts and more
 author: siegenthalerroger
+license: MIT AND CC-BY-SA-4.0
 
 # Include all items in this package's `.apm/` directory.
 includes: auto

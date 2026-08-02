@@ -2,6 +2,7 @@ name: llmctl
 version: 0.1.0
 description: Personal agent steering collection — repo-local development tooling.
 author: siegenthalerroger
+license: MIT AND CC-BY-SA-4.0
 
 includes: auto
 
@@ -9,9 +10,17 @@ dependencies:
   apm: []
   mcp: []
 
-# The marketplace lives in the sibling `.llmctl-marketplace` repository
+# The marketplace lives in the sibling `.llmctl-marketplace` repository.
 # REDUCED FIDELITY vs `apm install`, only intended where the full fidelity of
 # `apm install` is not available (e.g. in claude.ai's Cowork).
-# This script packs every package into it and regenerates both manifests there.
 scripts:
+  # Gates only -- writes nothing. Run before opening a PR or pushing.
+  release-check: "python scripts/release-check.py"
+  # Derive each package's version from its commits, pack, commit, tag.
+  release: "python scripts/release.py"
+  # Pack every package into the marketplace repo and regenerate its manifests.
   pack-marketplace: "python scripts/pack-marketplace.py"
+  # Regenerate THIRD-PARTY-NOTICES.md; --verify re-queries upstream licences.
+  gen-notices: "python scripts/gen-notices.py"
+  # Check each file's licence against the upstream terms its provenance records.
+  check-licenses: "python scripts/check-licenses.py"

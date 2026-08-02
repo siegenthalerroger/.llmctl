@@ -2,17 +2,19 @@
 
 ## Overview
 
-Handoffs enable you to create guided sequential workflows that transition seamlessly between custom agents. This is a VS Code-specific mechanism: a handoff is a suggested, user-approved transition with a pre-filled prompt — the user clicks a button, reviews (and can edit) the prompt, and decides whether to send it. It is not silent auto-delegation to another agent. This is useful for orchestrating multi-step development workflows where users can review and approve each step before moving to the next one.
+A handoff chains one agent to the next at a point the user controls. It is a VS Code-specific mechanism, and the control point is the whole idea: the agent offers a button, the user reviews the pre-filled prompt, edits it if they want, and only then sends it. Nothing transfers silently. That makes handoffs the right tool for a pipeline whose stages deserve a human check between them, and the wrong tool for delegation the user should not have to think about.
 
 **Handoff vs. agent-as-tool:** use a handoff when a specialist should take over the conversation and own the final response. When an orchestrator must synthesize results from specialists instead, use sub-agent orchestration (agent-as-tool) — see [SUBAGENT.md](./SUBAGENT.md).
 
 ## Common Handoff Patterns
 
-- **Planning → Implementation**: Generate a plan in a planning agent, then hand off to an implementation agent to start coding
-- **Implementation → Review**: Complete implementation, then switch to a code review agent to check for quality and security issues
-- **Write Failing Tests → Write Passing Tests**: Generate failing tests, then hand off to implement the code that makes those tests pass
-- **Research → Documentation**: Research a topic, then transition to a documentation agent to write guides
-- **Design → Prototype → Production**: Multi-stage development with quality gates at each transition
+The shape that recurs is a stage boundary where the work changes character and a mistake is cheap to catch but expensive to inherit:
+
+- **Plan → build**: settle the approach in a planning agent, then carry the agreed plan into an agent that writes the code
+- **Build → review**: finish a change, then move to a reviewer that reads it cold, without the author's assumptions
+- **Failing tests → implementation**: pin the expected behaviour first, then hand the red suite to whatever makes it green
+- **Research → write-up**: gather and verify sources in one agent, then draft the document in another
+- **Staged delivery**: prototype, harden, ship — with a deliberate approval at each boundary
 
 ## Frontmatter Structure
 
@@ -41,23 +43,23 @@ Each handoff in the list must include the following properties:
 
 | Property | Type    | Required | Description                                                                        |
 | -------- | ------- | -------- | ---------------------------------------------------------------------------------- |
-| `label`  | string  | Yes      | The display text shown on the handoff button in the chat interface                 |
-| `agent`  | string  | Yes      | The target agent identifier to switch to (name or filename without `.agent.md`)    |
-| `prompt` | string  | No       | The prompt text to pre-fill in the target agent's chat input                       |
-| `send`   | boolean | No       | If `true`, automatically submits the prompt to the target agent (default: `false`) |
+| `label`  | string  | Yes      | Wording on the button the user sees                                                |
+| `agent`  | string  | Yes      | Which agent to switch to — its name, or its filename minus `.agent.md`             |
+| `prompt` | string  | No       | Text placed in the next agent's input box, ready to edit                           |
+| `send`   | boolean | No       | `true` submits that text without waiting; omitted or `false` leaves it to the user |
 
 ## Handoff Behavior
 
-- **Button Display**: Handoff buttons appear as interactive suggestions after a chat response completes
-- **Context Preservation**: When users select a handoff button, they switch to the target agent with conversation context maintained
-- **Pre-filled Prompt**: If a `prompt` is specified, it appears pre-filled in the target agent's chat input
-- **Manual vs Auto**: When `send: false`, users must review and manually send the pre-filled prompt; when `send: true`, the prompt is automatically submitted
+- **When the button shows** — once the current response has finished, offered alongside it rather than interrupting
+- **What carries over** — the conversation so far, so the next agent starts informed instead of re-asking
+- **What the prompt does** — a `prompt` lands in the input box as a draft; it is editable until sent
+- **Who presses send** — the user, unless `send: true` hands that decision to the agent
 
 ## When to Use Handoffs
 
-- **Multi-step workflows**: Breaking down complex tasks across specialized agents
-- **Quality gates**: Ensuring review steps between implementation phases
-- **Guided processes**: Directing users through a structured development process
+- **Work that changes character partway** — planning and implementing want different tools and different instincts
+- **Boundaries worth inspecting** — a checkpoint costs one click and catches a wrong direction before it compounds
+- **Routes a newcomer would not guess** — the button names the next step so nobody has to know which agent comes next
 - **Skill transitions**: Moving from planning/design to implementation/testing specialists
 - **Approval workflows**: Requiring user review before proceeding to next stage
 

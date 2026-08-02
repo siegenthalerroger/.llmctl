@@ -1,7 +1,6 @@
 ---
 name: "meta-plugin"
 description: "Guidelines for authoring and packaging agent plugins — plugin manifests (`plugin.json`), agent-harness plugin formats, and APM bundles. ALWAYS load when creating, reviewing, or distributing plugin packages that bundle skills, agents, hooks, or MCP servers. Do not bundle unrelated skills into one plugin without checking the combined effect on the consumer's skill-discovery budget. Keywords: plugin, plugin.json, bundle, marketplace, distribution, package, APM."
-license: ""
 metadata:
   provenance:
     authoritativeSpec:

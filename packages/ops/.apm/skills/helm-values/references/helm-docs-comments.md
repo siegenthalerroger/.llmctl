@@ -16,9 +16,9 @@ enabled: false
 Multi-line descriptions: continue on the next line(s) **without** the `--`. Lines are joined with a space:
 
 ```yaml
-# -- Number of nginx-ingress pods to load balance between.
-# Do not set this below 2.
-replicas: 2
+# -- How many API pods the Deployment keeps running.
+# Values below 2 lose availability during a rolling update.
+replicaCount: 3
 ```
 
 ## Type Annotation

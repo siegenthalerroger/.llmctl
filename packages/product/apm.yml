@@ -2,6 +2,7 @@ name: llmctl-product
 version: 0.2.0
 description: Product steering — Epic/Feature PRD skills and the product-manager and UX-expert agents.
 author: siegenthalerroger
+license: MIT AND CC-BY-SA-4.0
 
 # Include all items in this package's `.apm/` directory.
 includes: auto

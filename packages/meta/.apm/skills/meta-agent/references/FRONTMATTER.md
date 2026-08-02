@@ -298,7 +298,7 @@ Claude Code skills to preload into the subagent's context at startup — this lo
 **Type:** String
 **Required:** No
 
-Persistent memory scope: `user`, `project`, or `local`. Enables cross-session learning.
+Where the agent's memory is stored, and therefore how far it travels: `user`, `project`, or `local`. What it records survives past the end of a session.
 
 ### `hooks`
 
