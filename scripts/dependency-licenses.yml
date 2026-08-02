@@ -1,0 +1,173 @@
+# Licence facts for every upstream this repository consumes.
+#
+# Why this file exists: neither source of truth records a licence. A packed
+# bundle's `apm.lock.yaml` gives `repo_url`, `resolved_commit` and a SHA-256 per
+# file but no terms, and `metadata.provenance` records the URL and how much was
+# taken but not the copyright holder. gen-notices.py joins both against this map.
+#
+# Every `spdx` below was read from the upstream's own LICENSE file, not from the
+# GitHub API, because the API is wrong for two of them: it reports NOASSERTION
+# for antonbabenko/terraform-skill (Apache-2.0 under a custom header) and for
+# netresearch/agent-rules-skill (dual LICENSE-MIT + LICENSE-CC-BY-SA-4.0).
+#
+# `gen-notices.py --verify` re-queries the API and warns when the reported value
+# changes, which is how an upstream relicence surfaces. A warning here means
+# "re-read their LICENSE and update this file", not "the API is authoritative".
+#
+# Fields:
+#   spdx          SPDX id. For a split licence, the id covering what WE consume.
+#   holder        Copyright line, reproduced verbatim in the notices.
+#   license_url   Where the full text lives upstream.
+#   notice        Optional. Apache-2.0 §4(d): if the upstream ships a NOTICE
+#                 file, its content must travel with any redistribution.
+#   note          Optional. Anything a reader needs to judge the entry.
+
+github.com/mattpocock/skills:
+  spdx: MIT
+  holder: "Copyright (c) 2026 Matt Pocock"
+  license_url: https://github.com/mattpocock/skills/blob/main/LICENSE
+
+github.com/blader/humanizer:
+  spdx: MIT
+  holder: "Copyright (c) 2025 Siqi Chen"
+  license_url: https://github.com/blader/humanizer/blob/main/LICENSE
+
+github.com/obra/superpowers:
+  spdx: MIT
+  holder: "Copyright (c) 2025 Jesse Vincent"
+  license_url: https://github.com/obra/superpowers/blob/main/LICENSE
+
+github.com/rshade/agent-skills:
+  spdx: Apache-2.0
+  holder: "Copyright 2025-2026 Richard Shade"
+  license_url: https://github.com/rshade/agent-skills/blob/main/LICENSE
+  notice: |
+    agent-skills
+    Copyright 2025-2026 Richard Shade
+
+github.com/antonbabenko/terraform-skill:
+  spdx: Apache-2.0
+  holder: "Copyright 2026 Anton Babenko"
+  license_url: https://github.com/antonbabenko/terraform-skill/blob/master/LICENSE
+  note: >-
+    GitHub reports NOASSERTION: the LICENSE is Apache-2.0 but opens with a custom
+    attribution header, which defeats the API's licence detection.
+
+# --- Sources of adapted content (metadata.provenance) ------------------------
+
+github.com/github/awesome-copilot:
+  spdx: MIT
+  holder: "Copyright GitHub, Inc."
+  license_url: https://github.com/github/awesome-copilot/blob/main/LICENSE
+
+github.com/microsoft/vscode:
+  spdx: MIT
+  holder: "Copyright (c) 2015 - present Microsoft Corporation"
+  license_url: https://github.com/microsoft/vscode/blob/main/LICENSE.txt
+
+github.com/netresearch/agent-rules-skill:
+  spdx: CC-BY-SA-4.0
+  holder: "Copyright (c) 2025-2026 Netresearch DTT GmbH"
+  license_url: https://github.com/netresearch/agent-rules-skill/blob/main/LICENSE-CC-BY-SA-4.0
+  note: >-
+    Split-licensed: LICENSE-MIT covers scripts and workflows, LICENSE-CC-BY-SA-4.0
+    covers skill definitions and documentation. We adapt the skill content, so the
+    CC-BY-SA-4.0 half applies and its ShareAlike condition travels with the
+    adaptation. GitHub reports NOASSERTION because of the dual layout.
+
+github.com/agentskills/agentskills:
+  spdx: Apache-2.0
+  holder: "Copyright the Agent Skills authors"
+  license_url: https://github.com/agentskills/agentskills/blob/main/LICENSE
+  note: >-
+    Publishes the Agent Skills specification rendered at agentskills.io. The
+    LICENSE carries no copyright line, so the holder above is a generic
+    attribution rather than a quoted notice.
+
+github.com/arisng/github-copilot-fc:
+  spdx: NONE
+  holder: "arisng"
+  license_url: ""
+  note: >-
+    No LICENSE file, so no grant of rights at all. Usable only where nothing
+    protected was taken; check-licenses.py enforces that. Credited under
+    Acknowledgements rather than Notices, because there is no licence to notice.
+
+# --- Cited specifications (metadata.provenance.authoritativeSpec) ------------
+#
+# Nothing here is reproduced locally -- scripts/check-licenses.py treats a bare
+# authoritativeSpec URL as a citation, and an audit on 2026-08-02 confirmed no
+# verbatim prose runs survive against any of them. They are recorded so the
+# Acknowledgements table can state a licence instead of "not recorded", and so
+# the position is deliberate if a future edit ever does reproduce one.
+#
+# The vendor documentation sites publish no reuse grant at all. Reproducing their
+# wording has no licensable remedy at any repo licence, so the only correct fix
+# there is rewriting -- which is what the 2026-08-02 audit did to four files.
+
+github.com/mermaid-js/mermaid:
+  spdx: MIT
+  holder: "Copyright (c) 2014 - 2022 Knut Sveidqvist"
+  license_url: https://github.com/mermaid-js/mermaid/blob/develop/LICENSE
+
+github.com/dadav/helm-schema:
+  spdx: MIT
+  holder: "Copyright (c) 2023 dadav"
+  license_url: https://github.com/dadav/helm-schema/blob/main/LICENSE
+
+github.com/norwoodj/helm-docs:
+  spdx: GPL-3.0
+  holder: "norwoodj/helm-docs contributors"
+  license_url: https://github.com/norwoodj/helm-docs/blob/master/LICENSE
+  note: >-
+    Its LICENSE is the bare GPL-3.0 text carrying only the FSF's own copyright
+    line, so there is no project copyright notice to quote; the holder above is a
+    generic attribution.
+    Strong copyleft. Only the annotation key names are used, which are interface
+    facts rather than protected expression. A code example that had been copied
+    verbatim from its README was rewritten on 2026-08-02; nothing reproduced
+    remains. Do not paste from this source.
+
+helm.sh:
+  spdx: MIT
+  holder: "Copyright (c) 2017 Microsoft Corporation"
+  license_url: https://github.com/helm/helm-www/blob/main/LICENSE
+  note: "The helm.sh documentation site is published from helm/helm-www (MIT)."
+
+agentskills.io:
+  spdx: Apache-2.0
+  holder: "Copyright the Agent Skills authors"
+  license_url: https://github.com/agentskills/agentskills/blob/main/LICENSE
+  note: "Rendered from agentskills/agentskills."
+
+mermaid.js.org:
+  spdx: MIT
+  holder: "Copyright (c) 2014 - 2022 Knut Sveidqvist"
+  license_url: https://github.com/mermaid-js/mermaid/blob/develop/LICENSE
+  note: "Rendered from mermaid-js/mermaid."
+
+code.claude.com:
+  spdx: Proprietary
+  holder: "Anthropic"
+  license_url: ""
+  note: "Vendor documentation. No reuse grant - cite, never reproduce."
+
+code.visualstudio.com:
+  spdx: Proprietary
+  holder: "Microsoft Corporation"
+  license_url: ""
+  note: "Vendor documentation. No reuse grant - cite, never reproduce."
+
+developers.openai.com:
+  spdx: Proprietary
+  holder: "OpenAI"
+  license_url: ""
+  note: "Vendor documentation. No reuse grant - cite, never reproduce."
+
+microsoft.github.io:
+  spdx: Proprietary
+  holder: "Microsoft Corporation"
+  license_url: ""
+  note: >-
+    The APM documentation site. Published from microsoft/apm (MIT), but the
+    rendered site carries no licence of its own - cite, never reproduce.

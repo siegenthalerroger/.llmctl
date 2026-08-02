@@ -1,19 +1,8 @@
 # Source URL Reference
 
-`check-updates.ps1` auto-discovers tracked files from frontmatter and reads these keys:
+`check-updates.ps1` auto-discovers tracked files from frontmatter and reads one key:
 
-- `metadata.provenance.mirror` => tracked as `mirror` (single URL)
-- `metadata.provenance.adaptedFrom` => tracked as `adapted` (URL string, array of URLs, or array of `url`/`took` objects)
-
-`adaptedFrom` takes precedence when both exist.
-
-### Mirror (exact copy)
-
-```yaml
-metadata:
-  provenance:
-    mirror: "https://github.com/owner/repo/blob/main/path/to/file.md"
-```
+- `metadata.provenance.adaptedFrom` — URL string, array of URLs, or array of objects
 
 ### Single-source adapted
 
@@ -35,46 +24,50 @@ metadata:
 
 Each URL in the array is checked independently. The script emits one result row per upstream URL.
 
-### Partial adaptation (`url` + `took`)
+### Scoped adaptation (`url` + `license` + `fidelity` + `took`)
 
-Use the object form when only part of the upstream landed locally. The string and array forms above mean **the whole file** derives from that upstream; the object form narrows it.
+Use the object form when only part of the upstream landed locally, or when the upstream's licence has to be recorded. The string and array forms above mean **the whole file** derives from that upstream; the object form narrows it and states the terms it arrives under.
 
 ```yaml
 metadata:
   provenance:
     adaptedFrom:
       - url: "https://github.com/owner/repo/blob/main/path/to/file.md"
-        took: "Inspiration only. The X contract and the Y ordering rule."
+        license: MIT
+        fidelity: inspiration-only
+        took: "The X contract and the Y ordering rule."
 ```
 
-Shape: **a fidelity label, then what was taken.** Nothing else.
+`fidelity` is the obligation level. The first two values mean no upstream terms attach, because ideas and structure are not protected expression; the last two mean they do.
 
-| Label | Meaning |
-| --- | --- |
-| `Inspiration only.` | A concept or framing was reused; effectively no text |
-| `Structural echo only.` | Section skeleton or headings, not content |
-| `Partly derived.` | Some sections genuinely derive from upstream |
-| `Largely derived.` | Most of the local file derives from upstream, some near-verbatim |
+| Value | Meaning | Terms attach? |
+| --- | --- | --- |
+| `inspiration-only` | A concept or framing was reused; effectively no text | no |
+| `structural-echo` | Section skeleton or headings, not content | no |
+| `partly-derived` | Some sections genuinely derive from upstream | **yes** |
+| `largely-derived` | Most of the local file derives from upstream, some near-verbatim | **yes** |
 
-`took` is emitted verbatim on the result row (including `-OutputJson`), so a merge review can be dismissed without opening the upstream diff: if the upstream change touches nothing on the list, there is nothing to merge.
+`license` is the SPDX id of the **upstream**, not of the local file — `NONE` where the upstream has no LICENSE file. It is required wherever `fidelity` implies an obligation; `scripts/check-licenses.py` in the repo root reads it to decide what the local file may be licensed under, and fails the build when the two cannot be reconciled.
+
+All three are emitted on the result row (including `-OutputJson`), so a merge review can be dismissed without opening the upstream diff: if the upstream change touches nothing on the `took` list, there is nothing to merge.
 
 **State only what was taken — never what was not.** "Not taken" is an open set: upstream can add sections indefinitely, so that half is wrong the moment upstream grows and no local change ever triggers a refresh. What *was* taken is a closed set bounded by the local file, so it only goes stale when the local file changes — which is exactly when someone is already editing it.
 
 Rules:
 
-- `took` is **single-line** — block scalars (`|`, `>`) are not parsed and their content is lost
-- `took` is optional; its absence means the whole file derives from that upstream
-- Forms may be mixed within one array (a plain URL string alongside `url`/`took` objects)
+- `took` is **single-line** — block scalars (`|`, `>`) are not parsed and their content is lost. The same applies to `license` and `fidelity`
+- `took` is optional; its absence, and an absent `fidelity`, both mean the whole file derives from that upstream (`largely-derived`)
+- Forms may be mixed within one array (a plain URL string alongside object entries)
 - An object entry **must** carry `url`. An entry with only `took` is skipped, and if no other entry supplies a URL the file drops out of the audit entirely — silently, with no error and no row in the output. Check that a provenance block still yields at least one URL after editing it; a file that stops being tracked looks identical to one that has nothing to track
 
 ### Keeping `took` minimal
 
 **Test: could this list ever let you close a merge review unread?** If no, use the plain string form.
 
-- **Wholly derived or near-verbatim files** — if almost any upstream change would matter, there is nothing to dismiss. The string form already says "this whole file derives from that upstream", which is shorter and more accurate. Adding `took` there misreads a copy as a selective adaptation
+- **Wholly derived or near-verbatim files** — if almost any upstream change would matter, there is nothing to dismiss. Give the entry `fidelity: largely-derived` and omit `took`; that already says "this whole file derives from that upstream", which is shorter and more accurate. Listing what was taken there misreads a copy as a selective adaptation
 - **Never write a "Not taken" or "Original locally" half** — see above; both are open sets that rot silently
-- **Never record point-in-time measurements** (line-overlap percentages, file sizes, line counts). Both sides move, so the number is wrong by the next release and no process refreshes it. The label carries the same signal durably; put any measurement in the commit message that motivated the change
-- **Do not overload the field.** `took` records *what was taken*. Licensing concerns, follow-up work, and open questions go wherever the project tracks work — putting them here turns the one place a reader looks for scope into something they have to skim
+- **Never record point-in-time measurements** (line-overlap percentages, file sizes, line counts). Both sides move, so the number is wrong by the next release and no process refreshes it. `fidelity` carries the same signal durably; put any measurement in the commit message that motivated the change
+- **Do not overload the field.** `took` records *what was taken*. The upstream's licence goes in `license`, the obligation level in `fidelity`, and follow-up work wherever the project tracks work — putting any of it here turns the one place a reader looks for scope into something they have to skim
 - A short note on **why the URL is not a line-for-line comparison base** (upstream moved or restructured the adapted path) does belong — it changes how the next reviewer reads the diff
 
 ## Supported URL Formats

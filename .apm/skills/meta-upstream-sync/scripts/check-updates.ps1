@@ -139,24 +139,35 @@ function Get-FrontmatterBlock {
 
 function Get-AdaptedEntriesFromFrontmatter {
     <#
-      Parse `metadata.provenance.adaptedFrom` into url/took pairs.
+      Parse a provenance block into url/took/license/fidelity records.
 
       Three accepted forms:
         adaptedFrom: "https://..."                          whole file, one upstream
         adaptedFrom:
           - "https://..."                                   whole file, several upstreams
         adaptedFrom:
-          - url: "https://..."                              partial adaptation
-            took: "what was taken; what was not"
+          - url: "https://..."                              scoped adaptation
+            license: MIT                                    SPDX id of the upstream, or NONE
+            fidelity: partly-derived                        obligation level (see below)
+            took: "what was taken"
 
-      `took` is single-line only (block scalars are not parsed) and is optional —
-      its absence means the whole file derives from that upstream.
+      `took` records only what was taken — never what was *not* taken, and never a
+      measurement; both rot with no local change to trigger a refresh. It is
+      single-line only (block scalars are not parsed).
+
+      `fidelity` is one of inspiration-only / structural-echo / partly-derived /
+      largely-derived. Absent means whole-file derivation, which check-licenses.py
+      treats as largely-derived. `license` and `fidelity` are consumed by
+      scripts/check-licenses.py and scripts/gen-notices.py in the .llmctl root; this
+      script carries them through so both tools read one parse of the same block.
 
       Line-based rather than one regex: the object form nests, and a regex that
       tries to span it silently matches nothing, which drops the file from the
       audit without an error.
     #>
-    param([string]$Frontmatter)
+    param(
+        [string]$Frontmatter
+    )
 
     $entries = New-Object System.Collections.Generic.List[object]
     $lines = $Frontmatter -split '\r?\n'
@@ -170,7 +181,7 @@ function Get-AdaptedEntriesFromFrontmatter {
                 $keyIndent = $Matches.indent.Length
                 $inline = $Matches.inline.Trim()
                 if ($inline -match '^["'']?(?<url>https?://[^"''\s]+?)["'']?$') {
-                    $entries.Add([pscustomobject]@{ url = $Matches.url; took = '' })
+                    $entries.Add([pscustomobject]@{ url = $Matches.url; took = ''; license = ''; fidelity = '' })
                     return $entries
                 }
             }
@@ -184,13 +195,19 @@ function Get-AdaptedEntriesFromFrontmatter {
         if ($indent -le $keyIndent) { break }
 
         if ($line -match '^[ \t]*-[ \t]*url[ \t]*:[ \t]*["'']?(?<url>https?://[^"''\s]+?)["'']?[ \t]*$') {
-            $entries.Add([pscustomobject]@{ url = $Matches.url; took = '' })
+            $entries.Add([pscustomobject]@{ url = $Matches.url; took = ''; license = ''; fidelity = '' })
         }
         elseif ($line -match '^[ \t]*-[ \t]*["'']?(?<url>https?://[^"''\s]+?)["'']?[ \t]*$') {
-            $entries.Add([pscustomobject]@{ url = $Matches.url; took = '' })
+            $entries.Add([pscustomobject]@{ url = $Matches.url; took = ''; license = ''; fidelity = '' })
         }
         elseif ($line -match '^[ \t]*took[ \t]*:[ \t]*(?<took>.+?)[ \t]*$' -and $entries.Count -gt 0) {
             $entries[$entries.Count - 1].took = ($Matches.took.Trim() -replace '^["'']', '' -replace '["'']$', '')
+        }
+        elseif ($line -match '^[ \t]*license[ \t]*:[ \t]*(?<license>.+?)[ \t]*$' -and $entries.Count -gt 0) {
+            $entries[$entries.Count - 1].license = ($Matches.license.Trim() -replace '^["'']', '' -replace '["'']$', '')
+        }
+        elseif ($line -match '^[ \t]*fidelity[ \t]*:[ \t]*(?<fidelity>.+?)[ \t]*$' -and $entries.Count -gt 0) {
+            $entries[$entries.Count - 1].fidelity = ($Matches.fidelity.Trim() -replace '^["'']', '' -replace '["'']$', '')
         }
     }
 
@@ -211,36 +228,20 @@ function Get-TrackEntriesFromFile {
 
     $relativePath = [IO.Path]::GetRelativePath($Repo, $AbsolutePath).Replace('\', '/')
 
-    # Collect metadata.provenance.mirror (single URL => mirror)
-    $sourceUrl = ""
-    if ($frontmatter -match '(?m)^\s*mirror\s*:\s*["'']?(?<url>https?://[^"''\r\n]+)') {
-        $sourceUrl = $Matches.url.Trim()
-    }
-
-    # Collect metadata.provenance.adaptedFrom (string, array, or url/took objects)
+    # Collect metadata.provenance.adaptedFrom (string, array, or object form),
+    # one entry per upstream URL.
     $adapted = Get-AdaptedEntriesFromFrontmatter -Frontmatter $frontmatter
 
     $entries = New-Object System.Collections.Generic.List[object]
 
-    # Adapted entries (one per upstream URL)
     foreach ($a in $adapted) {
         $entries.Add([pscustomobject]@{
             id        = $relativePath
-            mode      = 'adapted'
             localPath = $relativePath
             sourceUrl = $a.url
             took      = $a.took
-        })
-    }
-
-    # Mirror entry (only when no adaptedFrom URLs exist)
-    if ($entries.Count -eq 0 -and $sourceUrl) {
-        $entries.Add([pscustomobject]@{
-            id        = $relativePath
-            mode      = 'mirror'
-            localPath = $relativePath
-            sourceUrl = $sourceUrl
-            took      = ''
+            license   = $a.license
+            fidelity  = $a.fidelity
         })
     }
 
@@ -470,7 +471,7 @@ if ($trackedEntries.Count -eq 0) {
     if ($IncludePath) {
         throw "No tracked files found for IncludePath '$IncludePath'."
     }
-    throw "No tracked files found. Add metadata.provenance.mirror or metadata.provenance.adaptedFrom URLs in frontmatter."
+    throw "No tracked files found. Add metadata.provenance.adaptedFrom URLs in frontmatter."
 }
 
 $results = New-Object System.Collections.Generic.List[object]
@@ -482,9 +483,10 @@ foreach ($item in $trackedEntries) {
             $results.Add([pscustomobject]@{
                 id              = $item.id
                 localPath       = $item.localPath
-                mode            = $item.mode
                 sourceUrl       = $item.sourceUrl
                 took            = $item.took
+                license            = $item.license
+                fidelity            = $item.fidelity
                 status          = 'missing_local_commit'
                 recommendation  = 'commit_local_file_first'
                 recommendUpdate = $false
@@ -510,9 +512,10 @@ foreach ($item in $trackedEntries) {
             $results.Add([pscustomobject]@{
                 id              = $item.id
                 localPath       = $item.localPath
-                mode            = $item.mode
                 sourceUrl       = $item.sourceUrl
                 took            = $item.took
+                license            = $item.license
+                fidelity            = $item.fidelity
                 status          = 'fetch_failed'
                 recommendation  = 'check_source_url'
                 recommendUpdate = $false
@@ -525,15 +528,15 @@ foreach ($item in $trackedEntries) {
             continue
         }
 
-        $bootstrapRecommendation = if ($item.mode -eq 'mirror') { 'bootstrap_replace_from_upstream' } else { 'bootstrap_review_and_merge_from_upstream' }
         $results.Add([pscustomobject]@{
             id              = $item.id
             localPath       = $item.localPath
-            mode            = $item.mode
             sourceUrl       = $item.sourceUrl
             took            = $item.took
+            license            = $item.license
+            fidelity            = $item.fidelity
             status          = 'update_available'
-            recommendation  = $bootstrapRecommendation
+            recommendation  = 'bootstrap_review_and_merge_from_upstream'
             recommendUpdate = $true
             reason          = 'local_file_not_in_git_history_bootstrap_allowed'
             localGit        = $localGit
@@ -558,9 +561,10 @@ foreach ($item in $trackedEntries) {
         $results.Add([pscustomobject]@{
             id              = $item.id
             localPath       = $item.localPath
-            mode            = $item.mode
             sourceUrl       = $item.sourceUrl
             took            = $item.took
+            license            = $item.license
+            fidelity            = $item.fidelity
             status          = 'fetch_failed'
             recommendation  = 'check_source_url'
             recommendUpdate = $false
@@ -585,12 +589,7 @@ foreach ($item in $trackedEntries) {
     if ($localIsOlder) {
         $recommendUpdate = $true
         $reason = 'upstream_commit_newer_than_local_commit'
-        if ($item.mode -eq 'mirror') {
-            $recommendation = 'replace_from_upstream'
-        }
-        else {
-            $recommendation = 'review_and_merge_from_upstream'
-        }
+        $recommendation = 'review_and_merge_from_upstream'
 
         if ($IncludeChangeDetails) {
             try {
@@ -614,9 +613,10 @@ foreach ($item in $trackedEntries) {
     $results.Add([pscustomobject]@{
         id              = $item.id
         localPath       = $item.localPath
-        mode            = $item.mode
         sourceUrl       = $item.sourceUrl
         took            = $item.took
+        license            = $item.license
+        fidelity            = $item.fidelity
         status          = $status
         recommendation  = $recommendation
         recommendUpdate = $recommendUpdate
@@ -671,10 +671,10 @@ else {
     foreach ($result in $results) {
         if ($IncludeChangeDetails -and $null -ne $result.upstreamChanges) {
             $changeCount = [int]$result.upstreamChanges.commitCount
-            Write-Host ("[{0}] {1} ({2}) <- {3} | {4} | upstream commits since local: {5} | recommendation: {6}" -f $result.status, $result.localPath, $result.mode, $result.sourceUrl, $result.reason, $changeCount, $result.recommendation)
+            Write-Host ("[{0}] {1} <- {2} | {3} | upstream commits since local: {4} | recommendation: {5}" -f $result.status, $result.localPath, $result.sourceUrl, $result.reason, $changeCount, $result.recommendation)
         }
         else {
-            Write-Host ("[{0}] {1} ({2}) <- {3} | {4} | recommendation: {5}" -f $result.status, $result.localPath, $result.mode, $result.sourceUrl, $result.reason, $result.recommendation)
+            Write-Host ("[{0}] {1} <- {2} | {3} | recommendation: {4}" -f $result.status, $result.localPath, $result.sourceUrl, $result.reason, $result.recommendation)
         }
     }
 }
