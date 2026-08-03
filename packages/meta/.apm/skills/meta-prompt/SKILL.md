@@ -77,7 +77,7 @@ Every prompt file should include YAML frontmatter with the following fields:
 | `model`         | Optional    | The language model to use. Defaults to the currently selected model                         |
 | `tools`         | Optional    | List of tool/tool set names available for this prompt                                       |
 | `argument-hint` | Optional    | Hint text shown in chat input to guide user interaction                                     |
-| `metadata.provenance.adaptedFrom` | Optional | URL (string) or list of URLs (array) when adapted/synthesised from upstream sources |
+| `metadata.provenance.adaptedFrom` | Optional | Where local content was adapted from: a URL string, an array of URLs, or an array of objects carrying `url` plus `license` / `fidelity` / `took`. String and array forms mean the **whole file** derives from that upstream |
 
 ### Guidelines
 
@@ -85,7 +85,7 @@ Every prompt file should include YAML frontmatter with the following fields:
 - If `tools` are specified and the current agent is `ask` or `edit`, the default agent becomes `agent`
 - Be explicit about `agent` when tool requirements or side effects matter; do not rely on implicit escalation
 - Preserve any additional metadata (`language`, `tags`, `visibility`, etc.) required by your organization
-- For provenance tracking, use `metadata.provenance` fields (`adaptedFrom`, `authoritativeSpec`); use the same convention for prompts, instructions, skills, and agents
+- For provenance tracking, use `metadata.provenance` fields (`adaptedFrom`, `authoritativeSpec`); use the same convention for prompts, instructions, skills, and agents. Where an entry's `fidelity` is `partly-derived` or `largely-derived`, its `license` is required — `scripts/check-licenses.py` rejects the file otherwise. See the [meta-skill frontmatter reference](../meta-skill/references/FRONTMATTER.md#provenance-metadata-recommended)
 
 ## Cross-Tool Compatibility (Copilot + Claude Code)
 

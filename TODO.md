@@ -90,7 +90,7 @@ See also [terraform-skill's `references/code-intelligence-lsp.md`](https://githu
 
 **Priority: waiting.** Ongoing tracking and items gated on a demonstrated need.
 
-- [ ] **3a — Track upstream APM evolution (esp. deployed-file gitignore / local-settings targeting).** APM deploys Claude hook wiring only to `settings.json` (project) or `~/.claude/settings.json` (user) — it cannot target the git-ignored `settings.local.json` variant ([hook_integrator.py](https://github.com/microsoft/apm/blob/main/src/apm_cli/integration/hook_integrator.py) hardcodes `config_filename="settings.json"`). Watch microsoft/apm [#1342](https://github.com/microsoft/apm/issues/1342) (related: [#990](https://github.com/microsoft/apm/issues/990), [#290](https://github.com/microsoft/apm/issues/290)). When a `.local`-target option or deployed-file gitignore mode ships, revisit the `.gitignore` comment ([.gitignore:7-10](.gitignore#L7-L10)) and the deploy guidance in [CONTRIBUTING.md:127](CONTRIBUTING.md#L127). More broadly, periodically review APM releases for changes affecting this repo's deploy assumptions.
+- [ ] **3a — Track upstream APM evolution (esp. deployed-file gitignore / local-settings targeting).** APM deploys Claude hook wiring only to `settings.json` (project) or `~/.claude/settings.json` (user) — it cannot target the git-ignored `settings.local.json` variant ([hook_integrator.py](https://github.com/microsoft/apm/blob/main/src/apm_cli/integration/hook_integrator.py) hardcodes `config_filename="settings.json"`). Watch microsoft/apm [#1342](https://github.com/microsoft/apm/issues/1342) (related: [#990](https://github.com/microsoft/apm/issues/990), [#290](https://github.com/microsoft/apm/issues/290)). When a `.local`-target option or deployed-file gitignore mode ships, revisit the [`.gitignore`](.gitignore) comment above the `.claude/` entries and the deploy guidance in [CONTRIBUTING.md](CONTRIBUTING.md#hooks-hookjson). More broadly, periodically review APM releases for changes affecting this repo's deploy assumptions.
 - [ ] **3b — First plugin:** Add a plugin bundle when tool/MCP capabilities are insufficient for a task. Authoring guidance lives in the [meta-plugin skill](packages/meta/.apm/skills/meta-plugin/SKILL.md).
 - [ ] **3c — Track two APM 0.25 environment issues found during clean redeploy.**
 
@@ -108,7 +108,12 @@ See also [terraform-skill's `references/code-intelligence-lsp.md`](https://githu
 
 ### Background
 
-There is no `.github/workflows/` in the repo. The only automated validation is [.apm/hooks/validate-customization-frontmatter.py](.apm/hooks/validate-customization-frontmatter.py), a Claude Code `PostToolUse` hook — it fires only on files edited in a Claude session, so drift in untouched files, edits made from other harnesses, and APM version skew all go unnoticed until a deploy misbehaves (cf. **3c**, **3d**). Two distinct failure classes are worth checking separately:
+Two validation layers exist as of 2026-08-02, and neither covers this workstream:
+
+- [.apm/hooks/validate-customization-frontmatter.py](.apm/hooks/validate-customization-frontmatter.py), a Claude Code `PostToolUse` hook — it fires only on files edited in a Claude session, so drift in untouched files, edits made from other harnesses, and APM version skew all go unnoticed until a deploy misbehaves (cf. **3c**, **3d**).
+- [scripts/release-check.py](scripts/release-check.py) and the gates it drives (licences, parser parity, notices, versions, manifest drift, bundle validity, lockfile). These are repo-wide and run in CI, but they only cover provenance/licensing and the release path — not the frontmatter conventions below.
+fir
+Two distinct failure classes are worth checking separately:
 
 | Class | Question | Signal |
 | --- | --- | --- |
@@ -131,16 +136,12 @@ Two caveats from that repo: `devDependencies` entries are reported as orphaned b
 ### Tasks
 
 - [ ] **4a — Run the frontmatter validator over the whole tree in CI.** Add a batch/`--all` mode (or a thin wrapper) to [validate-customization-frontmatter.py](.apm/hooks/validate-customization-frontmatter.py) so the same rules apply repo-wide, not just to edited files. Keep the hook and the CI entrypoint sharing one implementation.
-- [ ] **4b — Extend validation to metadata this repo relies on but the hook ignores** — `metadata.provenance` (`adaptedFrom` entries and their `license` / `fidelity` fields, per the [meta-upstream-sync source-url reference](.apm/skills/meta-upstream-sync/references/source-url-reference.md)), `model:` frontmatter on agents, and the `tools:`-omission convention from **3d**.
+- [ ] **4b — Extend validation to metadata this repo relies on but the hook ignores** — `model:` frontmatter on agents and the `tools:`-omission convention from **3d**.
 
-  **Highest-value check, and the reason this task exists: an `adaptedFrom` entry that yields no URL must be a hard error.** The `url`/`took` object form added 2026-08-01 fails *silently* when malformed — [check-updates.ps1](.apm/skills/meta-upstream-sync/scripts/check-updates.ps1) skips an object entry with no `url` key, and if no sibling entry supplies one the file simply stops appearing in the audit. No error, no warning; it just quietly stops being tracked, which is the exact opposite of what provenance is for. Concretely, reject:
+  **The provenance half of this task shipped.** [scripts/check-licenses.py](scripts/check-licenses.py) now hard-errors on an `adaptedFrom` block that parses to zero URLs and on an object entry with no `url`, and it parses through the shared [scripts/provenance.py](scripts/provenance.py) so the validator and the [drift audit](.apm/skills/meta-upstream-sync/scripts/check-updates.ps1) cannot disagree about what counts as tracked — enforced by release-check's `parity` gate. It also requires an upstream `license` wherever `fidelity` copies expression. Two lint-grade checks from the original list remain unimplemented, both warnings rather than errors:
 
-  - an `adaptedFrom` block that parses to zero URLs
-  - an object entry carrying `took` but no `url`
-  - a `took` value written as a block scalar (`|` / `>`) — the parser is single-line and silently drops the content
-  - a `took` value containing `Not taken` / `Original locally`, or a `%` measurement (warning, not error) — both were removed from the convention on 2026-08-01 because they rot with no local change to trigger a refresh; see [CONTRIBUTING.md](CONTRIBUTING.md#scoping-an-adaptation-with-took)
-
-  Share the parse with the script rather than reimplementing it, so the validator and the audit cannot disagree about what counts as tracked.
+  - a `took` value written as a block scalar (`|` / `>`) — both parsers are single-line and silently drop the content
+  - a `took` value containing `Not taken` / `Original locally`, or a `%` measurement — removed from the convention on 2026-08-01 because they rot with no local change to trigger a refresh; see [CONTRIBUTING.md](CONTRIBUTING.md#scoping-an-adaptation-with-fidelity-and-took)
 
 - [ ] **4c — Fix the drift audit's dead-URL blind spot.** Found 2026-08-01 while annotating `took`: [check-updates.ps1](.apm/skills/meta-upstream-sync/scripts/check-updates.ps1) never verifies the provenance path still **exists**. `GET /repos/{o}/{r}/commits?path=<deleted-path>` happily returns the commit that *deleted* the path, so the script reads a real date, compares it, and reports `up_to_date` — forever. Two of the repo's own entries were pointing at 404s and reporting healthy: `researcher-advanced` (upstream restructured 2026-05-29) and `code-reviewer` (moved into `skills/requesting-code-review/`). Both re-pointed; the blind spot remains. Fix: probe `contents/<path>` (or check whether the newest commit for the path is a deletion) and emit a distinct `source_missing` status with recommendation `repoint_or_drop_provenance`. Without this, provenance rots silently, which defeats the point of tracking it.
 - [ ] **4d — Add a deployability check.** Install each package into a disposable `HOME`/workspace and assert that every authored primitive lands in the expected per-target location, comparing against an inventory derived from `packages/*/.apm/`. Confirm the cheapest reliable mechanism first (lockfile inspection, a dry-run flag, or a real install into a temp dir) rather than assuming one exists.
@@ -197,4 +198,4 @@ Marketplace manifests and packed bundles live in a **separate private repository
 
 ### Tasks
 
-- [ ] **6a — Go public and verify end to end.** The marketplace repo is private, which is fine for `claude plugin marketplace add <local path>` but blocks Cowork and any other host that clones anonymously. **Unblocked as of 2026-08-02** — the licensing in **6c** is settled and every bundle carries its `LICENSE`, `LICENSES/` and generated notices. Flipping the repo public is a GitHub setting, so it needs doing by hand. Then install a plugin end to end from Cowork and record what actually loaded (skills, commands, and whether 0.26's packed `agents/`, `instructions/`, and `.mcp.json` are honoured — the previous finding that they do not travel predates 0.26).
+- [ ] **6a — Go public and verify end to end.** The marketplace repo is private, which is fine for `claude plugin marketplace add <local path>` but blocks Cowork and any other host that clones anonymously. **Unblocked as of 2026-08-02** — the split licensing is settled and every bundle carries its `LICENSE`, `LICENSES/` and generated `THIRD-PARTY-NOTICES.md`. Flipping the repo public is a GitHub setting, so it needs doing by hand. Then install a plugin end to end from Cowork and record what actually loaded (skills, commands, and whether 0.26's packed `agents/`, `instructions/`, and `.mcp.json` are honoured — the previous finding that they do not travel predates 0.26).

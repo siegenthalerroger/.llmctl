@@ -54,7 +54,11 @@ PERMITTED_OUTBOUND = {
 KNOWN_LICENSES = tuple(PERMITTED_OUTBOUND)
 
 # Files carrying steering content. Everything else in the tree is code/config.
-CONTENT_SUFFIXES = (".agent.md", ".prompt.md", ".instructions.md", ".md")
+# `.md` alone, deliberately: the customization types (`*.agent.md`,
+# `*.prompt.md`, `*.instructions.md`, `SKILL.md`) are all Markdown, and so are
+# the `references/` files they link to — which is where a reproduced spec table
+# is most likely to land. Listing the four types would exclude exactly those.
+CONTENT_SUFFIXES = (".md",)
 
 
 def default_license_for(path):
@@ -190,7 +194,17 @@ def effective_fidelity(entry):
 
 
 def iter_files(root):
-    """Every customization/content file whose licence this repo governs."""
+    """Every authored content file under `packages/` and `.apm/`.
+
+    Repo-root docs (README, CONTRIBUTING, AGENTS, TODO) are covered by the same
+    default rule but carry no provenance, so there is nothing to check on them.
+
+    `skip` must stay identical to `$script:ExcludedDirs` in check-updates.ps1:
+    release-check.py's parity gate compares what the two parsers find, so a
+    directory one walks and the other does not reports as a disagreement. Every
+    name below holds copies rather than sources — APM dependencies, the deploy
+    mirrors `apm install` writes next to a package, and build scratch.
+    """
     skip = {".git", "apm_modules", "build", "node_modules", "__pycache__",
             ".claude", ".agents", "LICENSES"}
     for base in ("packages", ".apm"):

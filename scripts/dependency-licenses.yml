@@ -152,9 +152,27 @@ code.claude.com:
   license_url: ""
   note: "Vendor documentation. No reuse grant - cite, never reproduce."
 
+claude.com:
+  spdx: Proprietary
+  holder: "Anthropic"
+  license_url: ""
+  note: "Vendor pricing pages, cited by meta-update-models. Cite, never reproduce."
+
+platform.claude.com:
+  spdx: Proprietary
+  holder: "Anthropic"
+  license_url: ""
+  note: "Vendor documentation. No reuse grant - cite, never reproduce."
+
 code.visualstudio.com:
   spdx: Proprietary
   holder: "Microsoft Corporation"
+  license_url: ""
+  note: "Vendor documentation. No reuse grant - cite, never reproduce."
+
+docs.github.com:
+  spdx: Proprietary
+  holder: "GitHub, Inc."
   license_url: ""
   note: "Vendor documentation. No reuse grant - cite, never reproduce."
 
@@ -163,6 +181,14 @@ developers.openai.com:
   holder: "OpenAI"
   license_url: ""
   note: "Vendor documentation. No reuse grant - cite, never reproduce."
+
+api.kilo.ai:
+  spdx: Proprietary
+  holder: "Kilo AI"
+  license_url: ""
+  note: >-
+    A model-catalogue API endpoint, not a document. Read at run-time by
+    meta-update-models for the candidate list; nothing is reproduced.
 
 microsoft.github.io:
   spdx: Proprietary

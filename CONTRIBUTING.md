@@ -42,8 +42,9 @@ APM is the primary mechanism for consuming upstream content. Prefer declaring up
 ### Adapted / synthesised (local)
 
 - Use whenever anything at all was taken from an upstream file that APM cannot manage — whether the local file restructures the material for local conventions, synthesises several sources, or carries most of one upstream across near-verbatim.
-- Add `metadata.provenance.adaptedFrom` listing upstream sources, and set each entry's `fidelity` to say how much was taken. These files are tracked by `meta-upstream-sync` for drift and merge-review workflows.
+- Add `metadata.provenance.adaptedFrom` listing upstream sources, and set each entry's `fidelity` to say how much was taken plus its `license` wherever that fidelity copies expression. These files are tracked by `meta-upstream-sync` for drift and merge-review workflows.
 - Before adding one, verify the upstream isn't available as an APM package.
+- Run `apm run check-licenses` afterwards. It is the only thing that catches a provenance block which parses to nothing — a file that stops being tracked looks exactly like one with nothing to track.
 
 Local-only skills (not available upstream) remain directly in this repository.
 
@@ -229,6 +230,8 @@ Authoritative sources are maintained in the `meta-update-models` skill frontmatt
 The `meta-updater` agent and `meta-upstream-sync` skill audit **locally-committed files** with provenance declarations. APM dependencies are updated separately via `apm install -g`.
 
 Use the `meta-updater` agent together with the `meta-upstream-sync` skill to audit and synthesize upstream updates.
+
+A merge that pulls across more text than before raises the entry's `fidelity`, and a raised fidelity can attach upstream terms the local file's licence cannot carry. Update `fidelity` and `license` in the same edit as the merge, then run `apm run check-licenses`.
 
 GitHub API authentication uses the `gh` CLI by default — run `gh auth login` once and `check-updates.ps1` reuses that login (`gh auth token`) automatically.
 

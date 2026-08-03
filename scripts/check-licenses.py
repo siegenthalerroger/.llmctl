@@ -33,10 +33,10 @@ import provenance as prov  # noqa: E402
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def check_file(record):
+def check_file(record, root=REPO):
     """Return (errors, warnings) for one parsed file."""
     errors, warnings = [], []
-    rel = os.path.relpath(record["path"], REPO).replace("\\", "/")
+    rel = os.path.relpath(record["path"], root).replace("\\", "/")
 
     for problem in record["malformed"]:
         errors.append((rel, problem + " - a provenance block that parses to nothing "
@@ -100,7 +100,7 @@ def main():
     for path in prov.iter_files(args.root):
         record = prov.parse(path)
         records.append(record)
-        errors, warnings = check_file(record)
+        errors, warnings = check_file(record, args.root)
         all_errors.extend(errors)
         all_warnings.extend(warnings)
 

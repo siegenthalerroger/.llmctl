@@ -441,6 +441,30 @@ function Parse-DateSafe {
     throw "Unrecognized date format: '$Value'"
 }
 
+# Directories that hold copies rather than sources: APM dependencies, the
+# per-target deploy mirrors `apm install` writes, and build scratch. Must stay
+# identical to `skip` in scripts/provenance.py — release-check.py's parity gate
+# compares what the two parsers find, so a directory scanned by one and not the
+# other reports as a parser disagreement rather than as the duplicate it is.
+# A vendored upstream carries its own `adaptedFrom`, and a deployed mirror
+# carries the same one twice; auditing either would attribute an upstream's
+# provenance to this repository.
+$script:ExcludedDirs = @('.git', 'apm_modules', 'build', 'node_modules',
+                         '__pycache__', '.claude', '.agents', 'LICENSES')
+
+function Test-ExcludedPath {
+    param(
+        [string]$Repo,
+        [string]$AbsolutePath
+    )
+
+    $relative = [IO.Path]::GetRelativePath($Repo, $AbsolutePath).Replace('\', '/')
+    foreach ($segment in ($relative -split '/')) {
+        if ($script:ExcludedDirs -contains $segment) { return $true }
+    }
+    return $false
+}
+
 function Discover-TrackedEntries {
     param([string]$Repo)
 
@@ -450,6 +474,7 @@ function Discover-TrackedEntries {
     foreach ($pattern in $patterns) {
         $files = Get-ChildItem -LiteralPath $Repo -Recurse -File -Filter $pattern
         foreach ($file in $files) {
+            if (Test-ExcludedPath -Repo $Repo -AbsolutePath $file.FullName) { continue }
             $fileEntries = Get-TrackEntriesFromFile -Repo $Repo -AbsolutePath $file.FullName
             foreach ($entry in $fileEntries) {
                 $entries.Add($entry)
@@ -485,8 +510,8 @@ foreach ($item in $trackedEntries) {
                 localPath       = $item.localPath
                 sourceUrl       = $item.sourceUrl
                 took            = $item.took
-                license            = $item.license
-                fidelity            = $item.fidelity
+                license         = $item.license
+                fidelity        = $item.fidelity
                 status          = 'missing_local_commit'
                 recommendation  = 'commit_local_file_first'
                 recommendUpdate = $false
@@ -514,8 +539,8 @@ foreach ($item in $trackedEntries) {
                 localPath       = $item.localPath
                 sourceUrl       = $item.sourceUrl
                 took            = $item.took
-                license            = $item.license
-                fidelity            = $item.fidelity
+                license         = $item.license
+                fidelity        = $item.fidelity
                 status          = 'fetch_failed'
                 recommendation  = 'check_source_url'
                 recommendUpdate = $false
@@ -533,8 +558,8 @@ foreach ($item in $trackedEntries) {
             localPath       = $item.localPath
             sourceUrl       = $item.sourceUrl
             took            = $item.took
-            license            = $item.license
-            fidelity            = $item.fidelity
+            license         = $item.license
+            fidelity        = $item.fidelity
             status          = 'update_available'
             recommendation  = 'bootstrap_review_and_merge_from_upstream'
             recommendUpdate = $true
@@ -563,8 +588,8 @@ foreach ($item in $trackedEntries) {
             localPath       = $item.localPath
             sourceUrl       = $item.sourceUrl
             took            = $item.took
-            license            = $item.license
-            fidelity            = $item.fidelity
+            license         = $item.license
+            fidelity        = $item.fidelity
             status          = 'fetch_failed'
             recommendation  = 'check_source_url'
             recommendUpdate = $false
@@ -615,8 +640,8 @@ foreach ($item in $trackedEntries) {
         localPath       = $item.localPath
         sourceUrl       = $item.sourceUrl
         took            = $item.took
-        license            = $item.license
-        fidelity            = $item.fidelity
+        license         = $item.license
+        fidelity        = $item.fidelity
         status          = $status
         recommendation  = $recommendation
         recommendUpdate = $recommendUpdate

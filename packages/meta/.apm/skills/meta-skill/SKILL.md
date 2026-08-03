@@ -73,15 +73,15 @@ description: "Toolkit and guidelines for an example usecase. Use when asked to d
 | ------------- | -------- | ------------------------------------------------------------------------- |
 | `name`        | Yes      | Lowercase letters, numbers, and hyphens only. Max 64 chars. Must not start/end with hyphen or contain `--`. Must match parent directory name. No XML tags or reserved words (`anthropic`, `claude`, `copilot`, `openai`). |
 | `description` | Yes      | Clear description of capabilities AND use cases, max 1024 characters      |
-| `license` | No | Optional license string or reference |
+| `license` | Conditional | SPDX id of **this** file. Omit to take the repo default for its path (`*.md` is CC-BY-SA-4.0); declare it only where an upstream obligation the default cannot satisfy forces another licence. See [LICENSE](../../../../../LICENSE) |
 | `compatibility` | No | Optional note about environment requirements when truly needed, max 500 characters |
 | `allowed-tools` | No | Experimental spec field for pre-approved tools where supported |
-| `metadata.provenance.adaptedFrom` | No | URL (string) or list of URLs (array) when adapted/synthesised from upstream sources |
-| `metadata.provenance.authoritativeSpec` | No | Array of URLs for authoritative format specifications (informational only) |
+| `metadata.provenance.adaptedFrom` | No | Where local content was adapted from: a URL string, an array of URLs, or an array of objects carrying `url` plus `license` / `fidelity` / `took`. String and array forms mean the **whole file** derives from that upstream |
+| `metadata.provenance.authoritativeSpec` | No | Array of URLs for authoritative format specifications. A bare URL means cited only, nothing reproduced; use the object form for a spec whose wording or tables were reproduced locally |
 
 > **Portable vs. private fields:** Only `name`, `description`, and `license` are part of the [agentskills.io](https://agentskills.io/) spec. Everything under `metadata.*` (provenance, modelProfile) is a **private convention** of this repository — other tools and consumers safely ignore it. Do not add `metadata.*` fields to skills intended for upstream publication without confirming the target registry supports them.
 
-For consistent provenance tracking, use `metadata.provenance` fields across prompt, instruction, skill, and agent frontmatter.
+For consistent provenance tracking, use `metadata.provenance` fields across prompt, instruction, skill, and agent frontmatter. `fidelity` decides whether upstream terms attach and therefore what `license` this file may carry — the rules, and the two fields' interaction with `scripts/check-licenses.py`, are in [references/FRONTMATTER.md](./references/FRONTMATTER.md#provenance-metadata-recommended).
 
 #### Harness-Specific Fields
 

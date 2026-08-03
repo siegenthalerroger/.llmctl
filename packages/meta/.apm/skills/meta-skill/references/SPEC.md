@@ -166,7 +166,7 @@ The optional `metadata` field:
 * A map from string keys to string values
 * Clients can use this to store additional properties not defined by the Agent Skills spec
 * We recommend making your key names reasonably unique to avoid accidental conflicts
-* For provenance, we recommend grouping under `metadata.provenance`: `adaptedFrom` (upstream origin; string or array of URLs) and `authoritativeSpec` (format specifications; array of URLs, informational only)
+* For provenance, we recommend grouping under `metadata.provenance`: `adaptedFrom` (upstream origin; a URL string, an array of URLs, or an array of objects carrying `url` plus `license` / `fidelity` / `took`) and `authoritativeSpec` (format specifications; array of URLs, where a bare URL means cited only, nothing reproduced)
 
 Example:
 

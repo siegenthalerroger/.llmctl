@@ -141,7 +141,7 @@ Treat `description` as routing text, not just a summary. State what the agent do
 - **`target`** (string): Environment where agent is available (e.g., `"vscode"`, `"cli"`, `"web"`)
 - **`disable-model-invocation`** (boolean): Platform-specific flag for tool-first or orchestration-only agents where supported
 - **`handoffs`** (array): Configuration for multi-step workflows with other agents
-- **`license`** (string): License for the agent definition (e.g., `"MIT"`, `"Apache-2.0"`)
+- **`license`** (string): SPDX id of **this** agent definition. Omit to take the repo default for its path (`*.md` is CC-BY-SA-4.0); declare it only where an upstream obligation the default cannot satisfy forces another licence (e.g. `"Apache-2.0"`)
 - **`metadata`** (object): Additional custom metadata (author, version, tags, etc.)
 
 **Deprecated fields:**
@@ -160,8 +160,8 @@ Prefer fields documented by the target client, and label platform-specific examp
 
 **Provenance metadata convention (recommended across all customization files):**
 
-- **`metadata.provenance.adaptedFrom`** (string, array of URLs, or array of `url`/`took` objects): where a local adaptation came from. String/array = the whole file derives from those upstreams; `url` + `took` = a partial adaptation, where `took` is a fidelity label plus what was taken (never what was not)
-- **`metadata.provenance.authoritativeSpec`** (array): URLs of authoritative specifications that define the file format or behavioral contract (informational only, not tracked for drift)
+- **`metadata.provenance.adaptedFrom`** (string, array of URLs, or array of objects): where a local adaptation came from. String/array = the whole file derives from those upstreams; the object form scopes it with `url` plus `license` (the upstream's SPDX id), `fidelity` (the obligation level), and `took` (only what was taken, never what was not)
+- **`metadata.provenance.authoritativeSpec`** (array): URLs of authoritative specifications that define the file format or behavioral contract. Not tracked for drift, but not inert — `scripts/check-licenses.py` reads it, treating a bare URL as a citation that reproduces nothing
 
 Use this same convention for prompt, instruction, skill, and agent frontmatter to keep source tracking consistent.
 

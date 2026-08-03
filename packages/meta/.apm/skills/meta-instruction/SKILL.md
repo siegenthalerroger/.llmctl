@@ -136,11 +136,11 @@ paths: ["**/*.py"]
 | `description` | Yes | Routing contract, not documentation: state WHAT the rules cover, then WHEN they apply, front-loaded with the exact trigger terms a user would say — Copilot matches this text semantically against the task even without a path match |
 | `applyTo` | Conditional | Copilot glob pattern(s) for path-based activation when supported and needed |
 | `paths` | Conditional | Claude Code path pattern array for path-based activation when supported and needed |
-| `license` | Optional | License information for the instructions |
+| `license` | Conditional | SPDX id of **this** file. Omit to take the repo default for its path (`*.md` is CC-BY-SA-4.0); declare it only where an upstream obligation the default cannot satisfy forces another licence |
 
 For cross-file provenance consistency, instruction frontmatter may also include:
 
-- `metadata.provenance.adaptedFrom` (optional): URL string or array when the whole file is adapted/synthesised from upstream; an array of `url`/`took` objects when only part of the upstream was taken, with `took` giving a fidelity label plus what was taken
+- `metadata.provenance.adaptedFrom` (optional): a URL string or array when the whole file is adapted/synthesised from upstream; an array of objects carrying `url` plus `license` / `fidelity` / `took` when the adaptation should be scoped. Keep the three separate — `fidelity` is the obligation level, `license` the upstream's SPDX id, and `took` only what was taken. See the [meta-skill frontmatter reference](../meta-skill/references/FRONTMATTER.md#provenance-metadata-recommended)
 
 Use the same `metadata.provenance` convention for prompt, instruction, skill, and agent files.
 
