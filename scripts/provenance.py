@@ -48,6 +48,11 @@ PERMITTED_OUTBOUND = {
     # under Acknowledgements, because attribution is a courtesy we keep.
     "Unlicense": ("MIT", "CC-BY-SA-4.0"),
     "CC0-1.0": ("MIT", "CC-BY-SA-4.0"),
+    # W3C-20150513 permits copying and porting with the full notice carried, so
+    # in isolation it would sit with the permissive licences above. It is listed
+    # with no permitted outbound deliberately, to enforce re-evaluation of LICENSE.md
+    # if any more than `inspiration-only` is used.
+    "W3C-20150513": (),
     # No grant of rights at all — nothing is permitted. Such a source is usable
     # only at a fidelity that attaches no obligation, i.e. cite it, never copy it.
     # `Proprietary` covers the vendor documentation sites: reproducing their
