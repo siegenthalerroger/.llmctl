@@ -43,6 +43,11 @@ PERMITTED_OUTBOUND = {
     "CC-BY-SA-4.0": ("CC-BY-SA-4.0",),
     "GPL-3.0": ("GPL-3.0",),
     "MPL-2.0": ("MPL-2.0",),
+    # Public-domain dedications reserve nothing, so any outbound licence is
+    # permitted and no notice has to travel. Still recorded, and still credited
+    # under Acknowledgements, because attribution is a courtesy we keep.
+    "Unlicense": ("MIT", "CC-BY-SA-4.0"),
+    "CC0-1.0": ("MIT", "CC-BY-SA-4.0"),
     # No grant of rights at all — nothing is permitted. Such a source is usable
     # only at a fidelity that attaches no obligation, i.e. cite it, never copy it.
     # `Proprietary` covers the vendor documentation sites: reproducing their
