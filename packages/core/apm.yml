@@ -1,5 +1,5 @@
 name: llmctl-core
-version: 0.3.0
+version: 0.3.1
 description: Core agent steering — domain-neutral planning, exploration and execution agents, research, troubleshooting, diagramming.
 author: siegenthalerroger
 license: MIT AND CC-BY-SA-4.0
