@@ -36,7 +36,7 @@ Conventional — the type sizes the release bump, so it is not decoration:
 <type>(<scope>): <description>
 ```
 
-`type` ∈ `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`; `!` before the colon marks a breaking change. `scope` is the package (`core`, `meta`, `ops`, `product`, `workflow`) or, outside `packages/`, the area (`scripts`, `docs`, `ci`). Which package a commit releases comes from the paths it touched; a scope that disagrees with those paths is reported by `release.py`. See [CONTRIBUTING.md](CONTRIBUTING.md#commit-convention).
+`type` ∈ `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`; `!` before the colon marks a breaking change. `scope` is the package (`core`, `meta`, etc.) or, outside `packages/`, the area (`scripts`, `docs`, `ci`). Which package a commit releases comes from the paths it touched; a scope that disagrees with those paths is reported by `release.py`. See [CONTRIBUTING.md](CONTRIBUTING.md#commit-convention).
 
 ## Do not do
 

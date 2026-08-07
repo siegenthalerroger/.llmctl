@@ -11,6 +11,7 @@
 | `packages/workflow` | Global (code work) | The `code-reviewer` agent; delivery-discipline skills sourced upstream (TDD, git worktrees, merge conflicts, code-review reception, lint pipelines) | `apm install -g <repo-location>/packages/workflow` |
 | `packages/ops` | Per-project (ops/infra) | Helm/K8s/OpenTofu skills; helm + tf instructions; cloud/IaC doc MCP servers | `apm install <repo>/packages/ops` |
 | `packages/product` | Per-project (product) | PRD skills; product-manager + ux-expert agents | `apm install <repo>/packages/product` |
+| `packages/design` | Per-project (design) | `design-direction`, `colour`, `typography`, `presentation` skills; upstream layout/identity/dataviz practice | `apm install <repo>/packages/design` |
 | root `.apm/` | Repo-local only | `meta-updater` agent + `meta-update-models` / `meta-upstream-sync` audit skills, frontmatter-validation hook | Deployed only when developing this repo |
 
 ### Rules
@@ -269,7 +270,7 @@ Commits are **conventional**:
 ```
 
 - `type` — `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`. Append `!` before the colon for a breaking change (`refactor(core)!: …`).
-- `scope` — the package the change lands in: `core`, `meta`, `ops`, `product`, `workflow`. For anything outside `packages/`, use the area instead: `scripts`, `docs`, `ci`.
+- `scope` — the package the change lands in: `core`, `design`, `meta`, `ops`, `product`, `workflow`. For anything outside `packages/`, use the area instead: `scripts`, `docs`, `ci`.
 
 [scripts/release.py](scripts/release.py) reads commits to size each package's next bump: `!` or a `BREAKING CHANGE` trailer → major, `feat` → minor, anything else → patch.
 

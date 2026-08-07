@@ -1,0 +1,23 @@
+name: llmctl-design
+version: 0.1.0
+description: Design steering — direction-setting, colour, typography and presentation skills, plus upstream layout, identity and data-visualisation practice.
+author: siegenthalerroger
+license: MIT AND CC-BY-SA-4.0
+
+# Include all items in this package's `.apm/` directory
+includes: auto
+
+dependencies:
+  apm:
+    # Design-Machines-Studio/depot (Unlicense) — the `design-practice` plugin by
+    # Travis Gertz (ex-Louder Than Ten). Taken for the three domains where it
+    # teaches derivation instead of handing over values.
+    # Deliberately left behind:
+    #   - `typography` skill — the local `typography` skill covers this.
+    #   - `design-machines` plugin — the local `design-direction` skill covers this.
+    #   - `accessibility-*` plugin — the local `colour` skill and specific accessibility checks cover this.
+    #   - every other depot plugin — non-design domains.
+    - Design-Machines-Studio/depot/plugins/design-practice/skills/layout#ab34ce69fb965cb16004bbd80e12a43e6851e2d7
+    - Design-Machines-Studio/depot/plugins/design-practice/skills/identity#ab34ce69fb965cb16004bbd80e12a43e6851e2d7
+    - Design-Machines-Studio/depot/plugins/design-practice/skills/dataviz#ab34ce69fb965cb16004bbd80e12a43e6851e2d7
+  mcp: []

@@ -17,6 +17,7 @@ This repository is an [APM](https://github.com/microsoft/apm) monorepo. Each `pa
 | `packages/workflow` | Coding | Code delivery — the code-reviewer agent + TDD, git worktrees, merge conflicts, code-review reception, lint pipelines |
 | `packages/ops` | IT Operations | Helm / Kubernetes / OpenTofu skills + instructions + cloud/IaC doc MCP servers |
 | `packages/product` | Product development | PRD skills + product-manager / UX agents |
+| `packages/design` | Design work | Direction-setting, colour, typography, presentation + upstream layout / identity / data-visualisation practice |
 | _root `.apm/`_ | _**Repo-local only**_ | _`meta-updater` agent + `meta-update-models` / `meta-upstream-sync` audit skills, frontmatter-validation hook_ |
 
 See [CONTRIBUTING.md](CONTRIBUTING.md#packaging-model) for the packaging rules.
@@ -63,6 +64,9 @@ apm install ~/.llmctl/packages/ops
 
 cd your-product-repo
 apm install ~/.llmctl/packages/product
+
+cd your-design-repo
+apm install ~/.llmctl/packages/design
 ```
 
 #### Developing this repository

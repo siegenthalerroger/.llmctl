@@ -53,6 +53,16 @@ github.com/antonbabenko/terraform-skill:
     GitHub reports NOASSERTION: the LICENSE is Apache-2.0 but opens with a custom
     attribution header, which defeats the API's licence detection.
 
+github.com/Design-Machines-Studio/depot:
+  spdx: Unlicense
+  holder: "Travis Gertz / Design Machines Studio"
+  license_url: https://github.com/Design-Machines-Studio/depot/blob/main/LICENSE
+  note: >-
+    Public-domain dedication, so nothing attaches. The LICENSE carries no
+    copyright line -- the holder above is attribution, not a quoted notice.
+    Only the `design-practice` plugin's layout, identity and dataviz skills are
+    consumed; the repository is a much larger multi-domain marketplace.
+
 # --- Sources of adapted content (metadata.provenance) ------------------------
 
 github.com/github/awesome-copilot:
@@ -64,6 +74,68 @@ github.com/microsoft/vscode:
   spdx: MIT
   holder: "Copyright (c) 2015 - present Microsoft Corporation"
   license_url: https://github.com/microsoft/vscode/blob/main/LICENSE.txt
+
+github.com/meodai/skill.color-expert:
+  spdx: CC-BY-4.0
+  holder: "David Aerne (meodai)"
+  license_url: https://github.com/meodai/skill.color-expert/blob/main/LICENSE
+  note: >-
+    The LICENSE is the bare CC-BY-4.0 text with no copyright line; the holder
+    above is attribution. Only the reasoning in its SKILL.md is adapted -- its
+    ~190 reference files, npm tool catalogue, pigment-mixing and colour-naming
+    material are not consumed. CC-BY-4.0 permits the CC-BY-SA-4.0 default that
+    `*.md` takes here.
+
+github.com/Myndex/apca-w3:
+  spdx: W3C-20150513
+  holder: "Copyright © 2019-2023 Andrew Somers and/or Myndex™. All Rights Reserved."
+  license_url: https://github.com/Myndex/apca-w3/blob/master/LICENSE.md
+  note: >-
+    GitHub reports NOASSERTION: LICENSE.md is a stack of grants, not one licence.
+    The operative permissive layer is the W3C Software and Document License
+    (2015-05-13) = SPDX W3C-20150513, which the file links by URL. It is
+    explicitly subordinated -- "SUBJECT TO THE ABOVE LISTED LIMITATIONS AND
+    EXCLUSIONS" -- to restrictions that are NOT part of W3C-20150513: use limited
+    to web content on self-illuminated displays, prohibited fields (medical,
+    clinical, aerospace, transportation, military), no commercial use without a
+    signed agreement, a right to audit paywalled integrations, a duty to keep
+    current with the published constants, and trademark limits on the term
+    "APCA". Non-web use cases fall back to the file's "AGPU v3" (AGPL-3.0). So
+    W3C-20150513 alone OVERSTATES the grant; read the note before raising any
+    fidelity here. We take only the published numeric constants of 0.1.9 G-4g,
+    which are facts rather than protected expression -- hence inspiration-only,
+    at which nothing attaches -- reimplemented in
+    packages/design/.apm/skills/colour/scripts/check-contrast.py for screen and
+    web contrast, inside the permitted field of use. The keep-current duty is why
+    this is tracked as adaptedFrom (drift-audited) rather than authoritativeSpec.
+
+github.com/petekp/claude-code-setup:
+  spdx: MIT
+  holder: "Copyright (c) 2024 Pete Petrash"
+  license_url: https://github.com/petekp/claude-code-setup/blob/main/LICENSE
+  note: >-
+    Only its `skills/typography` interface craft is adapted, merged with depot's
+    cross-medium grounding into one local skill. Its CSS/Tailwind implementation
+    blocks and named font recommendations are deliberately not consumed.
+
+github.com/Vinayak-Shukla-03/anti-ai-slop:
+  spdx: MIT
+  holder: "Copyright (c) 2026 Vinayak Shukla"
+  license_url: https://github.com/Vinayak-Shukla-03/anti-ai-slop/blob/main/LICENSE
+
+github.com/funboy322/avoid-ai-design:
+  spdx: MIT
+  holder: "Copyright (c) 2026 ungspirit"
+  license_url: https://github.com/funboy322/avoid-ai-design/blob/main/LICENSE
+
+github.com/yetone/kill-ai-slop:
+  spdx: Apache-2.0
+  holder: "yetone/kill-ai-slop contributors"
+  license_url: https://github.com/yetone/kill-ai-slop/blob/main/LICENSE
+  note: >-
+    Its LICENSE is the bare Apache-2.0 text with no project copyright line and no
+    NOTICE file, so there is nothing to quote; the holder above is a generic
+    attribution. Taken at inspiration-only, so no terms attach.
 
 github.com/netresearch/agent-rules-skill:
   spdx: CC-BY-SA-4.0
@@ -83,6 +155,44 @@ github.com/agentskills/agentskills:
     Publishes the Agent Skills specification rendered at agentskills.io. The
     LICENSE carries no copyright line, so the holder above is a generic
     attribution rather than a quoted notice.
+
+# --- Published works (no repository, so `not_trackable` in the drift audit) ---
+#
+# Books and articles are all-rights-reserved by default, hence `NONE`: usable
+# only at `inspiration-only`, which is exactly what taking an idea from one is.
+# Keyed by ISBN or by article URL so each work gets its own row -- gen-notices.py
+# keeps the identifier in the slug for resolver hosts rather than collapsing them
+# all onto `openlibrary.org`. `holder` doubles as the citation, because it is the
+# only human-readable field in the Acknowledgements row.
+
+openlibrary.org/isbn/9780273710516:
+  spdx: NONE
+  holder: "Barbara Minto, *The Pyramid Principle*, 3rd ed. (Pearson, 2009)"
+  license_url: ""
+  note: >-
+    Cited, never reproduced. The ISBN identifies the edition; page-level claims
+    would not survive an edition change, so none are made.
+
+openlibrary.org/isbn/9780470632017:
+  spdx: NONE
+  holder: "Nancy Duarte, *Resonate* (Wiley, 2010)"
+  license_url: ""
+  note: "Cited, never reproduced."
+
+openlibrary.org/isbn/9780321811981:
+  spdx: NONE
+  holder: "Garr Reynolds, *Presentation Zen*, 2nd ed. (New Riders, 2012)"
+  license_url: ""
+  note: "Cited, never reproduced."
+
+guykawasaki.com:
+  spdx: NONE
+  holder: "Guy Kawasaki, *The 10/20/30 Rule of PowerPoint*"
+  license_url: ""
+  note: >-
+    A personal blog with no reuse grant. Only the underlying argument is taken --
+    that a type-size floor is a content-density constraint -- not the numbers the
+    post is named for.
 
 github.com/arisng/github-copilot-fc:
   spdx: NONE
