@@ -248,6 +248,31 @@ function Get-TrackEntriesFromFile {
     return $entries
 }
 
+function Test-TrackableSource {
+    <#
+    .SYNOPSIS
+    Can this source URL be compared against a local commit date at all?
+
+    .DESCRIPTION
+    Drift detection needs an upstream revision history to read a date from, which
+    limits it to the hosts Convert-GitHubUrlToQuery understands. Anything else --
+    an ISBN or DOI resolver standing in for a book, a paper, a vendor doc page --
+    is a legitimate provenance source that simply has nothing to diff, and is
+    reported as `not_trackable` rather than as a fetch failure.
+
+    Keep the host list here identical to the one Convert-GitHubUrlToQuery
+    accepts; the two answering differently would either throw on something this
+    admits, or silently skip something that could have been checked.
+    #>
+    param([string]$Url)
+
+    $parsed = $null
+    if (-not [System.Uri]::TryCreate($Url, [System.UriKind]::Absolute, [ref]$parsed)) {
+        return $false
+    }
+    return $parsed.Host -eq 'github.com'
+}
+
 function Convert-GitHubUrlToQuery {
     param([string]$Url)
 
@@ -265,10 +290,15 @@ function Convert-GitHubUrlToQuery {
     $repo = $segments[1]
 
     if ($segments.Length -eq 2) {
+        # A bare repository URL names no branch, so leave the ref empty and let
+        # the API fall back to the repository's own default. Hardcoding 'main'
+        # here 404s on every repo that still uses 'master' or a custom default
+        # -- and a 404 is reported as `fetch_failed`, which reads like a broken
+        # URL rather than a wrong assumption on our side.
         return [pscustomobject]@{
             owner = $owner
             repo  = $repo
-            ref   = 'main'
+            ref   = ''
             path  = ''
         }
     }
@@ -288,15 +318,33 @@ function Convert-GitHubUrlToQuery {
     throw "Unsupported GitHub URL structure: '$Url'. Use repository, tree, or blob URLs."
 }
 
+function Get-CommitsApiUrl {
+    <#
+    .SYNOPSIS
+    Build a /commits query, omitting the parameters that have no value.
+
+    .DESCRIPTION
+    `path` and `sha` are both optional to the GitHub API, and both are genuinely
+    absent for some source URL forms: a repository-level entry has no path, and
+    a bare repository URL names no branch. Sending `sha=` empty is not the same
+    as omitting it -- omitting it is what makes the API use the repository's own
+    default branch. Assembled here so all three callers agree.
+    #>
+    param($Query, [hashtable]$Extra = @{})
+
+    $params = [ordered]@{}
+    if ($Query.path) { $params['path'] = $Query.path }
+    if ($Query.ref) { $params['sha'] = $Query.ref }
+    foreach ($key in $Extra.Keys) { $params[$key] = $Extra[$key] }
+
+    $pairs = foreach ($key in $params.Keys) { '{0}={1}' -f $key, $params[$key] }
+    return 'https://api.github.com/repos/{0}/{1}/commits?{2}' -f $Query.owner, $Query.repo, ($pairs -join '&')
+}
+
 function Get-GitHubLatestCommitInfo {
     param($Query)
 
-    $apiUrl = if ($Query.path) {
-        "https://api.github.com/repos/{0}/{1}/commits?path={2}&sha={3}&per_page=1" -f $Query.owner, $Query.repo, $Query.path, $Query.ref
-    }
-    else {
-        "https://api.github.com/repos/{0}/{1}/commits?sha={2}&per_page=1" -f $Query.owner, $Query.repo, $Query.ref
-    }
+    $apiUrl = Get-CommitsApiUrl -Query $Query -Extra @{ per_page = 1 }
 
     $response = Invoke-GitHubApiGet -Url $apiUrl
 
@@ -330,12 +378,7 @@ function Get-GitHubChangesSince {
     $sinceIso = $Since.ToUniversalTime().ToString('o')
     $sinceEscaped = [System.Uri]::EscapeDataString($sinceIso)
 
-    $apiUrl = if ($Query.path) {
-        "https://api.github.com/repos/{0}/{1}/commits?path={2}&sha={3}&since={4}&per_page={5}" -f $Query.owner, $Query.repo, $Query.path, $Query.ref, $sinceEscaped, $MaxCommits
-    }
-    else {
-        "https://api.github.com/repos/{0}/{1}/commits?sha={2}&since={3}&per_page={4}" -f $Query.owner, $Query.repo, $Query.ref, $sinceEscaped, $MaxCommits
-    }
+    $apiUrl = Get-CommitsApiUrl -Query $Query -Extra @{ since = $sinceEscaped; per_page = $MaxCommits }
 
     $response = Invoke-GitHubApiGet -Url $apiUrl
 
@@ -375,12 +418,7 @@ function Get-GitHubRecentChanges {
         [int]$MaxCommits = 20
     )
 
-    $apiUrl = if ($Query.path) {
-        "https://api.github.com/repos/{0}/{1}/commits?path={2}&sha={3}&per_page={4}" -f $Query.owner, $Query.repo, $Query.path, $Query.ref, $MaxCommits
-    }
-    else {
-        "https://api.github.com/repos/{0}/{1}/commits?sha={2}&per_page={3}" -f $Query.owner, $Query.repo, $Query.ref, $MaxCommits
-    }
+    $apiUrl = Get-CommitsApiUrl -Query $Query -Extra @{ per_page = $MaxCommits }
 
     $response = Invoke-GitHubApiGet -Url $apiUrl
 
@@ -502,6 +540,31 @@ if ($trackedEntries.Count -eq 0) {
 $results = New-Object System.Collections.Generic.List[object]
 
 foreach ($item in $trackedEntries) {
+    # A source with no commit history cannot be drift-checked at all -- a book,
+    # a paper, a vendor doc page. That is a permanent property of the URL, not a
+    # failure to fetch it, so it is classified before anything is attempted and
+    # kept out of failedCount. Filing these as `fetch_failed` would park
+    # unfixable rows in the audit, which is how an audit stops being read.
+    if (-not (Test-TrackableSource -Url $item.sourceUrl)) {
+        $results.Add([pscustomobject]@{
+            id              = $item.id
+            localPath       = $item.localPath
+            sourceUrl       = $item.sourceUrl
+            took            = $item.took
+            license         = $item.license
+            fidelity        = $item.fidelity
+            status          = 'not_trackable'
+            recommendation  = 'none_source_has_no_revision_history'
+            recommendUpdate = $false
+            reason          = 'source_host_is_not_revision_controlled'
+            localGit        = [pscustomobject]@{ commitSha = ''; commitDate = '' }
+            upstream        = [pscustomobject]@{ commitSha = ''; commitDate = '' }
+            upstreamChanges = New-UpstreamChangesEmpty
+            comparison      = [pscustomobject]@{ localIsOlder = $null; deltaDays = $null }
+        })
+        continue
+    }
+
     $localGit = Get-LocalGitInfo -Repo $repoRootResolved -Path $item.localPath
     if (-not $localGit.commitDate) {
         if (-not $AllowNoLocalCommit) {
@@ -668,6 +731,7 @@ $summary = [pscustomobject]@{
     upToDateCount        = ($results | Where-Object { $_.status -eq 'up_to_date' } | Measure-Object).Count
     updateAvailableCount = ($results | Where-Object { $_.status -eq 'update_available' } | Measure-Object).Count
     failedCount          = ($results | Where-Object { $_.status -in @('fetch_failed', 'missing_local_commit') } | Measure-Object).Count
+    notTrackableCount    = ($results | Where-Object { $_.status -eq 'not_trackable' } | Measure-Object).Count
     recommendCount       = ($results | Where-Object { $_.recommendUpdate } | Measure-Object).Count
 }
 
@@ -685,7 +749,7 @@ if ($OutputJson) {
 }
 else {
     Write-Host "Meta upstream sync check complete"
-    Write-Host ("Auth: {0} | Files: {1} | Upstreams: {2} | Up-to-date: {3} | Update-available: {4} | Failed: {5} | Recommend: {6}" -f $authMode, $summary.filesChecked, $summary.upstreamChecks, $summary.upToDateCount, $summary.updateAvailableCount, $summary.failedCount, $summary.recommendCount)
+    Write-Host ("Auth: {0} | Files: {1} | Upstreams: {2} | Up-to-date: {3} | Update-available: {4} | Failed: {5} | Not-trackable: {6} | Recommend: {7}" -f $authMode, $summary.filesChecked, $summary.upstreamChecks, $summary.upToDateCount, $summary.updateAvailableCount, $summary.failedCount, $summary.notTrackableCount, $summary.recommendCount)
     if ($authMode -eq 'unauthenticated') {
         Write-Host "Tip: Run 'gh auth login' (or set GITHUB_TOKEN/GH_TOKEN, or pass -GitHubToken) to avoid GitHub API rate-limit 403 errors."
     }

@@ -102,13 +102,20 @@ def read_lock_dependencies(bundle_dir):
     return [d for d in deps if d.get("repo_url")]
 
 
+# Hosts whose path *is* the identity rather than a section of a site. An ISBN or
+# DOI resolver names one work, so three books behind openlibrary.org are three
+# sources and must not collapse into a single row crediting the resolver.
+IDENTIFIER_HOSTS = ("openlibrary.org", "doi.org", "dx.doi.org", "search.worldcat.org")
+
+
 def slug(repo_url):
     """Identity of a source, as used to key dependency-licenses.yml.
 
     A GitHub URL collapses to `github.com/owner/repo`, which is what the map is
     keyed by. Anything else keeps its own host — a documentation site is a real
     source, and rewriting `helm.sh/docs` into a github.com path would invent a
-    repository that does not exist.
+    repository that does not exist. Identifier resolvers are the exception: the
+    host alone names a catalogue, not a source.
     """
     bare = re.sub(r"^https?://", "", repo_url).rstrip("/")
     bare = re.sub(r"\.git$", "", bare)
@@ -117,7 +124,30 @@ def slug(repo_url):
         return "/".join(parts[:3])
     if "." not in parts[0]:            # a bare `owner/repo` from a lockfile
         return "/".join(["github.com"] + parts[:2])
+    if parts[0] in IDENTIFIER_HOSTS:
+        return bare                     # host + identifier, one key per work
     return parts[0]                     # a documentation host
+
+
+def canonical(key, licenses):
+    """Resolve a slug to the licence map's own key, ignoring case.
+
+    GitHub owner and repo names are case-insensitive, and the two inputs
+    disagree about casing: APM's lockfile lowercases `repo_url` (keeping the
+    original in `materialization_repo_url`, which not every entry carries),
+    while `metadata.provenance` records the upstream URL as written. Without
+    folding, one repository arrives under two keys — the provenance row finds
+    its licence and the lockfile row ships `UNRECORDED` beside it, for a
+    dependency whose terms are in fact on file. Folding here rather than
+    lowercasing the map keeps the upstream's real casing in the output.
+    """
+    if key in licenses:
+        return key
+    folded = key.lower()
+    for candidate in licenses:
+        if candidate.lower() == folded:
+            return candidate
+    return key
 
 
 def link(key, url=None):
@@ -203,7 +233,7 @@ def render(bundles, licenses):
         notices, exceptions = [], []
 
         for dep in bundle["deps"]:
-            key = slug(dep["repo_url"])
+            key = canonical(slug(dep["repo_url"]), licenses)
             info = licenses.get(key)
             if not info:
                 notices.append((dep.get("name", key), key, "UNRECORDED", "", ""))
@@ -214,7 +244,7 @@ def render(bundles, licenses):
         for record in bundle["files"]:
             for entry in record["entries"]:
                 fidelity = prov.effective_fidelity(entry)
-                key = slug(entry["url"])
+                key = canonical(slug(entry["url"]), licenses)
                 if prov.OBLIGATION.get(fidelity, True):
                     info = licenses.get(key, {})
                     exceptions.append((record["rel"], record["effective"],
@@ -254,7 +284,7 @@ def render(bundles, licenses):
             w("")
 
     # NOTICE files must be reproduced verbatim (Apache-2.0 section 4d).
-    carried = {slug(d["repo_url"]) for b in bundles for d in b["deps"]}
+    carried = {canonical(slug(d["repo_url"]), licenses) for b in bundles for d in b["deps"]}
     notice_texts = [(k, licenses[k]["notice"]) for k in sorted(carried)
                     if licenses.get(k, {}).get("notice")]
     if notice_texts:
@@ -278,14 +308,17 @@ def render(bundles, licenses):
           "structure, or a specification cited but not reproduced. Listed as credit, "
           "not as a licence claim.")
         w("")
-        w("| Source | Licence | How it was used |")
-        w("| --- | --- | --- |")
+        w("| Source | Attribution | Licence | How it was used |")
+        w("| --- | --- | --- | --- |")
         for key in sorted(ack):
             fidelities, url = ack[key]
             info = licenses.get(key, {})
             spdx = info.get("spdx")
-            w("| %s | %s | %s |"
+            # Attribution carries the identity, which for a source keyed by an
+            # ISBN or DOI is the only human-readable thing in the row.
+            w("| %s | %s | %s | %s |"
               % (link(key, url),
+                 info.get("holder", "") or "—",
                  "no licence" if spdx == "NONE" else (spdx or "not recorded"),
                  ", ".join(sorted(fidelities))))
         w("")

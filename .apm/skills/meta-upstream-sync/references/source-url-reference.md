@@ -81,13 +81,22 @@ Currently supported host: `github.com`
 - Directory URL:
   - `https://github.com/{owner}/{repo}/tree/{ref}/{path}`
 
+### Sources with no revision history
+
+A provenance source is not always a repository. A book, a paper or a vendor documentation page is a legitimate `adaptedFrom` entry — it is where the material came from — but there is no commit date to compare against, so drift detection cannot say anything about it.
+
+Those entries are reported as **`not_trackable`**, counted separately in the summary, and excluded from `failedCount`. They are not a problem to fix; the status records that the audit deliberately has no opinion. Do not "resolve" one by deleting the entry — that drops the attribution the entry exists to carry.
+
+Give a book a resolver URL rather than a bookshop or publisher link, so it stays valid: `https://openlibrary.org/isbn/{isbn}` for an ISBN, `https://doi.org/{doi}` where a DOI exists. Cite the specific edition — an ISBN identifies one, and page-level claims do not survive an edition change.
+
 ## Comparison Rule
 
 For each tracked local file and each upstream URL:
 
-1. Read local file last git commit date.
-2. Query upstream latest commit date for the referenced ref/path.
-3. Recommend update only when `upstreamDate > localDate`.
+1. If the host has no revision history, record `not_trackable` and stop.
+2. Read local file last git commit date.
+3. Query upstream latest commit date for the referenced ref/path.
+4. Recommend update only when `upstreamDate > localDate`.
 
 For multi-source files, every upstream is compared against the same local commit date. A file may show `update_available` for some upstreams and `up_to_date` for others.
 

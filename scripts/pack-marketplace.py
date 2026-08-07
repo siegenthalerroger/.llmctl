@@ -248,7 +248,8 @@ def bundle_dep_licenses(bundle_dir, dep_map):
     """SPDX id of every upstream vendored into this bundle, via its lockfile."""
     found = set()
     for dep in gen_notices.read_lock_dependencies(bundle_dir):
-        info = dep_map.get(gen_notices.slug(dep["repo_url"]))
+        key = gen_notices.canonical(gen_notices.slug(dep["repo_url"]), dep_map)
+        info = dep_map.get(key)
         if info:
             found.add(info.get("spdx"))
         else:
