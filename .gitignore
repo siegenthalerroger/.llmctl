@@ -1,11 +1,11 @@
-# Secret Safety
+# Secrets and Scratch
+tmp/*
 .env
+.env.*
 
-# Local / machine-generated settings. NOTE: APM deploys hook wiring to
-# .claude/settings.json (project scope) or ~/.claude/settings.json (user scope),
-# NOT to *.local.json
-.claude/*.local.json
-.claude/settings.json
+# APM dependencies
+apm_modules/
+.mcp.json
 
 # APM pack scratch bundles
 build/
@@ -14,14 +14,20 @@ build/
 __pycache__/
 *.py[cod]
 
-# APM dependencies
-apm_modules/
-.mcp.json
-.agents/skills/
-.claude/agents
-.claude/hooks
-.claude/rules
-.claude/skills
-.claude/apm-hooks.json
-.github/instructions
-.vscode/mcp.json
+# VSCode
+.vscode/*
+
+# Github
+.github/*
+
+# Agents
+.agents/*
+
+# Claude: Keep settings for global configs and apm-hooks as "lockfile-ish"
+.claude/*
+!.claude/settings.json
+!.claude/apm-hooks.json
+
+# Codex: Keep apm-hooks as "lockfile-ish"
+.codex/*
+!.codex/apm-hooks.json

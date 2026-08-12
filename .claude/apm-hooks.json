@@ -1,0 +1,15 @@
+{
+  "PostToolUse": [
+    {
+      "matcher": "Edit|Write",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 \"${CLAUDE_PROJECT_DIR}/.claude/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py\"",
+          "timeout": 15
+        }
+      ],
+      "_apm_source": "_local/llmctl"
+    }
+  ]
+}
