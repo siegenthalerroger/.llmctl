@@ -28,7 +28,7 @@ Install the CLI tools the deploy step and wired-in servers depend on:
 
 | Tool        | Required for                                                                                         |
 | ----------- | ---------------------------------------------------------------------------------------------------- |
-| `git`       | Cloning this repository                                                                              |
+| `git`       | APM fetches packages over git. This repository is private, so git must be able to authenticate against it — `gh auth setup-git` or an SSH key |
 | `gh`        | The wired-in `github` MCP server. The `github` mcp server uses the [`shuymn/gh-mcp`](https://github.com/shuymn/gh-mcp) extension, which reuses your `gh` login instead of a Personal Access Token |
 | `npx`/`uvx` | Stdio MCP servers shell out to a companion CLI, so install the CLI for any server you enable.        |
 
@@ -41,17 +41,20 @@ gh extension install shuymn/gh-mcp
 
 ### Deploy
 
+No checkout needed — APM resolves each package straight from this repository.
+
 ```bash
 # Install APM (macOS/Linux)
 brew install microsoft/apm/apm
 # Install APM (Windows)
 winget install Microsoft.APM
 
-# Clone
-git clone git@github.com:siegenthalerroger/.llmctl.git ~/.llmctl
-
 # Global baseline — deploy core + meta + workflow to user scope everywhere
-apm install -g ~/.llmctl/packages/core ~/.llmctl/packages/meta ~/.llmctl/packages/workflow --target claude,copilot,codex,agent-skills
+apm install -g \
+  siegenthalerroger/.llmctl/packages/core \
+  siegenthalerroger/.llmctl/packages/meta \
+  siegenthalerroger/.llmctl/packages/workflow \
+  --target claude,copilot,codex,agent-skills
 ```
 
 `packages/core` is deliberately domain-neutral: its executor agents run any well-specified task — code, configuration, IaC, docs, specs — tiered by how much context the work spans. Everything code-specific lives in `packages/workflow`, which is mostly upstream skills pulled in as pinned APM dependencies. Drop `workflow` from the command above (or install it per project) if a context does no code work, or if you do not want third-party steering in the global baseline.
@@ -60,20 +63,28 @@ Add domain packages **per project**, only where they apply:
 
 ```bash
 cd your-ops-repo
-apm install ~/.llmctl/packages/ops
+apm install siegenthalerroger/.llmctl/packages/ops
 
 cd your-product-repo
-apm install ~/.llmctl/packages/product
+apm install siegenthalerroger/.llmctl/packages/product
 
 cd your-design-repo
-apm install ~/.llmctl/packages/design
+apm install siegenthalerroger/.llmctl/packages/design
 ```
+
+By default this tracks the default branch, so APM will warn that the dependency is unpinned. Append a git reference as `#<sha>` or a `#<package>@<version>` release tag to pin a context to a known-good state. Refresh unpinned installs with `apm update -g --yes` (user scope) or `apm update --yes` (project).
 
 #### Developing this repository
 
+Work on the packages themselves from a checkout, and deploy from local paths so edits take effect without a push:
+
 ```bash
+git clone git@github.com:siegenthalerroger/.llmctl.git ~/.llmctl
 cd ~/.llmctl
 apm install
+
+# Try a package before releasing it
+apm install ~/.llmctl/packages/core --target claude
 ```
 
 ### Plugin marketplace
