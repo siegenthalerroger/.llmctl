@@ -10,6 +10,8 @@ It is an **APM monorepo of context-scoped sub-packages**, so each context loads 
 
 Each `packages/<name>/` is a standalone APM package (`apm.yml` + `.apm/` layout). Adding a primitive means placing it in the correct sub-package by scope — do not add it to the root `.apm/` unless it operates on this repository itself. See the [packaging model in CONTRIBUTING.md](CONTRIBUTING.md#packaging-model).
 
+Content that cannot be published lives in a **separate private workspace**, not in `packages/` here — this repo and its marketplace are public. That workspace has the same layout minus `scripts/`, and borrows this repo's release scripts via `--repo`/`--marketplace`.
+
 ## Upstream dependencies
 
 Upstream-sourced content is declared in the relevant package's `apm.yml` (`packages/*/apm.yml`) and installed via `apm install`. MCP servers are scoped per package: universal dev servers in `packages/core/apm.yml`, cloud/IaC doc servers in `packages/ops/apm.yml`.

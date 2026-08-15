@@ -21,7 +21,8 @@
 - **Scope each MCP server to the package whose work needs it.** Universal dev servers (`github`, `context7`) live in `packages/core/apm.yml`; domain servers live in their domain package (cloud/IaC doc servers in `packages/ops/apm.yml`). A server loads only where its package is installed, so keep global tool surface minimal.
 - **Consume upstream content as a pinned `dependencies.apm` entry, never a vendored copy** (see the APM-first rule below). Use the git subdir form to take a single skill out of a larger repo — `owner/repo/path/to/skill#<sha>` — and always pin a commit or tag; an unpinned entry tracks the default branch and drifts. Scope the dependency to the package whose work needs it, exactly like MCP servers, and record in a comment why that upstream was chosen and what was deliberately left behind. Bump with `apm outdated` → `apm update --dry-run` → `apm update -y`.
 - **The marketplace is a separate repository.** Manifests and packed plugin bundles live in [`.llmctl-marketplace`](https://github.com/siegenthalerroger/.llmctl-marketplace), not here. A plugin host (claude.ai Cowork, Claude Desktop/Code) clones the marketplace repo and reads each `packages[].source` path *as committed* — it never runs `apm install` — so any package carrying APM dependencies has to be published as a bundle with those skills already vendored into it. Keeping that generated output out of this repo is the point of the split; `apm pack` also refuses to write a manifest across a `..` boundary, which rules out generating it here.
-- **Publish with `python scripts/release.py`** (or `apm run release`), which derives each package's version bump from its commits and then calls `scripts/pack-marketplace.py`. The packing script runs `apm install` + `apm pack -o <marketplace>/plugins` for every package, cleans the transient deploy output back out of the package directory, prunes superseded bundles, propagates the licence files, syncs each `source:`/`version:` in the marketplace `apm.yml`, and regenerates both manifests there. Point it elsewhere with `--marketplace PATH` or `LLMCTL_MARKETPLACE_DIR`. Never hand-edit anything under `plugins/`, either `marketplace.json`, or `THIRD-PARTY-NOTICES.md` — all four are generated. **Packages version independently** (`per_package`); see [Releasing](#releasing).
+- **Publish with `python scripts/release.py`** (or `apm run release`), which derives each package's version bump from its commits and then calls `scripts/pack-marketplace.py`. The packing script runs `apm install` + `apm pack -o <marketplace>/plugins` for every package, cleans the transient deploy output back out of the package directory, prunes superseded bundles, propagates the licence files, syncs each `source:`/`version:` in the marketplace `apm.yml`, and regenerates both manifests there. Both roots are explicit flags with no defaults — `--repo` for the workspace being released and `--marketplace` for the repo it publishes into — because a derived marketplace path would silently publish into the wrong repo; [apm.yml](apm.yml) supplies them. Never hand-edit anything under `plugins/`, either `marketplace.json`, or `THIRD-PARTY-NOTICES.md` — all four are generated. **Packages version independently** (`per_package`); see [Releasing](#releasing).
+- **Content that cannot be public lives in a separate workspace, never in `packages/` here.** This repo and its marketplace are public. A private package gets its own private source repo and its own private marketplace, laid out identically but with no `scripts/` — it borrows this repo's release code by sibling clone and shares nothing else. `LICENSES/` and `dependency-licenses.yml` are read from the workspace being released, so a private repo carries its own copies rather than resolving against this one. See [Releasing another workspace](#releasing-another-workspace).
 - **The plugin path is reduced-fidelity; `apm install` remains the full deploy.** Treat **skills** and **commands** (prompts) as the only primitives you can rely on reaching a marketplace consumer. APM 0.26 does pack `agents/`, `instructions/`, and `.mcp.json` into the bundle, but whether a given host loads them is version-dependent and unverified — and packed MCP entries lose their `headers` (so an API-keyed server will not authenticate). Use `apm install` where those primitives matter. The marketplace also does not reach claude.ai Chat or hosted ChatGPT.
 
 ## Content Strategy: APM-First
@@ -286,4 +287,25 @@ apm run release -- --dry-run   # show the derived bumps
 apm run release                # bump, pack, commit, tag both repos
 ```
 
-`release.py` finds each package's last `llmctl-<package>@<version>` tag, reads the commits since that touched `packages/<package>/`, derives the bump, writes it to `packages/<package>/apm.yml` and the marketplace manifest, then packs and tags. `--update-deps` runs the `apm outdated` → `apm update` loop first, so a moved dependency SHA ships as an ordinary release. Everything runs locally; GitHub Actions only calls the same scripts.
+`release.py` finds each package's last `llmctl-<package>@<version>` tag, reads the commits since that touched `packages/<package>/`, derives the bump, writes it to `packages/<package>/apm.yml` and the marketplace manifest, then packs, tags and pushes both repos (`--no-push` opts out). `--update-deps` runs the `apm outdated` → `apm update` loop first, so a moved dependency SHA ships as an ordinary release. Everything runs locally; GitHub Actions only calls the same scripts.
+
+**Tags are the baseline, and the clone has to have them.** `last_tag()` reads *local* tags, so a clone fetched without them measures from nothing: every package reads its entire history and bumps off all of it. Shallow clones and `--no-tags` fetches both land there — which is why `release.py` runs `git fetch --tags` before deriving anything. Run releases from a full clone as well: `git log` on a shallow one cannot see past the fetch depth.
+
+The tags `release.py` creates are annotated, because it pushes with `git push --follow-tags`, and that carries annotated tags only. Lightweight tags are not unpushable — `git push --tags` sends them, and the tags already on both remotes are lightweight for that reason — they just will not ride along with `--follow-tags`. Mixing the two is harmless: `--sort=-v:refname` and `<tag>..HEAD` treat them alike.
+
+A repo that has **never** been released has no baseline at all. `.llmctl` and `.llmctl-marketplace` are already seeded; a new workspace is not. Seed one by hand, once, at the commit whose versions are current:
+
+```bash
+git tag -a llmctl-personal@0.1.0 -m "llmctl-personal 0.1.0" <commit>   # per package
+git push origin --tags                                                 # in both repos
+```
+
+### Releasing another workspace
+
+Nothing in these scripts is specific to this repo. A private sibling laid out the same way — its own `packages/`, `LICENSE`, `LICENSES/` and `dependency-licenses.yml`, no `scripts/` — releases with this code by pointing the flags at it:
+
+```bash
+python ../.llmctl/scripts/release.py --repo . --marketplace ../<its-marketplace>
+```
+
+Nothing is shared but the code. Licence texts and dependency records are read from the workspace only, so a private repo's upstreams never resolve against this one's.
