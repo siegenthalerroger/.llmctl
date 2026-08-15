@@ -16,19 +16,31 @@ The commit scope (`feat(core):`) is checked against the paths and a mismatch is
 reported, so the convention stays meaningful without being load-bearing -- a
 typo'd scope should not silently skip a release.
 
+Tags are the baseline, and `last_tag()` reads local ones, so a clone fetched
+without tags -- shallow, or --no-tags -- measures from nothing and every package
+bumps off its entire history. Hence the `git fetch --tags` below. The tags this
+creates are annotated because the push at the end uses `--follow-tags`, which
+carries annotated tags only; lightweight ones need `--tags` instead.
+
 Usage:
   python scripts/release.py [--dry-run] [--package NAME] [--bump LEVEL]
-                            [--update-deps] [--no-tag] [--no-commit] [--seed-tags]
+                            [--update-deps] [--no-tag] [--no-commit] [--no-push]
 
-  --dry-run      show what would change; write nothing, run nothing
+  --dry-run      show what would change; make no commits, tags, or version edits
+                 (tags are still fetched, or the preview would be wrong)
   --package      release only these packages (repeatable)
   --bump         force a level instead of deriving it
   --update-deps  refresh pinned APM dependencies first, so a moved upstream SHA
                  ships as an ordinary release rather than a hand edit
-  --seed-tags    create tags at the CURRENT versions and stop. Needed once, to
-                 give `git describe` a baseline in a repo that has no tags yet
   --no-tag       bump and pack, but create no tags
   --no-commit    leave both working trees dirty for inspection
+  --no-push      commit and tag locally, but do not push
+
+A repo that has never been released has no baseline. Seed one by hand, once
+(the .llmctl repos are already seeded; a new workspace is not):
+
+  git tag -a <package>@<current-version> -m "<package> <current-version>" <commit>
+  git push origin --tags
 
 Exit codes: 0 released (or nothing to do), 1 error.
 """
@@ -164,9 +176,9 @@ def main():
     parser.add_argument("--package", action="append", default=[])
     parser.add_argument("--bump", choices=LEVELS)
     parser.add_argument("--update-deps", action="store_true")
-    parser.add_argument("--seed-tags", action="store_true")
     parser.add_argument("--no-tag", action="store_true")
     parser.add_argument("--no-commit", action="store_true")
+    parser.add_argument("--no-push", action="store_true")
     args = parser.parse_args()
 
     marketplace = os.path.abspath(args.marketplace)
@@ -183,19 +195,9 @@ def main():
             sys.stderr.write("no package matched %s\n" % ", ".join(sorted(wanted)))
             return 1
 
-    if args.seed_tags:
-        # A repo with no tags has no baseline, so the first run would read the
-        # entire history for every package. Tag the current state instead.
-        for _, name, version in packages:
-            tag = "%s@%s" % (name, version)
-            if last_tag(name):
-                print("[skip] %s already has tags" % name)
-                continue
-            print("[tag ] %s" % tag)
-            if not args.dry_run:
-                git(["tag", tag])
-        print("\nSeeded. Later runs derive bumps from commits after these tags.")
-        return 0
+    # Tags are the baseline for every bump below, and they live on the remote.
+    # Without this a fresh clone sees none and reads the whole history instead.
+    git(["fetch", "--tags", "origin"], check=False)
 
     if args.update_deps and not args.dry_run:
         print("[deps] apm update")
@@ -256,13 +258,25 @@ def main():
     if not args.no_tag:
         for _, name, _, nxt in planned:
             tag = "%s@%s" % (name, nxt)
-            git(["tag", tag])
-            git(["tag", tag], cwd=marketplace)
+            # Annotated, not lightweight: `--follow-tags` below ignores
+            # lightweight tags, so those would never reach the remote.
+            message = "%s %s" % (name, nxt)
+            git(["tag", "-a", tag, "-m", message])
+            git(["tag", "-a", tag, "-m", message], cwd=marketplace)
             print("[tag ] %s" % tag)
 
-    print("\nReleased %d package(s). Push both repos when ready:\n"
-          "  git -C %s push --follow-tags\n  git -C %s push --follow-tags"
-          % (len(planned), REPO, marketplace))
+    if args.no_push:
+        print("\nReleased %d package(s), unpushed. The tags are the baseline for "
+              "the next release, so push both repos:\n"
+              "  git -C %s push --follow-tags\n  git -C %s push --follow-tags"
+              % (len(planned), REPO, marketplace))
+        return 0
+
+    for label, tree in (("workspace", REPO), ("marketplace", marketplace)):
+        print("[push] %s" % label)
+        git(["push", "--follow-tags", "origin", "HEAD"], cwd=tree)
+
+    print("\nReleased and pushed %d package(s)." % len(planned))
     return 0
 
 
