@@ -20,10 +20,14 @@ the versions just packed, because the bundle directory name is always
 `<name>-<version>` and cannot be flattened.
 
 Usage:
-  python scripts/pack-marketplace.py [--marketplace PATH] [--dry-run]
+  python scripts/pack-marketplace.py --repo PATH --marketplace PATH [--dry-run]
 
-  --marketplace  marketplace repo root
-                 (default: $LLMCTL_MARKETPLACE_DIR, else ../.llmctl-marketplace)
+  --repo         the workspace to pack: its packages/, LICENSE and LICENSES/
+  --marketplace  the marketplace repo to pack into
+
+Neither has a default. These scripts live in `.llmctl` but pack any repo laid
+out the same way, and a derived marketplace path would silently publish a
+private bundle into a public repo.
 
 Exit codes: 0 packed, 1 error (missing repo, apm failure, unknown package).
 Dependency-free: only reads the scalar `name:`/`version:` keys it needs.
@@ -36,15 +40,13 @@ import shutil
 import subprocess
 import sys
 
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PACKAGES = os.path.join(REPO, "packages")
-
-sys.path.insert(0, os.path.join(REPO, "scripts"))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import provenance  # noqa: E402
+import workspace  # noqa: E402
 
 # gen-notices.py is hyphenated, so it cannot be a plain import.
 _spec = importlib.util.spec_from_file_location(
-    "gen_notices", os.path.join(REPO, "scripts", "gen-notices.py"))
+    "gen_notices", workspace.script("scripts", "gen-notices.py"))
 gen_notices = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(gen_notices)
 
@@ -109,11 +111,11 @@ def clean(package_dir, had_gitignore):
             os.remove(target)
 
 
-def discover():
+def discover(packages_dir):
     """Every packages/<name>/ holding an apm.yml, as (dir, name, version)."""
     found = []
-    for entry in sorted(os.listdir(PACKAGES)):
-        manifest = os.path.join(PACKAGES, entry, "apm.yml")
+    for entry in sorted(os.listdir(packages_dir)):
+        manifest = os.path.join(packages_dir, entry, "apm.yml")
         if not os.path.isfile(manifest):
             continue
         name = scalar(manifest, "name")
@@ -121,7 +123,7 @@ def discover():
         if not name or not version:
             sys.stderr.write("%s: missing name or version\n" % manifest)
             return None
-        found.append((os.path.join(PACKAGES, entry), name, version))
+        found.append((os.path.join(packages_dir, entry), name, version))
     return found
 
 
@@ -204,7 +206,7 @@ def licenses_needed(bundle_dir, dep_licenses):
     return sorted(n for n in needed if n not in ("NONE", "NOASSERTION"))
 
 
-def add_licenses(bundle_dir, name, version, dep_licenses):
+def add_licenses(ws, bundle_dir, name, version, dep_licenses):
     """Put the licence files and a minimal manifest into a packed bundle.
 
     `apm pack` copies neither, and both matter downstream:
@@ -218,14 +220,17 @@ def add_licenses(bundle_dir, name, version, dep_licenses):
                            only -- carrying a `dependencies:` block here would
                            invite a re-resolve at install time.
     """
-    shutil.copyfile(os.path.join(REPO, "LICENSE"),
-                    os.path.join(bundle_dir, "LICENSE"))
+    root_license = os.path.join(ws, "LICENSE")
+    if not os.path.isfile(root_license):
+        sys.stderr.write("%s: no LICENSE at the root of %s\n" % (name, ws))
+        return None
+    shutil.copyfile(root_license, os.path.join(bundle_dir, "LICENSE"))
 
     target = os.path.join(bundle_dir, "LICENSES")
     os.makedirs(target, exist_ok=True)
     carried = []
     for spdx in licenses_needed(bundle_dir, dep_licenses):
-        source = os.path.join(REPO, "LICENSES", "%s.txt" % spdx)
+        source = os.path.join(ws, "LICENSES", "%s.txt" % spdx)
         if not os.path.isfile(source):
             sys.stderr.write("%s: no licence text for %s in LICENSES/\n" % (name, spdx))
             return None
@@ -254,7 +259,7 @@ def bundle_dep_licenses(bundle_dir, dep_map):
             found.add(info.get("spdx"))
         else:
             sys.stderr.write("%s: no licence recorded for %s - add it to "
-                             "scripts/dependency-licenses.yml\n"
+                             "dependency-licenses.yml\n"
                              % (os.path.basename(bundle_dir), dep["repo_url"]))
     return found
 
@@ -295,27 +300,31 @@ def retarget(manifest, packed):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--marketplace", default=os.environ.get(
-        "LLMCTL_MARKETPLACE_DIR",
-        os.path.join(os.path.dirname(REPO), ".llmctl-marketplace")))
+    workspace.add_arguments(parser)
     parser.add_argument("--dry-run", action="store_true",
                         help="list what would be packed, touch nothing")
     args = parser.parse_args()
 
-    marketplace = os.path.abspath(args.marketplace)
+    ws, marketplace = workspace.resolve(args)
+    packages_dir = os.path.join(ws, "packages")
     manifest = os.path.join(marketplace, "apm.yml")
     if not os.path.isfile(manifest):
         sys.stderr.write("no marketplace apm.yml at %s\n" % manifest)
         return 1
+    if not os.path.isdir(packages_dir):
+        sys.stderr.write("no packages/ in %s\n" % ws)
+        return 1
 
-    packages = discover()
+    packages = discover(packages_dir)
     if packages is None:
         return 1
 
     declared = set(re.findall(r"- name: (\S+)", open(manifest, encoding="utf-8").read()))
     plugins_dir = os.path.join(marketplace, "plugins")
+    # Workspace data, not tooling data: a private repo declares its own
+    # upstreams, and has no scripts/ to keep them under. Absent means none.
     dep_map = gen_notices.read_license_map(
-        os.path.join(REPO, "scripts", "dependency-licenses.yml"))
+        os.path.join(ws, "dependency-licenses.yml"))
     packed = {}
 
     for package_dir, name, version in packages:
@@ -341,7 +350,7 @@ def main():
         if not relocate_manifest(bundle_dir):
             sys.stderr.write("%s: packed bundle has no plugin.json\n" % name)
             return 1
-        carried = add_licenses(bundle_dir, name, version,
+        carried = add_licenses(ws, bundle_dir, name, version,
                                bundle_dep_licenses(bundle_dir, dep_map))
         if carried is None:
             return 1
@@ -355,19 +364,21 @@ def main():
     if retarget(manifest, packed):
         print("[edit] rewrote source paths in %s" % manifest)
 
-    # Keep the marketplace root's licence texts in step with this repo's.
+    # Keep the marketplace root's licence texts in step with the workspace's.
+    source_licenses = os.path.join(ws, "LICENSES")
     root_licenses = os.path.join(marketplace, "LICENSES")
     os.makedirs(root_licenses, exist_ok=True)
-    for entry in sorted(os.listdir(os.path.join(REPO, "LICENSES"))):
-        shutil.copyfile(os.path.join(REPO, "LICENSES", entry),
+    for entry in sorted(os.listdir(source_licenses)):
+        shutil.copyfile(os.path.join(source_licenses, entry),
                         os.path.join(root_licenses, entry))
 
     if not run(["apm", "pack"], marketplace):
         return 1
 
     notices = subprocess.run(
-        [sys.executable, os.path.join(REPO, "scripts", "gen-notices.py"),
-         "--marketplace", marketplace], capture_output=True, text=True)
+        [sys.executable, workspace.script("scripts", "gen-notices.py"),
+         "--repo", ws, "--marketplace", marketplace],
+        capture_output=True, text=True)
     sys.stdout.write(notices.stdout)
     if notices.returncode != 0:
         sys.stderr.write(notices.stderr)

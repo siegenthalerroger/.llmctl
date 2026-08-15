@@ -50,7 +50,7 @@ This skill audits **locally-committed files** that declare `metadata.provenance.
 | Single source | `update_available` | Merge review |
 | Multi-source | one or more `update_available` | Synthesised merge review across all changed upstreams |
 | `took` present | `update_available` | Scope the merge review to `took` first — if the upstream change touches nothing on its list, close as no action and say so |
-| Upstream changed its LICENSE | any | Update the entry's `license`, re-run `apm run check-licenses`, and record the new terms in `scripts/dependency-licenses.yml` |
+| Upstream changed its LICENSE | any | Update the entry's `license`, re-run `apm run check-licenses`, and record the new terms in `dependency-licenses.yml` |
 | any | `up_to_date` | No action |
 
 ### Multi-source Synthesis

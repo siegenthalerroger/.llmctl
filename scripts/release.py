@@ -23,9 +23,14 @@ creates are annotated because the push at the end uses `--follow-tags`, which
 carries annotated tags only; lightweight ones need `--tags` instead.
 
 Usage:
-  python scripts/release.py [--dry-run] [--package NAME] [--bump LEVEL]
+  python scripts/release.py --repo PATH --marketplace PATH
+                            [--dry-run] [--package NAME] [--bump LEVEL]
                             [--update-deps] [--no-tag] [--no-commit] [--no-push]
 
+  --repo         the workspace to release. These scripts live in `.llmctl` but
+                 release any repo laid out the same way, so it is never guessed
+  --marketplace  the marketplace to publish into. Required for the same reason:
+                 a derived path would silently publish into the wrong repo
   --dry-run      show what would change; make no commits, tags, or version edits
                  (tags are still fetched, or the preview would be wrong)
   --package      release only these packages (repeatable)
@@ -51,14 +56,21 @@ import re
 import subprocess
 import sys
 
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PACKAGES = os.path.join(REPO, "packages")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import workspace  # noqa: E402
+
+# The repo being released, set once from --repo. A module-level name rather
+# than a `cwd=WORKSPACE` default because a default argument binds at def time,
+# which is before the flags are parsed -- every git call would run against the
+# tooling checkout instead, committing and tagging in the wrong repo.
+WORKSPACE = None
 
 TYPE_RE = re.compile(r"^(?P<type>[a-z]+)(?:\((?P<scope>[^)]*)\))?(?P<bang>!)?:")
 LEVELS = ("patch", "minor", "major")
 
 
-def git(args, cwd=REPO, check=True):
+def git(args, cwd=None, check=True):
+    cwd = cwd or WORKSPACE
     result = subprocess.run(["git"] + args, cwd=cwd, capture_output=True, text=True)
     if check and result.returncode != 0:
         sys.stderr.write("git %s failed in %s\n%s\n"
@@ -76,11 +88,11 @@ def scalar(path, key):
     return None
 
 
-def discover():
+def discover(packages_dir):
     """Every packages/<dir>/ holding an apm.yml, as (dir_name, name, version)."""
     found = []
-    for entry in sorted(os.listdir(PACKAGES)):
-        manifest = os.path.join(PACKAGES, entry, "apm.yml")
+    for entry in sorted(os.listdir(packages_dir)):
+        manifest = os.path.join(packages_dir, entry, "apm.yml")
         if not os.path.isfile(manifest):
             continue
         name, version = scalar(manifest, "name"), scalar(manifest, "version")
@@ -168,10 +180,9 @@ def set_manifest_version(manifest, name, version):
 
 
 def main():
+    global WORKSPACE
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--marketplace", default=os.environ.get(
-        "LLMCTL_MARKETPLACE_DIR",
-        os.path.join(os.path.dirname(REPO), ".llmctl-marketplace")))
+    workspace.add_arguments(parser)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--package", action="append", default=[])
     parser.add_argument("--bump", choices=LEVELS)
@@ -181,13 +192,17 @@ def main():
     parser.add_argument("--no-push", action="store_true")
     args = parser.parse_args()
 
-    marketplace = os.path.abspath(args.marketplace)
+    WORKSPACE, marketplace = workspace.resolve(args)
+    packages_dir = os.path.join(WORKSPACE, "packages")
     manifest = os.path.join(marketplace, "apm.yml")
     if not os.path.isfile(manifest):
         sys.stderr.write("no marketplace apm.yml at %s\n" % manifest)
         return 1
+    if not os.path.isdir(packages_dir):
+        sys.stderr.write("no packages/ in %s\n" % WORKSPACE)
+        return 1
 
-    packages = discover()
+    packages = discover(packages_dir)
     if args.package:
         wanted = set(args.package)
         packages = [p for p in packages if p[0] in wanted or p[1] in wanted]
@@ -201,7 +216,7 @@ def main():
 
     if args.update_deps and not args.dry_run:
         print("[deps] apm update")
-        subprocess.run(["apm", "update", "-y"], cwd=REPO)
+        subprocess.run(["apm", "update", "-y"], cwd=WORKSPACE)
 
     planned = []
     for package_dir, name, version in packages:
@@ -229,12 +244,12 @@ def main():
         return 0
 
     for package_dir, name, _, nxt in planned:
-        set_package_version(os.path.join(PACKAGES, package_dir, "apm.yml"), nxt)
+        set_package_version(os.path.join(packages_dir, package_dir, "apm.yml"), nxt)
         set_manifest_version(manifest, name, nxt)
 
     packer = subprocess.run(
-        [sys.executable, os.path.join(REPO, "scripts", "pack-marketplace.py"),
-         "--marketplace", marketplace])
+        [sys.executable, workspace.script("scripts", "pack-marketplace.py"),
+         "--repo", WORKSPACE, "--marketplace", marketplace])
     if packer.returncode != 0:
         sys.stderr.write("packing failed; versions were written but nothing was "
                          "committed or tagged\n")
@@ -269,10 +284,10 @@ def main():
         print("\nReleased %d package(s), unpushed. The tags are the baseline for "
               "the next release, so push both repos:\n"
               "  git -C %s push --follow-tags\n  git -C %s push --follow-tags"
-              % (len(planned), REPO, marketplace))
+              % (len(planned), WORKSPACE, marketplace))
         return 0
 
-    for label, tree in (("workspace", REPO), ("marketplace", marketplace)):
+    for label, tree in (("workspace", WORKSPACE), ("marketplace", marketplace)):
         print("[push] %s" % label)
         git(["push", "--follow-tags", "origin", "HEAD"], cwd=tree)
 

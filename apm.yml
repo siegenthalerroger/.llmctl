@@ -14,13 +14,17 @@ dependencies:
 # REDUCED FIDELITY vs `apm install`, only intended where the full fidelity of
 # `apm install` is not available (e.g. in claude.ai's Cowork).
 scripts:
+  # These scripts release any repo laid out like this one, so both roots are
+  # required rather than derived -- a guessed marketplace would silently
+  # publish into the wrong repo. This file is what supplies them.
+  #
   # Gates only -- writes nothing. Run before opening a PR or pushing.
-  release-check: "python scripts/release-check.py"
-  # Derive each package's version from its commits, pack, commit, tag.
-  release: "python scripts/release.py"
+  release-check: "python scripts/release-check.py --repo . --marketplace ../.llmctl-marketplace"
+  # Derive each package's version from its commits, pack, commit, tag, push.
+  release: "python scripts/release.py --repo . --marketplace ../.llmctl-marketplace"
   # Pack every package into the marketplace repo and regenerate its manifests.
-  pack-marketplace: "python scripts/pack-marketplace.py"
+  pack-marketplace: "python scripts/pack-marketplace.py --repo . --marketplace ../.llmctl-marketplace"
   # Regenerate THIRD-PARTY-NOTICES.md; --verify re-queries upstream licences.
-  gen-notices: "python scripts/gen-notices.py"
+  gen-notices: "python scripts/gen-notices.py --repo . --marketplace ../.llmctl-marketplace"
   # Check each file's licence against the upstream terms its provenance records.
-  check-licenses: "python scripts/check-licenses.py"
+  check-licenses: "python scripts/check-licenses.py --repo ."

@@ -259,7 +259,7 @@ Three rules follow from that, and [scripts/check-licenses.py](scripts/check-lice
 - **A file's provenance decides its licence.** Where `metadata.provenance` records an obligation-bearing `fidelity`, the upstream's `license` constrains what the local file may be licensed under: MIT upstream permits either default; CC-BY-SA-4.0 upstream forces CC-BY-SA-4.0; Apache-2.0 and GPL-3.0 upstreams force their own licence and need a per-file override; `NONE` permits nothing beyond `inspiration-only`. Declare an override with a **top-level `license:` field** in the file's frontmatter — that always wins over the table above.
 - **Attribution is generated, never hand-written.** `THIRD-PARTY-NOTICES.md` in the marketplace repo is produced by [scripts/gen-notices.py](scripts/gen-notices.py) from provenance metadata plus each bundle's `apm.lock.yaml`. Sources whose terms attach land under *Notices*; everything else, including `inspiration-only` sources and upstreams with no licence at all, is still credited under *Acknowledgements*.
 
-Adding a dependency or an adaptation from a **new** upstream means recording its licence in [scripts/dependency-licenses.yml](scripts/dependency-licenses.yml) or the entry's `license:` field. Run `apm run check-licenses` before opening a PR.
+Adding a dependency or an adaptation from a **new** upstream means recording its licence in [dependency-licenses.yml](dependency-licenses.yml) or the entry's `license:` field. Run `apm run check-licenses` before opening a PR.
 
 ## Commit Convention
 
