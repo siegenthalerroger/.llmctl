@@ -6,7 +6,8 @@ never verified against what actually shipped. Three inputs, per bundle:
 
   1. Vendored APM dependencies  -- each bundle embeds an enriched apm.lock.yaml
      recording repo_url / resolved_commit / version for every skill packed into
-     it. It records no licence, so terms come from scripts/dependency-licenses.yml.
+     it. It records no licence, so terms come from the workspace's
+     dependency-licenses.yml.
   2. Per-file licence exceptions -- files inside the bundle whose frontmatter
      declares a `license:` or carries obligation-bearing provenance.
   3. Acknowledgements -- every remaining provenance source.
@@ -17,8 +18,9 @@ omitting it entirely would drop credit that is owed as courtesy. So sources whos
 terms attach go under Notices, everything else under Acknowledgements.
 
 Usage:
-  python scripts/gen-notices.py [--marketplace PATH] [--check] [--verify]
+  python scripts/gen-notices.py --repo PATH --marketplace PATH [--check] [--verify]
 
+  --repo    the workspace whose dependency-licenses.yml records the terms
   --check   regenerate to memory and diff against the file on disk; write
             nothing, exit 1 when stale. This is the release gate.
   --verify  re-query each upstream's licence via `gh` and warn on drift from
@@ -38,8 +40,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import provenance as prov  # noqa: E402
 
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LICENSE_MAP = os.path.join(REPO, "scripts", "dependency-licenses.yml")
+import workspace  # noqa: E402
 
 
 # --- Minimal readers -------------------------------------------------------
@@ -50,7 +51,13 @@ def read_license_map(path):
 
     Shape is fixed and flat: `key:` at column 0, two-space fields under it, with
     `|` block and `>-` folded scalars for `notice` and `note`.
+
+    A missing file is an empty map, not an error: a workspace with no vendored
+    upstreams has nothing to record, and every consumer already handles an
+    unrecorded dependency by reporting it.
     """
+    if not os.path.isfile(path):
+        return {}
     entries, current, field, buffer, indent = {}, None, None, [], 0
     for raw in io.open(path, encoding="utf-8").read().split("\n"):
         if field:  # inside a block scalar
@@ -368,28 +375,26 @@ def verify(licenses):
             print("  %-44s %-14s DRIFT: API now reports %s" % (repo, recorded, reported))
     if drift:
         print("\n%d upstream(s) may have relicensed. Re-read their LICENSE file and "
-              "update scripts/dependency-licenses.yml." % drift)
+              "update dependency-licenses.yml." % drift)
     return 1 if drift else 0
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--marketplace", default=os.environ.get(
-        "LLMCTL_MARKETPLACE_DIR",
-        os.path.join(os.path.dirname(REPO), ".llmctl-marketplace")))
+    workspace.add_arguments(parser)
     parser.add_argument("--check", action="store_true",
                         help="fail if the committed file is out of date; write nothing")
     parser.add_argument("--verify", action="store_true",
                         help="re-query upstream licences and report drift")
     args = parser.parse_args()
 
-    licenses = read_license_map(LICENSE_MAP)
+    ws, marketplace = workspace.resolve(args)
+    licenses = read_license_map(os.path.join(ws, "dependency-licenses.yml"))
 
     if args.verify:
         print("verifying %d recorded upstream licence(s):" % len(licenses))
         return verify(licenses)
 
-    marketplace = os.path.abspath(args.marketplace)
     bundles = collect(marketplace)
     if not bundles:
         sys.stderr.write("no packed bundles under %s/plugins - run pack-marketplace.py first\n"

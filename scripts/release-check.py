@@ -22,7 +22,10 @@ Gates, cheapest first so an obvious failure reports fast:
   lockfile        apm audit --ci
 
 Usage:
-  python scripts/release-check.py [--marketplace PATH] [--skip NAME]
+  python scripts/release-check.py --repo PATH --marketplace PATH [--skip NAME]
+
+  --repo         the workspace to check
+  --marketplace  the marketplace it publishes into
 
 Exit codes: 0 all gates pass, 1 one or more failed.
 """
@@ -34,8 +37,13 @@ import shutil
 import subprocess
 import sys
 
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SCRATCH = os.environ.get("TEMP") or "/tmp"
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import workspace  # noqa: E402
+
+# The repo being checked, set once from --repo. Module-level rather than a
+# `cwd=` default, which would bind before the flags are parsed and point every
+# gate at the tooling checkout instead of the workspace under test.
+WORKSPACE = None
 
 
 class Gates(object):
@@ -56,16 +64,17 @@ class Gates(object):
             self.failures.append((key, detail))
 
 
-def sh(args, cwd=REPO):
+def sh(args, cwd=None):
     # errors="replace": these tools emit box-drawing and arrows, which the
     # Windows console codepage cannot decode. A gate must not die on output it
     # only ever prints.
-    return subprocess.run(args, cwd=cwd, capture_output=True, text=True,
-                          encoding="utf-8", errors="replace")
+    return subprocess.run(args, cwd=cwd or WORKSPACE, capture_output=True,
+                          text=True, encoding="utf-8", errors="replace")
 
 
 def gate_licenses():
-    got = sh([sys.executable, os.path.join(REPO, "scripts", "check-licenses.py")])
+    got = sh([sys.executable, workspace.script("scripts", "check-licenses.py"),
+              "--repo", WORKSPACE])
     tail = (got.stderr or got.stdout).strip().split("\n")[-1] if got.returncode else \
         (got.stdout.strip().split("\n")[0] if got.stdout.strip() else "")
     return got.returncode == 0, tail
@@ -73,18 +82,30 @@ def gate_licenses():
 
 def gate_parity():
     """The two provenance parsers must agree on what is tracked."""
-    py = sh([sys.executable, os.path.join(REPO, "scripts", "check-licenses.py"), "--json"])
+    py = sh([sys.executable, workspace.script("scripts", "check-licenses.py"),
+             "--repo", WORKSPACE, "--json"])
     if py.returncode not in (0, 1) or not py.stdout.strip():
         return False, "check-licenses.py --json produced no output"
     mine = {(e["file"], e["url"]) for e in json.loads(py.stdout)["entries"]
             if e["kind"] == "adaptedFrom"}
 
+    # The PowerShell audit only scans *.agent.md / SKILL.md / *.instructions.md /
+    # *.prompt.md, so reference files it never sees are not a disagreement.
+    scanned = {m for m in mine if os.path.basename(m[0]) in ("SKILL.md",) or
+               m[0].endswith((".agent.md", ".instructions.md", ".prompt.md"))}
+
+    # A workspace of wholly original content tracks nothing, and check-updates.ps1
+    # treats an empty scan as an error. Two parsers that both found nothing agree.
+    if not scanned:
+        return True, "no tracked provenance entries; parity is vacuous"
+
     pwsh = shutil.which("pwsh") or shutil.which("powershell")
     if not pwsh:
         return True, "PowerShell absent; parity not checked"
-    script = os.path.join(REPO, ".apm", "skills", "meta-upstream-sync",
-                          "scripts", "check-updates.ps1")
-    ps = sh([pwsh, "-NoProfile", "-File", script, "-OutputJson"])
+    script = workspace.script(".apm", "skills", "meta-upstream-sync",
+                              "scripts", "check-updates.ps1")
+    ps = sh([pwsh, "-NoProfile", "-File", script, "-RepoRoot", WORKSPACE,
+             "-OutputJson"])
     if ps.returncode != 0 or not ps.stdout.strip():
         return False, "check-updates.ps1 failed: " + ps.stderr.strip()[:160]
     try:
@@ -92,10 +113,6 @@ def gate_parity():
     except ValueError:
         return False, "check-updates.ps1 emitted unparseable JSON"
 
-    # The PowerShell audit only scans *.agent.md / SKILL.md / *.instructions.md /
-    # *.prompt.md, so reference files it never sees are not a disagreement.
-    scanned = {m for m in mine if os.path.basename(m[0]) in ("SKILL.md",) or
-               m[0].endswith((".agent.md", ".instructions.md", ".prompt.md"))}
     if scanned != theirs:
         only_py = sorted(scanned - theirs)[:3]
         only_ps = sorted(theirs - scanned)[:3]
@@ -105,8 +122,8 @@ def gate_parity():
 
 
 def gate_notices(marketplace):
-    got = sh([sys.executable, os.path.join(REPO, "scripts", "gen-notices.py"),
-              "--marketplace", marketplace, "--check"])
+    got = sh([sys.executable, workspace.script("scripts", "gen-notices.py"),
+              "--repo", WORKSPACE, "--marketplace", marketplace, "--check"])
     return got.returncode == 0, (got.stderr or got.stdout).strip().split("\n")[-1]
 
 
@@ -173,16 +190,15 @@ def gate_audit():
 
 
 def main():
+    global WORKSPACE
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--marketplace", default=os.environ.get(
-        "LLMCTL_MARKETPLACE_DIR",
-        os.path.join(os.path.dirname(REPO), ".llmctl-marketplace")))
+    workspace.add_arguments(parser)
     parser.add_argument("--skip", action="append", default=[],
                         help="gate key to skip (repeatable)")
     args = parser.parse_args()
-    marketplace = os.path.abspath(args.marketplace)
+    WORKSPACE, marketplace = workspace.resolve(args)
 
-    print("release-check: %s\n           -> %s\n" % (REPO, marketplace))
+    print("release-check: %s\n           -> %s\n" % (WORKSPACE, marketplace))
     gates = Gates(args.skip)
     gates.run("licences", "provenance obligations vs declared licences", gate_licenses)
     gates.run("parity", "both provenance parsers agree", gate_parity)

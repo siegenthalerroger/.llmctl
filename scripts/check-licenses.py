@@ -16,7 +16,10 @@ A `NONE` upstream — no LICENSE file, hence no grant of rights — passes only 
 fidelity that copies nothing.
 
 Usage:
-  python scripts/check-licenses.py [--json] [--root PATH]
+  python scripts/check-licenses.py --repo PATH [--json]
+
+  --repo  the workspace to scan. No default: these scripts live in `.llmctl`
+          but check any repo laid out the same way.
 
 Exit codes: 0 clean, 1 errors found.
 Dependency-free; the provenance parse is shared with gen-notices.py via
@@ -29,11 +32,10 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import provenance as prov  # noqa: E402
+import workspace  # noqa: E402
 
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
-def check_file(record, root=REPO):
+def check_file(record, root):
     """Return (errors, warnings) for one parsed file."""
     errors, warnings = [], []
     rel = os.path.relpath(record["path"], root).replace("\\", "/")
@@ -91,16 +93,17 @@ def check_file(record, root=REPO):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", default=REPO)
+    workspace.add_arguments(parser, marketplace=False)
     parser.add_argument("--json", action="store_true",
                         help="machine-readable output for release-check.py")
     args = parser.parse_args()
 
+    root, _ = workspace.resolve(args)
     all_errors, all_warnings, records = [], [], []
-    for path in prov.iter_files(args.root):
+    for path in prov.iter_files(root):
         record = prov.parse(path)
         records.append(record)
-        errors, warnings = check_file(record, args.root)
+        errors, warnings = check_file(record, root)
         all_errors.extend(errors)
         all_warnings.extend(warnings)
 
@@ -117,7 +120,7 @@ def main():
             "errors": [{"file": f, "message": m} for f, m in all_errors],
             "warnings": [{"file": f, "message": m} for f, m in all_warnings],
             "entries": [
-                {"file": os.path.relpath(r["path"], args.root).replace("\\", "/"),
+                {"file": os.path.relpath(r["path"], root).replace("\\", "/"),
                  "kind": e["kind"], "url": e["url"], "license": e["license"],
                  "fidelity": prov.effective_fidelity(e),
                  "effectiveLicense": r["effective"]}
