@@ -92,7 +92,7 @@ apm install ~/.llmctl/packages/core --target claude
 For hosts that only accept marketplace content — claude.ai **Cowork**, Claude Desktop, Claude Code — the packages are also published as plugin bundles from a separate repository, [`.llmctl-marketplace`](https://github.com/siegenthalerroger/.llmctl-marketplace). A plugin host clones that repo and reads each bundle as committed, so upstream APM dependencies are vendored into the bundles at pack time.
 
 ```bash
-python scripts/pack-marketplace.py   # or: apm run pack-marketplace
+apm run pack-marketplace   # supplies --repo and --marketplace; both are required
 ```
 
 This is a **reduced-fidelity** path — rely on skills and commands travelling, and use `apm install` where agents, instructions, or MCP servers matter. See the [packaging rules](CONTRIBUTING.md#rules).
