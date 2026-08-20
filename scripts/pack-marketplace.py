@@ -15,6 +15,9 @@ a marketplace manifest across a `..` boundary, so the two halves run separately:
   2. there  `apm pack` -> .claude-plugin/marketplace.json (Claude)
                        + .agents/plugins/marketplace.json (Codex)
 
+APM generates the Claude half of each bundle only, so step 1 also writes the
+Codex manifest -- see write_codex_manifest.
+
 Between the two, `packages[].source` in the marketplace apm.yml is rewritten to
 the versions just packed, because the bundle directory name is always
 `<name>-<version>` and cannot be flattened.
@@ -34,6 +37,7 @@ Dependency-free: only reads the scalar `name:`/`version:` keys it needs.
 """
 import argparse
 import importlib.util
+import json
 import os
 import re
 import shutil
@@ -65,7 +69,7 @@ TRANSIENT = (".claude", ".agents", ".github/instructions", "apm_modules",
 # `.claude-plugin/plugin.json` to detect a plugin, so leaving a vendored copy
 # inside skills/ ships a plugin manifest nested inside a plugin bundle.
 VENDOR_CRUFT_DIRS = (".github", ".gitlab", ".circleci", ".vscode", ".idea",
-                     ".claude-plugin", ".git", "node_modules")
+                     ".claude-plugin", ".codex-plugin", ".git", "node_modules")
 VENDOR_CRUFT_FILES = ("apm.yml", "apm.lock.yaml", ".apm-pin", ".gitignore",
                       ".gitattributes", ".editorconfig", "AGENTS.md",
                       "CLAUDE.md", "GEMINI.md", "README.md", "CONTRIBUTING.md",
@@ -142,6 +146,78 @@ def relocate_manifest(bundle_dir):
     os.makedirs(nested_dir, exist_ok=True)
     shutil.move(root, os.path.join(nested_dir, "plugin.json"))
     return True
+
+
+def scalar_in(text, key):
+    """Read an indented `key: value` out of one apm.yml block."""
+    match = re.search(r"^\s*%s:\s*(.+?)\s*$" % re.escape(key), text, re.M)
+    return match.group(1).strip("\"'") if match else None
+
+
+def package_entry(manifest_text, name):
+    """The one `packages[]` block in a marketplace apm.yml that names `name`."""
+    for entry in re.split(r"\n(?=\s*- name: )", manifest_text):
+        if re.match(r"\s*- name: %s\s*$" % re.escape(name), entry.split("\n")[0]):
+            return entry
+    return ""
+
+
+def write_codex_manifest(bundle_dir, category):
+    """Write the Codex sibling of the packed `.claude-plugin/plugin.json`.
+
+    Codex reads `.codex-plugin/plugin.json`; it does not fall back to the
+    Claude manifest, and a marketplace entry carrying only a name and a source
+    path is deliberately non-installable rather than treated as stand-in
+    metadata (openai/codex#28789). Without this file every bundle is listed in
+    `.agents/plugins/marketplace.json` and installable from none of it.
+
+    Derived from the manifest APM just generated rather than from apm.yml a
+    second time, so the two cannot end up describing the same bundle
+    differently. `interface` is the one Codex-only block; its `capabilities` is
+    specified as a free-form "capability list from implementation", so it
+    reports what this bundle actually carries rather than a guessed vocabulary.
+    """
+    source = os.path.join(bundle_dir, ".claude-plugin", "plugin.json")
+    with open(source, encoding="utf-8") as handle:
+        base = json.load(handle)
+
+    manifest = {}
+    for key in ("name", "version", "description", "author", "license"):
+        if key in base:
+            manifest[key] = base[key]
+
+    capabilities = []
+    for directory, capability in (("skills", "Skills"), ("agents", "Agents"),
+                                  ("commands", "Commands"),
+                                  ("instructions", "Instructions")):
+        if os.path.isdir(os.path.join(bundle_dir, directory)):
+            capabilities.append(capability)
+    # Both are supplements to Codex's default discovery, not replacements, and
+    # a path that does not resolve is a validation error -- so declare each
+    # only when the bundle actually has it.
+    if os.path.isdir(os.path.join(bundle_dir, "skills")):
+        manifest["skills"] = "./skills/"
+    if os.path.isfile(os.path.join(bundle_dir, ".mcp.json")):
+        manifest["mcpServers"] = "./.mcp.json"
+        capabilities.append("MCP")
+
+    author = base.get("author") or {}
+    manifest["interface"] = {
+        "displayName": base.get("name", ""),
+        # One authored description, so the subtitle and the details page say
+        # the same thing rather than one of them being invented here.
+        "shortDescription": base.get("description", ""),
+        "longDescription": base.get("description", ""),
+        "developerName": author.get("name", "") if isinstance(author, dict) else author,
+        "category": category,
+        "capabilities": capabilities,
+    }
+
+    target = os.path.join(bundle_dir, ".codex-plugin")
+    os.makedirs(target, exist_ok=True)
+    with open(os.path.join(target, "plugin.json"), "w", encoding="utf-8") as handle:
+        json.dump(manifest, handle, indent=2)
+        handle.write("\n")
 
 
 def strip_vendor_cruft(bundle_dir):
@@ -319,7 +395,8 @@ def main():
     if packages is None:
         return 1
 
-    declared = set(re.findall(r"- name: (\S+)", open(manifest, encoding="utf-8").read()))
+    manifest_text = open(manifest, encoding="utf-8").read()
+    declared = set(re.findall(r"- name: (\S+)", manifest_text))
     # The reverse of the per-package check below, and the one inconsistency a
     # release does not heal: a package deleted from packages/ is never packed,
     # never pruned, and stays published off its last bundle for good.
@@ -360,6 +437,15 @@ def main():
         if not relocate_manifest(bundle_dir):
             sys.stderr.write("%s: packed bundle has no plugin.json\n" % name)
             return 1
+        # `category` is marketplace data, not package data: it says where the
+        # bundle sits in a catalogue, so it is declared once beside the entry
+        # that publishes it rather than in every package's apm.yml.
+        category = scalar_in(package_entry(manifest_text, name), "category")
+        if not category:
+            sys.stderr.write("%s: no category in %s -- Codex requires one\n"
+                             % (name, manifest))
+            return 1
+        write_codex_manifest(bundle_dir, category)
         carried = add_licenses(ws, bundle_dir, name, version,
                                bundle_dep_licenses(bundle_dir, dep_map))
         if carried is None:
