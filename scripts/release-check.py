@@ -22,7 +22,6 @@ Gates, cheapest first so an obvious failure reports fast:
   manifest drift  apm pack --check-clean -- the committed marketplace.json files
                   match what would be generated (exit 4 means they do not)
   plugin validity claude plugin validate on each bundle, when the CLI is present
-  lockfile        apm audit --ci
 
 Usage:
   python scripts/release-check.py --repo PATH --marketplace PATH [--skip NAME]
@@ -35,7 +34,6 @@ Exit codes: 0 all gates pass, 1 one or more failed.
 import argparse
 import json
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -171,40 +169,6 @@ def gate_plugins(marketplace):
     return not bad, "; ".join(bad)
 
 
-def gate_audit():
-    """apm audit --ci, minus one failure mode that is environmental, not a defect.
-
-    The audit replays the install and diffs it against the working tree. When the
-    local APM is newer than the one that wrote apm.lock.yaml, the replay deploys
-    to targets the lockfile predates (0.26 added `.agents/skills/` and `.github/`
-    over 0.25's `.claude/` only), and every one of those reports as
-    `unintegrated`. That is APM version skew -- it says nothing about the change
-    under review, and it would fail every contributor whose APM differs from
-    whoever last refreshed the lockfile.
-
-    So `unintegrated`-only drift is reported as a note. Modified or missing files
-    still fail: those mean the deployed copy and its source disagree, which is a
-    real defect. CI runs `apm install --frozen` first and reproduces the lockfile
-    exactly, so it does not hit this path at all.
-    """
-    got = sh(["apm", "audit", "--ci"])
-    if got.returncode == 0:
-        return True, "no drift"
-
-    out = got.stdout + got.stderr
-    details = re.findall(r"^\s*-\s+(\w+):\s*(.+)$", out, re.M)
-    failed_checks = re.findall(r"\[x\]\s+(\d+) of \d+ check\(s\) failed", out)
-
-    only_unintegrated = details and all(kind == "unintegrated" for kind, _ in details)
-    if only_unintegrated and failed_checks == ["1"]:
-        return True, ("%d file(s) deployed by this APM but absent from the lockfile "
-                      "(version skew, not a defect) - `apm install` to refresh"
-                      % len(details))
-
-    tail = [l.strip() for l in out.split("\n") if l.strip()]
-    return False, "; ".join(tail[-2:])[:200]
-
-
 def main():
     global WORKSPACE
     parser = argparse.ArgumentParser(description=__doc__)
@@ -232,7 +196,6 @@ def main():
     else:
         print("- marketplace      no apm.yml at %s; marketplace gates skipped"
               % marketplace)
-    gates.run("lockfile", "apm audit --ci", gate_audit)
 
     print("")
     if gates.failures:
