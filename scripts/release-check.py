@@ -7,6 +7,9 @@ a green local run mean the same thing. Nothing is inlined into a workflow step.
 
 Gates, cheapest first so an obvious failure reports fast:
 
+  frontmatter     .apm/hooks/validate-customization-frontmatter.py --all -- the
+                  same rules the edit-time hook applies, over the whole tree.
+                  The hook only sees files edited in a Claude session
   licences        scripts/check-licenses.py -- every file's licence can carry the
                   upstream terms its provenance records
   parser parity   check-licenses.py and check-updates.ps1 must find the same
@@ -70,6 +73,19 @@ def sh(args, cwd=None):
     # only ever prints.
     return subprocess.run(args, cwd=cwd or WORKSPACE, capture_output=True,
                           text=True, encoding="utf-8", errors="replace")
+
+
+def gate_frontmatter():
+    """The edit-time hook's rules, applied to every file rather than one."""
+    got = sh([sys.executable,
+              workspace.script(".apm", "hooks",
+                               "validate-customization-frontmatter.py"),
+              "--repo", WORKSPACE, "--all"])
+    lines = [l.strip() for l in (got.stdout + got.stderr).split("\n") if l.strip()]
+    if got.returncode == 0:
+        return True, lines[-1].replace("[customization-frontmatter] ", "") if lines else ""
+    errors = [l for l in lines if "error:" in l]
+    return False, "; ".join(errors[:3])[:200]
 
 
 def gate_licenses():
@@ -200,6 +216,8 @@ def main():
 
     print("release-check: %s\n           -> %s\n" % (WORKSPACE, marketplace))
     gates = Gates(args.skip)
+    gates.run("frontmatter", "customization frontmatter conventions",
+              gate_frontmatter)
     gates.run("licences", "provenance obligations vs declared licences", gate_licenses)
     gates.run("parity", "both provenance parsers agree", gate_parity)
     if os.path.isdir(marketplace):

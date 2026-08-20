@@ -309,3 +309,25 @@ python ../.llmctl/scripts/release.py --repo . --marketplace ../<its-marketplace>
 ```
 
 Nothing is shared but the code. Licence texts and dependency records are read from the workspace only, so a private repo's upstreams never resolve against this one's.
+
+## Continuous Integration
+
+One workflow so far, and one rule: **every step shells out to `scripts/`**. A gate belongs in a script a contributor can run, not in a workflow step that only exists inside a runner — a green CI run and a green local run have to mean the same thing, or CI becomes something to appease rather than something to trust. Adding a check means adding it to [scripts/release-check.py](scripts/release-check.py) (or a sibling script) and letting the workflow keep calling the same entry point.
+
+| Workflow | Trigger | What it runs | Locally |
+| --- | --- | --- | --- |
+| [checks.yml](.github/workflows/checks.yml) | PR, push to `main`, Mondays | every release gate | `apm run release-check` |
+
+The private workspace carries its own copy. It holds no `scripts/` of its own — it checks this repo out beside itself and runs its code, exactly as a sibling clone does locally.
+
+`.github/` is otherwise git-ignored, because APM deploys Copilot primitives into it. `.gitignore` re-includes `.github/workflows/` alone.
+
+The commit convention is **not** checked here. A PR-time lint reports the convention was broken after the commits exist, which is the wrong end of the loop; the enforcement that belongs to it is a `commit-msg` hook that refuses the commit as it is written. Until that exists the convention is trusted — see TODO 4g.
+
+### The weekly run is the point
+
+Most of what breaks here is not in anyone's diff: a new APM release changing where primitives deploy, an upstream relicensing, a marketplace bundle drifting from its source. The scheduled run exists so those surface on their own rather than during the next deploy. That is also why the workflow installs APM at `latest` rather than pinning it — a pin would make the failure this is meant to catch impossible to observe.
+
+### Secrets
+
+- **`MARKETPLACE_TOKEN`** — a token that can read the marketplace repo, which is private. Without it the four marketplace gates skip and say so rather than failing the run.
