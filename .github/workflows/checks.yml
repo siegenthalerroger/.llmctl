@@ -22,6 +22,12 @@ jobs:
   gates:
     name: release gates
     runs-on: ubuntu-latest
+    env:
+      # `setup-only` installs the CLI and returns, so apm-action never gets to
+      # forward its own token: without this every upstream fetch below is
+      # anonymous, against a 60-request hourly limit shared with every other
+      # job on the runner's IP.
+      GITHUB_APM_PAT: ${{ github.token }}
     steps:
       - name: Check out the workspace
         uses: actions/checkout@v5
@@ -45,6 +51,7 @@ jobs:
           token: ${{ secrets.MARKETPLACE_TOKEN || github.token }}
 
       - name: Install the APM CLI
+        id: apm
         uses: microsoft/apm-action@v1
         with:
           setup-only: true
@@ -67,3 +74,8 @@ jobs:
           # The parity gate runs the drift audit, which reads the GitHub API.
           GITHUB_TOKEN: ${{ github.token }}
 
+      - name: Say which APM ran
+        # `apm-version: latest` is the point of the scheduled run, so a red
+        # Monday needs to name the version that turned it red.
+        if: always()
+        run: echo "APM ${{ steps.apm.outputs.apm-version }}" >> "$GITHUB_STEP_SUMMARY"
