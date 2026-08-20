@@ -32,19 +32,6 @@ jobs:
           # release tags are the baseline for everything version-shaped.
           fetch-depth: 0
 
-      - name: Check out the marketplace
-        uses: actions/checkout@v5
-        # The marketplace is a separate (currently private) repo. Without a
-        # token that can read it, release-check skips the four marketplace
-        # gates and says so -- which is better than failing every run on a
-        # missing secret. Set MARKETPLACE_TOKEN to get them.
-        continue-on-error: true
-        with:
-          repository: siegenthalerroger/.llmctl-marketplace
-          path: .llmctl-marketplace
-          fetch-depth: 0
-          token: ${{ secrets.MARKETPLACE_TOKEN || github.token }}
-
       - name: Install the APM CLI
         id: apm
         uses: microsoft/apm-action@v1
@@ -61,7 +48,10 @@ jobs:
         working-directory: .llmctl
 
       - name: Run the release gates
-        run: python3 scripts/release-check.py --repo . --marketplace ../.llmctl-marketplace
+        # The same entry point a contributor runs. No marketplace sibling is
+        # checked out, so the marketplace gates skip and say so -- they check
+        # that repo against itself and only move when a release writes to it.
+        run: apm run release-check
         working-directory: .llmctl
         env:
           # The parity gate runs the drift audit, which reads the GitHub API.
