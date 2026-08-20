@@ -95,7 +95,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     workspace.add_arguments(parser, marketplace=False)
     parser.add_argument("--json", action="store_true",
-                        help="machine-readable output for release-check.py")
+                        help="machine-readable output for check.py")
     args = parser.parse_args()
 
     root, _ = workspace.resolve(args)

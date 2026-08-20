@@ -210,7 +210,7 @@ def iter_files(root):
     default rule but carry no provenance, so there is nothing to check on them.
 
     `skip` must stay identical to `$script:ExcludedDirs` in check-updates.ps1:
-    release-check.py's parity gate compares what the two parsers find, so a
+    check.py's parity gate compares what the two parsers find, so a
     directory one walks and the other does not reports as a disagreement. Every
     name below holds copies rather than sources — APM dependencies, the deploy
     mirrors `apm install` writes next to a package, and build scratch.

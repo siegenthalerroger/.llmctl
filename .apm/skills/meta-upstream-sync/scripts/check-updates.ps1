@@ -481,7 +481,7 @@ function Parse-DateSafe {
 
 # Directories that hold copies rather than sources: APM dependencies, the
 # per-target deploy mirrors `apm install` writes, and build scratch. Must stay
-# identical to `skip` in scripts/provenance.py — release-check.py's parity gate
+# identical to `skip` in scripts/provenance.py — check.py's parity gate
 # compares what the two parsers find, so a directory scanned by one and not the
 # other reports as a parser disagreement rather than as the duplicate it is.
 # A vendored upstream carries its own `adaptedFrom`, and a deployed mirror

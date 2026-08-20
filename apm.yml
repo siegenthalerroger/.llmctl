@@ -18,7 +18,9 @@ scripts:
   # required rather than derived -- a guessed marketplace would silently
   # publish into the wrong repo. This file is what supplies them.
   #
-  # Gates only -- writes nothing. Run before opening a PR or pushing.
+  # Check the workspace itself: no marketplace, so it is the pre-PR gate.
+  check: "python scripts/check.py --repo ."
+  # Check what a release would publish. Needs the packed marketplace beside it.
   release-check: "python scripts/release-check.py --repo . --marketplace ../.llmctl-marketplace"
   # Derive each package's version from its commits, pack, commit, tag, push.
   release: "python scripts/release.py --repo . --marketplace ../.llmctl-marketplace"
