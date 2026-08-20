@@ -151,6 +151,7 @@ Two caveats from that repo: `devDependencies` entries are reported as orphaned b
   **Partly done 2026-08-19.** The `checks.yml` written on 2026-08-02 had never run once: `.gitignore` ignored all of `.github/*`, because APM deploys Copilot primitives there, so the file lived only in the author's working tree. It is committed now, with the ignore re-including `.github/workflows/` alone.
 
   - `checks.yml` — every release gate on PRs, pushes to `main` and Mondays.
+  - `release.yml` — the gates, then `release.py` with the inputs chosen at dispatch; a dry run by default.
 
   Still open: 4c, 4d and 4e have no checks to wire yet.
 
