@@ -56,7 +56,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:55d31a373b81e3ca2bb283ae729fd4a852e86452dbc4298cb826470c61483bab
+  content_hash: sha256:e9e67122eeb43fe8e2fbc03eaa65741ede416e7974c612db725e518392dc6651
 - kind: project-relative
   target: claude
   value: .claude/agents/meta-updater.md
@@ -128,7 +128,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:55d31a373b81e3ca2bb283ae729fd4a852e86452dbc4298cb826470c61483bab
+  content_hash: sha256:e9e67122eeb43fe8e2fbc03eaa65741ede416e7974c612db725e518392dc6651
 - kind: project-relative
   target: codex
   value: .codex/agents/meta-updater.toml
@@ -168,12 +168,12 @@ local_deployed_file_hashes:
   .agents/skills/meta-update-models/SKILL.md: sha256:6ee49634b3df6332eb7e3d8e2f5a3464218e8d114dff488fc87382b8de6b6bbc
   .agents/skills/meta-upstream-sync/SKILL.md: sha256:8270c2659336b1b242d53cc08c28308fb8ed7c115ef0e43198b280278c013069
   .agents/skills/meta-upstream-sync/references/source-url-reference.md: sha256:169b779fce35ec02b51323b709b1a05c77bdef15b9f11f2838579aaa9dc4be38
-  .agents/skills/meta-upstream-sync/scripts/check-updates.ps1: sha256:55d31a373b81e3ca2bb283ae729fd4a852e86452dbc4298cb826470c61483bab
+  .agents/skills/meta-upstream-sync/scripts/check-updates.ps1: sha256:e9e67122eeb43fe8e2fbc03eaa65741ede416e7974c612db725e518392dc6651
   .claude/agents/meta-updater.md: sha256:741e21ee81edb4d87b3746b33080f7fd22ada06933ef25ea0dddbfbdc805ccb8
   .claude/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py: sha256:feaef83e1e5bf13c7f314728495ba65810dada07c22631af19c57be3d38402c9
   .claude/skills/meta-update-models/SKILL.md: sha256:6ee49634b3df6332eb7e3d8e2f5a3464218e8d114dff488fc87382b8de6b6bbc
   .claude/skills/meta-upstream-sync/SKILL.md: sha256:8270c2659336b1b242d53cc08c28308fb8ed7c115ef0e43198b280278c013069
   .claude/skills/meta-upstream-sync/references/source-url-reference.md: sha256:169b779fce35ec02b51323b709b1a05c77bdef15b9f11f2838579aaa9dc4be38
-  .claude/skills/meta-upstream-sync/scripts/check-updates.ps1: sha256:55d31a373b81e3ca2bb283ae729fd4a852e86452dbc4298cb826470c61483bab
+  .claude/skills/meta-upstream-sync/scripts/check-updates.ps1: sha256:e9e67122eeb43fe8e2fbc03eaa65741ede416e7974c612db725e518392dc6651
   .codex/agents/meta-updater.toml: sha256:3ef713e9de667e6f5c641e48d105de6b96239145882e58de0a0ede894f00713c
   .codex/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py: sha256:feaef83e1e5bf13c7f314728495ba65810dada07c22631af19c57be3d38402c9

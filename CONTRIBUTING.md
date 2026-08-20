@@ -316,4 +316,6 @@ Github Actions are used to run CI. Most steps should shell out to `scripts/`, ex
 
 | Workflow | Trigger | What it runs | Locally |
 | --- | --- | --- | --- |
-| [checks.yml](.github/workflows/checks.yml) | PR, push to `main`, Mondays | every release gate | `apm run release-check` |
+| [checks.yml](.github/workflows/checks.yml) | PR, push to `main`, Mondays | every gate that does not need the marketplace | `apm run release-check` |
+
+No marketplace is checked out, so the marketplace gates skip: they check that repo against itself and only move when a release writes to it. [release.yml](.github/workflows/release.yml) checks it out and runs them in full.
