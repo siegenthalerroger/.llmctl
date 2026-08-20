@@ -320,6 +320,16 @@ def main():
         return 1
 
     declared = set(re.findall(r"- name: (\S+)", open(manifest, encoding="utf-8").read()))
+    # The reverse of the per-package check below, and the one inconsistency a
+    # release does not heal: a package deleted from packages/ is never packed,
+    # never pruned, and stays published off its last bundle for good.
+    orphaned = declared - {name for _, name, _ in packages}
+    if orphaned:
+        sys.stderr.write("%s no longer in packages/ but still published by %s — "
+                         "drop the entry and its bundle\n"
+                         % (", ".join(sorted(orphaned)), manifest))
+        return 1
+
     plugins_dir = os.path.join(marketplace, "plugins")
     # Workspace data, not tooling data: a private repo declares its own
     # upstreams, and has no scripts/ to keep them under. Absent means none.
