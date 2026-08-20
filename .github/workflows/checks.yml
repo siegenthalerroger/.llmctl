@@ -41,9 +41,7 @@ jobs:
           apm-version: latest
 
       - name: Deploy from the lockfile
-        # `--frozen` reproduces apm.lock.yaml exactly, which is what the
-        # lockfile gate then audits. The targets are explicit because the repo
-        # carries signals for several harnesses and APM refuses to guess.
+        # Targets are explicit: the repo carries signals for several harnesses.
         run: apm install --frozen --target claude,codex,agent-skills
         working-directory: .llmctl
 
