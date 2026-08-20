@@ -510,12 +510,6 @@ function Discover-TrackedEntries {
     $entries = New-Object System.Collections.Generic.List[object]
 
     foreach ($pattern in $patterns) {
-        # -Force, because every primitive in this repo lives under a dot-directory
-        # (.apm/, packages/*/.apm/) and on Unix a leading dot *is* the hidden
-        # attribute -- without it Get-ChildItem descends into none of them and the
-        # scan silently finds nothing. Windows has no such rule, so this is
-        # invisible until the script runs on a Linux runner. ExcludedDirs still
-        # keeps .git and the deployed copies out.
         $files = Get-ChildItem -LiteralPath $Repo -Recurse -File -Force -Filter $pattern
         foreach ($file in $files) {
             if (Test-ExcludedPath -Repo $Repo -AbsolutePath $file.FullName) { continue }
@@ -530,9 +524,6 @@ function Discover-TrackedEntries {
 }
 
 $repoRootResolved = Get-RepoRoot -Hint $RepoRoot
-# @(), because a List[object] that ends up empty unrolls to $null on return and
-# $null.Count is an error, not 0 -- which reports "no tracked files" as a bare
-# property-not-found instead of the message below.
 $trackedEntries = @(Discover-TrackedEntries -Repo $repoRootResolved)
 
 if ($IncludePath) {

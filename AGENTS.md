@@ -30,10 +30,6 @@ This is a quick reference, see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed d
 - **Provenance:** track upstream sources via `metadata.provenance.{adaptedFrom,authoritativeSpec}` — prefer APM dependencies over vendored copies. On the object form, `license` (upstream SPDX id) and `fidelity` (`inspiration-only`/`structural-echo`/`partly-derived`/`largely-derived`) are required wherever expression was copied; `took` records only what was taken.
 - **Licensing:** `*.md` is CC-BY-SA-4.0, everything else MIT — see [LICENSE](LICENSE). A file adapting an upstream whose terms the default cannot satisfy declares a top-level `license:` in its frontmatter. Run `apm run check-licenses` after touching provenance or adding a dependency.
 
-## CI
-
-[checks.yml](.github/workflows/checks.yml) runs every release gate on pull requests, pushes and weekly, and it is deliberately thin: every step shells out to `scripts/`, so anything CI reports reproduces locally with one `apm run`. **Add a gate to [scripts/release-check.py](scripts/release-check.py) or a sibling script, never as logic inside a workflow step.** `.github/` is git-ignored apart from `workflows/`, because APM deploys Copilot primitives there. See [CONTRIBUTING.md](CONTRIBUTING.md#continuous-integration).
-
 ## Commits
 
 Conventional — the type sizes the release bump, so it is not decoration:
@@ -48,4 +44,3 @@ Conventional — the type sizes the release bump, so it is not decoration:
 
 - Don't ignore the conventions defined in this repository, see [CONTRIBUTING.md](CONTRIBUTING.md)
 - Don't hand-edit generated files: anything under the marketplace repo's `plugins/`, either `marketplace.json`, or `THIRD-PARTY-NOTICES.md`. Regenerate instead.
-- Don't put check logic in a workflow step — a gate that cannot be run locally is a gate nobody can fix.

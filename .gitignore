@@ -17,8 +17,7 @@ __pycache__/
 # VSCode
 .vscode/*
 
-# Github: APM deploys Copilot primitives here (.github/instructions/ et al),
-# so the directory is ignored by default -- workflows are authored, not deployed.
+# Github
 .github/*
 !.github/workflows/
 
