@@ -6,9 +6,22 @@ on stdin, inspects the written file, and — only for customization files
 (*.agent.md, SKILL.md, *.prompt.md, *.instructions.md) — checks the
 repository's required frontmatter conventions.
 
+Also runs as a batch check, over one implementation rather than two:
+
+  python validate-customization-frontmatter.py --all [--repo PATH]
+  python validate-customization-frontmatter.py FILE [FILE ...]
+
+The hook only ever fires on a file edited in a Claude session, so drift in
+untouched files, edits made from another harness, and rules added after a file
+was written all go unnoticed until a deploy misbehaves. `--all` is what CI runs,
+and it applies exactly the same rules to the whole tree.
+
 Exit codes (Claude Code PostToolUse contract):
   0  no hard errors (warnings, if any, are printed to stderr and surfaced)
   2  hard errors found — stderr is fed back to the agent so it self-corrects
+
+Exit codes in batch mode, which follow the CI convention instead:
+  0  no hard errors      1  hard errors found
 
 Checks (see the meta-skill / meta-agent / meta-instruction / meta-prompt
 skills for the authoring rationale behind each):
@@ -202,7 +215,76 @@ def validate(path, kind, text):
     return errors, warnings
 
 
+# Kept in step with provenance.py's `iter_files`, but not shared with it: this
+# file is deployed standalone by APM into each harness's hooks directory, where
+# nothing else from scripts/ is on disk.
+SKIP_DIRS = {".git", "apm_modules", "build", "node_modules", "__pycache__",
+             ".claude", ".agents", "LICENSES"}
+
+
+def discover(root):
+    """Every customization file under packages/ and .apm/, in a stable order."""
+    found = []
+    for base in ("packages", ".apm"):
+        top = os.path.join(root, base)
+        if not os.path.isdir(top):
+            continue
+        for dirpath, dirnames, filenames in os.walk(top):
+            dirnames[:] = sorted(d for d in dirnames if d not in SKIP_DIRS)
+            for name in sorted(filenames):
+                path = os.path.join(dirpath, name)
+                if customization_kind(path):
+                    found.append(path)
+    return found
+
+
+def batch(argv):
+    """Validate many files at once. Returns a process exit code."""
+    root, paths, everything = os.getcwd(), [], False
+    rest = list(argv)
+    while rest:
+        argument = rest.pop(0)
+        if argument == "--repo" and rest:
+            root = rest.pop(0)
+        elif argument == "--all":
+            everything = True
+        elif not argument.startswith("-"):
+            paths.append(argument)
+    if everything:
+        paths = discover(root)
+    failed = 0
+    for path in paths:
+        kind = customization_kind(path)
+        if not kind:
+            continue
+        try:
+            with open(path, "r", encoding="utf-8") as fh:
+                text = fh.read()
+        except OSError as error:
+            print(f"[customization-frontmatter] error: {path}: {error}",
+                  file=sys.stderr)
+            failed += 1
+            continue
+        errors, warnings = validate(path, kind, text)
+        rel = os.path.relpath(path, root)
+        for w in warnings:
+            print(f"[customization-frontmatter] warning: {rel}: {w}", file=sys.stderr)
+        for e in errors:
+            print(f"[customization-frontmatter] error: {rel}: {e}", file=sys.stderr)
+        failed += 1 if errors else 0
+
+    print(f"[customization-frontmatter] checked {len(paths)} file(s)")
+    if failed:
+        print(f"[customization-frontmatter] {failed} file(s) with errors",
+              file=sys.stderr)
+        return 1
+    return 0
+
+
 def main():
+    if len(sys.argv) > 1:
+        sys.exit(batch(sys.argv[1:]))
+
     event = read_event()
     tool_input = event.get("tool_input") or {}
     path = tool_input.get("file_path") or tool_input.get("path")

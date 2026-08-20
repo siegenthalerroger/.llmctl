@@ -1,5 +1,7 @@
 # LLM Agent Control (`.llmctl`)
 
+[![checks](https://github.com/siegenthalerroger/.llmctl/actions/workflows/checks.yml/badge.svg)](https://github.com/siegenthalerroger/.llmctl/actions/workflows/checks.yml)
+
 `.llmctl` is a collection of agent modes, prompts and skills intended to be directly configured in your agent orchestrator (be that your IDE or CLI tool).
 
 It is structured as an **APM monorepo of context-scoped packages** so each environment loads only what it needs — a global baseline everywhere, domain packages only where they apply.
@@ -110,7 +112,7 @@ See the [VS Code agent customization docs](https://code.visualstudio.com/docs/ag
 | **Hooks** (`*.hook.json`)              | Preview         | Supported (30+ lifecycle events)        |
 | **MCP Servers** (`apm.yml`)            | Supported       | Supported                               |
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for adaptations required for cross-tool compatibility and repository conventions.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for adaptations required for cross-tool compatibility and repository conventions, and [Continuous Integration](CONTRIBUTING.md#continuous-integration) for what runs on a pull request.
 
 ### Agents (Custom Agents)
 
