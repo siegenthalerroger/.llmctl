@@ -222,7 +222,7 @@ def iter_files(root):
         if not os.path.isdir(top):
             continue
         for dirpath, dirnames, filenames in os.walk(top):
-            dirnames[:] = [d for d in dirnames if d not in skip]
+            dirnames[:] = sorted(d for d in dirnames if d not in skip)
             for name in sorted(filenames):
                 if name.endswith(CONTENT_SUFFIXES):
                     yield os.path.join(dirpath, name)

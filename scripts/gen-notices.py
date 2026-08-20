@@ -180,7 +180,8 @@ def bundle_provenance(bundle_dir):
         top = os.path.join(bundle_dir, sub)
         if not os.path.isdir(top):
             continue
-        for dirpath, _, filenames in os.walk(top):
+        for dirpath, dirnames, filenames in os.walk(top):
+            dirnames.sort()
             for name in sorted(filenames):
                 if not name.endswith(".md"):
                     continue
