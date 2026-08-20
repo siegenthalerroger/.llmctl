@@ -220,10 +220,6 @@ def main():
               gate_frontmatter)
     gates.run("licences", "provenance obligations vs declared licences", gate_licenses)
     gates.run("parity", "both provenance parsers agree", gate_parity)
-    # An empty directory is not a marketplace. `actions/checkout` git-inits the
-    # target path before it discovers it cannot read the repository, so a failed
-    # optional checkout leaves one behind -- and every marketplace gate then
-    # fails against nothing instead of being skipped.
     if os.path.isfile(os.path.join(marketplace, "apm.yml")):
         gates.run("notices", "THIRD-PARTY-NOTICES.md is current",
                   lambda: gate_notices(marketplace))

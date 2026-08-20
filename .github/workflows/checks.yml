@@ -1,4 +1,3 @@
-# Every release gate, on every change and once a week.
 name: checks
 
 on:
@@ -6,8 +5,7 @@ on:
   push:
     branches: [main]
   schedule:
-    # Monday 06:17 UTC. Off the hour: scheduled runs pile up on :00 across
-    # GitHub and get queued.
+    # Monday 06:17 UTC. Off the hour to reduce queueing.
     - cron: "17 6 * * 1"
   workflow_dispatch:
 
@@ -23,10 +21,7 @@ jobs:
     name: release gates
     runs-on: ubuntu-latest
     env:
-      # `setup-only` installs the CLI and returns, so apm-action never gets to
-      # forward its own token: without this every upstream fetch below is
-      # anonymous, against a 60-request hourly limit shared with every other
-      # job on the runner's IP.
+      # Ensure apm commands use authenticated Github API calls.
       GITHUB_APM_PAT: ${{ github.token }}
     steps:
       - name: Check out the workspace
@@ -55,8 +50,7 @@ jobs:
         uses: microsoft/apm-action@v1
         with:
           setup-only: true
-          # Deliberately floating, and the point of the scheduled run: the
-          # gates should fail when a new APM breaks this repo's deployment.
+          # Ensure breaking changes are caught early.
           apm-version: latest
 
       - name: Deploy from the lockfile
