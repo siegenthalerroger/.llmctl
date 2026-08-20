@@ -43,12 +43,12 @@ jobs:
     steps:
       - name: Require a marketplace token
         env:
-          MARKETPLACE_SECRET: ${{ secrets.MARKETPLACE_SECRET }}
+          MARKETPLACE_TOKEN: ${{ secrets.MARKETPLACE_TOKEN }}
         run: |
-          if [ -z "$MARKETPLACE_SECRET" ]; then
+          if [ -z "$MARKETPLACE_TOKEN" ]; then
             echo "::error::.llmctl-marketplace is private and a release pushes" \
                  "to it, so even a dry run has to read it. Set the" \
-                 "MARKETPLACE_SECRET secret to a token with contents:write on it."
+                 "MARKETPLACE_TOKEN secret to a token with contents:write on it."
             exit 1
           fi
 
@@ -67,8 +67,8 @@ jobs:
           path: .llmctl-marketplace
           fetch-depth: 0
           # The only cross-repo write in this workflow, and the only thing
-          # MARKETPLACE_SECRET needs to reach.
-          token: ${{ secrets.MARKETPLACE_SECRET }}
+          # MARKETPLACE_TOKEN needs to reach.
+          token: ${{ secrets.MARKETPLACE_TOKEN }}
 
       - name: Install the APM CLI
         id: apm

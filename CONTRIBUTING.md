@@ -325,5 +325,5 @@ The private workspace carries its own `checks.yml` and `release.yml`. It holds n
 
 ### Secrets
 
-- **`MARKETPLACE_SECRET`** — `contents: write` on the marketplace repo. Set on this repo and on the private workspace. A release pushes to the marketplace, and it is private, so even a dry run needs this to read it.
-- **`TOOLING_SECRET`** — `contents: read` on `.llmctl`. Set on the private workspace, whose CI borrows these scripts. Needed only while this repo is private.
+- **`MARKETPLACE_TOKEN`** — `contents: write` on the marketplace repo. Set on this repo and on the private workspace. A release pushes to the marketplace, and it is private, so even a dry run needs this to read it.
+- **`TOOLING_TOKEN`** — `contents: read` on `.llmctl`. Set on the private workspace, whose CI borrows these scripts. Needed only while this repo is private.
