@@ -55,7 +55,6 @@ jobs:
         uses: microsoft/apm-action@v1
         with:
           setup-only: true
-          working-directory: .llmctl
           # Deliberately floating, and the point of the scheduled run: the
           # gates should fail when a new APM breaks this repo's deployment.
           apm-version: latest
