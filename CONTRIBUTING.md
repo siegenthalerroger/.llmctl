@@ -235,7 +235,9 @@ Use the `meta-updater` agent together with the `meta-upstream-sync` skill to aud
 
 A merge that pulls across more text than before raises the entry's `fidelity`, and a raised fidelity can attach upstream terms the local file's licence cannot carry. Update `fidelity` and `license` in the same edit as the merge, then run `apm run check-licenses`.
 
-GitHub API authentication uses the `gh` CLI by default — run `gh auth login` once and `check-updates.ps1` reuses that login (`gh auth token`) automatically.
+The audit itself is [scripts/check-updates.py](scripts/check-updates.py) — `apm run check-updates`, or the script directly for its filtering flags. It lives in `scripts/` rather than under the skill because `meta-upstream-sync` is repo-local (root `.apm/`, in no package and no packed bundle), and because it parses provenance through the same [provenance.py](scripts/provenance.py) as `check-licenses.py`.
+
+GitHub API authentication uses the `gh` CLI by default — run `gh auth login` once and `check-updates.py` reuses that login (`gh auth token`) automatically.
 
 For CI or non-`gh` environments, supply a **Fine-grained Personal Access Token** instead:
 
@@ -243,7 +245,7 @@ For CI or non-`gh` environments, supply a **Fine-grained Personal Access Token**
 - Repository permissions: `Contents` = **Read-only**
 - No write permissions are required for update checks
 
-Provide the token via `GITHUB_TOKEN`/`GH_TOKEN`, or pass `-GitHubToken` to `./.apm/skills/meta-upstream-sync/scripts/check-updates.ps1`.
+Provide the token via `GITHUB_TOKEN`/`GH_TOKEN`, or pass `--github-token` to `./scripts/check-updates.py`.
 
 ## Licensing
 
@@ -320,7 +322,7 @@ Github Actions are used to run CI. Most steps should shell out to `scripts/`, ex
 | [checks.yml](.github/workflows/checks.yml) | PR, push to `main`, Mondays | the workspace gates | `apm run check` |
 | [release.yml](.github/workflows/release.yml) | manual | both gate sets, then `release.py` with the inputs you pick (defaults to a dry run) | `apm run release -- --dry-run` |
 
-The gates come in two sets, split by what they read. [check.py](scripts/check.py) reads the workspace alone — frontmatter conventions, licence obligations, and that both provenance parsers agree on what is tracked. [release-check.py](scripts/release-check.py) reads the marketplace it publishes into — that the notices file is current, that versions and manifests match what would be regenerated, and that every bundle validates. Both drive the same runner in [gates.py](scripts/gates.py) and neither calls the other.
+The gates come in two sets, split by what they read. [check.py](scripts/check.py) reads the workspace alone — frontmatter conventions, and licence obligations against what each file's provenance records. [release-check.py](scripts/release-check.py) reads the marketplace it publishes into — that the notices file is current, that versions and manifests match what would be regenerated, and that every bundle validates. Both drive the same runner in [gates.py](scripts/gates.py) and neither calls the other.
 
 The split is what lets each one fail on a missing input rather than skip past it. checks.yml checks out one repo, so it runs `apm run check` and every gate in that set actually runs. release-check has nothing to say without the marketplace, so it exits 1 when there is no `apm.yml` beside it — an empty directory is exactly what a cross-repo checkout leaves behind when it cannot read the other repo, and a gate set that reported green on that would be worse than useless. [release.yml](.github/workflows/release.yml) checks the marketplace out and runs both sets before `release.py`.
 

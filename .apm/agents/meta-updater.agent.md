@@ -37,10 +37,10 @@ Check local customization files against their tracked upstream sources.
 
 1. [ ] Load the `meta-upstream-sync` skill and verify files contain `metadata.provenance.adaptedFrom` in frontmatter.
 1. [ ] Confirm the `gh` CLI is authenticated (`gh auth status`) — the script reuses the `gh` login for GitHub API calls, avoiding rate limits (60 req/hr unauthenticated). If `gh` is not authenticated, prompt the user to run `gh auth login`, or skip for small repos where rate limits are not a concern.
-1. [ ] Run `scripts/check-updates.ps1` from the repository root in default mode first (broad, lightweight scan).
+1. [ ] Run `scripts/check-updates.py` from the repository root in default mode first (broad, lightweight scan).
 1. [ ] Review output classifications (`up_to_date`, `update_available`, `missing_local_commit`, `fetch_failed`).
-1. [ ] If an item is `missing_local_commit` and bootstrap-from-upstream is desired, run a targeted follow-up with `-IncludePath` + `-AllowNoLocalCommit` (and optional `-IncludeChangeDetails`).
-1. [ ] For each `update_available` item, run a targeted follow-up check with `-IncludePath` + `-IncludeChangeDetails` (and optional `-MaxChangeCommits`) to inspect commit-level upstream changes.
+1. [ ] If an item is `missing_local_commit` and bootstrap-from-upstream is desired, run a targeted follow-up with `--include` + `--allow-no-local-commit` (and optional `--change-details`).
+1. [ ] For each `update_available` item, run a targeted follow-up check with `--include` + `--change-details` (and optional `--max-change-commits`) to inspect commit-level upstream changes.
 1. [ ] When upstream changes alter workflow, process, or opinionated behavior (per the skill's Guidelines), use `vscode/askQuestions` to confirm user intent before recommending replication.
 1. [ ] Recommend actions per the skill's recommendation matrix and multi-source synthesis procedure.
 1. [ ] After any merge lands, re-check each touched entry's `fidelity` and `license`, then run `apm run check-licenses`. Pulling across more text than before raises the fidelity, and a raised fidelity can attach upstream terms the local file's licence cannot carry.

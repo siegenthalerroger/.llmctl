@@ -2,9 +2,11 @@
 """Shared provenance/licence model for check-licenses.py and gen-notices.py.
 
 One parse of `metadata.provenance`, one obligation table, one path->default-licence
-rule. Both scripts import from here so they cannot disagree about what a file
-claims — the same reason `check-updates.ps1` parses the block line-by-line instead
-of with a spanning regex.
+rule. check-licenses.py, gen-notices.py and the meta-upstream-sync drift audit all
+import from here, so they cannot disagree about what a file claims. The block is
+walked line by line rather than matched with one spanning regex: the object form
+nests, and a regex that tries to span it matches nothing, dropping the file from
+every consumer at once with no error.
 
 Deliberately dependency-free, matching pack-marketplace.py: it reads the handful of
 keys it needs rather than pulling in a YAML parser, and every form it does not
@@ -70,6 +72,18 @@ KNOWN_LICENSES = tuple(PERMITTED_OUTBOUND)
 # is most likely to land. Listing the four types would exclude exactly those.
 CONTENT_SUFFIXES = (".md",)
 
+# The four file types that define a primitive. `iter_files` yields every `.md`
+# because a `references/` page can carry provenance too; the drift audit walks
+# only these four, because only a primitive has an upstream to drift from.
+CUSTOMIZATION_NAMES = ("SKILL.md",)
+CUSTOMIZATION_SUFFIXES = (".agent.md", ".instructions.md", ".prompt.md")
+
+
+def is_customization(path):
+    """True for the four primitive-defining file types."""
+    name = os.path.basename(path)
+    return name in CUSTOMIZATION_NAMES or name.endswith(CUSTOMIZATION_SUFFIXES)
+
 
 def default_license_for(path):
     """The repo default for a path, before any per-file `license:` override."""
@@ -103,9 +117,9 @@ def scalar(block, key):
 def _parse_block(lines, start, key):
     """Parse one provenance key into entry dicts. Returns (entries, next_index).
 
-    Mirrors check-updates.ps1's line-based walk exactly: the block ends at the
-    first line indented no deeper than the key. A spanning regex would match
-    nothing on the nested form and drop the file silently.
+    The block ends at the first line indented no deeper than the key. A spanning
+    regex would match nothing on the nested form and drop the file silently --
+    from this parse, and so from every tool that reads it.
     """
     key_indent = len(lines[start]) - len(lines[start].lstrip())
     inline = lines[start].split(":", 1)[1].strip()
@@ -209,11 +223,11 @@ def iter_files(root):
     Repo-root docs (README, CONTRIBUTING, AGENTS, TODO) are covered by the same
     default rule but carry no provenance, so there is nothing to check on them.
 
-    `skip` must stay identical to `$script:ExcludedDirs` in check-updates.ps1:
-    check.py's parity gate compares what the two parsers find, so a
-    directory one walks and the other does not reports as a disagreement. Every
-    name below holds copies rather than sources — APM dependencies, the deploy
-    mirrors `apm install` writes next to a package, and build scratch.
+    Every name in `skip` holds copies rather than sources — APM dependencies, the
+    deploy mirrors `apm install` writes next to a package, and build scratch. A
+    vendored upstream carries its own `adaptedFrom` and a deployed mirror carries
+    the same one twice, so walking either would attribute an upstream's
+    provenance to this repository.
     """
     skip = {".git", "apm_modules", "build", "node_modules", "__pycache__",
             ".claude", ".agents", "LICENSES"}
