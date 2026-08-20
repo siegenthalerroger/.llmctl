@@ -282,7 +282,8 @@ Commits are **conventional**:
 Packages version **independently** (`marketplace.versioning.strategy: per_package`). A change to `ops` moves `ops` only, so a version number always means something changed in that package.
 
 ```bash
-apm run release-check          # gates only, writes nothing
+apm run check                  # the workspace gates; no marketplace needed
+apm run release-check          # what a release would publish; needs the marketplace
 apm run release -- --dry-run   # show the derived bumps
 apm run release                # bump, pack, commit, tag both repos
 ```
@@ -316,10 +317,12 @@ Github Actions are used to run CI. Most steps should shell out to `scripts/`, ex
 
 | Workflow | Trigger | What it runs | Locally |
 | --- | --- | --- | --- |
-| [checks.yml](.github/workflows/checks.yml) | PR, push to `main`, Mondays | every gate that does not need the marketplace | `apm run release-check` |
-| [release.yml](.github/workflows/release.yml) | manual | the gates, then `release.py` with the inputs you pick (defaults to a dry run) | `apm run release -- --dry-run` |
+| [checks.yml](.github/workflows/checks.yml) | PR, push to `main`, Mondays | the workspace gates | `apm run check` |
+| [release.yml](.github/workflows/release.yml) | manual | both gate sets, then `release.py` with the inputs you pick (defaults to a dry run) | `apm run release -- --dry-run` |
 
-checks.yml checks out no marketplace, so the marketplace gates skip there: they check that repo against itself and only move when a release writes to it. [release.yml](.github/workflows/release.yml) checks it out and runs them in full.
+The gates come in two sets, split by what they read. [check.py](scripts/check.py) reads the workspace alone — frontmatter conventions, licence obligations, and that both provenance parsers agree on what is tracked. [release-check.py](scripts/release-check.py) reads the marketplace it publishes into — that the notices file is current, that versions and manifests match what would be regenerated, and that every bundle validates. Both drive the same runner in [gates.py](scripts/gates.py) and neither calls the other.
+
+The split is what lets each one fail on a missing input rather than skip past it. checks.yml checks out one repo, so it runs `apm run check` and every gate in that set actually runs. release-check has nothing to say without the marketplace, so it exits 1 when there is no `apm.yml` beside it — an empty directory is exactly what a cross-repo checkout leaves behind when it cannot read the other repo, and a gate set that reported green on that would be worse than useless. [release.yml](.github/workflows/release.yml) checks the marketplace out and runs both sets before `release.py`.
 
 The private workspace carries its own `checks.yml` and `release.yml`. It holds no `scripts/` — it checks this repo out beside itself and runs its code, exactly as a sibling clone does locally. The marketplace repos have a `checks.yml` too, but theirs is self-contained: `apm pack --check-versions` and `--check-clean` read their own apm.yml, and everything else about a bundle is rewritten from source on every release.
 

@@ -111,7 +111,7 @@ See also [terraform-skill's `references/code-intelligence-lsp.md`](https://githu
 Two validation layers exist as of 2026-08-02, and neither covers this workstream:
 
 - [.apm/hooks/validate-customization-frontmatter.py](.apm/hooks/validate-customization-frontmatter.py), a Claude Code `PostToolUse` hook — it fires only on files edited in a Claude session, so drift in untouched files, edits made from other harnesses, and APM version skew all go unnoticed until a deploy misbehaves (cf. **3c**, **3d**).
-- [scripts/release-check.py](scripts/release-check.py) and the gates it drives (licences, parser parity, notices, versions, manifest drift, bundle validity, lockfile). These are repo-wide and run in CI, but they only cover provenance/licensing and the release path — not the frontmatter conventions below.
+- [scripts/check.py](scripts/check.py) (frontmatter, licences, parser parity) and [scripts/release-check.py](scripts/release-check.py) (notices, versions, manifest drift, bundle validity). These are repo-wide and run in CI, but they only cover provenance/licensing and the release path — not the frontmatter conventions below.
 fir
 Two distinct failure classes are worth checking separately:
 
@@ -135,10 +135,10 @@ Two caveats from that repo: `devDependencies` entries are reported as orphaned b
 
 ### Tasks
 
-- [x] **4a — Run the frontmatter validator over the whole tree in CI.** **Done 2026-08-19.** [validate-customization-frontmatter.py](.apm/hooks/validate-customization-frontmatter.py) now takes `--all` (or explicit paths) alongside its stdin hook mode — one implementation, two entry points, and the batch mode exits 1 on errors rather than the hook contract's 2. It runs as release-check's cheapest gate, so it fires on every PR, every push, the weekly run, and any local `apm run release-check`.
+- [x] **4a — Run the frontmatter validator over the whole tree in CI.** **Done 2026-08-19.** [validate-customization-frontmatter.py](.apm/hooks/validate-customization-frontmatter.py) now takes `--all` (or explicit paths) alongside its stdin hook mode — one implementation, two entry points, and the batch mode exits 1 on errors rather than the hook contract's 2. It runs as check.py's cheapest gate, so it fires on every PR, every push, the weekly run, and any local `apm run check`.
 - [ ] **4b — Extend validation to metadata this repo relies on but the hook ignores** — `model:` frontmatter on agents and the `tools:`-omission convention from **3d**.
 
-  **The provenance half of this task shipped.** [scripts/check-licenses.py](scripts/check-licenses.py) now hard-errors on an `adaptedFrom` block that parses to zero URLs and on an object entry with no `url`, and it parses through the shared [scripts/provenance.py](scripts/provenance.py) so the validator and the [drift audit](.apm/skills/meta-upstream-sync/scripts/check-updates.ps1) cannot disagree about what counts as tracked — enforced by release-check's `parity` gate. It also requires an upstream `license` wherever `fidelity` copies expression. Two lint-grade checks from the original list remain unimplemented, both warnings rather than errors:
+  **The provenance half of this task shipped.** [scripts/check-licenses.py](scripts/check-licenses.py) now hard-errors on an `adaptedFrom` block that parses to zero URLs and on an object entry with no `url`, and it parses through the shared [scripts/provenance.py](scripts/provenance.py) so the validator and the [drift audit](.apm/skills/meta-upstream-sync/scripts/check-updates.ps1) cannot disagree about what counts as tracked — enforced by check.py's `parity` gate. It also requires an upstream `license` wherever `fidelity` copies expression. Two lint-grade checks from the original list remain unimplemented, both warnings rather than errors:
 
   - a `took` value written as a block scalar (`|` / `>`) — both parsers are single-line and silently drop the content
   - a `took` value containing `Not taken` / `Original locally`, or a `%` measurement — removed from the convention on 2026-08-01 because they rot with no local change to trigger a refresh; see [CONTRIBUTING.md](CONTRIBUTING.md#scoping-an-adaptation-with-fidelity-and-took)

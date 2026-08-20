@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   gates:
-    name: release gates
+    name: workspace gates
     runs-on: ubuntu-latest
     env:
       # Ensure apm commands use authenticated Github API calls.
@@ -45,11 +45,11 @@ jobs:
         run: apm install --frozen --target claude,codex,agent-skills
         working-directory: .llmctl
 
-      - name: Run the release gates
-        # The same entry point a contributor runs. No marketplace sibling is
-        # checked out, so the marketplace gates skip and say so -- they check
-        # that repo against itself and only move when a release writes to it.
-        run: apm run release-check
+      - name: Run the workspace gates
+        # The same entry point a contributor runs before opening a PR. Every
+        # gate in it reads this repo only; the marketplace-facing ones live in
+        # release-check and run from release.yml, which checks that repo out.
+        run: apm run check
         working-directory: .llmctl
         env:
           # The parity gate runs the drift audit, which reads the GitHub API.

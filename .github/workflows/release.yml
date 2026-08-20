@@ -85,9 +85,17 @@ jobs:
         run: apm install --frozen --target claude,codex,agent-skills
         working-directory: .llmctl
 
+      - name: Run the workspace gates
+        # Both halves run here, and only here: checks.yml has no marketplace to
+        # check out, so this is the one place the full set is enforced.
+        run: apm run check
+        working-directory: .llmctl
+        env:
+          # The parity gate runs the drift audit, which reads the GitHub API.
+          GITHUB_TOKEN: ${{ github.token }}
+
       - name: Run the release gates
-        # The same entry point a contributor runs; the marketplace is checked
-        # out above, so these are the full gates.
+        # Reads the marketplace checked out above, and refuses to run without it.
         run: apm run release-check
         working-directory: .llmctl
         env:
