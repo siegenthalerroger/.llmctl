@@ -1,0 +1,126 @@
+# Cut a release, on demand.
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Show the derived bumps and write nothing"
+        type: boolean
+        default: true
+      packages:
+        description: "Only these packages, space-separated (blank = every package with commits)"
+        type: string
+        default: ""
+      bump:
+        description: "Force a level instead of deriving it from the commits"
+        type: choice
+        options: [derive, patch, minor, major]
+        default: derive
+      update_deps:
+        description: "Refresh pinned upstream deps first, so a moved SHA ships as an ordinary release"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+# Never two releases at once: both derive versions from tags that the other one
+# is in the middle of creating.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      # `setup-only` installs the CLI and returns, so apm-action never gets to
+      # forward its own token: without this every upstream fetch below is
+      # anonymous, against a 60-request hourly limit shared with every other
+      # job on the runner's IP.
+      GITHUB_APM_PAT: ${{ github.token }}
+    steps:
+      - name: Require a marketplace token
+        env:
+          MARKETPLACE_TOKEN: ${{ secrets.MARKETPLACE_TOKEN }}
+        run: |
+          if [ -z "$MARKETPLACE_TOKEN" ]; then
+            echo "::error::.llmctl-marketplace is private and a release pushes" \
+                 "to it, so even a dry run has to read it. Set the" \
+                 "MARKETPLACE_TOKEN secret to a token with contents:write on it."
+            exit 1
+          fi
+
+      - name: Check out the workspace
+        uses: actions/checkout@v5
+        with:
+          path: .llmctl
+          # release.py measures each package from its last tag; a shallow or
+          # tagless clone measures from the start of history and over-bumps.
+          fetch-depth: 0
+
+      - name: Check out the marketplace
+        uses: actions/checkout@v5
+        with:
+          repository: siegenthalerroger/.llmctl-marketplace
+          path: .llmctl-marketplace
+          fetch-depth: 0
+          # The only cross-repo write in this workflow, and the only thing
+          # MARKETPLACE_TOKEN needs to reach.
+          token: ${{ secrets.MARKETPLACE_TOKEN }}
+
+      - name: Install the APM CLI
+        id: apm
+        uses: microsoft/apm-action@v1
+        with:
+          setup-only: true
+          # Deliberately floating, and the point of the scheduled run: the
+          # gates should fail when a new APM breaks this repo's deployment.
+          apm-version: latest
+
+      - name: Check the repo still deploys
+        # Feeds no gate. With `apm-version: latest` this is what catches an APM
+        # release that breaks deployment. Targets are explicit: several harnesses.
+        run: apm install --frozen --target claude,codex,agent-skills
+        working-directory: .llmctl
+
+      - name: Run the release gates
+        # The same entry point a contributor runs; the marketplace is checked
+        # out above, so these are the full gates.
+        run: apm run release-check
+        working-directory: .llmctl
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Identify the committer
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Release
+        working-directory: .llmctl
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+          PACKAGES: ${{ inputs.packages }}
+          BUMP: ${{ inputs.bump }}
+          UPDATE_DEPS: ${{ inputs.update_deps }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          args=(--repo . --marketplace ../.llmctl-marketplace)
+          if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); fi
+          if [ "$BUMP" != "derive" ]; then args+=(--bump "$BUMP"); fi
+          if [ "$UPDATE_DEPS" = "true" ]; then args+=(--update-deps); fi
+          for package in $PACKAGES; do args+=(--package "$package"); done
+          echo "release.py ${args[*]}"
+          python3 scripts/release.py "${args[@]}" | tee "$RUNNER_TEMP/release.log"
+          {
+            echo "## Release"
+            echo
+            echo "Packed with APM ${{ steps.apm.outputs.apm-version }}."
+            echo
+            echo '```'
+            cat "$RUNNER_TEMP/release.log"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

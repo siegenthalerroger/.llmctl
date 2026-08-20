@@ -317,5 +317,13 @@ Github Actions are used to run CI. Most steps should shell out to `scripts/`, ex
 | Workflow | Trigger | What it runs | Locally |
 | --- | --- | --- | --- |
 | [checks.yml](.github/workflows/checks.yml) | PR, push to `main`, Mondays | every gate that does not need the marketplace | `apm run release-check` |
+| [release.yml](.github/workflows/release.yml) | manual | the gates, then `release.py` with the inputs you pick (defaults to a dry run) | `apm run release -- --dry-run` |
 
-No marketplace is checked out, so the marketplace gates skip: they check that repo against itself and only move when a release writes to it. [release.yml](.github/workflows/release.yml) checks it out and runs them in full.
+checks.yml checks out no marketplace, so the marketplace gates skip there: they check that repo against itself and only move when a release writes to it. [release.yml](.github/workflows/release.yml) checks it out and runs them in full.
+
+The private workspace carries its own `checks.yml` and `release.yml`. It holds no `scripts/` — it checks this repo out beside itself and runs its code, exactly as a sibling clone does locally. The marketplace repos have a `checks.yml` too, but theirs is self-contained: `apm pack --check-versions` and `--check-clean` read their own apm.yml, and everything else about a bundle is rewritten from source on every release.
+
+### Secrets
+
+- **`MARKETPLACE_TOKEN`** — `contents: write` on the marketplace repo. Set on this repo and on the private workspace. A release pushes to the marketplace, and it is private, so even a dry run needs this to read it.
+- **`TOOLING_TOKEN`** — `contents: read` on `.llmctl`. Set on the private workspace, whose CI borrows these scripts. Needed only while this repo is private.
