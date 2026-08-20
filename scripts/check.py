@@ -15,11 +15,12 @@ Gates, cheapest first so an obvious failure reports fast:
                   same rules the edit-time hook applies, over the whole tree.
                   The hook only sees files edited in a Claude session
   licences        scripts/check-licenses.py -- every file's licence can carry
-                  the upstream terms its provenance records
-  parser parity   check-licenses.py and check-updates.ps1 must find the same
-                  tracked entries. They parse the same frontmatter in different
-                  languages, and the object form fails *silently* when they
-                  disagree -- a file just stops being tracked, with no error
+                  the upstream terms its provenance records, and no provenance
+                  block parses to nothing. That last one is the silent failure:
+                  a block that yields no entries drops the file out of every
+                  consumer -- this gate, the notices, the drift audit -- with no
+                  error anywhere. They all read scripts/provenance.py, so one
+                  parse either works for all of them or fails here
 
 Usage:
   python scripts/check.py --repo PATH [--skip NAME]
@@ -29,9 +30,7 @@ Usage:
 Exit codes: 0 all gates pass, 1 one or more failed.
 """
 import argparse
-import json
 import os
-import shutil
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -61,48 +60,6 @@ def gate_licenses(ws):
     return got.returncode == 0, tail
 
 
-def gate_parity(ws):
-    """The two provenance parsers must agree on what is tracked."""
-    py = gatelib.sh([sys.executable,
-                     workspace.script("scripts", "check-licenses.py"),
-                     "--repo", ws, "--json"], ws)
-    if py.returncode not in (0, 1) or not py.stdout.strip():
-        return False, "check-licenses.py --json produced no output"
-    mine = {(e["file"], e["url"]) for e in json.loads(py.stdout)["entries"]
-            if e["kind"] == "adaptedFrom"}
-
-    # The PowerShell audit only scans *.agent.md / SKILL.md / *.instructions.md /
-    # *.prompt.md, so reference files it never sees are not a disagreement.
-    scanned = {m for m in mine if os.path.basename(m[0]) in ("SKILL.md",) or
-               m[0].endswith((".agent.md", ".instructions.md", ".prompt.md"))}
-
-    # A workspace of wholly original content tracks nothing, and check-updates.ps1
-    # treats an empty scan as an error. Two parsers that both found nothing agree.
-    if not scanned:
-        return True, "no tracked provenance entries; parity is vacuous"
-
-    pwsh = shutil.which("pwsh") or shutil.which("powershell")
-    if not pwsh:
-        return True, "PowerShell absent; parity not checked"
-    script = workspace.script(".apm", "skills", "meta-upstream-sync",
-                              "scripts", "check-updates.ps1")
-    ps = gatelib.sh([pwsh, "-NoProfile", "-File", script, "-RepoRoot", ws,
-                     "-OutputJson"], ws)
-    if ps.returncode != 0 or not ps.stdout.strip():
-        return False, "check-updates.ps1 failed: " + ps.stderr.strip()[:160]
-    try:
-        theirs = {(r["id"], r["sourceUrl"]) for r in json.loads(ps.stdout)["results"]}
-    except ValueError:
-        return False, "check-updates.ps1 emitted unparseable JSON"
-
-    if scanned != theirs:
-        only_py = sorted(scanned - theirs)[:3]
-        only_ps = sorted(theirs - scanned)[:3]
-        return False, ("parsers disagree: %d vs %d entries; py-only=%s ps-only=%s"
-                       % (len(scanned), len(theirs), only_py, only_ps))
-    return True, "%d tracked entries, both parsers agree" % len(theirs)
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     workspace.add_arguments(parser, marketplace=False)
@@ -116,7 +73,6 @@ def main():
               lambda: gate_frontmatter(ws))
     gates.run("licences", "provenance obligations vs declared licences",
               lambda: gate_licenses(ws))
-    gates.run("parity", "both provenance parsers agree", lambda: gate_parity(ws))
     return gates.report()
 
 

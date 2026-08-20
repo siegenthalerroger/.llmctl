@@ -1,6 +1,6 @@
 # Source URL Reference
 
-`check-updates.ps1` auto-discovers tracked files from frontmatter and reads one key:
+`check-updates.py` auto-discovers tracked files from frontmatter and reads one key:
 
 - `metadata.provenance.adaptedFrom` — URL string, array of URLs, or array of objects
 
@@ -49,7 +49,7 @@ metadata:
 
 `license` is the SPDX id of the **upstream**, not of the local file — `NONE` where the upstream has no LICENSE file. It is required wherever `fidelity` implies an obligation; `scripts/check-licenses.py` in the repo root reads it to decide what the local file may be licensed under, and fails the build when the two cannot be reconciled.
 
-All three are emitted on the result row (including `-OutputJson`), so a merge review can be dismissed without opening the upstream diff: if the upstream change touches nothing on the `took` list, there is nothing to merge.
+All three are emitted on the result row (including `--json`), so a merge review can be dismissed without opening the upstream diff: if the upstream change touches nothing on the `took` list, there is nothing to merge.
 
 **State only what was taken — never what was not.** "Not taken" is an open set: upstream can add sections indefinitely, so that half is wrong the moment upstream grows and no local change ever triggers a refresh. What *was* taken is a closed set bounded by the local file, so it only goes stale when the local file changes — which is exactly when someone is already editing it.
 
