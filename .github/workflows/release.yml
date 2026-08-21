@@ -17,10 +17,6 @@ on:
         type: choice
         options: [derive, patch, minor, major]
         default: derive
-      update_deps:
-        description: "Refresh pinned upstream deps first, so a moved SHA ships as an ordinary release"
-        type: boolean
-        default: false
 
 permissions:
   contents: write
@@ -112,14 +108,12 @@ jobs:
           DRY_RUN: ${{ inputs.dry_run }}
           PACKAGES: ${{ inputs.packages }}
           BUMP: ${{ inputs.bump }}
-          UPDATE_DEPS: ${{ inputs.update_deps }}
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           args=(--repo . --marketplace ../.llmctl-marketplace)
           if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); fi
           if [ "$BUMP" != "derive" ]; then args+=(--bump "$BUMP"); fi
-          if [ "$UPDATE_DEPS" = "true" ]; then args+=(--update-deps); fi
           for package in $PACKAGES; do args+=(--package "$package"); done
           echo "release.py ${args[*]}"
           python3 scripts/release.py "${args[@]}" | tee "$RUNNER_TEMP/release.log"

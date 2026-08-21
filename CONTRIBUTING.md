@@ -290,7 +290,9 @@ apm run release -- --dry-run   # show the derived bumps
 apm run release                # bump, pack, commit, tag both repos
 ```
 
-`release.py` finds each package's last `llmctl-<package>@<version>` tag, reads the commits since that touched `packages/<package>/`, derives the bump, writes it to `packages/<package>/apm.yml` and the marketplace manifest, then packs, tags and pushes both repos (`--no-push` opts out). `--update-deps` runs the `apm outdated` → `apm update` loop first, so a moved dependency SHA ships as an ordinary release. Everything runs locally; GitHub Actions only calls the same scripts.
+`release.py` finds each package's last `llmctl-<package>@<version>` tag, reads the commits since that touched `packages/<package>/`, derives the bump, writes it to `packages/<package>/apm.yml` and the marketplace manifest, then packs, tags and pushes both repos (`--no-push` opts out). Everything runs locally; GitHub Actions only calls the same scripts.
+
+**Refreshing a pinned dependency is its own commit, never a release-time toggle.** Run the `apm outdated` → `apm update --dry-run` → `apm update -y` loop deliberately, read what moved, and commit the new SHAs on their own. A release then ships that commit like any other. A flag that refreshed upstreams mid-release folded an unreviewed third-party diff into a version bump, and it could not even be previewed — `--dry-run` skipped the update and derived its bumps from the old pins.
 
 **Tags are the baseline, and the clone has to have them.** `last_tag()` reads *local* tags, so a clone fetched without them measures from nothing: every package reads its entire history and bumps off all of it. Shallow clones and `--no-tags` fetches both land there — which is why `release.py` runs `git fetch --tags` before deriving anything. Run releases from a full clone as well: `git log` on a shallow one cannot see past the fetch depth.
 

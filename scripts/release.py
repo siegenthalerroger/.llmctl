@@ -25,7 +25,7 @@ carries annotated tags only; lightweight ones need `--tags` instead.
 Usage:
   python scripts/release.py --repo PATH --marketplace PATH
                             [--dry-run] [--package NAME] [--bump LEVEL]
-                            [--update-deps] [--no-tag] [--no-commit] [--no-push]
+                            [--no-tag] [--no-commit] [--no-push]
 
   --repo         the workspace to release. These scripts live in `.llmctl` but
                  release any repo laid out the same way, so it is never guessed
@@ -35,8 +35,6 @@ Usage:
                  (tags are still fetched, or the preview would be wrong)
   --package      release only these packages (repeatable)
   --bump         force a level instead of deriving it
-  --update-deps  refresh pinned APM dependencies first, so a moved upstream SHA
-                 ships as an ordinary release rather than a hand edit
   --no-tag       bump and pack, but create no tags
   --no-commit    leave both working trees dirty for inspection
   --no-push      commit and tag locally, but do not push
@@ -186,7 +184,6 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--package", action="append", default=[])
     parser.add_argument("--bump", choices=LEVELS)
-    parser.add_argument("--update-deps", action="store_true")
     parser.add_argument("--no-tag", action="store_true")
     parser.add_argument("--no-commit", action="store_true")
     parser.add_argument("--no-push", action="store_true")
@@ -213,10 +210,6 @@ def main():
     # Tags are the baseline for every bump below, and they live on the remote.
     # Without this a fresh clone sees none and reads the whole history instead.
     git(["fetch", "--tags", "origin"], check=False)
-
-    if args.update_deps and not args.dry_run:
-        print("[deps] apm update")
-        subprocess.run(["apm", "update", "-y"], cwd=WORKSPACE)
 
     planned = []
     for package_dir, name, version in packages:
