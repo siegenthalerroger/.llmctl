@@ -14,8 +14,8 @@ This repository is an [APM](https://github.com/microsoft/apm) monorepo. Each `pa
 
 | Package | Scope | Provides |
 | --- | --- | --- |
-| `packages/core` | **Global baseline** | Domain-neutral planning / exploration / execution agents, research, troubleshooting, diagramming + universal MCP servers |
-| `packages/meta` | Agent steering | The `meta-*` authoring skills + `setup-mcp` / `reflect` prompts for authoring steering files |
+| `packages/core` | **Global baseline** | Domain-neutral planning / exploration / execution agents, research, troubleshooting, diagramming, the `reflect` prompt + universal MCP servers |
+| `packages/meta` | Agent steering | The `meta-*` authoring skills + the `setup-mcp` prompt for authoring steering files |
 | `packages/workflow` | Coding | Code delivery — the code-reviewer agent + TDD, git worktrees, merge conflicts, code-review reception, lint pipelines |
 | `packages/ops` | IT Operations | Helm / Kubernetes / OpenTofu skills + instructions + cloud/IaC doc MCP servers |
 | `packages/product` | Product development | PRD skills + product-manager / UX agents |
