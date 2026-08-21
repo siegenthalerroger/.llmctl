@@ -6,8 +6,8 @@
 
 | Package | Scope | Contents | Typical install |
 |---|---|---|---|
-| `packages/core` | Global baseline | Domain-neutral agents (plan, explore, executor-\*, researcher); troubleshooting/batch/research/mermaid skills; documentation + troubleshooting instructions; universal MCP servers | `apm install -g <repo-location>/packages/core` |
-| `packages/meta` | Global (authoring) | The `meta-*` authoring skills, `setup-mcp` + `reflect` prompts, meta instruction | `apm install -g <repo-location>/packages/meta` |
+| `packages/core` | Global baseline | Domain-neutral agents (plan, explore, executor-\*, researcher); troubleshooting/batch/research/mermaid skills; documentation + troubleshooting instructions; the `reflect` prompt; universal MCP servers | `apm install -g <repo-location>/packages/core` |
+| `packages/meta` | Global (authoring) | The `meta-*` authoring skills, `setup-mcp` prompt, meta instruction | `apm install -g <repo-location>/packages/meta` |
 | `packages/workflow` | Global (code work) | The `code-reviewer` agent; delivery-discipline skills sourced upstream (TDD, git worktrees, merge conflicts, code-review reception, lint pipelines) | `apm install -g <repo-location>/packages/workflow` |
 | `packages/ops` | Per-project (ops/infra) | Helm/K8s/OpenTofu skills; helm + tf instructions; cloud/IaC doc MCP servers | `apm install <repo>/packages/ops` |
 | `packages/product` | Per-project (product) | PRD skills; product-manager + ux-expert agents | `apm install <repo>/packages/product` |
