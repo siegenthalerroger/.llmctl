@@ -1,18 +1,6 @@
----
-name: "meta-prompt"
-description: "Guidelines for authoring high-quality reusable prompt files with fixed output slots and bounded behavior. ALWAYS load when asked to create, review, or improve stored prompts, design reusable prompt templates, configure prompt variables, or apply prompt engineering techniques. Do not hand-write a prompt file's structure, completion criterion, or scope without this skill — unbounded prompts degrade into vague or runaway behavior. Keywords: prompt, template, variable, input, substitution, few-shot, chain-of-thought, done-when, bounding."
-metadata:
-  provenance:
-    adaptedFrom:
-      - url: "https://github.com/github/awesome-copilot/blob/main/instructions/prompt.instructions.md"
-        license: MIT
-        fidelity: structural-echo
-        took: "The prompt-file authoring guide framing."
-    authoritativeSpec:
-      - "https://code.visualstudio.com/docs/copilot/customization/prompt-files"
----
-
 # Prompt Files Guidelines
+
+**Contents:** [Scope and Principles](#scope-and-principles) · [Prompt Engineering Techniques](#prompt-engineering-techniques) · [Structuring Larger Prompts](#structuring-larger-prompts) · [Bounding Open-Ended Behavior](#bounding-open-ended-behavior) · [Authority and Trust Boundaries](#authority-and-trust-boundaries) · [Frontmatter Fields](#frontmatter-fields) · [Cross-Tool Compatibility (Copilot + Claude Code)](#cross-tool-compatibility-copilot--claude-code) · [File Naming and Placement](#file-naming-and-placement) · [Input and Context Handling](#input-and-context-handling) · [Output and Failure Contracts](#output-and-failure-contracts) · [Instruction Tone and Style](#instruction-tone-and-style) · [Model-Generation Effects](#model-generation-effects) · [Anti-Patterns to Avoid](#anti-patterns-to-avoid) · [Quality Assurance Checklist](#quality-assurance-checklist) · [Additional Resources](#additional-resources)
 
 Instructions for creating effective and maintainable prompt files that guide an AI assistant in delivering consistent, high-quality outcomes across any repository.
 
@@ -71,7 +59,7 @@ Every prompt file should include YAML frontmatter with the following fields:
 
 | Field           | Required    | Description                                                                                 |
 | --------------- | ----------- | ------------------------------------------------------------------------------------------- |
-| `description`   | Recommended | Populates the slash-command menu entry: naming-first, action-oriented, single sentence starting with a verb — same discovery craft as skill descriptions (see meta-skill), even though prompts compete with fewer siblings |
+| `description`   | Recommended | Populates the slash-command menu entry: naming-first, action-oriented, single sentence starting with a verb — same discovery craft as skill descriptions (see the meta-steering router, section 3), even though prompts compete with fewer siblings |
 | `name`          | Optional    | The name shown after typing `/` in chat — a discriminating name is the cheapest routing lever; defaults to filename if not specified |
 | `agent`         | Recommended | The agent to use: `ask`, `edit`, `agent`, or a custom agent name. Defaults to current agent |
 | `model`         | Optional    | The language model to use. Defaults to the currently selected model                         |
@@ -85,7 +73,7 @@ Every prompt file should include YAML frontmatter with the following fields:
 - If `tools` are specified and the current agent is `ask` or `edit`, the default agent becomes `agent`
 - Be explicit about `agent` when tool requirements or side effects matter; do not rely on implicit escalation
 - Preserve any additional metadata (`language`, `tags`, `visibility`, etc.) required by your organization
-- For provenance tracking, use `metadata.provenance` fields (`adaptedFrom`, `authoritativeSpec`); use the same convention for prompts, instructions, skills, and agents. Where an entry's `fidelity` is `partly-derived` or `largely-derived`, its `license` is required — `scripts/check-licenses.py` rejects the file otherwise. See the [meta-skill frontmatter reference](../meta-skill/references/FRONTMATTER.md#provenance-metadata-recommended)
+- For provenance tracking, use `metadata.provenance` fields (`adaptedFrom`, `authoritativeSpec`); use the same convention for prompts, instructions, skills, and agents. Where an entry's `fidelity` is `partly-derived` or `largely-derived`, its `license` is required — `scripts/check-licenses.py` rejects the file otherwise. See the [skill-frontmatter.md](./skill-frontmatter.md#provenance-metadata-recommended)
 
 ## Cross-Tool Compatibility (Copilot + Claude Code)
 
@@ -140,11 +128,7 @@ Available context variables:
 
 ## Model-Generation Effects
 
-- **Scope literally**: current models execute instructions literally and don't infer unrequested work or silently generalize a rule from one example to a whole class — state scope in absolute terms ("EXACTLY and ONLY <x>")
-- **Run a consistency pass**: contradictory or vague phrasing is MORE damaging on newer models, not less — treat it as a high-priority review, not polish
-- **Replace soft-permission phrasing** ("prefer X, but Y if simpler", "unless Y makes more sense") with binary constraints
-- **Prefer positive output-style examples over "don't do X" lists** for format/verbosity guidance; reserve negative constraints for hard guardrails and selection-surface descriptions (see meta-skill)
-- Optional: steer reasoning depth through verb choice — analytical verbs ("analyze", "derive", "evaluate") plus a "think step by step" cue for depth; single-intent imperatives plus a "no reasoning" cue for speed
+Literal scoping, the consistency pass, binary constraints over soft-permission phrasing, and positive-example preference apply to every steering file type. See the meta-steering router, section 5.
 
 ## Anti-Patterns to Avoid
 

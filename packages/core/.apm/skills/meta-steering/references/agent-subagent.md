@@ -1,5 +1,7 @@
 # Sub-Agent Orchestration Reference
 
+**Contents:** [Overview](#overview) · [Prerequisites](#prerequisites) · [How It Works](#how-it-works) · [Recommended Pattern: Prompt-Based Orchestration](#recommended-pattern-prompt-based-orchestration) · [Orchestrator Structure](#orchestrator-structure) · [Basic Orchestration Pattern](#basic-orchestration-pattern) · [Common Orchestration Patterns](#common-orchestration-patterns) · [Advanced Patterns](#advanced-patterns) · [Best Practices](#best-practices) · [Limitations and Warnings](#limitations-and-warnings) · [Debugging Orchestration](#debugging-orchestration) · [Example: Complete Project Setup Orchestrator](#example-complete-project-setup-orchestrator) · [Further Reading](#further-reading)
+
 This document provides guidance on using the `agent` tool to orchestrate multi-step workflows with specialized sub-agents.
 
 ## Overview
@@ -17,7 +19,7 @@ Availability, inheritance rules, and recursion limits vary by client. Do not ass
 
 ### Agent-as-Tool vs. Handoff
 
-Choose sub-agent orchestration (agent-as-tool) when the orchestrator must synthesize results from one or more specialists into its own final response. Choose a handoff (see [HANDOFF.md](./HANDOFF.md)) when a specialist should take over the conversation and own the final response instead. Mixing both patterns for the same transition usually signals an unclear contract — pick one.
+Choose sub-agent orchestration (agent-as-tool) when the orchestrator must synthesize results from one or more specialists into its own final response. Choose a handoff (see [HANDOFF.md](./agent-handoff.md)) when a specialist should take over the conversation and own the final response instead. Mixing both patterns for the same transition usually signals an unclear contract — pick one.
 
 ## Prerequisites
 
@@ -545,7 +547,7 @@ After all steps complete:
 
 ## Further Reading
 
-- [Tool Configuration Reference](./TOOLS.md) - Details on the `agent` tool and others
-- [Agent Frontmatter Reference](./FRONTMATTER.md) - Configuring orchestrator frontmatter
-- [Common Agent Patterns](./COMMON_PATTERNS.md) - Real-world agent examples
-- [Handoff Configuration](./HANDOFF.md) - Alternative to sub-agent orchestration
+- [Tool Configuration Reference](./agent-tools.md) - Details on the `agent` tool and others
+- [Agent Frontmatter Reference](./agent-frontmatter.md) - Configuring orchestrator frontmatter
+- [Common Agent Patterns](./agent-patterns.md) - Real-world agent examples
+- [Handoff Configuration](./agent-handoff.md) - Alternative to sub-agent orchestration

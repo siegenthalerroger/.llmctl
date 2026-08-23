@@ -10,6 +10,8 @@ metadata:
 
 # Specification
 
+**Contents:** [Directory structure](#directory-structure) · [SKILL.md format](#skillmd-format) · [Optional directories](#optional-directories) · [Progressive disclosure](#progressive-disclosure) · [File references](#file-references) · [Validation](#validation)
+
 > The complete format specification for Agent Skills.
 
 This document defines the Agent Skills format.

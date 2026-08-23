@@ -1,10 +1,12 @@
 # Agent Handoff Configuration Guide
 
+**Contents:** [Overview](#overview) · [Common Handoff Patterns](#common-handoff-patterns) · [Frontmatter Structure](#frontmatter-structure) · [Handoff Properties](#handoff-properties) · [Handoff Behavior](#handoff-behavior) · [When to Use Handoffs](#when-to-use-handoffs) · [Best Practices](#best-practices) · [Complete Workflow Example](#complete-workflow-example) · [Advanced Patterns](#advanced-patterns) · [Troubleshooting](#troubleshooting) · [References](#references)
+
 ## Overview
 
 A handoff chains one agent to the next at a point the user controls. It is a VS Code-specific mechanism, and the control point is the whole idea: the agent offers a button, the user reviews the pre-filled prompt, edits it if they want, and only then sends it. Nothing transfers silently. That makes handoffs the right tool for a pipeline whose stages deserve a human check between them, and the wrong tool for delegation the user should not have to think about.
 
-**Handoff vs. agent-as-tool:** use a handoff when a specialist should take over the conversation and own the final response. When an orchestrator must synthesize results from specialists instead, use sub-agent orchestration (agent-as-tool) — see [SUBAGENT.md](./SUBAGENT.md).
+**Handoff vs. agent-as-tool:** use a handoff when a specialist should take over the conversation and own the final response. When an orchestrator must synthesize results from specialists instead, use sub-agent orchestration (agent-as-tool) — see [SUBAGENT.md](./agent-subagent.md).
 
 ## Common Handoff Patterns
 

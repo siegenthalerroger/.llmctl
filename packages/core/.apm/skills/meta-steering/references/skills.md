@@ -1,20 +1,6 @@
----
-name: "meta-skill"
-description: "Guidelines and specifications for authoring high-quality Agent Skills (SKILL.md, frontmatter, references, scripts). ALWAYS invoke when creating, reviewing, or improving an AI agent skill, designing skill structure, writing a skill description, or auditing skill discovery and activation behavior. Do not write or edit a SKILL.md file, its frontmatter, or its references/ folder without first loading this skill. Keywords: skill, SKILL.md, agent skill, frontmatter, description, references, progressive disclosure."
-metadata:
-  provenance:
-    adaptedFrom:
-      - url: "https://github.com/github/awesome-copilot/blob/main/instructions/agent-skills.instructions.md"
-        license: MIT
-        fidelity: structural-echo
-        took: "The section skeleton for a skill-authoring guide."
-    authoritativeSpec:
-      - "https://agentskills.io/"
-      - "https://code.claude.com/docs/en/skills"
-      - "https://code.visualstudio.com/docs/agent-customization/agent-skills"
----
-
 # Agent Skills File Guidelines
+
+**Contents:** [What Are Agent Skills?](#what-are-agent-skills) · [Authority and Responsibility Boundaries](#authority-and-responsibility-boundaries) · [Required SKILL.md Format](#required-skillmd-format) · [Bundling Resources](#bundling-resources) · [Content Guidelines](#content-guidelines) · [Writing High-Impact Skills](#writing-high-impact-skills) · [Anti-Patterns](#anti-patterns) · [Validation Checklist](#validation-checklist) · [Resources](#resources)
 
 Instructions for creating effective Agent Skills with a clear split between the portable spec core and client-specific conventions.
 
@@ -73,7 +59,7 @@ description: "Toolkit and guidelines for an example usecase. Use when asked to d
 | ------------- | -------- | ------------------------------------------------------------------------- |
 | `name`        | Yes      | Lowercase letters, numbers, and hyphens only. Max 64 chars. Must not start/end with hyphen or contain `--`. Must match parent directory name. No XML tags or reserved words (`anthropic`, `claude`, `copilot`, `openai`). |
 | `description` | Yes      | Clear description of capabilities AND use cases, max 1024 characters      |
-| `license` | Conditional | SPDX id of **this** file. Omit to take the repo default for its path (`*.md` is CC-BY-SA-4.0); declare it only where an upstream obligation the default cannot satisfy forces another licence. See [LICENSE](../../../../../LICENSE) |
+| `license` | Conditional | SPDX id of **this** file. Omit to take the repo default for its path (`*.md` is CC-BY-SA-4.0); declare it only where an upstream obligation the default cannot satisfy forces another licence. See [LICENSE](../../../../../../LICENSE) |
 | `compatibility` | No | Optional note about environment requirements when truly needed, max 500 characters |
 | `allowed-tools` | No | Experimental spec field for pre-approved tools where supported |
 | `metadata.provenance.adaptedFrom` | No | Where local content was adapted from: a URL string, an array of URLs, or an array of objects carrying `url` plus `license` / `fidelity` / `took`. String and array forms mean the **whole file** derives from that upstream |
@@ -81,7 +67,7 @@ description: "Toolkit and guidelines for an example usecase. Use when asked to d
 
 > **Portable vs. private fields:** Only `name`, `description`, and `license` are part of the [agentskills.io](https://agentskills.io/) spec. Everything under `metadata.*` (provenance, modelProfile) is a **private convention** of this repository — other tools and consumers safely ignore it. Do not add `metadata.*` fields to skills intended for upstream publication without confirming the target registry supports them.
 
-For consistent provenance tracking, use `metadata.provenance` fields across prompt, instruction, skill, and agent frontmatter. `fidelity` decides whether upstream terms attach and therefore what `license` this file may carry — the rules, and the two fields' interaction with `scripts/check-licenses.py`, are in [references/FRONTMATTER.md](./references/FRONTMATTER.md#provenance-metadata-recommended).
+For consistent provenance tracking, use `metadata.provenance` fields across prompt, instruction, skill, and agent frontmatter. `fidelity` decides whether upstream terms attach and therefore what `license` this file may carry — the rules, and the two fields' interaction with `scripts/check-licenses.py`, are in [skill-frontmatter.md](./skill-frontmatter.md#provenance-metadata-recommended).
 
 #### Harness-Specific Fields
 
@@ -106,27 +92,11 @@ If `description` is omitted, Claude Code falls back to the first body paragraph 
 
 #### Description Best Practices
 
-**CRITICAL**: `name` and `description` are the PRIMARY mechanism for automatic skill discovery — the AI Agent reads ONLY these to decide whether to load a skill. But the lever that matters is **shape and naming, not keyword density**: a 650-trial Claude Code activation study found keyword density had "zero measurable effect," while directive phrasing with an explicit negative constraint was ~20x more likely to trigger (OR=20.6, p<0.0001). Passive "Use when…" phrasing caps at ~77–87% activation and collapses to ~37% under competing skills.
-
-1. **Invest in the name first.** A discriminating, purpose-revealing name (`processing-invoices`, not `helper`) is the cheapest routing lever — treat `description` as the secondary disambiguator.
-2. **Shape the description as a directive with a negative constraint**, not a passive capability list:
-
-   ```
-   <What it does/domain>. ALWAYS invoke when <concrete triggers>. Do not <the default action the model would otherwise take> — use this skill first.
-   ```
-
-3. **Front-load** the differentiating verb and scope — the discovery entry may be truncated, so it must still work as a match when only the first part is read.
-4. **Keywords are coverage, not density.** List the concrete words a user would say inside the trigger clause; don't pad the text with synonyms hoping for a match.
-5. **Sibling negative space.** When two skills overlap, state what each does NOT cover — overlapping descriptions make the model invoke every match or hesitate to invoke any.
-6. Write in third person, active voice, present tense; spell out acronyms — the description is injected verbatim into the system prompt.
-7. No XML tags, no reserved words (`anthropic`, `claude`, `copilot`, `openai`).
-8. Autonomous triggering is probabilistic. For anything that must fire, pair the description with an explicit-invocation path (slash command, `Skill(name)` mention, path-scoped rule, or hook) rather than adding more descriptive prose.
-
-See examples in the [reference file](./references/FRONTMATTER.md) for clarification.
+`name` and `description` are the primary discovery mechanism, and the lever is shape and naming rather than keyword density. The full rule set — directive shape, front-loading, sibling negative space, the reserved words, and the single-line YAML requirement — is in the meta-steering router, section 3, because it applies identically to agents, instructions and prompts. Skill-specific examples are in [skill-frontmatter.md](./skill-frontmatter.md).
 
 ### Body Content
 
-The body contains detailed instructions that AI loads AFTER the skill is activated. Keep `SKILL.md` compact, put routing text in `description`, and move deeper material into shallow reference files. Put output expectations, verification, and important prerequisites near the top. See [examples](./references/BODY.md) for clarification.
+The body contains detailed instructions that AI loads AFTER the skill is activated. Keep `SKILL.md` compact, put routing text in `description`, and move deeper material into shallow reference files. Put output expectations, verification, and important prerequisites near the top. See [examples](./skill-body.md) for clarification.
 
 ## Bundling Resources
 
@@ -146,7 +116,7 @@ Skills can include additional files that the client accesses on-demand. `scripts
 
 For reference files longer than 100 lines, include a table of contents at the top — agents may only partially (head-style) read a file reached through a reference, so the TOC must expose the full scope before that read window closes. Split multi-domain reference material into per-domain files (e.g., `finance.md`, `legal.md`) so a single query never pulls unrelated schemas into context.
 
-Check out the [structure reference](./references/STRUCTURE.md) for details.
+Check out the [structure reference](./skill-structure.md) for details.
 
 
 ### Referencing Resources in SKILL.md
@@ -215,7 +185,7 @@ Do not include information the AI agent already knows from training data — sta
 
 ### Body Content Quality
 
-Five body-authoring rules, each detailed with rationale in [references/BODY.md](./references/BODY.md#body-content-quality):
+Five body-authoring rules, each detailed with rationale in [skill-body.md](./skill-body.md#body-content-quality):
 
 - **Delete, don't polish** — coherent-but-irrelevant content hurts more than incoherent filler; cut marginal content outright instead of wordsmithing it
 - **Author reactively** — promote a rule into the skill only after the same mistake recurs
@@ -225,16 +195,7 @@ Five body-authoring rules, each detailed with rationale in [references/BODY.md](
 
 ### Context Budget Awareness
 
-Description text is budgeted at four distinct surfaces — know which one applies before trimming:
-
-| Budget | Surface | Failure mode past the limit |
-| --- | --- | --- |
-| 1024 chars | Per-skill `description` field (agentskills.io spec limit) | Field is invalid |
-| 1536 chars | Claude Code: combined `description` + `when_to_use` in the discovery listing | Overflow text is truncated |
-| 8000 chars | Codex: aggregate skills-preamble across ALL installed skills | Later skills in the preamble get cut |
-| ~15,000 chars (~4000 tokens) | Claude Code: TOTAL name+description budget for the injected skills list | Skills below the cutoff are **invisible**, not down-ranked |
-
-The last row is the one that matters most: past the total budget, excess skills simply never get considered — pruning unused skills helps more than trimming one description. Claude Code exposes `SLASH_COMMAND_TOOL_CHAR_BUDGET` to raise this ceiling when many skills are installed. Regardless of budget, every description still competes with every other installed skill's description for the same space — keep it as short as the directive shape (above) allows.
+Four distinct description budgets govern four different surfaces, and the ~15,000-char Claude Code total is the one that makes skills invisible rather than merely truncated. The table is in the meta-steering router, section 3 — read it there rather than trimming a description against the wrong limit.
 
 ### Gotchas Are Your Highest-Signal Content
 
@@ -326,10 +287,10 @@ Before publishing a skill, ensure:
 
 Learn more about agent skills and see working examples:
 
-- **Local Specification** - [Complete Agent Skills Spec](./references/SPEC.md)
-- **Structure Guide** - [Directory organization & resource types](./references/STRUCTURE.md)
-- **Frontmatter Examples** - [Good vs. poor descriptions](./references/FRONTMATTER.md)
-- **Body Structure** - [Recommended sections and format](./references/BODY.md)
+- **Local Specification** - [Complete Agent Skills Spec](./skill-spec.md)
+- **Structure Guide** - [Directory organization & resource types](./skill-structure.md)
+- **Frontmatter Examples** - [Good vs. poor descriptions](./skill-frontmatter.md)
+- **Body Structure** - [Recommended sections and format](./skill-body.md)
 - **Official Spec** - [Full specification at agentskills.io](https://agentskills.io/)
 - **Claude Code Docs** - [Agent Skills in Claude Code](https://code.claude.com/docs/en/skills)
 - **VS Code Docs** - [Agent Skills in VS Code](https://code.visualstudio.com/docs/agent-customization/agent-skills)

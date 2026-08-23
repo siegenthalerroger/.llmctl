@@ -48,8 +48,8 @@ The `modelProfile` schema (especially the `specialisation` enum) and the resolut
 |---|---|
 | `CONTRIBUTING.md` | Field reference table, YAML example, cost→alias and profile→effort maps |
 | `skills/meta-update-models/SKILL.md` | Step 1 profile example, Part A maps, Part B filter rules |
-| `skills/meta-agent/SKILL.md` | Model field section + Claude-Code field list |
-| `skills/meta-agent/references/FRONTMATTER.md` | `metadata.modelProfile` schema table + `model`/`effort` field docs |
+| `skills/meta-steering/references/agents.md` | Model field section + Claude-Code field list |
+| `skills/meta-steering/references/agent-frontmatter.md` | `metadata.modelProfile` schema table + `model`/`effort` field docs |
 
 Use `grep -r "specialisation" .` (or equivalent) before starting to catch any other locations.
 

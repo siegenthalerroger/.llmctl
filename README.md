@@ -14,8 +14,7 @@ This repository is an [APM](https://github.com/microsoft/apm) monorepo. Each `pa
 
 | Package | Scope | Provides |
 | --- | --- | --- |
-| `packages/core` | **Global baseline** | Domain-neutral planning / exploration / execution agents, research, troubleshooting, diagramming, the `reflect` prompt + universal MCP servers |
-| `packages/meta` | Agent steering | The `meta-*` authoring skills + the `setup-mcp` prompt for authoring steering files |
+| `packages/core` | **Global baseline** | Domain-neutral planning / exploration / execution agents, research, troubleshooting, diagramming, the `meta-steering` + `meta-harness` authoring skills, `reflect` + `setup-mcp` prompts + universal MCP servers |
 | `packages/workflow` | Coding | Code delivery — the code-reviewer agent + TDD, git worktrees, merge conflicts, code-review reception, lint pipelines |
 | `packages/ops` | IT Operations | Helm / Kubernetes / OpenTofu skills + instructions + cloud/IaC doc MCP servers |
 | `packages/product` | Product development | PRD skills + product-manager / UX agents |
@@ -51,10 +50,9 @@ brew install microsoft/apm/apm
 # Install APM (Windows)
 winget install Microsoft.APM
 
-# Global baseline — deploy core + meta + workflow to user scope everywhere
+# Global baseline — deploy core + workflow to user scope everywhere
 apm install -g \
   siegenthalerroger/.llmctl/packages/core \
-  siegenthalerroger/.llmctl/packages/meta \
   siegenthalerroger/.llmctl/packages/workflow \
   --target claude,copilot,codex,agent-skills
 ```
@@ -146,12 +144,12 @@ Any prompt files must end in `*.prompt.md`.
 
 ### Hooks
 
-Lifecycle hooks run deterministic pre/post actions around agent events (file writes, command execution, session start). VS Code Copilot hooks are in preview; Claude Code supports 30+ hook events. Definitions use the `*.hook.json` convention and are deployed by APM into each target's native location. See the [meta-hook skill](packages/meta/.apm/skills/meta-hook/SKILL.md) and the [`*.hook.json` convention](CONTRIBUTING.md#hooks-hookjson).
+Lifecycle hooks run deterministic pre/post actions around agent events (file writes, command execution, session start). VS Code Copilot hooks are in preview; Claude Code supports 30+ hook events. Definitions use the `*.hook.json` convention and are deployed by APM into each target's native location. See the [meta-harness skill](packages/core/.apm/skills/meta-harness/SKILL.md) and the [`*.hook.json` convention](CONTRIBUTING.md#hooks-hookjson).
 
 
 ### MCP Servers
 
-MCP (Model Context Protocol) servers add external capabilities — API access, doc/registry search, browser automation — to an agent. Declare each server once in the `apm.yml` of the package whose work needs it — universal dev servers in [`packages/core/apm.yml`](packages/core/apm.yml), domain servers in their domain package (cloud/IaC doc servers in [`packages/ops/apm.yml`](packages/ops/apm.yml)) — under `dependencies.mcp`; APM translates it to each tool's native config (`.vscode/mcp.json` → `servers`, `.mcp.json`/`~/.claude.json` → `mcpServers`, Codex TOML). Authoring guidance lives in the [meta-mcp skill](packages/meta/.apm/skills/meta-mcp/SKILL.md); use the [`/setup-mcp` prompt](packages/meta/.apm/prompts/setup-mcp.prompt.md) to generate an `apm.yml` block from existing definitions.
+MCP (Model Context Protocol) servers add external capabilities — API access, doc/registry search, browser automation — to an agent. Declare each server once in the `apm.yml` of the package whose work needs it — universal dev servers in [`packages/core/apm.yml`](packages/core/apm.yml), domain servers in their domain package (cloud/IaC doc servers in [`packages/ops/apm.yml`](packages/ops/apm.yml)) — under `dependencies.mcp`; APM translates it to each tool's native config (`.vscode/mcp.json` → `servers`, `.mcp.json`/`~/.claude.json` → `mcpServers`, Codex TOML). Authoring guidance lives in the [meta-harness skill](packages/core/.apm/skills/meta-harness/SKILL.md); use the [`/setup-mcp` prompt](packages/core/.apm/prompts/setup-mcp.prompt.md) to generate an `apm.yml` block from existing definitions.
 
 ## Tool Guides
 
@@ -173,7 +171,7 @@ apm install github/awesome-copilot/skills/review-and-refactor
 
 ### Recommended MCP Servers
 
-These are recommended additions to the ones already wired into the packages ([`packages/core/apm.yml`](packages/core/apm.yml) and [`packages/ops/apm.yml`](packages/ops/apm.yml)) — add them to a project scoped `apm.yml` (or generate the block with [`/setup-mcp`](packages/meta/.apm/prompts/setup-mcp.prompt.md)) when a task needs them.
+These are recommended additions to the ones already wired into the packages ([`packages/core/apm.yml`](packages/core/apm.yml) and [`packages/ops/apm.yml`](packages/ops/apm.yml)) — add them to a project scoped `apm.yml` (or generate the block with [`/setup-mcp`](packages/core/.apm/prompts/setup-mcp.prompt.md)) when a task needs them.
 
 | Server                    | Transport | Provides                                                                             | Secret             |
 | ------------------------- | --------- | ------------------------------------------------------------------------------------ | ------------------ |

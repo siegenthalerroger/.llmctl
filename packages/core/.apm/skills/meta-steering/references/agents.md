@@ -1,21 +1,6 @@
----
-name: "meta-agent"
-description: "Guidelines for authoring, reviewing, and hardening custom agent/subagent files (agents, modes, personas) across coding-agent harnesses. ALWAYS use when creating a new agent, reviewing or auditing an existing agent definition, designing multi-agent handoffs or orchestration, or scoping an agent's tools and description. Do not draft, edit, or approve a *.agent.md file, tool list, or handoff config without this skill first. Keywords: agent, mode, subagent, persona, handoff, orchestration, tool policy, description."
-metadata:
-  provenance:
-    adaptedFrom:
-      - url: "https://github.com/github/awesome-copilot/blob/main/instructions/agents.instructions.md"
-        license: MIT
-        fidelity: structural-echo
-        took: "The shape of a checklist-driven agent-authoring guide."
-    authoritativeSpec:
-      - "https://code.visualstudio.com/docs/agent-customization/custom-agents"
-      - "https://code.claude.com/docs/en/sub-agents"
-      - "https://code.claude.com/docs/en/agent-sdk/subagents"
-      - "https://developers.openai.com/api/docs/guides/agents/orchestration"
----
-
 # Custom Agent File Guidelines
+
+**Contents:** [What is a Custom Agent?](#what-is-a-custom-agent) · [Cross-Tool Compatibility (Copilot + Claude Code)](#cross-tool-compatibility-copilot--claude-code) · [*.agent.md File Structure](#agentmd-file-structure) · [Agent Behavior Definition](#agent-behavior-definition) · [Model and Platform Tuning](#model-and-platform-tuning) · [Good vs Bad Examples](#good-vs-bad-examples) · [Testing and Iteration](#testing-and-iteration) · [Handoffs Configuration](#handoffs-configuration) · [Tool Policy](#tool-policy) · [Sub-Agent Orchestration](#sub-agent-orchestration) · [Anti-Patterns to Avoid](#anti-patterns-to-avoid) · [Validation Checklist](#validation-checklist) · [Hooks and Plugins](#hooks-and-plugins) · [References](#references)
 
 Instructions for creating effective and maintainable custom agent files that provide specialized expertise for specific development tasks in GitHub Copilot.
 
@@ -41,7 +26,7 @@ Start with a single agent. Add a specialist only when it materially improves at 
 
 Enforce narrowness two ways: **structurally** (restrict the tool surface to the job) and **textually** (state an explicit anti-drift line in the agent body, e.g. "Do not implement code; hand off to the implementer agent"). A vague justification ("keeps things organized") does not clear the gate.
 
-See [common examples](./references/COMMON_PATTERNS.md) for typical agent patterns.
+See [common examples](./agent-patterns.md) for typical agent patterns.
 
 ## Cross-Tool Compatibility (Copilot + Claude Code)
 
@@ -153,21 +138,14 @@ Treat `description` as routing text, not just a summary. State what the agent do
 - **`skills`** (Claude Code): preloads the full skill CONTENT into the subagent's context at startup — a different mechanism than listing `Skill` in `tools`, which only grants the ability to invoke skills on demand.
 - **`memory`** (Claude Code): `user` / `project` / `local` scope for cross-session subagent learning.
 - **`handoffs`** (VS Code): a suggested, user-approved transition with a pre-filled prompt — not silent auto-delegation. The user reviews and sends (or edits) the prompt before the target agent runs.
-- **`hooks`** (VS Code, Preview): agent-scoped lifecycle guardrails that travel with the agent file instead of living only in global settings. See the `meta-hook` skill.
+- **`hooks`** (VS Code, Preview): agent-scoped lifecycle guardrails that travel with the agent file instead of living only in global settings. See the `meta-harness` skill.
 - **`disable-model-invocation` vs `user-invocable`**: independent axes, not one flag. `disable-model-invocation` blocks autonomous/automatic invocation by the model; `user-invocable` controls whether the agent appears in the UI/command surface for manual selection. An agent can be automation-only, UI-only, both, or neither.
 
 Prefer fields documented by the target client, and label platform-specific examples explicitly.
 
-**Provenance metadata convention (recommended across all customization files):**
+**Provenance metadata convention:** identical across skills, agents, instructions and prompts — `metadata.provenance.adaptedFrom` and `.authoritativeSpec`, with the `fidelity` / `license` interaction that `scripts/check-licenses.py` enforces. See the meta-steering router, section 4.
 
-- **`metadata.provenance.adaptedFrom`** (string, array of URLs, or array of objects): where a local adaptation came from. String/array = the whole file derives from those upstreams; the object form scopes it with `url` plus `license` (the upstream's SPDX id), `fidelity` (the obligation level), and `took` (only what was taken, never what was not)
-- **`metadata.provenance.authoritativeSpec`** (array): URLs of authoritative specifications that define the file format or behavioral contract. Not tracked for drift, but not inert — `scripts/check-licenses.py` reads it, treating a bare URL as a citation that reproduces nothing
-
-Use this same convention for prompt, instruction, skill, and agent frontmatter to keep source tracking consistent.
-
-> **APM-first:** If an upstream agent is available as an APM package, consume it via `apm.yml` rather than copying it locally. Use `adaptedFrom` only for agents that cannot be APM-managed.
-
-See [references/FRONTMATTER.md](./references/FRONTMATTER.md) for complete documentation of all available frontmatter properties.
+See [agent-frontmatter.md](./agent-frontmatter.md) for complete documentation of all available frontmatter properties.
 
 ## Agent Behavior Definition
 
@@ -331,7 +309,7 @@ Handoffs and agent orchestration are platform-specific capabilities. Use them on
 - **Write Failing Tests -> Write Passing Tests**: Tests first, implementation second
 - **Research -> Documentation**: Research, then produce docs
 
-See the complete configuration guide in [references/HANDOFF.md](./references/HANDOFF.md). It contains:
+See the complete configuration guide in [agent-handoff.md](./agent-handoff.md). It contains:
 - Frontmatter structure and required properties
 - Behavior details and best practices
 - Full workflow examples and advanced patterns
@@ -339,7 +317,7 @@ See the complete configuration guide in [references/HANDOFF.md](./references/HAN
 
 ## Tool Policy
 
-Match tools to responsibilities (principle of least privilege): enable only what the agent needs, and limit high-risk tools like `execute` unless required. Fewer tools means a clearer purpose and better performance — large tool surfaces measurably degrade model tool-selection accuracy (see [references/TOOLS.md](./references/TOOLS.md)).
+Match tools to responsibilities (principle of least privilege): enable only what the agent needs, and limit high-risk tools like `execute` unless required. Fewer tools means a clearer purpose and better performance — large tool surfaces measurably degrade model tool-selection accuracy (see [agent-tools.md](./agent-tools.md)).
 
 **Dual-deployed agents:** omit `tools:`; declare only `disallowedTools:` (see [Tools field](#tools-field)). A read-only agent declares `disallowedTools: Edit, Write, NotebookEdit`.
 
@@ -347,7 +325,7 @@ Match tools to responsibilities (principle of least privilege): enable only what
 
 **Claude Code resolution order:** `disallowedTools` is applied first, then `tools` (if present) is resolved against the remainder — restrict structurally with this field rather than asking the agent in prose to avoid a tool it still holds. To allowlist which subagents an orchestrator may spawn, use `Agent(worker, researcher)` syntax inside `tools` rather than describing the allowed set in the prompt.
 
-See [references/TOOLS.md](./references/TOOLS.md) for tool categories and discovery, selection patterns by agent type, security considerations, MCP server tool integration, and debugging.
+See [agent-tools.md](./agent-tools.md) for tool categories and discovery, selection patterns by agent type, security considerations, MCP server tool integration, and debugging.
 
 ## Sub-Agent Orchestration
 
@@ -359,7 +337,7 @@ Key constraints:
 - Orchestration and handoffs are platform-specific; use them only where the target client documents them. Do not assume recursive delegation or UI handoff controls are portable.
 - **Not** for large-scale data processing, or pipelines beyond ~5-10 sequential steps — each invocation adds latency and context overhead. For high-volume work, implement the logic in a single agent.
 
-See [references/SUBAGENT.md](./references/SUBAGENT.md) for invocation patterns, the wrapper-prompt template, orchestrator structure, worked examples, and limitations.
+See [agent-subagent.md](./agent-subagent.md) for invocation patterns, the wrapper-prompt template, orchestrator structure, worked examples, and limitations.
 
 
 ## Anti-Patterns to Avoid
@@ -436,8 +414,8 @@ See [references/SUBAGENT.md](./references/SUBAGENT.md) for invocation patterns, 
 
 Agents can be extended with lifecycle hooks and plugins. These are documented in dedicated skills:
 
-- **Hooks:** See the `meta-hook` skill for lifecycle event authoring across Claude Code (`hooks:` frontmatter), VS Code (agent-scoped `hooks:` field, Preview — travels with the agent file instead of only living in global settings; verify against current docs), and APM (`.apm/hooks/`).
-- **Plugins:** See the `meta-plugin` skill for plugin packaging across Claude Code (`plugin.json`), VS Code (agent plugins), and APM bundles.
+- **Hooks:** See the `meta-harness` skill for lifecycle event authoring across Claude Code (`hooks:` frontmatter), VS Code (agent-scoped `hooks:` field, Preview — travels with the agent file instead of only living in global settings; verify against current docs), and APM (`.apm/hooks/`).
+- **Plugins:** See the `meta-harness` skill for plugin packaging across Claude Code (`plugin.json`), VS Code (agent plugins), and APM bundles.
 
 > **Guidance:** Only add hooks/plugins when a concrete need arises. Prefer structural tool constraints and skills for most steering needs.
 

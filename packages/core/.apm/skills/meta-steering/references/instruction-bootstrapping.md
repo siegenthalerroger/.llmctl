@@ -1,5 +1,7 @@
 # Bootstrapping Instructions for a Repository That Has None
 
+**Contents:** [The Loop: Detect → Extract → Draft → Verify](#the-loop-detect--extract--draft--verify) · [Root File Section Skeleton](#root-file-section-skeleton) · [Scoped Files](#scoped-files) · [Multi-Harness Output](#multi-harness-output)
+
 Procedure for producing a repository's first root context file (`AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`) and its scoped children. Load this when the target repo has no instruction files at all, or when the existing ones are stale enough to rebuild.
 
 The controlling constraint is the same one that governs every instruction file: **only document what is not derivable from the code the agent will read anyway.** A bootstrapped file that restates the obvious is worse than no file, because it spends always-loaded budget for nothing.

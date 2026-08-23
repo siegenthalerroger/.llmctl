@@ -1,5 +1,7 @@
 # Tool Configuration Reference
 
+**Contents:** [Overview](#overview) · [Tool Configuration Strategies](#tool-configuration-strategies) · [Understanding Available Tools](#understanding-available-tools) · [Tool Selection Patterns](#tool-selection-patterns) · [Best Practices](#best-practices) · [Tool Limitations and Errors](#tool-limitations-and-errors) · [Security Considerations](#security-considerations) · [Examples by Use Case](#examples-by-use-case) · [Further Reading](#further-reading)
+
 This document provides guidance on configuring agent tool access in custom agent files. Available tools vary by environment and installed MCP servers - consult your platform's documentation for specific tool names and capabilities.
 
 ## Overview
@@ -460,7 +462,7 @@ tools: ['read', 'edit', 'search', 'execute', 'agent']
 
 ## Further Reading
 
-- [Agent Frontmatter Reference](./FRONTMATTER.md) - Complete frontmatter documentation
-- [Sub-Agent Orchestration](./SUBAGENT.md) - Using the `agent` tool for workflows
-- [Common Agent Patterns](./COMMON_PATTERNS.md) - Real-world agent examples
+- [Agent Frontmatter Reference](./agent-frontmatter.md) - Complete frontmatter documentation
+- [Sub-Agent Orchestration](./agent-subagent.md) - Using the `agent` tool for workflows
+- [Common Agent Patterns](./agent-patterns.md) - Real-world agent examples
 - [Anthropic — Writing Tools for Agents](https://www.anthropic.com/engineering/writing-tools-for-agents) - Tool design and count evidence

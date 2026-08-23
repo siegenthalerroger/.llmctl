@@ -20,7 +20,7 @@ Upstream-sourced content is declared in the relevant package's `apm.yml` (`packa
 
 This is a quick reference, see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed descriptions.
 
-- **Descriptions (all types):** single-line, front-loaded, name-first. Shape as a directive with an explicit negative constraint ("ALWAYS invoke when … Do not … without this skill") — keyword density is not the activation lever. Stay within budgets (skill `description` ≤ 1024 chars). See the [meta-skill description rules](packages/meta/.apm/skills/meta-skill/SKILL.md#description-best-practices); the frontmatter hook enforces the mechanical limits.
+- **Descriptions (all types):** single-line, front-loaded, name-first. Shape as a directive with an explicit negative constraint ("ALWAYS invoke when … Do not … without this skill") — keyword density is not the activation lever. Stay within budgets (skill `description` ≤ 1024 chars). See the [meta-steering description rules](packages/core/.apm/skills/meta-steering/SKILL.md#3-description-craft--all-four-types); the frontmatter hook enforces the mechanical limits.
 - **Skills:** portable frontmatter is `name` + `description`. Additional fields are defined as a repo convention.
 - **Agents:** prefer structural tool constraints (`tools`, `disallowedTools`) over prose-based role restrictions. Add `disable-model-invocation: true` to side-effectful agents that should not be auto-selected.
 - **Instructions:** keep narrow — their main job is forcing skill loading via `applyTo` patterns.
@@ -38,7 +38,7 @@ Conventional — the type sizes the release bump, so it is not decoration:
 <type>(<scope>): <description>
 ```
 
-`type` ∈ `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`; `!` before the colon marks a breaking change. `scope` is the package (`core`, `meta`, etc.) or, outside `packages/`, the area (`scripts`, `docs`, `ci`). Which package a commit releases comes from the paths it touched; a scope that disagrees with those paths is reported by `release.py`. See [CONTRIBUTING.md](CONTRIBUTING.md#commit-convention).
+`type` ∈ `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`; `!` before the colon marks a breaking change. `scope` is the package (`core`, `workflow`, etc.) or, outside `packages/`, the area (`scripts`, `docs`, `ci`). Which package a commit releases comes from the paths it touched; a scope that disagrees with those paths is reported by `release.py`. See [CONTRIBUTING.md](CONTRIBUTING.md#commit-convention).
 
 ## Do not do
 

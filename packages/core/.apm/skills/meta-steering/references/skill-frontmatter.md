@@ -1,5 +1,7 @@
 # SKILL.md Frontmatter Examples
 
+**Contents:** [Description](#description) · [Third-Person Voice](#third-person-voice) · [Harness-Specific Fields](#harness-specific-fields) · [Provenance Metadata (Recommended)](#provenance-metadata-recommended)
+
 ## Description
 
 Shape beats keyword density — directive phrasing with an explicit negative constraint is the dominant activation lever. See [SKILL.md § Description Best Practices](../SKILL.md#description-best-practices) for the empirical basis and full rule set.

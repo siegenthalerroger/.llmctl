@@ -1,5 +1,7 @@
 # Agent Frontmatter Reference
 
+**Contents:** [Required Fields](#required-fields) · [Optional Fields](#optional-fields) · [Claude Code-Specific Fields](#claude-code-specific-fields) · [Minimal Frontmatter Example](#minimal-frontmatter-example) · [Complete Frontmatter Example](#complete-frontmatter-example) · [Validation Rules](#validation-rules) · [Common Mistakes](#common-mistakes) · [Further Reading](#further-reading)
+
 This document provides guidance on common frontmatter properties for custom agent files. Available properties may vary by platform and version - consult your platform's official documentation for the complete, up-to-date reference.
 
 ## Required Fields
@@ -46,7 +48,7 @@ name: "Security Audit Agent"
 
 Specifies which tools the agent can access. Available tools vary by platform and installed extensions/MCP servers.
 
-> **Dual-deployed files: omit `tools:`.** A Copilot-style `tools:` array makes Claude Code **refuse to spawn** the agent — Claude parses it as a strict allowlist against real tool/MCP names, Copilot vocabulary resolves to nothing, and it errors instead of inheriting. Restrict Claude Code via `disallowedTools:` (denylist) instead. The `tools:` examples below are Copilot-only-file usage. See the [meta-agent skill "Tools field"](../SKILL.md#tools-field).
+> **Dual-deployed files: omit `tools:`.** A Copilot-style `tools:` array makes Claude Code **refuse to spawn** the agent — Claude parses it as a strict allowlist against real tool/MCP names, Copilot vocabulary resolves to nothing, and it errors instead of inheriting. Restrict Claude Code via `disallowedTools:` (denylist) instead. The `tools:` examples below are Copilot-only-file usage. See the [the meta-steering router, section 4](../SKILL.md#4-frontmatter-shared-by-all-four-types).
 
 **Common patterns:**
 - Specific tools: Array of tool names (e.g., `['read', 'edit', 'search']`)
@@ -54,7 +56,7 @@ Specifies which tools the agent can access. Available tools vary by platform and
 - No tools: `[]`
 - MCP server tools: Use wildcards (e.g., `'github/*'`) or specific tool names
 
-**Best Practice:** Follow the principle of least privilege - only enable tools necessary for the agent's purpose. See [TOOLS.md](./TOOLS.md) for detailed guidance.
+**Best Practice:** Follow the principle of least privilege - only enable tools necessary for the agent's purpose. See [TOOLS.md](./agent-tools.md) for detailed guidance.
 
 **Example:**
 ```yaml
@@ -156,7 +158,7 @@ infer: false  # Must be manually invoked
 
 VS Code-specific. Defines a suggested, user-approved transition to another agent — the user reviews a pre-filled prompt and sends (or edits) it; this is not silent auto-delegation. Each handoff object contains configuration for transitioning to another agent.
 
-See [HANDOFF.md](./HANDOFF.md) for complete documentation.
+See [HANDOFF.md](./agent-handoff.md) for complete documentation.
 
 **Example:**
 ```yaml
@@ -312,7 +314,7 @@ Where the agent's memory is stored, and therefore how far it travels: `user`, `p
 
 Lifecycle hooks scoped to the subagent (e.g., `PreToolUse`, `PostToolUse`, `Stop`).
 
-> VS Code also supports an agent-scoped `hooks:` field (Preview) with a different schema — guardrails travel with the agent file instead of living only in global settings. See the `meta-hook` skill and verify against current docs.
+> VS Code also supports an agent-scoped `hooks:` field (Preview) with a different schema — guardrails travel with the agent file instead of living only in global settings. See the `meta-harness` skill and verify against current docs.
 
 ### `mcpServers`
 
@@ -404,6 +406,6 @@ metadata:
 ## Further Reading
 
 - Check your platform's official documentation for the complete, up-to-date list of available frontmatter properties
-- [TOOLS.md](./TOOLS.md) - Tool configuration patterns and best practices
-- [HANDOFF.md](./HANDOFF.md) - Handoff configuration for multi-agent workflows
-- [SUBAGENT.md](./SUBAGENT.md) - Sub-agent orchestration patterns
+- [TOOLS.md](./agent-tools.md) - Tool configuration patterns and best practices
+- [HANDOFF.md](./agent-handoff.md) - Handoff configuration for multi-agent workflows
+- [SUBAGENT.md](./agent-subagent.md) - Sub-agent orchestration patterns

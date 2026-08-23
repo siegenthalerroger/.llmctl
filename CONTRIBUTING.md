@@ -6,8 +6,7 @@
 
 | Package | Scope | Contents | Typical install |
 |---|---|---|---|
-| `packages/core` | Global baseline | Domain-neutral agents (plan, explore, executor-\*, researcher); troubleshooting/batch/research/mermaid skills; documentation + troubleshooting instructions; the `reflect` prompt; universal MCP servers | `apm install -g <repo-location>/packages/core` |
-| `packages/meta` | Global (authoring) | The `meta-*` authoring skills, `setup-mcp` prompt, meta instruction | `apm install -g <repo-location>/packages/meta` |
+| `packages/core` | Global baseline | Domain-neutral agents (plan, explore, executor-\*, researcher); troubleshooting/batch/research/mermaid skills; the `meta-steering` + `meta-harness` authoring skills; documentation, troubleshooting + meta instructions; `reflect` + `setup-mcp` prompts; universal MCP servers | `apm install -g <repo-location>/packages/core` |
 | `packages/workflow` | Global (code work) | The `code-reviewer` agent; delivery-discipline skills sourced upstream (TDD, git worktrees, merge conflicts, code-review reception, lint pipelines) | `apm install -g <repo-location>/packages/workflow` |
 | `packages/ops` | Per-project (ops/infra) | Helm/K8s/OpenTofu skills; helm + tf instructions; cloud/IaC doc MCP servers | `apm install <repo>/packages/ops` |
 | `packages/product` | Per-project (product) | PRD skills; product-manager + ux-expert agents | `apm install <repo>/packages/product` |
@@ -17,7 +16,7 @@
 ### Rules
 
 - **Each sub-package uses the `.apm/` layout.** A package is `packages/<name>/apm.yml` + `packages/<name>/.apm/{agents,skills,prompts,instructions,hooks}/`. Bare `agents/`/`skills/` at a package root are misclassified by APM as a single skill bundle — everything must live under `.apm/`.
-- **Place a new primitive by scope, not by type.** Ask: universal and domain-neutral (core), code-specific (workflow), authoring guidance (meta), domain-specific (ops/product or a new package), or operates on *this repo's own files* (root `.apm/`)? `core` is the baseline that loads in *every* context, including ones with no code in them — anything that presumes a codebase belongs in `workflow`.
+- **Place a new primitive by scope, not by type.** Ask: universal and domain-neutral (core, which also owns the authoring guidance), code-specific (workflow), domain-specific (ops/product/design or a new package), or operates on *this repo's own files* (root `.apm/`)? `core` is the baseline that loads in *every* context, including ones with no code in them — anything that presumes a codebase belongs in `workflow`.
 - **Scope each MCP server to the package whose work needs it.** Universal dev servers (`github`, `context7`) live in `packages/core/apm.yml`; domain servers live in their domain package (cloud/IaC doc servers in `packages/ops/apm.yml`). A server loads only where its package is installed, so keep global tool surface minimal.
 - **Consume upstream content as a pinned `dependencies.apm` entry, never a vendored copy** (see the APM-first rule below). Use the git subdir form to take a single skill out of a larger repo — `owner/repo/path/to/skill#<sha>` — and always pin a commit or tag; an unpinned entry tracks the default branch and drifts. Scope the dependency to the package whose work needs it, exactly like MCP servers, and record in a comment why that upstream was chosen and what was deliberately left behind. Bump with `apm outdated` → `apm update --dry-run` → `apm update -y`.
 - **The marketplace is a separate repository.** Manifests and packed plugin bundles live in [`.llmctl-marketplace`](https://github.com/siegenthalerroger/.llmctl-marketplace), not here. A plugin host (claude.ai Cowork, Claude Desktop/Code) clones the marketplace repo and reads each `packages[].source` path *as committed* — it never runs `apm install` — so any package carrying APM dependencies has to be published as a bundle with those skills already vendored into it. Keeping that generated output out of this repo is the point of the split; `apm pack` also refuses to write a manifest across a `..` boundary, which rules out generating it here.
@@ -57,11 +56,11 @@ Local-only skills (not available upstream) remain directly in this repository.
 Both VS Code Copilot and Claude Code use markdown files with YAML frontmatter for agent definitions. Each tool safely ignores frontmatter fields it doesn't recognize, so a single file can work for both.
 
 - **Shared fields:** `name`, `description`, and the markdown body (system prompt) are fully compatible.
-- **Tools:** Copilot and Claude Code have different tool ecosystems. **Omit `tools:`; scope Claude Code via the Claude-only `disallowedTools` denylist.** A Copilot `tools:` array does **not** fall back to inherit-all on Claude Code — Claude parses it as a strict allowlist and refuses to spawn the agent when no entry resolves. APM copies agent frontmatter verbatim to every target, so a shared file cannot carry a Copilot allowlist. See the [meta-agent skill "Tools field"](packages/meta/.apm/skills/meta-agent/SKILL.md#tools-field).
+- **Tools:** Copilot and Claude Code have different tool ecosystems. **Omit `tools:`; scope Claude Code via the Claude-only `disallowedTools` denylist.** A Copilot `tools:` array does **not** fall back to inherit-all on Claude Code — Claude parses it as a strict allowlist and refuses to spawn the agent when no entry resolves. APM copies agent frontmatter verbatim to every target, so a shared file cannot carry a Copilot allowlist. See the [meta-steering router](packages/core/.apm/skills/meta-steering/SKILL.md#4-frontmatter-shared-by-all-four-types).
 - **Model:** the active `model:` is a single Claude Code value (alias / full ID / `inherit`) resolved from `metadata.modelProfile`, alongside a Claude-Code `effort:` value; the multi-provider ranking lives in a non-functional comment. Copilot does not recognize the alias and is expected to fall back to its default model.
 - **Extra fields:** Each tool safely ignores the other's unique fields.
 
-See the [meta-agent skill](packages/meta/.apm/skills/meta-agent/SKILL.md) for full cross-tool compatibility documentation.
+See [agents.md](packages/core/.apm/skills/meta-steering/references/agents.md) for full cross-tool compatibility documentation.
 
 ### Skills (`*/SKILL.md`)
 
@@ -70,7 +69,7 @@ Both tools support skill discovery from user-level directories. The [Agent Skill
 - **Discovery:** Copilot uses `chat.agentSkillsLocations` in VS Code settings. Claude Code discovers skills from `~/.claude/skills/`.
 - **Frontmatter:** Both tools read `name` and `description` for discovery. Unknown fields are ignored.
 - **References:** Relative paths to reference files (e.g., `references/*.md`) work in both tools since the folder structure is preserved via symlink.
-- **Descriptions:** follow the directive, naming-first shape defined in the [meta-skill skill](packages/meta/.apm/skills/meta-skill/SKILL.md). Four distinct char budgets govern different surfaces (1024 per-field / 1536 combined discovery / 15k Claude Code total / 8k Codex aggregate) — see meta-skill rather than duplicating the detail here.
+- **Descriptions:** follow the directive, naming-first shape defined in the [meta-steering skill](packages/core/.apm/skills/meta-steering/SKILL.md). Four distinct char budgets govern different surfaces (1024 per-field / 1536 combined discovery / 15k Claude Code total / 8k Codex aggregate) — see that skill rather than duplicating the detail here.
 
 ### Instructions (`*.instructions.md`)
 
