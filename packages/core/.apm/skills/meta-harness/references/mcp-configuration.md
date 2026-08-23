@@ -16,7 +16,7 @@ The same MCP server can be described once in `apm.yml` and deployed to every too
 | **Copilot CLI** | `~/.copilot/mcp-config.json` | user | JSON | `mcpServers` |
 | **OpenAI Codex CLI** | `.codex/config.toml` (project) · `~/.codex/config.toml` (user) | project / user | TOML | `[mcp_servers.<name>]` |
 
-Sources: [VS Code MCP](https://code.visualstudio.com/docs/copilot/chat/mcp-servers), [Claude Code MCP](https://code.claude.com/docs/en/mcp), [Codex CLI MCP](https://developers.openai.com/codex/mcp), [APM MCP guide](https://microsoft.github.io/apm/guides/mcp-servers/).
+Sources: [VS Code MCP](https://code.visualstudio.com/docs/agent-customization/mcp-servers), [Claude Code MCP](https://code.claude.com/docs/en/mcp), [Codex CLI MCP](https://learn.chatgpt.com/docs/extend/mcp), [APM MCP guide](https://microsoft.github.io/apm/guides/mcp-servers/), [APM MCP as a primitive](https://microsoft.github.io/apm/producer/author-primitives/mcp-as-primitive/).
 
 > **The load-bearing difference:** VS Code uses the root key `servers`; Claude Code, Copilot CLI, and Cursor use `mcpServers`; Codex uses TOML tables `[mcp_servers.<name>]`. A correct config under the wrong key is silently ignored.
 

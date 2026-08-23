@@ -261,7 +261,7 @@ metadata:
   provenance:
     authoritativeSpec:
       - "https://code.claude.com/docs/en/sub-agents"
-      - "https://code.visualstudio.com/docs/copilot/customization/custom-agents"
+      - "https://code.visualstudio.com/docs/agent-customization/custom-agents"
 ```
 
 For consistency across customization types, use the same provenance keys in prompt, instruction, skill, and agent files.
@@ -373,7 +373,7 @@ metadata:
     adaptedFrom: "https://github.com/example/security-agents"
     authoritativeSpec:
       - "https://code.claude.com/docs/en/sub-agents"
-      - "https://code.visualstudio.com/docs/copilot/customization/custom-agents"
+      - "https://code.visualstudio.com/docs/agent-customization/custom-agents"
   tags: ["security", "owasp", "vulnerability-scanning"]
 ---
 ```

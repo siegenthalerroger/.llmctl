@@ -92,7 +92,7 @@ If `description` is omitted, Claude Code falls back to the first body paragraph 
 
 #### Description Best Practices
 
-`name` and `description` are the primary discovery mechanism, and the lever is shape and naming rather than keyword density. The full rule set — directive shape, front-loading, sibling negative space, the reserved words, and the single-line YAML requirement — is in the meta-steering router, section 3, because it applies identically to agents, instructions and prompts. Skill-specific examples are in [skill-frontmatter.md](./skill-frontmatter.md).
+`name` and `description` are the primary discovery mechanism, and the lever is shape and naming rather than keyword density. The full rule set — directive shape, front-loading, sibling negative space, the reserved words, and the single-line YAML requirement — is in [the router, section 3](../SKILL.md#3-description-craft--all-four-types), because it applies identically to agents, instructions and prompts. Skill-specific examples are in [skill-frontmatter.md](./skill-frontmatter.md).
 
 ### Body Content
 
@@ -195,7 +195,7 @@ Five body-authoring rules, each detailed with rationale in [skill-body.md](./ski
 
 ### Context Budget Awareness
 
-Four distinct description budgets govern four different surfaces, and the ~15,000-char Claude Code total is the one that makes skills invisible rather than merely truncated. The table is in the meta-steering router, section 3 — read it there rather than trimming a description against the wrong limit.
+Four distinct description budgets govern four different surfaces, and the ~15,000-char Claude Code total is the one that makes skills invisible rather than merely truncated. The table is in [the router, section 3](../SKILL.md#3-description-craft--all-four-types) — read it there rather than trimming a description against the wrong limit.
 
 ### Gotchas Are Your Highest-Signal Content
 
@@ -292,6 +292,8 @@ Learn more about agent skills and see working examples:
 - **Frontmatter Examples** - [Good vs. poor descriptions](./skill-frontmatter.md)
 - **Body Structure** - [Recommended sections and format](./skill-body.md)
 - **Official Spec** - [Full specification at agentskills.io](https://agentskills.io/)
+- **Codex / ChatGPT Skills** - [Building skills](https://learn.chatgpt.com/docs/build-skills) — discovery locations and the aggregate skills-preamble budget
+- **APM Skills** - [Authoring the skill primitive](https://microsoft.github.io/apm/producer/author-primitives/skills/)
 - **Claude Code Docs** - [Agent Skills in Claude Code](https://code.claude.com/docs/en/skills)
 - **VS Code Docs** - [Agent Skills in VS Code](https://code.visualstudio.com/docs/agent-customization/agent-skills)
 - **Reference Library** - [Example skills from Anthropic](https://github.com/anthropics/skills)

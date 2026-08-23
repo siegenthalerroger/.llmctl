@@ -324,5 +324,5 @@ handoffs:
 
 ## References
 
-- [Creating Custom Agents](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-custom-agents)
+- [Creating Custom Agents](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/create-custom-agents)
 - [Custom Agents Configuration](https://docs.github.com/en/copilot/reference/custom-agents-configuration)

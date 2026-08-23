@@ -2,9 +2,9 @@
 
 **Contents:** [When to Use Plugins](#when-to-use-plugins) · [Cross-Tool Compatibility](#cross-tool-compatibility) · [Plugin Manifest Schema (`plugin.json`)](#plugin-manifest-schema-pluginjson) · [Component Types](#component-types) · [Distribution Models](#distribution-models) · [Local Development Workflow](#local-development-workflow) · [APM Integration](#apm-integration) · [Quality Checklist](#quality-checklist) · [Anti-Patterns](#anti-patterns) · [Reference Links](#reference-links)
 
-Use this skill when you need to package and distribute multiple customizations together, not when you are authoring a single skill, agent, or hook in isolation.
+Read this when packaging and distributing multiple customizations together, not when authoring a single skill, agent, or hook in isolation.
 
-For volatile schema details and CLI flags, always verify against the authoritative references listed in frontmatter.
+For volatile schema details and CLI flags, verify against the [Reference Links](#reference-links) below and the `authoritativeSpec` list in [SKILL.md](../SKILL.md).
 
 ## When to Use Plugins
 
@@ -27,7 +27,7 @@ Use a plugin when at least one of these is true:
 
 > Plugin scope should stay cohesive: one clear domain/problem per plugin is usually better than a kitchen-sink bundle.
 
-Bundling many skills also has a discovery cost: every bundled skill's `description` competes in the consumer's shared skill-discovery budget (Claude Code totals ~15,000 chars across all loaded skills; skills past that cutoff become invisible, not down-ranked — see the meta-steering router, section 3). Keep bundles cohesive **and** descriptions short. `SLASH_COMMAND_TOOL_CHAR_BUDGET` exists as consumer-side relief, but a plugin author cannot rely on the consumer having raised it.
+Bundling many skills also has a discovery cost: every bundled skill's `description` competes in the consumer's shared skill-discovery budget (Claude Code totals ~15,000 chars across all loaded skills; skills past that cutoff become invisible, not down-ranked — see [the `meta-steering` router, section 3](../../meta-steering/SKILL.md#3-description-craft--all-four-types)). Keep bundles cohesive **and** descriptions short. `SLASH_COMMAND_TOOL_CHAR_BUDGET` exists as consumer-side relief, but a plugin author cannot rely on the consumer having raised it.
 
 ## Cross-Tool Compatibility
 
@@ -71,8 +71,8 @@ Variable substitution and runtime roots:
 
 For full field definitions and constraints, see the platform references:
 
-- Claude reference: https://code.claude.com/docs/en/plugins-reference
-- VS Code plugin docs: https://code.visualstudio.com/docs/agent-customization/agent-plugins
+- [Claude plugins reference](https://code.claude.com/docs/en/plugins-reference)
+- [VS Code agent plugins](https://code.visualstudio.com/docs/agent-customization/agent-plugins)
 
 ## Component Types
 
@@ -232,9 +232,9 @@ When to use APM vs direct `plugin.json` authoring:
 
 ## Reference Links
 
-- Claude plugins guide: https://code.claude.com/docs/en/plugins
-- Claude plugins reference: https://code.claude.com/docs/en/plugins-reference
-- Claude plugin marketplaces: https://code.claude.com/docs/en/plugin-marketplaces
-- VS Code agent plugins: https://code.visualstudio.com/docs/agent-customization/agent-plugins
-- APM pack a bundle: https://microsoft.github.io/apm/producer/pack-a-bundle/
-- APM package types: https://microsoft.github.io/apm/reference/package-types/
+- [Claude plugins guide](https://code.claude.com/docs/en/plugins)
+- [Claude plugins reference](https://code.claude.com/docs/en/plugins-reference)
+- [Claude plugin marketplaces](https://code.claude.com/docs/en/plugin-marketplaces)
+- [VS Code agent plugins](https://code.visualstudio.com/docs/agent-customization/agent-plugins)
+- [APM pack a bundle](https://microsoft.github.io/apm/producer/pack-a-bundle/)
+- [APM package types](https://microsoft.github.io/apm/reference/package-types/)

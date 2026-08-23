@@ -4,18 +4,23 @@ description: "Authoring guide for the config an agent harness executes or instal
 metadata:
   provenance:
     authoritativeSpec:
+      # Hooks — *.hook.json, hooks: frontmatter
       - "https://code.claude.com/docs/en/hooks"
       - "https://code.claude.com/docs/en/hooks-guide"
       - "https://code.visualstudio.com/docs/agent-customization/hooks"
       - "https://microsoft.github.io/apm/producer/author-primitives/hooks-and-commands/"
-      - "https://code.visualstudio.com/docs/copilot/chat/mcp-servers"
+      # MCP servers — apm.yml dependencies.mcp, per-target mcp.json
       - "https://code.claude.com/docs/en/mcp"
-      - "https://developers.openai.com/codex/mcp"
+      - "https://code.visualstudio.com/docs/agent-customization/mcp-servers"
+      - "https://learn.chatgpt.com/docs/extend/mcp"
       - "https://microsoft.github.io/apm/guides/mcp-servers/"
-      - "https://code.claude.com/docs/en/plugins-reference"
+      - "https://microsoft.github.io/apm/producer/author-primitives/mcp-as-primitive/"
+      # Plugins — plugin.json, bundle layout
       - "https://code.claude.com/docs/en/plugins"
-      - "https://code.claude.com/docs/en/plugin-marketplaces"
+      - "https://code.claude.com/docs/en/plugins-reference"
       - "https://code.visualstudio.com/docs/agent-customization/agent-plugins"
+      # Packaging and marketplace distribution
+      - "https://code.claude.com/docs/en/plugin-marketplaces"
       - "https://microsoft.github.io/apm/producer/pack-a-bundle/"
       - "https://microsoft.github.io/apm/reference/package-types/"
 ---
@@ -26,7 +31,7 @@ Covers the three artifacts a harness **executes or installs**: lifecycle hooks, 
 
 ## 1) Is it actually harness config?
 
-If the artifact is not something the harness runs or installs, it belongs in `meta-steering` — that skill also carries the full seven-way type-selection table.
+If the artifact is not something the harness runs or installs, it belongs in [`meta-steering`](../meta-steering/SKILL.md) — that skill also carries the [full seven-way type-selection table](../meta-steering/SKILL.md#1-pick-the-customization-type-first).
 
 | It is harness config when | It is steering when |
 |---|---|
@@ -34,7 +39,7 @@ If the artifact is not something the harness runs or installs, it belongs in `me
 | The agent needs a capability it does not have — an API, registry, browser, docs lookup → **MCP server** | The capability exists and only the approach needs shaping → skill |
 | Several components need one versioned install surface → **plugin** | A single capability stands alone → skill or agent |
 
-**The escalation gate, from the other side.** Autonomous skill and instruction triggering is probabilistic. When something must happen *every* time, that is a hook — not stronger description prose. Arriving here from `meta-steering` for that reason is the expected path.
+**The escalation gate, from the other side.** Autonomous skill and instruction triggering is probabilistic. When something must happen *every* time, that is a hook — not stronger description prose. Arriving here from [`meta-steering`](../meta-steering/SKILL.md#1-pick-the-customization-type-first) for that reason is the expected path.
 
 Do not use a hook to steer behaviour, and do not add an MCP server for a capability a built-in tool already covers.
 
@@ -86,7 +91,7 @@ Both MCP servers and plugin bundles spend a budget belonging to the consumer, no
 
 - [hooks.md](./references/hooks.md) · [mcp.md](./references/mcp.md) · [plugins.md](./references/plugins.md) — the per-type guides
 - [mcp-configuration.md](./references/mcp-configuration.md) — full per-tool MCP schema matrix
-- `meta-steering` — skills, agents, instructions, prompts, and the full type-selection table
-- [Claude Code hooks](https://code.claude.com/docs/en/hooks) · [VS Code hooks](https://code.visualstudio.com/docs/agent-customization/hooks) · [APM hooks and commands](https://microsoft.github.io/apm/producer/author-primitives/hooks-and-commands/)
-- [Claude Code MCP](https://code.claude.com/docs/en/mcp) · [VS Code MCP servers](https://code.visualstudio.com/docs/copilot/chat/mcp-servers) · [APM MCP guide](https://microsoft.github.io/apm/guides/mcp-servers/)
-- [Claude plugins reference](https://code.claude.com/docs/en/plugins-reference) · [VS Code agent plugins](https://code.visualstudio.com/docs/agent-customization/agent-plugins) · [APM pack a bundle](https://microsoft.github.io/apm/producer/pack-a-bundle/)
+- [`meta-steering`](../meta-steering/SKILL.md) — skills, agents, instructions, prompts, and the full type-selection table
+- **Hooks** — [Claude Code](https://code.claude.com/docs/en/hooks) · [VS Code](https://code.visualstudio.com/docs/agent-customization/hooks) · [APM hooks and commands](https://microsoft.github.io/apm/producer/author-primitives/hooks-and-commands/)
+- **MCP servers** — [Claude Code](https://code.claude.com/docs/en/mcp) · [VS Code](https://code.visualstudio.com/docs/agent-customization/mcp-servers) · [Codex](https://learn.chatgpt.com/docs/extend/mcp) · [APM MCP guide](https://microsoft.github.io/apm/guides/mcp-servers/)
+- **Plugins and packaging** — [Claude plugins reference](https://code.claude.com/docs/en/plugins-reference) · [Claude marketplaces](https://code.claude.com/docs/en/plugin-marketplaces) · [VS Code agent plugins](https://code.visualstudio.com/docs/agent-customization/agent-plugins) · [APM pack a bundle](https://microsoft.github.io/apm/producer/pack-a-bundle/)

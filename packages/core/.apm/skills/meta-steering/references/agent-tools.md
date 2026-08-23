@@ -13,7 +13,7 @@ The `tools` field in agent frontmatter controls which capabilities an agent can 
 - **Performance**: Reducing decision overhead by limiting options
 - **Maintainability**: Documenting intentional design decisions
 
-> **Dual-deployed agents (default): omit `tools:`; restrict via the Claude-only `disallowedTools:` denylist.** A Copilot `tools:` array makes Claude Code refuse to spawn the agent (see [SKILL.md "Tools field"](../SKILL.md#tools-field)). The `tools:` examples in this document are **Copilot-only-file** usage.
+> **Dual-deployed agents (default): omit `tools:`; restrict via the Claude-only `disallowedTools:` denylist.** A Copilot `tools:` array makes Claude Code refuse to spawn the agent (see [agents.md, "Tools field"](./agents.md#tools-field)). The `tools:` examples in this document are **Copilot-only-file** usage.
 
 ## Tool Configuration Strategies
 
@@ -171,7 +171,7 @@ Claude Code uses a different tool ecosystem from Copilot. Its built-in tools use
 - `WebFetch`, `WebSearch` - External content access
 - `NotebookEdit` - Jupyter notebook editing
 
-**Dual-deployed default:** omit `tools:`; restrict via the Claude-only `disallowedTools:` denylist (comma-separated, ignored by Copilot). A Copilot `tools:` array makes Claude Code refuse to spawn the agent — see [SKILL.md "Tools field"](../SKILL.md#tools-field) for the full rule and the Copilot trade-off.
+**Dual-deployed default:** omit `tools:`; restrict via the Claude-only `disallowedTools:` denylist (comma-separated, ignored by Copilot). A Copilot `tools:` array makes Claude Code refuse to spawn the agent — see [agents.md, "Tools field"](./agents.md#tools-field) for the full rule and the Copilot trade-off.
 
 ```yaml
 # No `tools:` — both platforms inherit all tools; Claude is scoped by the denylist.

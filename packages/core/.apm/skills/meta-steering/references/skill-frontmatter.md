@@ -4,7 +4,7 @@
 
 ## Description
 
-Shape beats keyword density — directive phrasing with an explicit negative constraint is the dominant activation lever. See [SKILL.md § Description Best Practices](../SKILL.md#description-best-practices) for the empirical basis and full rule set.
+Shape beats keyword density — directive phrasing with an explicit negative constraint is the dominant activation lever. See [the router, section 3](../SKILL.md#3-description-craft--all-four-types) for the empirical basis and full rule set.
 
 **Good description (directive + negative constraint):**
 

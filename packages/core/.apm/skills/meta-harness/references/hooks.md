@@ -25,11 +25,11 @@ Typical fit:
 
 Do not use hooks for prompt steering or broad policy text.
 
-Hooks are the **deterministic arm of the triggering ladder**: autonomous skill/instruction triggering is inherently probabilistic (see the meta-steering router, section 3). When something must always happen, reach for a hook — or an explicit invocation — not stronger description prose.
+Hooks are the **deterministic arm of the triggering ladder**: autonomous skill/instruction triggering is inherently probabilistic (see [the `meta-steering` router, section 1](../../meta-steering/SKILL.md#1-pick-the-customization-type-first)). When something must always happen, reach for a hook — or an explicit invocation — not stronger description prose.
 
 ### Decision criteria
 
-Hooks vs instructions vs skills vs MCP/plugins: the complete seven-way table is in the meta-steering router, section 1, and the harness-side half is in the meta-harness router, section 1. The short form: hooks enforce runtime guardrails at specific events because they are deterministic; everything that merely *teaches* a behaviour belongs in an instruction or a skill.
+Hooks vs instructions vs skills vs MCP/plugins: the complete seven-way table is in [the `meta-steering` router, section 1](../../meta-steering/SKILL.md#1-pick-the-customization-type-first), and the harness-side half is in [the `meta-harness` router, section 1](../SKILL.md#1-is-it-actually-harness-config). The short form: hooks enforce runtime guardrails at specific events because they are deterministic; everything that merely *teaches* a behaviour belongs in an instruction or a skill.
 
 ## 2) Cross-tool compatibility
 

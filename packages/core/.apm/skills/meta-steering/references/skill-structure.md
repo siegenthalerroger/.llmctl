@@ -1,5 +1,7 @@
 # Agent Skill Resource Structuring
 
+Directory layout for a skill's bundled resources, and the rule for choosing between `assets/` and `templates/`. Frontmatter is in [skill-frontmatter.md](./skill-frontmatter.md); body sections are in [skill-body.md](./skill-body.md).
+
 ## Example Directory Tree
 
 ```
