@@ -1,18 +1,6 @@
----
-name: "meta-plugin"
-description: "Guidelines for authoring and packaging agent plugins — plugin manifests (`plugin.json`), agent-harness plugin formats, and APM bundles. ALWAYS load when creating, reviewing, or distributing plugin packages that bundle skills, agents, hooks, or MCP servers. Do not bundle unrelated skills into one plugin without checking the combined effect on the consumer's skill-discovery budget. Keywords: plugin, plugin.json, bundle, marketplace, distribution, package, APM."
-metadata:
-  provenance:
-    authoritativeSpec:
-      - "https://code.claude.com/docs/en/plugins-reference"
-      - "https://code.claude.com/docs/en/plugins"
-      - "https://code.claude.com/docs/en/plugin-marketplaces"
-      - "https://code.visualstudio.com/docs/agent-customization/agent-plugins"
-      - "https://microsoft.github.io/apm/producer/pack-a-bundle/"
-      - "https://microsoft.github.io/apm/reference/package-types/"
----
-
 # Plugin Authoring and Packaging Guidelines
+
+**Contents:** [When to Use Plugins](#when-to-use-plugins) · [Cross-Tool Compatibility](#cross-tool-compatibility) · [Plugin Manifest Schema (`plugin.json`)](#plugin-manifest-schema-pluginjson) · [Component Types](#component-types) · [Distribution Models](#distribution-models) · [Local Development Workflow](#local-development-workflow) · [APM Integration](#apm-integration) · [Quality Checklist](#quality-checklist) · [Anti-Patterns](#anti-patterns) · [Reference Links](#reference-links)
 
 Use this skill when you need to package and distribute multiple customizations together, not when you are authoring a single skill, agent, or hook in isolation.
 
@@ -26,7 +14,7 @@ Plugins are the packaging and distribution mechanism, not the capability mechani
 | --- | --- |
 | Single reusable capability | Skill (standalone SKILL.md) |
 | Agent workflow | Agent (standalone .agent.md) |
-| Lifecycle side-effects | Hook (see meta-hook skill) |
+| Lifecycle side-effects | Hook (see [hooks.md](./hooks.md)) |
 | Bundled distribution of multiple components | Plugin |
 | External tool integration | MCP server |
 
@@ -39,7 +27,7 @@ Use a plugin when at least one of these is true:
 
 > Plugin scope should stay cohesive: one clear domain/problem per plugin is usually better than a kitchen-sink bundle.
 
-Bundling many skills also has a discovery cost: every bundled skill's `description` competes in the consumer's shared skill-discovery budget (Claude Code totals ~15,000 chars across all loaded skills; skills past that cutoff become invisible, not down-ranked — see meta-skill). Keep bundles cohesive **and** descriptions short. `SLASH_COMMAND_TOOL_CHAR_BUDGET` exists as consumer-side relief, but a plugin author cannot rely on the consumer having raised it.
+Bundling many skills also has a discovery cost: every bundled skill's `description` competes in the consumer's shared skill-discovery budget (Claude Code totals ~15,000 chars across all loaded skills; skills past that cutoff become invisible, not down-ranked — see the meta-steering router, section 3). Keep bundles cohesive **and** descriptions short. `SLASH_COMMAND_TOOL_CHAR_BUDGET` exists as consumer-side relief, but a plugin author cannot rely on the consumer having raised it.
 
 ## Cross-Tool Compatibility
 

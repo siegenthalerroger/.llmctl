@@ -1,16 +1,6 @@
----
-name: "meta-hook"
-description: "Guidelines for authoring deterministic lifecycle hooks — frontmatter `hooks:` fields, `hooks/*.json` files, and hook primitives across agent harnesses and APM packaging. ALWAYS load when creating, reviewing, or debugging hooks that run before/after tool calls, file writes, sessions, or other lifecycle events. Do not reach for stronger instruction or skill prose to force behavior that must always happen — use a hook instead. Keywords: hook, lifecycle, PreToolUse, PostToolUse, PostFileWrite, SessionStart, matcher, command."
-metadata:
-  provenance:
-    authoritativeSpec:
-      - "https://code.claude.com/docs/en/hooks"
-      - "https://code.claude.com/docs/en/hooks-guide"
-      - "https://code.visualstudio.com/docs/agent-customization/hooks"
-      - "https://microsoft.github.io/apm/producer/author-primitives/hooks-and-commands/"
----
-
 # Lifecycle Hook Guidelines
+
+**Contents:** [1) When to use hooks](#1-when-to-use-hooks) · [2) Cross-tool compatibility](#2-cross-tool-compatibility) · [3) Lifecycle events](#3-lifecycle-events) · [4) Hook configuration](#4-hook-configuration) · [5) File layout](#5-file-layout) · [6) Common patterns](#6-common-patterns) · [7) Quality checklist](#7-quality-checklist) · [8) Anti-patterns](#8-anti-patterns)
 
 Guidance for creating reliable lifecycle hooks across Claude Code, VS Code Copilot, and APM-managed packages.
 
@@ -35,16 +25,11 @@ Typical fit:
 
 Do not use hooks for prompt steering or broad policy text.
 
-Hooks are the **deterministic arm of the triggering ladder**: autonomous skill/instruction triggering is inherently probabilistic (see meta-skill's triggering guidance). When something must always happen, reach for a hook — or an explicit invocation — not stronger description prose.
+Hooks are the **deterministic arm of the triggering ladder**: autonomous skill/instruction triggering is inherently probabilistic (see the meta-steering router, section 3). When something must always happen, reach for a hook — or an explicit invocation — not stronger description prose.
 
 ### Decision criteria
 
-| Need | Use | Why |
-|---|---|---|
-| Enforce runtime guardrails at specific events | Hooks | Event-triggered and deterministic |
-| Teach preferred behavior, style, or process | Instructions | Durable steering, no side effects |
-| Bundle reusable workflow knowledge | Skills | Reusable, composable task guidance |
-| Add new external capability/APIs | MCP tools or plugins | New runtime capabilities, not event callbacks |
+Hooks vs instructions vs skills vs MCP/plugins: the complete seven-way table is in the meta-steering router, section 1, and the harness-side half is in the meta-harness router, section 1. The short form: hooks enforce runtime guardrails at specific events because they are deterministic; everything that merely *teaches* a behaviour belongs in an instruction or a skill.
 
 ## 2) Cross-tool compatibility
 
@@ -155,7 +140,7 @@ Always validate behavior against target docs, especially for stop/block semantic
 - APM installs/transforms to target-native hook locations during integration
 
 > [!NOTE]
-> **Standalone hook filenames are matched by glob (`*.json`), not by a fixed name** — so this repo names them `*.hook.json` (parity with `*.agent.md` / `*.prompt.md` / `*.instructions.md`; see [CONTRIBUTING](../../../../../CONTRIBUTING.md#hooks-hookjson)). It is a strict subset of `*.json`, so VS Code folder discovery and APM still pick it up, and Claude Code is unaffected because it reads hooks from `settings.json` rather than scanning the directory. The fixed names `hooks.json` / `hooks/hooks.json` apply only inside **plugin** bundles, not to standalone hook files.
+> **Standalone hook filenames are matched by glob (`*.json`), not by a fixed name** — so this repo names them `*.hook.json` (parity with `*.agent.md` / `*.prompt.md` / `*.instructions.md`; see [CONTRIBUTING](../../../../../../CONTRIBUTING.md#hooks-hookjson)). It is a strict subset of `*.json`, so VS Code folder discovery and APM still pick it up, and Claude Code is unaffected because it reads hooks from `settings.json` rather than scanning the directory. The fixed names `hooks.json` / `hooks/hooks.json` apply only inside **plugin** bundles, not to standalone hook files.
 
 ## 6) Common patterns
 

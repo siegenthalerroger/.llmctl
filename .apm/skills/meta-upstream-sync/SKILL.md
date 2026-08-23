@@ -111,7 +111,7 @@ GITHUB_TOKEN="<your-token>" python ./scripts/check-updates.py --json
 Targeted detailed check for one updated item:
 
 ```bash
-python ./scripts/check-updates.py --include "*/meta-prompt/SKILL.md" --change-details --max-change-commits 5 --json
+python ./scripts/check-updates.py --include "*/meta-steering/SKILL.md" --change-details --max-change-commits 5 --json
 ```
 
 Bootstrap check for an uncommitted local file (explicitly guarded):

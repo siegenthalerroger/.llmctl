@@ -1,5 +1,7 @@
 # MCP Server Configuration Reference
 
+**Contents:** [Config matrix](#config-matrix) · [APM source form (`apm.yml`)](#apm-source-form-apmyml) · [Native form: VS Code Copilot (`.vscode/mcp.json`)](#native-form-vs-code-copilot-vscodemcpjson) · [Native form: Claude Code (`.mcp.json` / `~/.claude.json`)](#native-form-claude-code-mcpjson--claudejson) · [Native form: OpenAI Codex CLI (`.codex/config.toml`)](#native-form-openai-codex-cli-codexconfigtoml) · [Secrets](#secrets) · [Recommended layout for this repo](#recommended-layout-for-this-repo)
+
 Detailed per-tool schemas for Model Context Protocol (MCP) servers. For the decision criteria, APM-first rule, and authoring checklist, see the [SKILL.md](../SKILL.md).
 
 The same MCP server can be described once in `apm.yml` and deployed to every tool below. This reference documents both the **APM source form** and each tool's **native form**, so you can author for APM, read generated output, or configure a tool by hand.
@@ -144,4 +146,4 @@ Key points:
 1. Author every server in [`packages/core/apm.yml`](../../../../../../packages/core/apm.yml) under `dependencies.mcp`.
 2. Externalize all secrets to `${VAR}`; APM prompts for each value on install.
 3. Run `apm install -g` to deploy; do not commit the generated `.vscode/mcp.json` / `.mcp.json` / `config.toml`.
-4. Keep server `name`s aligned with how agents refer to them. No agent in this repo declares a `tools:` array (a Copilot-style array makes Claude Code refuse to spawn the agent — see the [meta-agent skill](../../meta-agent/SKILL.md)), so the alignment that matters is prose: an agent body naming a server (`context7`, `opentofu-registry`) must use the name declared here.
+4. Keep server `name`s aligned with how agents refer to them. No agent in this repo declares a `tools:` array (a Copilot-style array makes Claude Code refuse to spawn the agent — see the [agents.md](../../meta-steering/references/agents.md)), so the alignment that matters is prose: an agent body naming a server (`context7`, `opentofu-registry`) must use the name declared here.

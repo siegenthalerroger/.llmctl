@@ -1,19 +1,6 @@
----
-name: "meta-instruction"
-description: "Guidelines for authoring instruction files (.instructions.md, always-on root context files, path-scoped rules) that define coding standards, project conventions, and behavioral rules. ALWAYS load when asked to create, review, or improve instruction/rule files, define project conventions, set coding standards, or configure AI assistant behavioral rules. Do not hand-write instruction frontmatter, activation scoping, or rule structure without this skill — description-based discovery and the shared instruction budget are easy to get wrong. Keywords: instructions, rules, conventions, standards, guidelines, applyTo, paths, root context, patterns."
-metadata:
-  provenance:
-    adaptedFrom:
-      - url: "https://github.com/netresearch/agent-rules-skill/blob/main/skills/agent-rules/SKILL.md"
-        license: CC-BY-SA-4.0
-        fidelity: partly-derived
-        took: "The Detect/Extract/Draft/Verify bootstrap loop, the root-as-thin-index plus scoped-children model with explicit precedence, the root-file section skeleton, the generate-vs-curate split, and the run-the-command and exact-path verification rules."
-    authoritativeSpec:
-      - "https://code.visualstudio.com/docs/agent-customization/custom-instructions"
-      - "https://code.claude.com/docs/en/memory"
----
-
 # Instruction Files Guidelines
+
+**Contents:** [What Are Instruction Files?](#what-are-instruction-files) · [Selection Guide](#selection-guide) · [Cross-Tool Compatibility (Copilot + Claude Code)](#cross-tool-compatibility-copilot--claude-code) · [Loading Skills via Instructions](#loading-skills-via-instructions) · [File Structure and Naming](#file-structure-and-naming) · [Frontmatter Requirements](#frontmatter-requirements) · [Bootstrapping a Repository That Has No Instructions](#bootstrapping-a-repository-that-has-no-instructions) · [Authority and Conflict Boundaries](#authority-and-conflict-boundaries) · [Writing Effective Instructions](#writing-effective-instructions) · [Good vs Bad Examples](#good-vs-bad-examples) · [Model and Client Considerations](#model-and-client-considerations) · [Anti-Patterns to Avoid](#anti-patterns-to-avoid) · [Testing and Validation](#testing-and-validation) · [Quality Assurance Checklist](#quality-assurance-checklist) · [Additional Resources](#additional-resources)
 
 Instructions for creating effective and maintainable instruction files that define coding standards, conventions, and behavioral rules for AI assistants.
 
@@ -42,21 +29,9 @@ Key characteristics:
 - **Include reasoning**: Explain WHY rules exist for better edge case handling
 - **Conflict avoidance**: Prefer non-overlapping scopes; do not rely on multiple matching instruction files merging predictably
 
-## Selection Guide: Instructions vs Prompts vs Agents
+## Selection Guide
 
-| Type | Best For | Application Scope |
-|------|----------|-------------------|
-| **Skills** | Reusable workflows, bundled knowledge, task-specific capabilities | On-demand or forced via instructions |
-| **Instructions** | Durable project conventions, build/test/validate guidance, path-scoped or always-on rules | Conditional (via `applyTo`) or always-on |
-| **Prompts** | Quick templated tasks with variable inputs | One-time invocation |
-| **Agents** | Complex workflows with specialized expertise | Session-based with specific role |
-
-**Decision tree**:
-- Need durable project conventions or repo context? → **Instruction**
-- Need a reusable capability or bundled workflow? → **Skill**
-- Need to automatically load a skill for certain files? → **Instruction** (with path-scoped frontmatter such as `applyTo` and/or `paths`) that references the skill
-- One-off task with inputs? → **Prompt**
-- Multi-step workflow with expertise? → **Agent**
+The complete seven-way table — skill, instruction, prompt, agent, hook, MCP server, plugin — is in the meta-steering router, section 1. Instructions win for durable project conventions, build/test/validate expectations, path-scoped rules, and for forcing a skill to load over a class of files. They are not a home for procedures: prefer a skill whenever the capability involves specific knowledge or a task workflow.
 
 ## Cross-Tool Compatibility (Copilot + Claude Code)
 
@@ -69,7 +44,7 @@ Instruction files can often share the same markdown body across clients, but pat
 
 If an instruction must work in both clients, include both `applyTo` and `paths` with equivalent scope. Do not assume one field substitutes for the other.
 
-**Second activation channel**: path scoping is not the only trigger. Copilot also loads `.instructions.md` files whose `description` semantically matches the current task, even outside `applyTo`. Treat `description` as a routing contract, not documentation — the same directive shape used for skill descriptions applies here (see meta-skill).
+**Second activation channel**: path scoping is not the only trigger. Copilot also loads `.instructions.md` files whose `description` semantically matches the current task, even outside `applyTo`. Treat `description` as a routing contract, not documentation — the same directive shape used for skill descriptions applies here (see the meta-steering router, section 3).
 
 ## Loading Skills via Instructions
 
@@ -140,7 +115,7 @@ paths: ["**/*.py"]
 
 For cross-file provenance consistency, instruction frontmatter may also include:
 
-- `metadata.provenance.adaptedFrom` (optional): a URL string or array when the whole file is adapted/synthesised from upstream; an array of objects carrying `url` plus `license` / `fidelity` / `took` when the adaptation should be scoped. Keep the three separate — `fidelity` is the obligation level, `license` the upstream's SPDX id, and `took` only what was taken. See the [meta-skill frontmatter reference](../meta-skill/references/FRONTMATTER.md#provenance-metadata-recommended)
+- `metadata.provenance.adaptedFrom` (optional): a URL string or array when the whole file is adapted/synthesised from upstream; an array of objects carrying `url` plus `license` / `fidelity` / `took` when the adaptation should be scoped. Keep the three separate — `fidelity` is the obligation level, `license` the upstream's SPDX id, and `took` only what was taken. See the [skill-frontmatter.md](./skill-frontmatter.md#provenance-metadata-recommended)
 
 Use the same `metadata.provenance` convention for prompt, instruction, skill, and agent files.
 
@@ -202,7 +177,7 @@ Work **Detect → Extract → Draft → Verify**, in that order:
 ❌ Never document a command without running it: an instruction naming a target that does not exist costs more tokens than it saves, because the agent tries it and then debugs a phantom.
 ❌ Never trust an existing instruction file's claims when updating it — extract current state, compare, fix the discrepancies. Refreshing dates and counts is not verification.
 
-Full procedure, root-file section skeleton, generate-vs-curate split, and directory-coverage guidance: [`references/bootstrapping.md`](references/bootstrapping.md).
+Full procedure, root-file section skeleton, generate-vs-curate split, and directory-coverage guidance: [`instruction-bootstrapping.md`](./instruction-bootstrapping.md).
 
 ## Authority and Conflict Boundaries
 
@@ -229,7 +204,7 @@ Full procedure, root-file section skeleton, generate-vs-curate split, and direct
 
 ### Context-File Injection Facts
 
-- An always-on root context file arrives in the conversation the way a user turn does, once the system prompt is already in place — it does not become part of that prompt. Expect it to influence behaviour, not to guarantee it, and reach for a hook whenever something has to happen every single time (see meta-hook)
+- An always-on root context file arrives in the conversation the way a user turn does, once the system prompt is already in place — it does not become part of that prompt. Expect it to influence behaviour, not to guarantee it, and reach for a hook whenever something has to happen every single time (see the `meta-harness` skill)
 - Anthropic targets under 200 lines for root memory files; keep always-loaded root files far leaner in practice (<60 lines) by moving procedures and domain facts into on-demand skills or path-scoped instructions instead
 - Codex: root instruction docs are capped at 32 KiB with proximity-based concatenation — files closer to the working directory take precedence over ancestor files
 - HTML comments are stripped before injection — use them for zero-token maintainer notes that the model never sees
@@ -479,7 +454,7 @@ Most gains come from clearer rules, examples, and rationale rather than model-sp
 
 ## Additional Resources
 
-- [`references/bootstrapping.md`](references/bootstrapping.md) — producing a repository's first root and scoped context files
+- [`instruction-bootstrapping.md`](./instruction-bootstrapping.md) — producing a repository's first root and scoped context files
 - [agents.md convention](https://agents.md/)
 - [netresearch/agent-rules-skill](https://github.com/netresearch/agent-rules-skill) — script-driven AGENTS.md generator; source for the bootstrap procedure above
 - [Custom Instructions Documentation](https://code.visualstudio.com/docs/agent-customization/custom-instructions)

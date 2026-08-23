@@ -1,16 +1,6 @@
----
-name: "meta-mcp"
-description: "Guidelines for configuring MCP (Model Context Protocol) servers and curating their tool surface — `dependencies.mcp` in apm.yml, the `servers` vs `mcpServers` key split, stdio/http/sse transports, and secret handling. ALWAYS load when adding, reviewing, or debugging MCP servers, or generating MCP config for any agent harness or APM. Do not hand-maintain per-target MCP config files or add a server without checking its impact on exposed tool count. Keywords: mcp, server, Model Context Protocol, mcpServers, servers, apm.yml, dependencies.mcp, stdio, http, sse, transport, secret, .mcp.json, mcp.json."
-metadata:
-  provenance:
-    authoritativeSpec:
-      - "https://code.visualstudio.com/docs/copilot/chat/mcp-servers"
-      - "https://code.claude.com/docs/en/mcp"
-      - "https://developers.openai.com/codex/mcp"
-      - "https://microsoft.github.io/apm/guides/mcp-servers/"
----
-
 # MCP Server Configuration Guidelines
+
+**Contents:** [1) When to use MCP](#1-when-to-use-mcp) · [2) APM-first rule](#2-apm-first-rule) · [3) Transports](#3-transports) · [4) Cross-tool config surface](#4-cross-tool-config-surface) · [5) Secrets and environment variables](#5-secrets-and-environment-variables) · [6) Quality checklist](#6-quality-checklist) · [7) Anti-patterns](#7-anti-patterns)
 
 Guidance for configuring Model Context Protocol (MCP) servers across Claude Code, VS Code Copilot, OpenAI Codex CLI, and APM-managed packages.
 
@@ -18,7 +8,7 @@ Guidance for configuring Model Context Protocol (MCP) servers across Claude Code
 > MCP servers add **external capabilities** (tools, resources, prompts) to an agent.
 > Use instructions and skills for behavior steering, and use hooks for deterministic lifecycle automation.
 
-For exhaustive per-tool schemas and the full config matrix, see [references/mcp-configuration.md](references/mcp-configuration.md). For authoritative format details, consult:
+For exhaustive per-tool schemas and the full config matrix, see [mcp-configuration.md](./mcp-configuration.md). For authoritative format details, consult:
 - VS Code Copilot: [MCP servers](https://code.visualstudio.com/docs/copilot/chat/mcp-servers)
 - Claude Code: [MCP](https://code.claude.com/docs/en/mcp)
 - OpenAI Codex CLI: [MCP](https://developers.openai.com/codex/mcp)
@@ -30,15 +20,7 @@ Use an MCP server when an agent needs a capability that is not built in — quer
 
 ### Decision criteria
 
-| Need | Use | Why |
-|---|---|---|
-| Add a new external tool/API/resource to the agent | MCP server | New runtime capability, discovered as tools |
-| Run code automatically at a lifecycle boundary | Hooks | Event-triggered and deterministic |
-| Teach preferred behavior, style, or process | Instructions | Durable steering, no side effects |
-| Bundle reusable workflow knowledge | Skills | Composable task guidance |
-| Ship a curated bundle of the above for distribution | Plugin | Packaged, marketplace-installable |
-
-Do not add an MCP server for a capability a built-in tool already covers, or to steer behavior.
+MCP servers add external capability; hooks add determinism; instructions and skills add steering; plugins add packaging. The complete seven-way table is in the meta-steering router, section 1. Do not add an MCP server for a capability a built-in tool already covers, or to steer behaviour.
 
 ### Curating servers and tools
 
@@ -51,7 +33,7 @@ Exposed tool count is not free — it directly degrades selection accuracy (a mi
 
 ## 2) APM-first rule
 
-This repo deploys via APM. **Declare each MCP server once in [`apm.yml`](../../../../../packages/core/apm.yml) under `dependencies.mcp` and let APM translate it into every target's native config on deploy.** Do not hand-maintain per-target files (`.vscode/mcp.json`, `.mcp.json`, `.codex/config.toml`) — those are machine-generated output, not source.
+This repo deploys via APM. **Declare each MCP server once in [`apm.yml`](../../../../../../packages/core/apm.yml) under `dependencies.mcp` and let APM translate it into every target's native config on deploy.** Do not hand-maintain per-target files (`.vscode/mcp.json`, `.mcp.json`, `.codex/config.toml`) — those are machine-generated output, not source.
 
 ```yaml
 # apm.yml
@@ -98,7 +80,7 @@ One concept, four destinations. APM normalizes the key and format differences be
 | Copilot CLI | `~/.copilot/mcp-config.json` | JSON | `mcpServers` |
 | OpenAI Codex CLI | `.codex/config.toml` / `~/.codex/config.toml` | TOML | `[mcp_servers.<name>]` |
 
-The load-bearing trap: **VS Code uses `servers`; everyone else uses `mcpServers`.** See [references/mcp-configuration.md](references/mcp-configuration.md) for full per-tool examples.
+The load-bearing trap: **VS Code uses `servers`; everyone else uses `mcpServers`.** See [mcp-configuration.md](./mcp-configuration.md) for full per-tool examples.
 
 ## 5) Secrets and environment variables
 

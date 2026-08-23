@@ -23,8 +23,8 @@ Exit codes (Claude Code PostToolUse contract):
 Exit codes in batch mode, which follow the CI convention instead:
   0  no hard errors      1  hard errors found
 
-Checks (see the meta-skill / meta-agent / meta-instruction / meta-prompt
-skills for the authoring rationale behind each):
+Checks (see the meta-steering skill for the authoring rationale behind each;
+it owns all four of the file kinds this validates):
   errors (exit 2)   missing frontmatter/name/description; skill name↔dir and
                     kebab/length rules; reserved words in name/description;
                     skill `description` over the 1024-char agentskills.io limit
@@ -157,9 +157,8 @@ def validate(path, kind, text):
             )
 
     # Reserved words are disallowed in both the `name` (identifier/namespace)
-    # and the `description`. Each meta-* file is the single canonical entry for
-    # its topic, so a harness name is never required for discovery — discovery
-    # runs off domain keywords instead.
+    # and the `description`. Discovery runs off domain keywords, so a harness
+    # name is never required to route to the right file.
     if name:
         hits = reserved_hits(name)
         if hits:
@@ -311,7 +310,7 @@ def main():
     if errors:
         print(
             f"[customization-frontmatter] {rel} has frontmatter errors that must be "
-            f"fixed (see meta-{kind} skill):",
+            "fixed (see the meta-steering skill):",
             file=sys.stderr,
         )
         for e in errors:
