@@ -143,7 +143,7 @@ Treat `description` as routing text, not just a summary. State what the agent do
 
 Prefer fields documented by the target client, and label platform-specific examples explicitly.
 
-**Provenance metadata convention:** identical across skills, agents, instructions and prompts — `metadata.provenance.adaptedFrom` and `.authoritativeSpec`, with the `fidelity` / `license` interaction that `scripts/check-licenses.py` enforces. See the meta-steering router, section 4.
+**Provenance metadata convention:** identical across skills, agents, instructions and prompts — `metadata.provenance.adaptedFrom` and `.authoritativeSpec`, with the `fidelity` / `license` interaction that `scripts/check-licenses.py` enforces. See [the router, section 4](../SKILL.md#4-frontmatter-shared-by-all-four-types).
 
 See [agent-frontmatter.md](./agent-frontmatter.md) for complete documentation of all available frontmatter properties.
 
@@ -421,7 +421,9 @@ Agents can be extended with lifecycle hooks and plugins. These are documented in
 
 ## References
 
-- [Creating Custom Agents](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-custom-agents)
+- [Creating Custom Agents](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/create-custom-agents)
+- [Custom Agents Configuration Reference](https://docs.github.com/en/copilot/reference/custom-agents-configuration)
+- [APM Instructions and Agents](https://microsoft.github.io/apm/producer/author-primitives/instructions-and-agents/)
 - [Custom Agents Configuration](https://docs.github.com/en/copilot/reference/custom-agents-configuration)
 - [Custom Agents in VS Code](https://code.visualstudio.com/docs/agent-customization/custom-agents)
 - [Claude Code Sub-agents](https://code.claude.com/docs/en/sub-agents)

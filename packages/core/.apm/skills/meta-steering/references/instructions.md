@@ -31,7 +31,7 @@ Key characteristics:
 
 ## Selection Guide
 
-The complete seven-way table — skill, instruction, prompt, agent, hook, MCP server, plugin — is in the meta-steering router, section 1. Instructions win for durable project conventions, build/test/validate expectations, path-scoped rules, and for forcing a skill to load over a class of files. They are not a home for procedures: prefer a skill whenever the capability involves specific knowledge or a task workflow.
+The complete seven-way table — skill, instruction, prompt, agent, hook, MCP server, plugin — is in [the router, section 1](../SKILL.md#1-pick-the-customization-type-first). Instructions win for durable project conventions, build/test/validate expectations, path-scoped rules, and for forcing a skill to load over a class of files. They are not a home for procedures: prefer a skill whenever the capability involves specific knowledge or a task workflow.
 
 ## Cross-Tool Compatibility (Copilot + Claude Code)
 
@@ -44,7 +44,7 @@ Instruction files can often share the same markdown body across clients, but pat
 
 If an instruction must work in both clients, include both `applyTo` and `paths` with equivalent scope. Do not assume one field substitutes for the other.
 
-**Second activation channel**: path scoping is not the only trigger. Copilot also loads `.instructions.md` files whose `description` semantically matches the current task, even outside `applyTo`. Treat `description` as a routing contract, not documentation — the same directive shape used for skill descriptions applies here (see the meta-steering router, section 3).
+**Second activation channel**: path scoping is not the only trigger. Copilot also loads `.instructions.md` files whose `description` semantically matches the current task, even outside `applyTo`. Treat `description` as a routing contract, not documentation — the same directive shape used for skill descriptions applies here (see [the router, section 3](../SKILL.md#3-description-craft--all-four-types)).
 
 ## Loading Skills via Instructions
 
@@ -55,7 +55,7 @@ Skills are modular, testable, and reusable. Instructions remain the right home f
 
 **Example Pattern:**
 
-\`\`\`markdown
+```markdown
 ---
 name: "Load React Skills"
 description: "Forces loading of React-specific skills for .tsx files"
@@ -67,7 +67,7 @@ applyTo: "**/*.tsx"
 When working with these files, ALWAYS use the following skills as your primary reference:
 - [React Component Generator](../skills/react-gen/SKILL.md)
 - [React Testing Library](../skills/react-test/SKILL.md)
-\`\`\`
+```
 
 ## File Structure and Naming
 
@@ -237,23 +237,23 @@ Organize instructions into logical sections:
 ### Including Code Examples
 
 ✅ **GOOD** - Concrete examples with reasoning:
-```markdown
+````markdown
 ## Database Queries
 
 Use parameterized queries to prevent SQL injection:
 
 ✅ **GOOD**:
-\`\`\`python
+```python
 cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
-\`\`\`
+```
 
 ❌ **BAD**:
-\`\`\`python
+```python
 cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")
-\`\`\`
+```
 
 **Reasoning**: Parameterized queries prevent SQL injection by separating SQL code from data.
-```
+````
 
 ❌ **BAD** - Vague guidance without examples:
 ```markdown
@@ -265,7 +265,7 @@ Write secure database queries.
 ### Instruction Content
 
 ✅ **GOOD** - Specific, actionable, with reasoning:
-```markdown
+````markdown
 ---
 name: "React Component Standards"
 description: "Component structure and prop handling conventions"
@@ -286,7 +286,7 @@ applyTo: "src/components/**/*.{tsx,jsx}"
 
 ## Example
 
-\`\`\`tsx
+```tsx
 interface UserCardProps {
   name: string;
   email?: string;
@@ -302,8 +302,8 @@ export default function UserCard({
 }
 
 export type { UserCardProps };
-\`\`\`
 ```
+````
 
 ❌ **BAD** - Generic, no examples, no reasoning:
 ```markdown
@@ -460,7 +460,8 @@ Most gains come from clearer rules, examples, and rationale rather than model-sp
 - [Custom Instructions Documentation](https://code.visualstudio.com/docs/agent-customization/custom-instructions)
 - [Memory and Root Context Files](https://code.claude.com/docs/en/memory)
 - [Awesome Copilot Instructions Collection](https://github.com/github/awesome-copilot/tree/main/instructions)
-- [Repository Instructions](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions)
-- [Prompt Guidance](https://developers.openai.com/api/docs/guides/prompt-guidance)
+- [Repository Instructions](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/add-custom-instructions/add-repository-instructions)
+- [APM Instructions and Agents](https://microsoft.github.io/apm/producer/author-primitives/instructions-and-agents/)
+- [Prompt Engineering](https://developers.openai.com/api/docs/guides/prompt-engineering)
 - [Writing a Good CLAUDE.md (HumanLayer)](https://www.humanlayer.dev/blog/writing-a-good-claude-md)
 - [Lessons from 2,500 Repos on Writing AGENTS.md](https://github.blog/ai-and-ml/github-copilot/how-to-write-a-great-agents-md-lessons-from-over-2500-repositories/)

@@ -9,10 +9,10 @@ Guidance for configuring Model Context Protocol (MCP) servers across Claude Code
 > Use instructions and skills for behavior steering, and use hooks for deterministic lifecycle automation.
 
 For exhaustive per-tool schemas and the full config matrix, see [mcp-configuration.md](./mcp-configuration.md). For authoritative format details, consult:
-- VS Code Copilot: [MCP servers](https://code.visualstudio.com/docs/copilot/chat/mcp-servers)
+- VS Code Copilot: [MCP servers](https://code.visualstudio.com/docs/agent-customization/mcp-servers)
 - Claude Code: [MCP](https://code.claude.com/docs/en/mcp)
-- OpenAI Codex CLI: [MCP](https://developers.openai.com/codex/mcp)
-- APM: [MCP servers guide](https://microsoft.github.io/apm/guides/mcp-servers/)
+- OpenAI Codex CLI: [MCP](https://learn.chatgpt.com/docs/extend/mcp)
+- APM: [MCP servers guide](https://microsoft.github.io/apm/guides/mcp-servers/), [MCP as a primitive](https://microsoft.github.io/apm/producer/author-primitives/mcp-as-primitive/)
 
 ## 1) When to use MCP
 
@@ -20,7 +20,7 @@ Use an MCP server when an agent needs a capability that is not built in — quer
 
 ### Decision criteria
 
-MCP servers add external capability; hooks add determinism; instructions and skills add steering; plugins add packaging. The complete seven-way table is in the meta-steering router, section 1. Do not add an MCP server for a capability a built-in tool already covers, or to steer behaviour.
+MCP servers add external capability; hooks add determinism; instructions and skills add steering; plugins add packaging. The complete seven-way table is in [the `meta-steering` router, section 1](../../meta-steering/SKILL.md#1-pick-the-customization-type-first). Do not add an MCP server for a capability a built-in tool already covers, or to steer behaviour.
 
 ### Curating servers and tools
 

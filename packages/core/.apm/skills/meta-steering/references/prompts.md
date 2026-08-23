@@ -59,7 +59,7 @@ Every prompt file should include YAML frontmatter with the following fields:
 
 | Field           | Required    | Description                                                                                 |
 | --------------- | ----------- | ------------------------------------------------------------------------------------------- |
-| `description`   | Recommended | Populates the slash-command menu entry: naming-first, action-oriented, single sentence starting with a verb — same discovery craft as skill descriptions (see the meta-steering router, section 3), even though prompts compete with fewer siblings |
+| `description`   | Recommended | Populates the slash-command menu entry: naming-first, action-oriented, single sentence starting with a verb — same discovery craft as skill descriptions (see [the router, section 3](../SKILL.md#3-description-craft--all-four-types)), even though prompts compete with fewer siblings |
 | `name`          | Optional    | The name shown after typing `/` in chat — a discriminating name is the cheapest routing lever; defaults to filename if not specified |
 | `agent`         | Recommended | The agent to use: `ask`, `edit`, `agent`, or a custom agent name. Defaults to current agent |
 | `model`         | Optional    | The language model to use. Defaults to the currently selected model                         |
@@ -79,7 +79,8 @@ Every prompt file should include YAML frontmatter with the following fields:
 
 Prompt files can serve both GitHub Copilot (as "Prompts") and Claude Code (as "Commands"). Both create user-invocable slash commands. Each tool ignores frontmatter fields it does not recognize, so a single file works for both.
 
-> [!NOTE] Commands are superseded by Skills in Claude Code, however we retain the separation of concerns with prompts being for reusable quick-use inputs.
+> [!NOTE]
+> Commands are superseded by Skills in Claude Code, however we retain the separation of concerns with prompts being for reusable quick-use inputs.
 
 ## File Naming and Placement
 
@@ -128,7 +129,7 @@ Available context variables:
 
 ## Model-Generation Effects
 
-Literal scoping, the consistency pass, binary constraints over soft-permission phrasing, and positive-example preference apply to every steering file type. See the meta-steering router, section 5.
+Literal scoping, the consistency pass, binary constraints over soft-permission phrasing, and positive-example preference apply to every steering file type. See [the router, section 5](../SKILL.md#5-anti-patterns-across-all-four-types).
 
 ## Anti-Patterns to Avoid
 
@@ -194,9 +195,11 @@ Literal scoping, the consistency pass, binary constraints over soft-permission p
 
 ## Additional Resources
 
-- [Prompt Files Documentation](https://code.visualstudio.com/docs/copilot/customization/prompt-files#_prompt-file-format)
-- [Prompt Guidance](https://developers.openai.com/api/docs/guides/prompt-guidance)
+- [Prompt File Format (VS Code)](https://code.visualstudio.com/docs/agent-customization/prompt-files#_prompt-file-format)
+- [Slash Commands (Claude Code)](https://code.claude.com/docs/en/slash-commands)
+- [APM Prompts](https://microsoft.github.io/apm/producer/author-primitives/prompts/) — the frontmatter keys APM preserves, and the per-target command output
+- [Prompt Engineering](https://developers.openai.com/api/docs/guides/prompt-engineering)
 - [Reasoning Best Practices](https://developers.openai.com/api/docs/guides/reasoning-best-practices)
-- [Awesome Copilot Prompt Files](https://github.com/github/awesome-copilot/tree/main/prompts)
+- [Awesome Copilot prompt-file authoring guide](https://github.com/github/awesome-copilot/blob/main/instructions/prompt.instructions.md)
 - [GPT-5 Prompting Guide](https://developers.openai.com/cookbook/examples/gpt-5/gpt-5_prompting_guide)
 - [Prompt Optimization Cookbook](https://developers.openai.com/cookbook/examples/gpt-5/prompt-optimization-cookbook)

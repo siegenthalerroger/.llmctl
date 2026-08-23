@@ -21,21 +21,33 @@ metadata:
         fidelity: partly-derived
         took: "The Detect/Extract/Draft/Verify bootstrap loop, the root-as-thin-index plus scoped-children model with explicit precedence, the root-file section skeleton, the generate-vs-curate split, and the run-the-command and exact-path verification rules."
     authoritativeSpec:
+      # Skills — SKILL.md
       - "https://agentskills.io/"
       - "https://code.claude.com/docs/en/skills"
       - "https://code.visualstudio.com/docs/agent-customization/agent-skills"
-      - "https://code.visualstudio.com/docs/agent-customization/custom-agents"
+      - "https://learn.chatgpt.com/docs/build-skills"
+      - "https://microsoft.github.io/apm/producer/author-primitives/skills/"
+      # Agents — *.agent.md
       - "https://code.claude.com/docs/en/sub-agents"
       - "https://code.claude.com/docs/en/agent-sdk/subagents"
+      - "https://code.visualstudio.com/docs/agent-customization/custom-agents"
+      - "https://docs.github.com/en/copilot/reference/custom-agents-configuration"
       - "https://developers.openai.com/api/docs/guides/agents/orchestration"
-      - "https://code.visualstudio.com/docs/agent-customization/custom-instructions"
+      # Instructions — *.instructions.md, AGENTS.md, CLAUDE.md
+      - "https://agents.md/"
       - "https://code.claude.com/docs/en/memory"
-      - "https://code.visualstudio.com/docs/copilot/customization/prompt-files"
+      - "https://code.visualstudio.com/docs/agent-customization/custom-instructions"
+      - "https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/add-custom-instructions/add-repository-instructions"
+      - "https://microsoft.github.io/apm/producer/author-primitives/instructions-and-agents/"
+      # Prompts — *.prompt.md (deployed as slash commands)
+      - "https://code.claude.com/docs/en/slash-commands"
+      - "https://code.visualstudio.com/docs/agent-customization/prompt-files"
+      - "https://microsoft.github.io/apm/producer/author-primitives/prompts/"
 ---
 
 # Authoring Steering Files
 
-Covers the four file types a harness **reads as prose**: skills, agents, instructions, prompts. The config a harness **executes or installs** — hooks, MCP servers, plugin bundles — is the `meta-harness` skill.
+Covers the four file types a harness **reads as prose**: skills, agents, instructions, prompts. The config a harness **executes or installs** — hooks, MCP servers, plugin bundles — is the [`meta-harness`](../meta-harness/SKILL.md) skill.
 
 ## 1) Pick the customization type first
 
@@ -47,11 +59,11 @@ Answer this before opening a file. Getting it wrong costs more than any amount o
 | Durable project conventions, or forcing a skill to load for a class of files | **Instruction** | Path-scoped (`applyTo` / `paths`) or always-on; steering only, no side effects |
 | A templated one-off task with inputs | **Prompt** | User-invoked slash command; minimum text that defines inputs, output shape, failure |
 | A multi-step workflow needing its own tool policy and a clean context | **Agent** | Session-scoped role; isolated context, own tool ceiling |
-| Something that must happen **every** time, independent of model judgment | **Hook** → `meta-harness` | Deterministic and event-triggered; prose cannot guarantee it |
-| A new external capability — API, registry, browser, docs lookup | **MCP server** → `meta-harness` | Adds runtime tools; not a steering mechanism |
-| One install surface for several of the above | **Plugin** → `meta-harness` | Versioned, marketplace-distributable bundle |
+| Something that must happen **every** time, independent of model judgment | **Hook** → [`meta-harness`](../meta-harness/SKILL.md#1-is-it-actually-harness-config) | Deterministic and event-triggered; prose cannot guarantee it |
+| A new external capability — API, registry, browser, docs lookup | **MCP server** → [`meta-harness`](../meta-harness/SKILL.md#1-is-it-actually-harness-config) | Adds runtime tools; not a steering mechanism |
+| One install surface for several of the above | **Plugin** → [`meta-harness`](../meta-harness/SKILL.md#1-is-it-actually-harness-config) | Versioned, marketplace-distributable bundle |
 
-**The escalation gate.** Autonomous skill and instruction triggering is probabilistic. When something has to happen every single time, the answer is never stronger description prose — it is a hook or an explicit invocation (slash command, `Skill(name)` mention, path-scoped rule). Reach for `meta-harness` at that point rather than rewriting the description a third time.
+**The escalation gate.** Autonomous skill and instruction triggering is probabilistic. When something has to happen every single time, the answer is never stronger description prose — it is a hook or an explicit invocation (slash command, `Skill(name)` mention, path-scoped rule). Reach for [`meta-harness`](../meta-harness/SKILL.md#1-is-it-actually-harness-config) at that point rather than rewriting the description a third time.
 
 **Prefer a skill over an instruction** when the capability involves specific knowledge or a task workflow. Instructions earn their place for durable conventions and for `applyTo`-driven skill loading — not as a home for procedures.
 
@@ -136,8 +148,11 @@ Only `name`, `description` and `license` are portable spec fields. Everything un
 
 ## References
 
-- [skills.md](./references/skills.md) · [agents.md](./references/agents.md) · [instructions.md](./references/instructions.md) · [prompts.md](./references/prompts.md) — the per-type guides
-- `meta-harness` — hooks, MCP servers, plugin bundles
-- [Agent Skills spec](https://agentskills.io/) · [Claude Code skills](https://code.claude.com/docs/en/skills) · [VS Code agent skills](https://code.visualstudio.com/docs/agent-customization/agent-skills)
+- [skills.md](./references/skills.md) · [agents.md](./references/agents.md) · [instructions.md](./references/instructions.md) · [prompts.md](./references/prompts.md) — the per-type guides; section 2 routes to the depth files behind each
+- [`meta-harness`](../meta-harness/SKILL.md) — hooks, MCP servers, plugin bundles
+- **Skills** — [Agent Skills spec](https://agentskills.io/) · [Claude Code](https://code.claude.com/docs/en/skills) · [VS Code](https://code.visualstudio.com/docs/agent-customization/agent-skills) · [Codex](https://learn.chatgpt.com/docs/build-skills) · [APM](https://microsoft.github.io/apm/producer/author-primitives/skills/)
+- **Agents** — [Claude Code subagents](https://code.claude.com/docs/en/sub-agents) · [VS Code custom agents](https://code.visualstudio.com/docs/agent-customization/custom-agents) · [Copilot config reference](https://docs.github.com/en/copilot/reference/custom-agents-configuration) · [APM](https://microsoft.github.io/apm/producer/author-primitives/instructions-and-agents/)
+- **Instructions** — [AGENTS.md convention](https://agents.md/) · [Claude Code memory](https://code.claude.com/docs/en/memory) · [VS Code custom instructions](https://code.visualstudio.com/docs/agent-customization/custom-instructions)
+- **Prompts** — [Claude Code slash commands](https://code.claude.com/docs/en/slash-commands) · [VS Code prompt files](https://code.visualstudio.com/docs/agent-customization/prompt-files) · [APM](https://microsoft.github.io/apm/producer/author-primitives/prompts/)
 - [Context Rot research](https://www.trychroma.com/research/context-rot) — why coherent-but-irrelevant content still hurts
 - [Activation hardening](https://scottspence.com/posts/how-to-make-claude-code-skills-activate-reliably) — the 650-trial study behind the description shape
