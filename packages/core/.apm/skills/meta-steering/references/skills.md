@@ -212,7 +212,7 @@ House style targets ~200 lines for `SKILL.md`; the upstream authoritative ceilin
 ### Writing Each Section
 
 - **`# Title`** — One sentence stating what the skill enables. Be specific about the domain.
-- **`## When to Use This Skill`** — Bullet list of concrete scenarios that reinforce the description triggers. Helps the agent confirm it loaded the right skill.
+- **No `## When to Use This Skill`** — the body loads only after activation, so trigger text there is dead weight. It belongs in `description` (see [Anti-Patterns](#anti-patterns)).
 - **`## Prerequisites`** — Only include if the skill requires tools, services, or configuration that cannot be assumed. List exact install commands.
 - **`## Step-by-Step Workflows`** — Numbered steps for repeatable procedures where sequence matters. Describe WHAT to accomplish at each stage, not hardcoded file paths — steps should adapt to different project structures. For complex workflows (>5 steps), split into `references/` files.
 - **`## Gotchas`** — Proactive warnings. Bold the key constraint, then explain why.

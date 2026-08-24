@@ -47,7 +47,7 @@ Do not use a hook to steer behaviour, and do not add an MCP server for a capabil
 
 | Authoring | Read |
 |---|---|
-| `*.hook.json`, `hooks:` frontmatter, `.apm/hooks/` | [hooks.md](./references/hooks.md) |
+| `*.hook.json`, `hooks:` frontmatter, `.apm/hooks/`, `settings.json` | [hooks.md](./references/hooks.md) |
 | `dependencies.mcp` in `apm.yml`, `.mcp.json`, `.vscode/mcp.json`, `.codex/config.toml` | [mcp.md](./references/mcp.md), then [mcp-configuration.md](./references/mcp-configuration.md) for the full per-tool schema matrix |
 | `plugin.json`, bundle layout, marketplace entries | [plugins.md](./references/plugins.md) |
 

@@ -54,4 +54,4 @@ Convert silent checks into steps that emit a visible output artifact (a file, a 
 
 ### Scripts Execute, They Don't Load
 
-Bundled scripts run via the shell without their source loading into context — only their output consumes tokens, so a large script is cheaper than an equivalent inline example. Make scripts solve the task completely rather than punting the hard part back to the agent to interpret; see SKILL.md's Script Requirements section for the magic-number rule.
+Bundled scripts run via the shell without their source loading into context — only their output consumes tokens, so a large script is cheaper than an equivalent inline example. Make scripts solve the task completely rather than punting the hard part back to the agent to interpret; see [Script Requirements](./skills.md#script-requirements) for the magic-number rule.
