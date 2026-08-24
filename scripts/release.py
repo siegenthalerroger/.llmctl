@@ -290,12 +290,14 @@ def await_gate(branch, check, timeout, interval=15):
             runs = json.loads(raw) if raw else []
         except ValueError:
             runs = []
-        for run in runs:
-            if run.get("name") != check:
-                continue
-            ok = verdict.get(run.get("bucket"))
-            if ok is not None:
-                return ok, run.get("state") or run.get("bucket")
+        # Every run under that name, not the first: the dispatch can leave two
+        # on the same commit when the pull_request event fired as well, and a
+        # stale pass must not answer for a sibling that is still running.
+        buckets = [r.get("bucket") for r in runs if r.get("name") == check]
+        results = [verdict.get(b) for b in buckets]
+        if results and all(r is not None for r in results):
+            failed = [b for b, r in zip(buckets, results) if not r]
+            return not failed, ", ".join(failed or buckets)
         if time.time() >= deadline:
             return False, "still not conclusive after %ds" % timeout
         time.sleep(interval)
