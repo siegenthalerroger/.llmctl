@@ -20,7 +20,12 @@ Tags are the baseline, and `last_tag()` reads local ones, so a clone fetched
 without tags -- shallow, or --no-tags -- measures from nothing and every package
 bumps off its entire history. Hence the `git fetch --tags` below. The tags this
 creates are annotated because the push at the end uses `--follow-tags`, which
-carries annotated tags only; lightweight ones need `--tags` instead.
+carries annotated tags only; lightweight ones need `--tags` instead. That push
+is also `--atomic`: `--follow-tags` sends the branch and its tags in one command
+but git will still apply them independently, so a branch rejected by a ruleset
+leaves the tag behind on a commit nothing reaches -- and since the branch is an
+ancestor of that commit, the next run measures zero commits since the tag and
+skips the package for good.
 
 Usage:
   python scripts/release.py --repo PATH --marketplace PATH
@@ -276,13 +281,17 @@ def main():
     if args.no_push:
         print("\nReleased %d package(s), unpushed. The tags are the baseline for "
               "the next release, so push both repos:\n"
-              "  git -C %s push --follow-tags\n  git -C %s push --follow-tags"
+              "  git -C %s push --atomic --follow-tags\n"
+              "  git -C %s push --atomic --follow-tags"
               % (len(planned), WORKSPACE, marketplace))
         return 0
 
     for label, tree in (("workspace", WORKSPACE), ("marketplace", marketplace)):
         print("[push] %s" % label)
-        git(["push", "--follow-tags", "origin", "HEAD"], cwd=tree)
+        # --atomic so a rejected branch takes its tags down with it: the tag is
+        # the next release's baseline, and one that outlives its commit silently
+        # retires the package.
+        git(["push", "--atomic", "--follow-tags", "origin", "HEAD"], cwd=tree)
 
     print("\nReleased and pushed %d package(s)." % len(planned))
     return 0
