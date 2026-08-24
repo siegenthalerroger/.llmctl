@@ -35,13 +35,19 @@ against the merged commit rather than the branch's. The marketplace is pushed
 directly: it is generated output, and protecting it would gate a robot against
 itself.
 
-One wrinkle drives the shape of that flow. A pull request opened with
-GITHUB_TOKEN does not fire `pull_request` workflows -- GitHub suppresses them so
-a token cannot make a workflow trigger itself -- so a required status check
-would never report and the merge would wait forever. `workflow_dispatch` is the
-documented exception, so the gate workflow is dispatched by hand against the
-release branch. Run this with a PAT or GitHub App token instead and the check
-fires on its own; the dispatch is then a harmless duplicate.
+Who opens that pull request matters more than it looks. Authored by
+github-actions[bot] on a public repo, its checks land behind the
+outside-contributor approval gate and sit there until a human clicks approve --
+a release that needs babysitting is not automated. Authored by a collaborator,
+via a PAT or GitHub App token in GH_TOKEN, they simply run. So run this with
+such a token; that is what the workflow does.
+
+A caller stuck with GITHUB_TOKEN has a partial workaround in `--gate-workflow`,
+which dispatches the gate explicitly: a pull request opened by that token does
+not fire `pull_request` workflows at all, and `workflow_dispatch` is the
+documented exception. It buys a check run that would otherwise never exist. It
+does not lift the approval gate -- that follows the pull request's author, and
+the dispatched run queues behind it just the same.
 
 Usage:
   python scripts/release.py --repo PATH --marketplace PATH
@@ -65,11 +71,13 @@ Usage:
   --allow-dirty  release even though a tree has uncommitted changes, sweeping
                  them into the release commit. Listed before they are swept
   --pull-request merge the workspace commit through a pull request instead of
-                 pushing to the base branch. Requires the `gh` CLI, authenticated
+                 pushing to the base branch. Requires the `gh` CLI, and a token
+                 belonging to a collaborator -- see above
   --gate-check   the status check that must pass before the release PR merges
                  (default: "workspace gates"). Empty string waits for nothing
-  --gate-workflow the workflow file to dispatch so that check reports
-                 (default: "checks.yml")
+  --gate-workflow dispatch this workflow so the gate reports at all. Only for a
+                 caller whose token cannot fire `pull_request` workflows; off by
+                 default, because a collaborator's token does not need it
   --gate-timeout how long to wait for the check, in seconds (default: 1800)
 
 A repo that has never been released has no baseline. Seed one by hand, once
@@ -251,10 +259,13 @@ def merge_release_pr(branch, base, title, args):
     print("[pr  ] %s" % gh(["pr", "view", branch, "--json", "url", "-q", ".url"]))
 
     if args.gate_check:
-        # GITHUB_TOKEN cannot make a pull request fire `pull_request` workflows,
-        # so the gate is asked for explicitly. Harmless when the PR was opened
-        # with a credential that does trigger it -- the second run just agrees.
-        gh(["workflow", "run", args.gate_workflow, "--ref", branch], check=False)
+        if args.gate_workflow:
+            # Only for a caller whose credential cannot make the pull request
+            # fire `pull_request` workflows by itself. It does not lift an
+            # approval gate: that is decided by who authored the pull request,
+            # and a dispatched run waits behind it exactly the same.
+            gh(["workflow", "run", args.gate_workflow, "--ref", branch],
+               check=False)
         print("[gate] waiting for %r" % args.gate_check)
         ok, detail = await_gate(branch, args.gate_check, args.gate_timeout)
         if not ok:
@@ -290,7 +301,7 @@ def main():
     parser.add_argument("--allow-dirty", action="store_true")
     parser.add_argument("--pull-request", action="store_true")
     parser.add_argument("--gate-check", default="workspace gates")
-    parser.add_argument("--gate-workflow", default="checks.yml")
+    parser.add_argument("--gate-workflow", default="")
     parser.add_argument("--gate-timeout", type=int, default=1800)
     args = parser.parse_args()
 
