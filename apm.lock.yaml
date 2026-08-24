@@ -20,7 +20,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:6ee49634b3df6332eb7e3d8e2f5a3464218e8d114dff488fc87382b8de6b6bbc
+  content_hash: sha256:9bcea364875f3647fdbb8bc0af4ba9453fe63c0d0ec8b380bad96e2f44277160
 - kind: project-relative
   target: agents
   value: .agents/skills/meta-upstream-sync
@@ -38,7 +38,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:29cce38d1d7f2ca42204005398cb790d7443818d057a9f4145132773df5e4692
+  content_hash: sha256:4668a1a0c49aa6a95b706b94d1171b112067795c2b2dc282c725521e389819df
 - kind: project-relative
   target: agents
   value: .agents/skills/meta-upstream-sync/references/source-url-reference.md
@@ -74,7 +74,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:8283490f931f4a60f7a71478f345224d560bb83ad916b6b3edc89a523dc89e91
+  content_hash: sha256:ef4e17d69f44480b7f9c4727f0444aec3f2136e310835784e1cb7f6d2c92385b
 - kind: project-relative
   target: claude
   value: .claude/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py
@@ -83,7 +83,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:feaef83e1e5bf13c7f314728495ba65810dada07c22631af19c57be3d38402c9
+  content_hash: sha256:419f214ebf17fc5a6493686fa91d3cade4ac28fe98796ccf7834c678d66d0d7c
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-update-models
@@ -101,7 +101,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:6ee49634b3df6332eb7e3d8e2f5a3464218e8d114dff488fc87382b8de6b6bbc
+  content_hash: sha256:9bcea364875f3647fdbb8bc0af4ba9453fe63c0d0ec8b380bad96e2f44277160
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-upstream-sync
@@ -119,7 +119,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:29cce38d1d7f2ca42204005398cb790d7443818d057a9f4145132773df5e4692
+  content_hash: sha256:4668a1a0c49aa6a95b706b94d1171b112067795c2b2dc282c725521e389819df
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-upstream-sync/references/source-url-reference.md
@@ -137,7 +137,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:f5c0a98a5ef028a62e662d90130dfe117660f2fcd4a56d81ca70b1fab5764149
+  content_hash: sha256:5a42c24d7f972a57eec2ca233d597e2110ca82f9c1542a1b4a8b9b4664da837b
 - kind: project-relative
   target: codex
   value: .codex/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py
@@ -146,7 +146,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:feaef83e1e5bf13c7f314728495ba65810dada07c22631af19c57be3d38402c9
+  content_hash: sha256:419f214ebf17fc5a6493686fa91d3cade4ac28fe98796ccf7834c678d66d0d7c
 local_deployed_files:
 - .agents/skills/meta-update-models
 - .agents/skills/meta-update-models/SKILL.md
@@ -165,15 +165,15 @@ local_deployed_files:
 - .codex/agents/meta-updater.toml
 - .codex/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py
 local_deployed_file_hashes:
-  .agents/skills/meta-update-models/SKILL.md: sha256:6ee49634b3df6332eb7e3d8e2f5a3464218e8d114dff488fc87382b8de6b6bbc
-  .agents/skills/meta-upstream-sync/SKILL.md: sha256:29cce38d1d7f2ca42204005398cb790d7443818d057a9f4145132773df5e4692
+  .agents/skills/meta-update-models/SKILL.md: sha256:9bcea364875f3647fdbb8bc0af4ba9453fe63c0d0ec8b380bad96e2f44277160
+  .agents/skills/meta-upstream-sync/SKILL.md: sha256:4668a1a0c49aa6a95b706b94d1171b112067795c2b2dc282c725521e389819df
   .agents/skills/meta-upstream-sync/references/source-url-reference.md: sha256:40a2805fb6adf50560655dc665c8702ddf50a4dd6367e2d6d97d5489ea6e5112
   .agents/skills/meta-upstream-sync/scripts/check-updates.ps1: sha256:e9e67122eeb43fe8e2fbc03eaa65741ede416e7974c612db725e518392dc6651
   .agents/skills/meta-upstream-sync/scripts/check-updates.py: sha256:15370cba85936476f29bbe341ff6dffb69d9e83058813ecff949e8f0d0231f18
-  .claude/agents/meta-updater.md: sha256:8283490f931f4a60f7a71478f345224d560bb83ad916b6b3edc89a523dc89e91
-  .claude/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py: sha256:feaef83e1e5bf13c7f314728495ba65810dada07c22631af19c57be3d38402c9
-  .claude/skills/meta-update-models/SKILL.md: sha256:6ee49634b3df6332eb7e3d8e2f5a3464218e8d114dff488fc87382b8de6b6bbc
-  .claude/skills/meta-upstream-sync/SKILL.md: sha256:29cce38d1d7f2ca42204005398cb790d7443818d057a9f4145132773df5e4692
+  .claude/agents/meta-updater.md: sha256:ef4e17d69f44480b7f9c4727f0444aec3f2136e310835784e1cb7f6d2c92385b
+  .claude/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py: sha256:419f214ebf17fc5a6493686fa91d3cade4ac28fe98796ccf7834c678d66d0d7c
+  .claude/skills/meta-update-models/SKILL.md: sha256:9bcea364875f3647fdbb8bc0af4ba9453fe63c0d0ec8b380bad96e2f44277160
+  .claude/skills/meta-upstream-sync/SKILL.md: sha256:4668a1a0c49aa6a95b706b94d1171b112067795c2b2dc282c725521e389819df
   .claude/skills/meta-upstream-sync/references/source-url-reference.md: sha256:40a2805fb6adf50560655dc665c8702ddf50a4dd6367e2d6d97d5489ea6e5112
-  .codex/agents/meta-updater.toml: sha256:f5c0a98a5ef028a62e662d90130dfe117660f2fcd4a56d81ca70b1fab5764149
-  .codex/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py: sha256:feaef83e1e5bf13c7f314728495ba65810dada07c22631af19c57be3d38402c9
+  .codex/agents/meta-updater.toml: sha256:5a42c24d7f972a57eec2ca233d597e2110ca82f9c1542a1b4a8b9b4664da837b
+  .codex/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py: sha256:419f214ebf17fc5a6493686fa91d3cade4ac28fe98796ccf7834c678d66d0d7c
