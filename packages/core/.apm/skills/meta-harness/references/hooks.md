@@ -1,6 +1,6 @@
 # Lifecycle Hook Guidelines
 
-**Contents:** [1) When to use hooks](#1-when-to-use-hooks) · [2) Cross-tool compatibility](#2-cross-tool-compatibility) · [3) Lifecycle events](#3-lifecycle-events) · [4) Hook configuration](#4-hook-configuration) · [5) File layout](#5-file-layout) · [6) Common patterns](#6-common-patterns) · [7) Quality checklist](#7-quality-checklist) · [8) Anti-patterns](#8-anti-patterns)
+**Contents:** [When to Use Hooks](#when-to-use-hooks) · [Cross-Tool Compatibility](#cross-tool-compatibility) · [Lifecycle Events](#lifecycle-events) · [Hook Configuration](#hook-configuration) · [File Layout](#file-layout) · [Common Patterns](#common-patterns) · [Quality Checklist](#quality-checklist) · [Anti-Patterns](#anti-patterns)
 
 Guidance for creating reliable lifecycle hooks across Claude Code, VS Code Copilot, and APM-managed packages.
 
@@ -13,7 +13,7 @@ For full event schemas and platform-specific JSON contracts, consult the authori
 - VS Code Copilot: [Agent hooks](https://code.visualstudio.com/docs/agent-customization/hooks)
 - APM: [Hooks and commands](https://microsoft.github.io/apm/producer/author-primitives/hooks-and-commands/)
 
-## 1) When to use hooks
+## When to Use Hooks
 
 Use hooks when you need code to run automatically at lifecycle boundaries, independent of model judgment.
 
@@ -27,13 +27,13 @@ Do not use hooks for prompt steering or broad policy text.
 
 Hooks are the **deterministic arm of the triggering ladder**: autonomous skill/instruction triggering is inherently probabilistic (see [the `meta-steering` router, section 1](../../meta-steering/SKILL.md#1-pick-the-customization-type-first)). When something must always happen, reach for a hook — or an explicit invocation — not stronger description prose.
 
-### Decision criteria
+### Decision Criteria
 
 Hooks vs instructions vs skills vs MCP/plugins: the complete seven-way table is in [the `meta-steering` router, section 1](../../meta-steering/SKILL.md#1-pick-the-customization-type-first), and the harness-side half is in [the `meta-harness` router, section 1](../SKILL.md#1-is-it-actually-harness-config). The short form: hooks enforce runtime guardrails at specific events because they are deterministic; everything that merely *teaches* a behaviour belongs in an instruction or a skill.
 
-## 2) Cross-tool compatibility
+## Cross-Tool Compatibility
 
-### Configuration surface
+### Configuration Surface
 
 | Platform | Configuration | Location | Format |
 |---|---|---|---|
@@ -42,7 +42,7 @@ Hooks vs instructions vs skills vs MCP/plugins: the complete seven-way table is 
 | VS Code Copilot (Preview) | `hooks:` in agent frontmatter | Travels with the agent file instead of a global/workspace location | YAML/JSON |
 | APM | `.apm/hooks/*.json` | Package-level | JSON |
 
-### Compatibility notes
+### Compatibility Notes
 
 - Claude and VS Code share a strongly overlapping schema for command hooks (stdin JSON, stdout JSON control).
 - APM does not define a new runtime; it packages/transforms hooks into each target's native locations and naming conventions.
@@ -52,11 +52,11 @@ Hooks vs instructions vs skills vs MCP/plugins: the complete seven-way table is 
 > [!WARNING]
 > Treat event names and fields as target contracts, not universal contracts. Always verify against current docs for your target version.
 
-## 3) Lifecycle events
+## Lifecycle Events
 
 Do not memorize every event schema. Use category-based design and confirm exact fields in the platform docs.
 
-### Event categories
+### Event Categories
 
 | Category | Typical events | When they fire | Common input focus | Common control output |
 |---|---|---|---|---|
@@ -67,13 +67,13 @@ Do not memorize every event schema. Use category-based design and confirm exact 
 | Compaction lifecycle | `PreCompact`, `PostCompact` | Before/after context compaction | Trigger reason and context state | Persist/reload context, reinject critical data |
 | Subagent lifecycle | `SubagentStart`, `SubagentStop` | Subagent spawn/finish | Agent ID/type and stop state | Inject context, block stop with reason |
 
-### Shared vs platform-specific (high level)
+### Shared vs Platform-Specific (High Level)
 
 - Common core across Claude and VS Code: `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `Stop`, `SubagentStart`, `SubagentStop`, `PreCompact`.
 - Claude currently exposes broader coverage, including additional async/system events and richer matcher variants.
 - APM supports hook authoring as a packaging primitive and maps to each target's supported lifecycle/event model.
 
-## 4) Hook configuration
+## Hook Configuration
 
 ### Matchers
 
@@ -84,7 +84,7 @@ Use matchers to scope hook execution narrowly:
 
 Prefer specific matchers over wildcard `*`.
 
-### Command specification
+### Command Specification
 
 Common command fields across platforms:
 - `type: "command"`
@@ -93,7 +93,7 @@ Common command fields across platforms:
 
 If supported by the platform, use direct exec/args mode for safer argument handling and shell mode only when pipes/globs are needed.
 
-### Input and output contract
+### Input and Output Contract
 
 Most hooks follow this contract:
 - Input: JSON payload on stdin
@@ -103,7 +103,7 @@ Typical control fields:
 - Session-level flow: `continue`, `stopReason`
 - Event-specific control: `hookSpecificOutput` payloads (for example permission decisions, additional context, block reasons)
 
-### Exit code semantics
+### Exit Code Semantics
 
 Use exit codes intentionally:
 - `0`: success; parse stdout JSON if present
@@ -112,7 +112,7 @@ Use exit codes intentionally:
 
 Always validate behavior against target docs, especially for stop/block semantics.
 
-### Timeout and async
+### Timeout and Async
 
 - Set explicit per-hook timeouts; do not rely on defaults.
 - Keep synchronous hooks short and deterministic.
@@ -121,7 +121,7 @@ Always validate behavior against target docs, especially for stop/block semantic
 > [!IMPORTANT]
 > Hook handlers must be non-interactive. Any command waiting on user input can deadlock agent progress.
 
-## 5) File layout
+## File Layout
 
 ### Claude Code
 
@@ -142,11 +142,11 @@ Always validate behavior against target docs, especially for stop/block semantic
 > [!NOTE]
 > **Standalone hook filenames are matched by glob (`*.json`), not by a fixed name** — so this repo names them `*.hook.json` (parity with `*.agent.md` / `*.prompt.md` / `*.instructions.md`; see [CONTRIBUTING](../../../../../../CONTRIBUTING.md#hooks-hookjson)). It is a strict subset of `*.json`, so VS Code folder discovery and APM still pick it up, and Claude Code is unaffected because it reads hooks from `settings.json` rather than scanning the directory. The fixed names `hooks.json` / `hooks/hooks.json` apply only inside **plugin** bundles, not to standalone hook files.
 
-## 6) Common patterns
+## Common Patterns
 
 Brief patterns you can adapt across tools.
 
-### Format on write
+### Format on Write
 
 Use `PostFileWrite` where available, otherwise `PostToolUse` filtered to write/edit tools.
 
@@ -165,7 +165,7 @@ Use `PostFileWrite` where available, otherwise `PostToolUse` filtered to write/e
 }
 ```
 
-### Protected file blocking
+### Protected File Blocking
 
 Block writes to sensitive paths in `PreToolUse`.
 
@@ -184,7 +184,7 @@ Block writes to sensitive paths in `PreToolUse`.
 }
 ```
 
-### Context re-injection after compaction
+### Context Re-Injection After Compaction
 
 Use `PostCompact` to re-add critical context from a deterministic source.
 
@@ -202,7 +202,7 @@ Use `PostCompact` to re-add critical context from a deterministic source.
 }
 ```
 
-### Notification on task completion
+### Notification on Task Completion
 
 Use `Stop` or `TaskCompleted` events (where available) to notify humans.
 
@@ -220,7 +220,7 @@ Use `Stop` or `TaskCompleted` events (where available) to notify humans.
 }
 ```
 
-## 7) Quality checklist
+## Quality Checklist
 
 - Hook command is idempotent.
 - Hook has explicit, reasonable timeout.
@@ -231,7 +231,7 @@ Use `Stop` or `TaskCompleted` events (where available) to notify humans.
 - Hook logging is sufficient for debugging.
 - Failure path is explicit (block vs warn vs continue).
 
-## 8) Anti-patterns
+## Anti-Patterns
 
 - Using hooks to steer behavior that belongs in instructions or skills.
 - Overly broad matchers that trigger on every event.

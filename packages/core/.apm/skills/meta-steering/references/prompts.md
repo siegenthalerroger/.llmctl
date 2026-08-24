@@ -4,9 +4,10 @@
 
 Instructions for creating effective and maintainable prompt files that guide an AI assistant in delivering consistent, high-quality outcomes across any repository.
 
-> [!IMPORTANT] Relation to other customization files
+> [!IMPORTANT]
+> **Relation to other customization files**
 >
-> Prompts should use the minimum text that still makes the task unambiguous.
+> Use the minimum text that still makes the task unambiguous.
 >
 > Put durable policy in instructions or agent skills. Keep prompts focused on inputs, output shape, and execution expectations.
 
@@ -14,7 +15,7 @@ Instructions for creating effective and maintainable prompt files that guide an 
 
 - **Target audience**: Maintainers and contributors authoring reusable prompts
 - **Goals**: Predictable behavior, clear expectations, minimal permissions, portability across repositories
-- **Core principle**: Prompts should use the **minimum text necessary** to define inputs, output shape, tool/model needs, and failure behavior
+- **Core principle**: Spend the **minimum text necessary** to define inputs, output shape, tool/model needs, and failure behavior — nothing more
 
 ## Prompt Engineering Techniques
 
@@ -53,7 +54,7 @@ For longer prompts, order sections by priority so truncation or skimming loses t
 
 ## Frontmatter Fields
 
-Every prompt file should include YAML frontmatter with the following fields:
+Every prompt file carries YAML frontmatter with the following fields:
 
 ### Required/Recommended Fields
 

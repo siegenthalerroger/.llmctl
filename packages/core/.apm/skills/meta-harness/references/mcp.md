@@ -1,6 +1,6 @@
 # MCP Server Configuration Guidelines
 
-**Contents:** [1) When to use MCP](#1-when-to-use-mcp) · [2) APM-first rule](#2-apm-first-rule) · [3) Transports](#3-transports) · [4) Cross-tool config surface](#4-cross-tool-config-surface) · [5) Secrets and environment variables](#5-secrets-and-environment-variables) · [6) Quality checklist](#6-quality-checklist) · [7) Anti-patterns](#7-anti-patterns)
+**Contents:** [When to Use MCP](#when-to-use-mcp) · [APM-First Rule](#apm-first-rule) · [Transports](#transports) · [Cross-Tool Config Surface](#cross-tool-config-surface) · [Secrets and Environment Variables](#secrets-and-environment-variables) · [Quality Checklist](#quality-checklist) · [Anti-Patterns](#anti-patterns)
 
 Guidance for configuring Model Context Protocol (MCP) servers across Claude Code, VS Code Copilot, OpenAI Codex CLI, and APM-managed packages.
 
@@ -14,15 +14,15 @@ For exhaustive per-tool schemas and the full config matrix, see [mcp-configurati
 - OpenAI Codex CLI: [MCP](https://learn.chatgpt.com/docs/extend/mcp)
 - APM: [MCP servers guide](https://microsoft.github.io/apm/guides/mcp-servers/), [MCP as a primitive](https://microsoft.github.io/apm/producer/author-primitives/mcp-as-primitive/)
 
-## 1) When to use MCP
+## When to Use MCP
 
 Use an MCP server when an agent needs a capability that is not built in — querying an API, searching docs, driving a browser, reading a registry — and that capability is reusable across tasks.
 
-### Decision criteria
+### Decision Criteria
 
 MCP servers add external capability; hooks add determinism; instructions and skills add steering; plugins add packaging. The complete seven-way table is in [the `meta-steering` router, section 1](../../meta-steering/SKILL.md#1-pick-the-customization-type-first). Do not add an MCP server for a capability a built-in tool already covers, or to steer behaviour.
 
-### Curating servers and tools
+### Curating Servers and Tools
 
 Exposed tool count is not free — it directly degrades selection accuracy (a mid-size model that fails at 46 available tools passes at 19). Curate deliberately:
 
@@ -31,7 +31,7 @@ Exposed tool count is not free — it directly degrades selection accuracy (a mi
 - Split description density by layer: keep the server/namespace-level description terse (it only decides load-or-not); per-tool detail belongs in the tool's own schema, not in steering prose.
 - Prefer servers that set MCP tool annotations (`readOnlyHint`, `destructiveHint`, `openWorldHint`) — these are structured safety signals. Never restate a tool's schema/usage in instructions or skills; duplicated prose interferes with the model's autonomous tool selection.
 
-## 2) APM-first rule
+## APM-First Rule
 
 This repo deploys via APM. **Declare each MCP server once in [`apm.yml`](../../../../../../packages/core/apm.yml) under `dependencies.mcp` and let APM translate it into every target's native config on deploy.** Do not hand-maintain per-target files (`.vscode/mcp.json`, `.mcp.json`, `.codex/config.toml`) — those are machine-generated output, not source.
 
@@ -51,12 +51,12 @@ dependencies:
     - io.github.github/github-mcp-server   # registry string reference
 ```
 
-APM resolves the target chain from `--target` → `targets:` in `apm.yml` → filesystem auto-detection, then writes each harness's file with the correct root key and format (see §4).
+APM resolves the target chain from `--target` → `targets:` in `apm.yml` → filesystem auto-detection, then writes each harness's file with the correct root key and format (see [Cross-Tool Config Surface](#cross-tool-config-surface)).
 
 > [!WARNING]
 > APM MCP support is still maturing, and user/global-scope (`apm install -g`) behavior varies by version. Treat MCP wiring as **authored-pending-verification** — run `apm install -g` and inspect the generated per-target files before relying on it (same posture this repo takes for hooks).
 
-## 3) Transports
+## Transports
 
 Pick the transport from how the server runs, not from the tool:
 
@@ -68,7 +68,7 @@ Pick the transport from how the server runs, not from the tool:
 
 In native VS Code / Claude `mcp.json` the equivalent discriminator is the `type` field (`stdio` | `http` | `sse`). APM infers transport from `command` (→ stdio) or `url` (→ http) unless `transport`/`type` is set explicitly.
 
-## 4) Cross-tool config surface
+## Cross-Tool Config Surface
 
 One concept, four destinations. APM normalizes the key and format differences below — they matter only when reading generated output or configuring a tool by hand.
 
@@ -82,7 +82,7 @@ One concept, four destinations. APM normalizes the key and format differences be
 
 The load-bearing trap: **VS Code uses `servers`; everyone else uses `mcpServers`.** See [mcp-configuration.md](./mcp-configuration.md) for full per-tool examples.
 
-## 5) Secrets and environment variables
+## Secrets and Environment Variables
 
 > [!IMPORTANT]
 > Never commit a plaintext API key, token, or password. The only acceptable form in a tracked file is a placeholder.
@@ -103,7 +103,7 @@ The load-bearing trap: **VS Code uses `servers`; everyone else uses `mcpServers`
     CONTEXT7_API_KEY: "${CONTEXT7_API_KEY}"   # APM prompts for the value on install; never hard-code it
 ```
 
-## 6) Quality checklist
+## Quality Checklist
 
 - Capability isn't already covered by a built-in tool or another server.
 - Adding this server doesn't push total exposed tool count past what the model can discriminate; unused tools are disabled where the harness allows it.
@@ -114,7 +114,7 @@ The load-bearing trap: **VS Code uses `servers`; everyone else uses `mcpServers`
 - `name` is stable and matches any `tools:` references in agents (e.g. `context7/*`).
 - Deploy verified with `apm install -g`; generated files use the right root key per tool.
 
-## 7) Anti-patterns
+## Anti-Patterns
 
 - Committing plaintext secrets, or baking a token into a `url`.
 - Hand-maintaining `.vscode/mcp.json` / `.mcp.json` instead of `apm.yml` (drift and double source of truth).

@@ -10,22 +10,16 @@ For volatile schema details and CLI flags, verify against the [Reference Links](
 
 Plugins are the packaging and distribution mechanism, not the capability mechanism.
 
-| Situation | Use |
-| --- | --- |
-| Single reusable capability | Skill (standalone SKILL.md) |
-| Agent workflow | Agent (standalone .agent.md) |
-| Lifecycle side-effects | Hook (see [hooks.md](./hooks.md)) |
-| Bundled distribution of multiple components | Plugin |
-| External tool integration | MCP server |
+A plugin never substitutes for a component — it ships components that already exist. Settle each component's type against [the `meta-steering` router, section 1](../../meta-steering/SKILL.md#1-pick-the-customization-type-first) first, then decide whether they travel together.
 
-Use a plugin when at least one of these is true:
+Reach for a plugin when at least one of these is true:
 
 - You need one install surface for multiple components.
 - You need versioned releases and upgrade semantics.
 - You need marketplace distribution or private internal catalogs.
 - You need portable packaging across projects, teams, or tools.
 
-> Plugin scope should stay cohesive: one clear domain/problem per plugin is usually better than a kitchen-sink bundle.
+> Keep plugin scope cohesive: one clear domain or problem per plugin, never a kitchen-sink bundle.
 
 Bundling many skills also has a discovery cost: every bundled skill's `description` competes in the consumer's shared skill-discovery budget (Claude Code totals ~15,000 chars across all loaded skills; skills past that cutoff become invisible, not down-ranked — see [the `meta-steering` router, section 3](../../meta-steering/SKILL.md#3-description-craft--all-four-types)). Keep bundles cohesive **and** descriptions short. `SLASH_COMMAND_TOOL_CHAR_BUDGET` exists as consumer-side relief, but a plugin author cannot rely on the consumer having raised it.
 

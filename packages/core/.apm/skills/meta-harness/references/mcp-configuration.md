@@ -1,12 +1,12 @@
 # MCP Server Configuration Reference
 
-**Contents:** [Config matrix](#config-matrix) · [APM source form (`apm.yml`)](#apm-source-form-apmyml) · [Native form: VS Code Copilot (`.vscode/mcp.json`)](#native-form-vs-code-copilot-vscodemcpjson) · [Native form: Claude Code (`.mcp.json` / `~/.claude.json`)](#native-form-claude-code-mcpjson--claudejson) · [Native form: OpenAI Codex CLI (`.codex/config.toml`)](#native-form-openai-codex-cli-codexconfigtoml) · [Secrets](#secrets) · [Recommended layout for this repo](#recommended-layout-for-this-repo)
+**Contents:** [Config Matrix](#config-matrix) · [APM Source Form (`apm.yml`)](#apm-source-form-apmyml) · [Native Form: VS Code Copilot (`.vscode/mcp.json`)](#native-form-vs-code-copilot-vscodemcpjson) · [Native Form: Claude Code (`.mcp.json` / `~/.claude.json`)](#native-form-claude-code-mcpjson--claudejson) · [Native Form: OpenAI Codex CLI (`.codex/config.toml`)](#native-form-openai-codex-cli-codexconfigtoml) · [Secrets](#secrets) · [Recommended Layout for This Repo](#recommended-layout-for-this-repo)
 
 Detailed per-tool schemas for Model Context Protocol (MCP) servers. For the decision criteria, APM-first rule, and authoring checklist, see the [SKILL.md](../SKILL.md).
 
 The same MCP server can be described once in `apm.yml` and deployed to every tool below. This reference documents both the **APM source form** and each tool's **native form**, so you can author for APM, read generated output, or configure a tool by hand.
 
-## Config matrix
+## Config Matrix
 
 | Tool | File | Scope | Format | Root key |
 |---|---|---|---|---|
@@ -20,7 +20,7 @@ Sources: [VS Code MCP](https://code.visualstudio.com/docs/agent-customization/mc
 
 > **The load-bearing difference:** VS Code uses the root key `servers`; Claude Code, Copilot CLI, and Cursor use `mcpServers`; Codex uses TOML tables `[mcp_servers.<name>]`. A correct config under the wrong key is silently ignored.
 
-## APM source form (`apm.yml`)
+## APM Source Form (`apm.yml`)
 
 `dependencies.mcp` is a list. Each entry is one of three forms:
 
@@ -60,7 +60,7 @@ Field notes:
 - `transport` is `stdio` | `http` | `sse` | `streamable-http`. If omitted, APM infers `stdio` from `command` and `http` from `url`.
 - Env placeholders use `${VAR}` grammar and are resolved from the environment at deploy — never written to disk in plaintext.
 
-## Native form: VS Code Copilot (`.vscode/mcp.json`)
+## Native Form: VS Code Copilot (`.vscode/mcp.json`)
 
 Root key `servers`. Each server carries a `type` (`stdio` | `http` | `sse`). Supports an `inputs` array for `${input:...}` prompts (VS-Code-specific).
 
@@ -89,7 +89,7 @@ Root key `servers`. Each server carries a `type` (`stdio` | `http` | `sse`). Sup
 }
 ```
 
-## Native form: Claude Code (`.mcp.json` / `~/.claude.json`)
+## Native Form: Claude Code (`.mcp.json` / `~/.claude.json`)
 
 Root key `mcpServers`. Same `type`/`command`/`args`/`url`/`headers`/`env` shape, but **no `inputs` mechanism** — use `${VAR}` env references for secrets.
 
@@ -110,7 +110,7 @@ Root key `mcpServers`. Same `type`/`command`/`args`/`url`/`headers`/`env` shape,
 }
 ```
 
-## Native form: OpenAI Codex CLI (`.codex/config.toml`)
+## Native Form: OpenAI Codex CLI (`.codex/config.toml`)
 
 TOML table per server: `[mcp_servers.<name>]`. stdio uses `command`/`args`/`env`; remote uses `url`.
 
@@ -141,7 +141,7 @@ Key points:
 - For non-interactive runs (CI), export the vars first (`set -a; source <file>; set +a`, a shell profile, or direnv) so APM finds them without prompting.
 - A key committed or pasted in plaintext is compromised — rotate and revoke it.
 
-## Recommended layout for this repo
+## Recommended Layout for This Repo
 
 1. Author every server in [`packages/core/apm.yml`](../../../../../../packages/core/apm.yml) under `dependencies.mcp`.
 2. Externalize all secrets to `${VAR}`; APM prompts for each value on install.

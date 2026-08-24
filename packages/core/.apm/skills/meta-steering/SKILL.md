@@ -53,19 +53,23 @@ Covers the four file types a harness **reads as prose**: skills, agents, instruc
 
 Answer this before opening a file. Getting it wrong costs more than any amount of polish on the wrong artifact.
 
-| What you need | Use | Why |
+| What you need | Use | Decisive because |
 |---|---|---|
-| A reusable task workflow, or bundled domain knowledge with scripts and references | **Skill** | Loaded on demand by description match; composable; carries its own resources |
-| Durable project conventions, or forcing a skill to load for a class of files | **Instruction** | Path-scoped (`applyTo` / `paths`) or always-on; steering only, no side effects |
-| A templated one-off task with inputs | **Prompt** | User-invoked slash command; minimum text that defines inputs, output shape, failure |
-| A multi-step workflow needing its own tool policy and a clean context | **Agent** | Session-scoped role; isolated context, own tool ceiling |
+| A task workflow, or domain knowledge with its own scripts and references, that the model pulls in when it becomes relevant | **Skill** | Model-triggered by description match; runs in the caller's context; carries its own resources |
+| That same workflow, but needing a context of its own and a tool ceiling the caller must not hold | **Agent** | Session-scoped role; isolated context window, own tool policy |
+| Durable conventions that must already be in force whenever a class of files is in scope | **Instruction** | Path-scoped (`applyTo` / `paths`) or always-on; steering only, no side effects |
+| A task the *user* triggers by name, with inputs | **Prompt** | Explicitly invoked slash command; defines inputs, output shape and failure, nothing more |
 | Something that must happen **every** time, independent of model judgment | **Hook** → [`meta-harness`](../meta-harness/SKILL.md#1-is-it-actually-harness-config) | Deterministic and event-triggered; prose cannot guarantee it |
 | A new external capability — API, registry, browser, docs lookup | **MCP server** → [`meta-harness`](../meta-harness/SKILL.md#1-is-it-actually-harness-config) | Adds runtime tools; not a steering mechanism |
 | One install surface for several of the above | **Plugin** → [`meta-harness`](../meta-harness/SKILL.md#1-is-it-actually-harness-config) | Versioned, marketplace-distributable bundle |
 
-**The escalation gate.** Autonomous skill and instruction triggering is probabilistic. When something has to happen every single time, the answer is never stronger description prose — it is a hook or an explicit invocation (slash command, `Skill(name)` mention, path-scoped rule). Reach for [`meta-harness`](../meta-harness/SKILL.md#1-is-it-actually-harness-config) at that point rather than rewriting the description a third time.
+**When two rows match.** The four steering types overlap by design; three tiebreaks resolve almost every case.
 
-**Prefer a skill over an instruction** when the capability involves specific knowledge or a task workflow. Instructions earn their place for durable conventions and for `applyTo`-driven skill loading — not as a home for procedures.
+- **Skill vs agent** — does the work need its own context window, or a tool policy the caller must not hold? Only then an agent. Default to one agent and make each new one clear the gate in [agents.md](./references/agents.md#default-to-one-agent).
+- **Skill vs prompt** — who decides it runs? Model-triggered by relevance is a skill; user-triggered by name with arguments is a prompt.
+- **Skill vs instruction** — is it a capability or a convention? Capabilities are skills. Instructions earn their place for durable conventions and for `applyTo`-driven skill loading — not as a home for procedures.
+
+**The escalation gate.** Autonomous skill and instruction triggering is probabilistic. When something has to happen every single time, the answer is never stronger description prose — it is a hook or an explicit invocation (slash command, `Skill(name)` mention, path-scoped rule). Reach for [`meta-harness`](../meta-harness/SKILL.md#1-is-it-actually-harness-config) at that point rather than rewriting the description a third time.
 
 ## 2) Route to the detail
 
@@ -75,7 +79,7 @@ Read the row for the file being authored. Load the depth files only when the fir
 |---|---|---|
 | `SKILL.md` | [skills.md](./references/skills.md) | [skill-frontmatter.md](./references/skill-frontmatter.md), [skill-body.md](./references/skill-body.md), [skill-structure.md](./references/skill-structure.md), [skill-spec.md](./references/skill-spec.md) |
 | `*.agent.md` | [agents.md](./references/agents.md) | [agent-frontmatter.md](./references/agent-frontmatter.md), [agent-tools.md](./references/agent-tools.md), [agent-subagent.md](./references/agent-subagent.md), [agent-handoff.md](./references/agent-handoff.md), [agent-patterns.md](./references/agent-patterns.md) |
-| `*.instructions.md` | [instructions.md](./references/instructions.md) | [instruction-bootstrapping.md](./references/instruction-bootstrapping.md) — writing a repository's *first* context files |
+| `*.instructions.md`, `AGENTS.md`, `CLAUDE.md` | [instructions.md](./references/instructions.md) | [instruction-bootstrapping.md](./references/instruction-bootstrapping.md) — writing a repository's *first* context files |
 | `*.prompt.md` | [prompts.md](./references/prompts.md) | — |
 
 ## 3) Description craft — all four types

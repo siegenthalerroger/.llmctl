@@ -4,7 +4,8 @@
 
 Instructions for creating effective and maintainable instruction files that define coding standards, conventions, and behavioral rules for AI assistants.
 
-> [!IMPORTANT] Relation to other customization files
+> [!IMPORTANT]
+> **Relation to other customization files**
 >
 > **Use skills for reusable task workflows and bundled domain knowledge.**
 >
