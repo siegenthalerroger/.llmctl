@@ -145,7 +145,10 @@ jobs:
           # avoid. Missing RELEASE_TOKEN should fail, not degrade.
         run: |
           set -euo pipefail
-          args=(--repo . --marketplace ../.llmctl-marketplace)
+          # --allow-dirty because the deploy check above rewrites
+          # apm.lock.yaml whenever tracked content moved without a lockfile
+          # refresh, which is most releases. release.py lists what it sweeps.
+          args=(--repo . --marketplace ../.llmctl-marketplace --allow-dirty)
           # A dry run writes nothing and so has no commit to merge; asking for a
           # pull request there would only fail on an empty branch.
           if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); else args+=(--pull-request); fi

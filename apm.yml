@@ -22,6 +22,9 @@ scripts:
   check: "python scripts/check.py --repo ."
   # Check what a release would publish. Needs the packed marketplace beside it.
   release-check: "python scripts/release-check.py --repo . --marketplace ../.llmctl-marketplace"
+  # What each package's next version would be, and why. Reads tags and commit
+  # subjects; writes nothing. The same code release.py plans from.
+  versions: "python scripts/versions.py --repo ."
   # Derive each package's version from its commits, pack, commit, tag, push.
   release: "python scripts/release.py --repo . --marketplace ../.llmctl-marketplace"
   # Pack every package into the marketplace repo and regenerate its manifests.
