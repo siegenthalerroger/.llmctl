@@ -76,8 +76,9 @@ When a local file lists multiple URLs under `metadata.provenance.adaptedFrom`, e
 
 ## Command
 
-Run from the repository root. `apm run check-updates` is the same thing with
-`--repo .` already applied; pass any other flag after `--`.
+Run from the repository root. `apm run check-updates` is the bare default run
+with `--repo .` already applied, and nothing more: `apm run` carries no extra
+arguments, so every flag below needs the script called directly.
 
 ```bash
 python ./scripts/check-updates.py
