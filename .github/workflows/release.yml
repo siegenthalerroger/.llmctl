@@ -20,6 +20,13 @@ on:
 
 permissions:
   contents: write
+  # The release commit reaches main through a pull request, because main is
+  # protected and this token holds no bypass. `actions: write` is for
+  # dispatching the gate workflow onto the release branch -- a PR opened with
+  # GITHUB_TOKEN does not fire `pull_request` workflows, so the required check
+  # has to be asked for explicitly.
+  pull-requests: write
+  actions: write
 
 # Never two releases at once: both derive versions from tags that the other one
 # is in the middle of creating.
@@ -112,7 +119,9 @@ jobs:
         run: |
           set -euo pipefail
           args=(--repo . --marketplace ../.llmctl-marketplace)
-          if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); fi
+          # A dry run writes nothing and so has no commit to merge; asking for a
+          # pull request there would only fail on an empty branch.
+          if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); else args+=(--pull-request); fi
           if [ "$BUMP" != "derive" ]; then args+=(--bump "$BUMP"); fi
           for package in $PACKAGES; do args+=(--package "$package"); done
           echo "release.py ${args[*]}"
