@@ -18,15 +18,12 @@ on:
         options: [derive, patch, minor, major]
         default: derive
 
+# The release commit reaches main through a pull request, because main is
+# protected and no token here holds a bypass. That pull request is opened with
+# RELEASE_TOKEN rather than GITHUB_TOKEN, so these permissions cover only the
+# steps that still read the API as the workflow itself.
 permissions:
-  contents: write
-  # The release commit reaches main through a pull request, because main is
-  # protected and this token holds no bypass. `actions: write` is for
-  # dispatching the gate workflow onto the release branch -- a PR opened with
-  # GITHUB_TOKEN does not fire `pull_request` workflows, so the required check
-  # has to be asked for explicitly.
-  pull-requests: write
-  actions: write
+  contents: read
 
 # Never two releases at once: both derive versions from tags that the other one
 # is in the middle of creating.
@@ -55,6 +52,25 @@ jobs:
             exit 1
           fi
 
+      - name: Require a release token
+        env:
+          # Compared as a string, like the step above: a workflow_dispatch
+          # boolean reaches an `if:` expression typed inconsistently enough that
+          # `== false` is not worth trusting a release to.
+          DRY_RUN: ${{ inputs.dry_run }}
+          RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          if [ "$DRY_RUN" != "true" ] && [ -z "$RELEASE_TOKEN" ]; then
+            echo "::error::A release opens a pull request against protected" \
+                 "main. GITHUB_TOKEN cannot: this repo is public, so a pull" \
+                 "request authored by github-actions[bot] holds its checks" \
+                 "behind the outside-contributor approval gate and the release" \
+                 "stalls waiting for a human. Set RELEASE_TOKEN to a token" \
+                 "owned by a collaborator, with contents:write and" \
+                 "pull-requests:write on this repo."
+            exit 1
+          fi
+
       - name: Check out the workspace
         uses: actions/checkout@v5
         with:
@@ -62,6 +78,10 @@ jobs:
           # release.py measures each package from its last tag; a shallow or
           # tagless clone measures from the start of history and over-bumps.
           fetch-depth: 0
+          # Persisted for the release branch push, so the branch and the pull
+          # request opened from it carry one identity. Falls back to the
+          # workflow token on a dry run, which pushes nothing.
+          token: ${{ secrets.RELEASE_TOKEN || github.token }}
 
       - name: Check out the marketplace
         uses: actions/checkout@v5
@@ -115,7 +135,14 @@ jobs:
           DRY_RUN: ${{ inputs.dry_run }}
           PACKAGES: ${{ inputs.packages }}
           BUMP: ${{ inputs.bump }}
-          GITHUB_TOKEN: ${{ github.token }}
+          # gh reads GH_TOKEN first. It has to be the release token, not the
+          # workflow one: the pull request's author decides whether its checks
+          # need approving, and github-actions[bot] is an outside contributor
+          # on a public repo. Authored by a collaborator, they just run.
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          # GITHUB_TOKEN is deliberately absent: gh falls back to it, which would
+          # quietly restore the bot-authored pull request this step exists to
+          # avoid. Missing RELEASE_TOKEN should fail, not degrade.
         run: |
           set -euo pipefail
           args=(--repo . --marketplace ../.llmctl-marketplace)
