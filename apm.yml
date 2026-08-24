@@ -18,6 +18,12 @@ scripts:
   # required rather than derived -- a guessed marketplace would silently
   # publish into the wrong repo. This file is what supplies them.
   #
+  # Each entry is the whole command: `apm run` (0.28.0) accepts no extra
+  # arguments, and rejects `--`, a bare flag and a positional alike. `--param`
+  # is not a way round it -- it interpolates .prompt.md frontmatter, leaves a
+  # shell command untouched, and is dropped in silence when nothing consumes
+  # it. Any run needing a flag not written below calls the script directly.
+  #
   # Check the workspace itself: no marketplace, so it is the pre-PR gate.
   check: "python scripts/check.py --repo ."
   # Check what a release would publish. Needs the packed marketplace beside it.
@@ -33,6 +39,7 @@ scripts:
   gen-notices: "python scripts/gen-notices.py --repo . --marketplace ../.llmctl-marketplace"
   # Check each file's licence against the upstream terms its provenance records.
   check-licenses: "python scripts/check-licenses.py --repo ."
-  # Audit tracked files for upstream drift. The meta-upstream-sync skill drives
-  # this; pass its flags after `--`.
+  # Audit tracked files for upstream drift, in its broad default mode. The
+  # meta-upstream-sync skill drives this and mostly wants --include or --json,
+  # neither of which `apm run` can carry: it calls the script directly.
   check-updates: "python scripts/check-updates.py --repo ."
