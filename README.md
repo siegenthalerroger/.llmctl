@@ -2,13 +2,13 @@
 
 [![checks](https://github.com/siegenthalerroger/.llmctl/actions/workflows/checks.yml/badge.svg)](https://github.com/siegenthalerroger/.llmctl/actions/workflows/checks.yml)
 
-`.llmctl` is a collection of agent modes, prompts and skills intended to be directly configured in your agent orchestrator (be that your IDE or CLI tool).
+`.llmctl` is my collection of agents, prompts, skills and other guidance for AI assistants in an IDE, a desktop app or the terminal.
 
 It is structured as an **APM monorepo of context-scoped packages** so each environment loads only what it needs — a global baseline everywhere, domain packages only where they apply.
 
 ## Quickstart
 
-This repository is an [APM](https://github.com/microsoft/apm) monorepo. Each `packages/<name>/` is an independently installable APM package; APM deploys a package's content to both Copilot and Claude Code — no manual symlinks needed.
+Start with [Deploy](#deploy) to install the published plugins. If you want to explore or change the source, each `packages/<name>/` is an independent [APM](https://github.com/microsoft/apm) package. The table below shows where the guidance lives.
 
 ### Available packages
 
@@ -25,15 +25,15 @@ See [CONTRIBUTING.md](CONTRIBUTING.md#packaging-model) for the packaging rules.
 
 ### Prerequisites
 
-Install the CLI tools the deploy step and wired-in servers depend on:
+For plugin installation, follow the [marketplace setup guide](https://github.com/siegenthalerroger/.llmctl-marketplace#before-you-start). The tools below are for direct APM deployment and the MCP servers you enable:
 
 | Tool        | Required for                                                                                         |
 | ----------- | ---------------------------------------------------------------------------------------------------- |
-| `git`       | APM fetches packages over git. This repository is private, so git must be able to authenticate against it — `gh auth setup-git` or an SSH key |
-| `gh`        | The wired-in `github` MCP server. The `github` mcp server uses the [`shuymn/gh-mcp`](https://github.com/shuymn/gh-mcp) extension, which reuses your `gh` login instead of a Personal Access Token |
+| `git`       | APM fetches packages over Git. This repository is public; HTTPS access does not require a GitHub login |
+| `gh`        | The `github` MCP server uses the [`shuymn/gh-mcp`](https://github.com/shuymn/gh-mcp) extension, which reuses your `gh` login instead of a Personal Access Token |
 | `npx`/`uvx` | Stdio MCP servers shell out to a companion CLI, so install the CLI for any server you enable.        |
 
-Execute
+If you use the GitHub MCP server, sign in and install its extension:
 
 ```bash
 gh auth login
@@ -42,11 +42,18 @@ gh extension install shuymn/gh-mcp
 
 ### Deploy
 
-No checkout needed — APM resolves each package straight from this repository.
+**Install from [`.llmctl-marketplace`](https://github.com/siegenthalerroger/.llmctl-marketplace)**. Its README covers desktop apps, CLI tools and APM. Add the marketplace once, then choose the plugins that fit your work. You do not need to clone this source repository.
+
+Direct APM deployment is also available when you need the source package's agents, instructions or MCP configuration. What a plugin host loads varies; see the [packaging rules](CONTRIBUTING.md#rules).
+
+<details>
+<summary>Direct APM deployment from source</summary>
+
+APM resolves each package from GitHub without a checkout. Choose only the targets you use:
 
 ```bash
 # Install APM (macOS/Linux)
-brew install microsoft/apm/apm
+brew install apm
 # Install APM (Windows)
 winget install Microsoft.APM
 
@@ -63,39 +70,83 @@ Add domain packages **per project**, only where they apply:
 
 ```bash
 cd your-ops-repo
-apm install siegenthalerroger/.llmctl/packages/ops
+apm install siegenthalerroger/.llmctl/packages/ops --target claude
 
 cd your-product-repo
-apm install siegenthalerroger/.llmctl/packages/product
+apm install siegenthalerroger/.llmctl/packages/product --target claude
 
 cd your-design-repo
-apm install siegenthalerroger/.llmctl/packages/design
+apm install siegenthalerroger/.llmctl/packages/design --target claude
 ```
 
-By default this tracks the default branch, so APM will warn that the dependency is unpinned. Append a git reference as `#<sha>` or a `#<package>@<version>` release tag to pin a context to a known-good state. Refresh unpinned installs with `apm update -g --yes` (user scope) or `apm update --yes` (project).
+By default this tracks the default branch, so APM will warn that the dependency is unpinned. Append a git reference as `#<sha>` or a `#llmctl-core@<version>` release tag (substitute the package name) to pin a context to a known-good state. Refresh unpinned installs with `apm update -g --yes` (user scope) or `apm update --yes` (project).
 
-#### Developing this repository
+</details>
 
-Work on the packages themselves from a checkout, and deploy from local paths so edits take effect without a push:
+## Developing and publishing
+
+Work on the packages from a checkout. Read [AGENTS.md](AGENTS.md) and [CONTRIBUTING.md](CONTRIBUTING.md) before editing; they cover package scope, file conventions and licensing. A focused correction or a rough draft PR is a useful place to start.
 
 ```bash
-git clone git@github.com:siegenthalerroger/.llmctl.git ~/.llmctl
+git clone https://github.com/siegenthalerroger/.llmctl.git ~/.llmctl
 cd ~/.llmctl
-apm install
+apm install --target claude
 
-# Try a package before releasing it
+# Try a local package before releasing it
 apm install ~/.llmctl/packages/core --target claude
+
+# Check file conventions and licensing
+python3 scripts/check.py --repo .
 ```
 
-### Plugin marketplace
+Use another `--target` if you work with a different assistant. Edit files under `packages/<name>/.apm/`; installed copies and marketplace bundles are replaced by later installs or releases.
 
-For hosts that only accept marketplace content — claude.ai **Cowork**, Claude Desktop, Claude Code — the packages are also published as plugin bundles from a separate repository, [`.llmctl-marketplace`](https://github.com/siegenthalerroger/.llmctl-marketplace). A plugin host clones that repo and reads each bundle as committed, so upstream APM dependencies are vendored into the bundles at pack time.
+### Regenerating the marketplace
+
+The [marketplace repository](https://github.com/siegenthalerroger/.llmctl-marketplace) holds ready-to-install bundles. Plugin hosts read the committed bundle directly, so packing includes the upstream skills declared as APM dependencies. The generated output lives separately to keep it out of this source tree.
+
+With both repositories checked out as siblings, run this from `.llmctl`:
 
 ```bash
-apm run pack-marketplace   # supplies --repo and --marketplace; both are required
+# Clone the marketplace beside ~/.llmctl if you do not have it yet
+git clone https://github.com/siegenthalerroger/.llmctl-marketplace.git ~/.llmctl-marketplace
+cd ~/.llmctl
+apm run pack-marketplace
 ```
 
-This is a **reduced-fidelity** path — rely on skills and commands travelling, and use `apm install` where agents, instructions, or MCP servers matter. See the [packaging rules](CONTRIBUTING.md#rules).
+The command in [apm.yml](apm.yml) supplies both required paths. For a different checkout location, call the script directly:
+
+```bash
+python3 scripts/pack-marketplace.py --repo . --marketplace /path/to/.llmctl-marketplace
+```
+
+Add `--dry-run` to preview what would be packed. Both `--repo` and `--marketplace` are required; the script does not infer paths from the environment.
+
+Packing writes each package to `plugins/<name>-<version>/`, copies the required licence texts, updates the marketplace's `apm.yml` bundle paths and versions, and regenerates `THIRD-PARTY-NOTICES.md` and both catalogues:
+
+| Generated file | Consumer |
+| --- | --- |
+| `.claude-plugin/marketplace.json` | Claude Code, Claude Desktop and Cowork |
+| `.agents/plugins/marketplace.json` | Codex |
+
+Do not hand-edit the bundles, either catalogue or `THIRD-PARTY-NOTICES.md`. Make content changes here and regenerate them.
+
+<details>
+<summary>What a bundle contains</summary>
+
+| Path | Purpose |
+| --- | --- |
+| `.claude-plugin/plugin.json` | Plugin manifest |
+| `LICENSE` + `LICENSES/` | The split licence and the licence texts the bundle needs |
+| `apm.yml` | Package name, version and SPDX licence expression |
+| `apm.lock.yaml` | Upstream sources, resolved commits and file checksums |
+| `skills/`, `agents/`, `commands/`, `instructions/` | Packed guidance; host support determines what loads |
+
+</details>
+
+### Releasing
+
+Repacking updates the local marketplace checkout. To publish a release, follow [Releasing](CONTRIBUTING.md#releasing). `apm run release` derives version bumps from commits, packs the bundles, then commits, tags and pushes both repositories. Packages version independently: a change to `ops` moves `ops` alone.
 
 ## Concept & Contributing
 
@@ -128,7 +179,8 @@ Skills follow the [Agent Skills](https://agentskills.io/) standard. A skill is e
 
 Instructions are kept intentionally light, as their main purpose is code-base specific rules and not generic guidelines. Instructions should always be explicitly loaded, either by a relevant `applyTo` pattern or being referenced from a prompt. Instructions cover what Claude would want in a `CLAUDE.md` or `AGENTS.md`, while enabling optionality in their inclusion based on file patterns (or nested referential inclusion).
 
-> [!TIP] Instructions & Skills combined
+> [!TIP]
+> **Instructions & Skills combined**
 >
 > Instructions are really useful in VSCode, as the `applyTo` frontmatter, allows us to force the loading of specific files depending on the referenced file-types/-paths. Other harnesses may support similar functionality either as part of the instructions or as a frontmatter field of skills themselves.
 >
@@ -285,4 +337,4 @@ Recommended configuration properties:
 
 ### Claude Code
 
-APM handles deployment to `~/.claude/` automatically (see Setup above). Verify with `claude agents`.
+For direct APM deployment, use the [Deploy](#deploy) instructions above. Check installed agents with `claude agents`. For plugin installation, follow the [marketplace guide](https://github.com/siegenthalerroger/.llmctl-marketplace#claude-code).
