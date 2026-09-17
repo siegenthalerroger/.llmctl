@@ -1,6 +1,6 @@
 # Source URL Reference
 
-`check-updates.py` auto-discovers tracked files from frontmatter and reads one key:
+`check_updates.py` auto-discovers tracked files from frontmatter and reads one key:
 
 - `metadata.provenance.adaptedFrom` — URL string, array of URLs, or array of objects
 
