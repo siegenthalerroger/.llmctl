@@ -1,0 +1,70 @@
+lockfile_version: '1'
+generated_at: '2026-09-17T16:48:20.465384+00:00'
+dependencies: []
+deployments:
+- kind: project-relative
+  target: claude
+  value: .claude/agents/product-manager.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:470e55cd91ce209fb62d181915804d84082e2e932bdce87ec5cbf510aa3904b0
+- kind: project-relative
+  target: claude
+  value: .claude/agents/ux-expert.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:29eee2f5d8af4b9186d845acb69b3cda59664f859521fab1bf0ea2760865ff45
+- kind: project-relative
+  target: claude
+  value: .claude/skills/prd-epic
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/prd-epic/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:63ac16dbc0cb4ebb057c0e9c7e8f426151a5695adb2fce349b7cef3d23329adb
+- kind: project-relative
+  target: claude
+  value: .claude/skills/prd-feature
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/prd-feature/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:be275e4bd88a37efe119c94ade2c97f97372d0ced99dbe08ef3e6045119aa254
+local_deployed_files:
+- .claude/agents/product-manager.md
+- .claude/agents/ux-expert.md
+- .claude/skills/prd-epic
+- .claude/skills/prd-epic/SKILL.md
+- .claude/skills/prd-feature
+- .claude/skills/prd-feature/SKILL.md
+local_deployed_file_hashes:
+  .claude/agents/product-manager.md: sha256:470e55cd91ce209fb62d181915804d84082e2e932bdce87ec5cbf510aa3904b0
+  .claude/agents/ux-expert.md: sha256:29eee2f5d8af4b9186d845acb69b3cda59664f859521fab1bf0ea2760865ff45
+  .claude/skills/prd-epic/SKILL.md: sha256:63ac16dbc0cb4ebb057c0e9c7e8f426151a5695adb2fce349b7cef3d23329adb
+  .claude/skills/prd-feature/SKILL.md: sha256:be275e4bd88a37efe119c94ade2c97f97372d0ced99dbe08ef3e6045119aa254

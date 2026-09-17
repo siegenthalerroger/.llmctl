@@ -7,6 +7,14 @@ tmp/*
 apm_modules/
 .mcp.json
 
+# APM install output inside a package (a local `apm install` there): the
+# committed apm.lock.yaml is the only install artefact a package keeps.
+packages/*/.claude/
+packages/*/.agents/
+packages/*/.codex/
+packages/*/.github/
+packages/*/.gitignore
+
 # APM pack scratch bundles
 build/
 

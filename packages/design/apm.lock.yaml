@@ -1,0 +1,435 @@
+lockfile_version: '1'
+generated_at: '2026-09-17T16:48:14.660543+00:00'
+apm_version: 0.28.0
+dependencies:
+- repo_url: design-machines-studio/depot
+  materialization_repo_url: Design-Machines-Studio/depot
+  name: dataviz
+  host: github.com
+  resolved_commit: ab34ce69fb965cb16004bbd80e12a43e6851e2d7
+  resolved_ref: ab34ce69fb965cb16004bbd80e12a43e6851e2d7
+  version: unknown
+  virtual_path: plugins/design-practice/skills/dataviz
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .claude/skills/dataviz
+  - .claude/skills/dataviz/SKILL.md
+  - .claude/skills/dataviz/references/chart-rules.md
+  - .claude/skills/dataviz/references/editorial-dataviz.md
+  - .claude/skills/dataviz/references/tufte-principles.md
+  deployed_file_hashes:
+    .claude/skills/dataviz/SKILL.md: sha256:a237fb7f7c71e25505c55ca5f1229e7227406465853ae2dce34743b4812448c2
+    .claude/skills/dataviz/references/chart-rules.md: sha256:eac45b1076c53ea85bdc2d84a0d6815aed035ed214e7588627ab98bc4712d187
+    .claude/skills/dataviz/references/editorial-dataviz.md: sha256:24a3fc9ecf7514acf864da31942737c58bfe1575d9cfb27bfb0f4dfcb88a71ad
+    .claude/skills/dataviz/references/tufte-principles.md: sha256:94699e8143df2a7f096327abc1c656b72d0728997387e768f6fcb9017da284ee
+  content_hash: sha256:a9d374923e0ab0f58adb3109320b0797fb39674c7c6b16172000a520eca3091b
+- repo_url: design-machines-studio/depot
+  materialization_repo_url: Design-Machines-Studio/depot
+  name: identity
+  host: github.com
+  resolved_commit: ab34ce69fb965cb16004bbd80e12a43e6851e2d7
+  resolved_ref: ab34ce69fb965cb16004bbd80e12a43e6851e2d7
+  version: unknown
+  virtual_path: plugins/design-practice/skills/identity
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .claude/skills/identity
+  - .claude/skills/identity/SKILL.md
+  - .claude/skills/identity/references/anti-patterns.md
+  - .claude/skills/identity/references/color-systems.md
+  - .claude/skills/identity/references/evaluation-framework.md
+  - .claude/skills/identity/references/masters-philosophy.md
+  - .claude/skills/identity/references/systems-thinking.md
+  deployed_file_hashes:
+    .claude/skills/identity/SKILL.md: sha256:07779195ddcc5544c3f90c3b0dc5a97396f21a0ee1b94823e9c629ad23cd0de3
+    .claude/skills/identity/references/anti-patterns.md: sha256:68e637729284de3820f7c770b58d04d73a36eb8a524275dd617a3f148bb9d110
+    .claude/skills/identity/references/color-systems.md: sha256:fd64a55a94bc99a7e6d8cd016f414c31fecc4429d2915179221f3387f48804c5
+    .claude/skills/identity/references/evaluation-framework.md: sha256:10ffe5a8cc6ab78f5c3dada2c3fbe081fea6ddd9acc542a7c19831487dac6ca4
+    .claude/skills/identity/references/masters-philosophy.md: sha256:029473e4eb7fe5968d12dbe0e68f8c625367c1e8a7c1e4defe2c1b320da8c487
+    .claude/skills/identity/references/systems-thinking.md: sha256:1b716b0e5e43f43f895fb7acdf6dd7ffc9cc922ea946725cd54a7ba57a7023f0
+  content_hash: sha256:8e52bd707ae43cf19811b6faaadb456a80cad622983f086c682b158561461a60
+- repo_url: design-machines-studio/depot
+  materialization_repo_url: Design-Machines-Studio/depot
+  name: layout
+  host: github.com
+  resolved_commit: ab34ce69fb965cb16004bbd80e12a43e6851e2d7
+  resolved_ref: ab34ce69fb965cb16004bbd80e12a43e6851e2d7
+  version: unknown
+  virtual_path: plugins/design-practice/skills/layout
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .claude/skills/layout
+  - .claude/skills/layout/SKILL.md
+  - .claude/skills/layout/references/anti-patterns.md
+  - .claude/skills/layout/references/context-questionnaire.md
+  - .claude/skills/layout/references/digital-editorial.md
+  - .claude/skills/layout/references/editorial-design.md
+  - .claude/skills/layout/references/grid-systems.md
+  deployed_file_hashes:
+    .claude/skills/layout/SKILL.md: sha256:f184bb628a5057bd616081aa460b2a3bedb6337b2de2c44ca2a6f7e4a0c3f42a
+    .claude/skills/layout/references/anti-patterns.md: sha256:63d86c373a24e8c684ec39878eba73f53aeab0fc787e1b2b9f1af7773e1082c4
+    .claude/skills/layout/references/context-questionnaire.md: sha256:bf5bc3a57e029ec8c74e451b9bddf75cdd463d2a29d6bce171733927f2342e25
+    .claude/skills/layout/references/digital-editorial.md: sha256:e8c8f6eb21d999253f511e7ffbe709cc06e72073a61b811a7c97190ef6a480d7
+    .claude/skills/layout/references/editorial-design.md: sha256:22649686255f5edaff8004a11b6eb407ea2ec4daa5023339aa7fe9b21ace4bdd
+    .claude/skills/layout/references/grid-systems.md: sha256:40866052b6ee7d012f004b6da3fa8b65e220b53005b22316e288ebfe4b419c4d
+  content_hash: sha256:82a679fabd9108f72c55f82edfef62a8c6301620dbb07ce77eee97246a1f467c
+deployments:
+- kind: project-relative
+  target: claude
+  value: .claude/skills/colour
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/colour/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:1dd88ac2b8f6697b75f81e282d5d2fda29c81328c72f752a7c92098c85604dff
+- kind: project-relative
+  target: claude
+  value: .claude/skills/colour/references/data-encoding.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:9578d597c11319166cd5e5ed31675bdbd9839b16a7f1e96279cf33c88977fd0a
+- kind: project-relative
+  target: claude
+  value: .claude/skills/colour/references/implementation.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:6934ca5474b12d0b0722c562f8c6be1ac7148c0a3aceed4fe231219d6936f767
+- kind: project-relative
+  target: claude
+  value: .claude/skills/colour/scripts/check-contrast.py
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:0675294fa0506afc07eb971d6dbbbac955ed90803c25ffef142542c244a80784
+- kind: project-relative
+  target: claude
+  value: .claude/skills/dataviz
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/dataviz
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/dataviz
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/dataviz/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/dataviz
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/dataviz
+  content_hash: sha256:a237fb7f7c71e25505c55ca5f1229e7227406465853ae2dce34743b4812448c2
+- kind: project-relative
+  target: claude
+  value: .claude/skills/dataviz/references/chart-rules.md
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/dataviz
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/dataviz
+  content_hash: sha256:eac45b1076c53ea85bdc2d84a0d6815aed035ed214e7588627ab98bc4712d187
+- kind: project-relative
+  target: claude
+  value: .claude/skills/dataviz/references/editorial-dataviz.md
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/dataviz
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/dataviz
+  content_hash: sha256:24a3fc9ecf7514acf864da31942737c58bfe1575d9cfb27bfb0f4dfcb88a71ad
+- kind: project-relative
+  target: claude
+  value: .claude/skills/dataviz/references/tufte-principles.md
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/dataviz
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/dataviz
+  content_hash: sha256:94699e8143df2a7f096327abc1c656b72d0728997387e768f6fcb9017da284ee
+- kind: project-relative
+  target: claude
+  value: .claude/skills/design-direction
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/design-direction/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:11a3572b8bee78f2c5b7237b2c5b91f3f7cd5fd298242e820242ac8641abfe2a
+- kind: project-relative
+  target: claude
+  value: .claude/skills/design-direction/references/ai-tells.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:38b60016d9e46a0be44de88a4a3fd3a897776c1b665687583c1079d820450357
+- kind: project-relative
+  target: claude
+  value: .claude/skills/identity
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/identity
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/identity
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/identity/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/identity
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/identity
+  content_hash: sha256:07779195ddcc5544c3f90c3b0dc5a97396f21a0ee1b94823e9c629ad23cd0de3
+- kind: project-relative
+  target: claude
+  value: .claude/skills/identity/references/anti-patterns.md
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/identity
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/identity
+  content_hash: sha256:68e637729284de3820f7c770b58d04d73a36eb8a524275dd617a3f148bb9d110
+- kind: project-relative
+  target: claude
+  value: .claude/skills/identity/references/color-systems.md
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/identity
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/identity
+  content_hash: sha256:fd64a55a94bc99a7e6d8cd016f414c31fecc4429d2915179221f3387f48804c5
+- kind: project-relative
+  target: claude
+  value: .claude/skills/identity/references/evaluation-framework.md
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/identity
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/identity
+  content_hash: sha256:10ffe5a8cc6ab78f5c3dada2c3fbe081fea6ddd9acc542a7c19831487dac6ca4
+- kind: project-relative
+  target: claude
+  value: .claude/skills/identity/references/masters-philosophy.md
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/identity
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/identity
+  content_hash: sha256:029473e4eb7fe5968d12dbe0e68f8c625367c1e8a7c1e4defe2c1b320da8c487
+- kind: project-relative
+  target: claude
+  value: .claude/skills/identity/references/systems-thinking.md
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/identity
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/identity
+  content_hash: sha256:1b716b0e5e43f43f895fb7acdf6dd7ffc9cc922ea946725cd54a7ba57a7023f0
+- kind: project-relative
+  target: claude
+  value: .claude/skills/layout
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/layout
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/layout
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/layout/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/layout
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/layout
+  content_hash: sha256:f184bb628a5057bd616081aa460b2a3bedb6337b2de2c44ca2a6f7e4a0c3f42a
+- kind: project-relative
+  target: claude
+  value: .claude/skills/layout/references/anti-patterns.md
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/layout
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/layout
+  content_hash: sha256:63d86c373a24e8c684ec39878eba73f53aeab0fc787e1b2b9f1af7773e1082c4
+- kind: project-relative
+  target: claude
+  value: .claude/skills/layout/references/context-questionnaire.md
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/layout
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/layout
+  content_hash: sha256:bf5bc3a57e029ec8c74e451b9bddf75cdd463d2a29d6bce171733927f2342e25
+- kind: project-relative
+  target: claude
+  value: .claude/skills/layout/references/digital-editorial.md
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/layout
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/layout
+  content_hash: sha256:e8c8f6eb21d999253f511e7ffbe709cc06e72073a61b811a7c97190ef6a480d7
+- kind: project-relative
+  target: claude
+  value: .claude/skills/layout/references/editorial-design.md
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/layout
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/layout
+  content_hash: sha256:22649686255f5edaff8004a11b6eb407ea2ec4daa5023339aa7fe9b21ace4bdd
+- kind: project-relative
+  target: claude
+  value: .claude/skills/layout/references/grid-systems.md
+  runtime: null
+  scope: project
+  owners:
+  - design-machines-studio/depot/plugins/design-practice/skills/layout
+  active_owner: design-machines-studio/depot/plugins/design-practice/skills/layout
+  content_hash: sha256:40866052b6ee7d012f004b6da3fa8b65e220b53005b22316e288ebfe4b419c4d
+- kind: project-relative
+  target: claude
+  value: .claude/skills/presentation
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/presentation/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:eeac2b388cea16138babef797ca166613c55b10462c56cef576ccb7b94a0caf6
+- kind: project-relative
+  target: claude
+  value: .claude/skills/presentation/references/structures.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:8b55784330928d1d0d8476a704a34a5c8ed2072937e16d08611f0ae4e086c810
+- kind: project-relative
+  target: claude
+  value: .claude/skills/typography
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/typography/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:9893d791b5ecbfc10b4b80c5737e1946a1b45a99f6bb05d75a1314b857426999
+- kind: project-relative
+  target: claude
+  value: .claude/skills/typography/references/craft-details.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:6160e15a5263b0eb8287fd1d4c6a533c8b7751de1561f958c71a8a94f434fb84
+- kind: project-relative
+  target: claude
+  value: .claude/skills/typography/references/type-scale.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:e9f13479706b8db5e8accade7d42a48d1c367ae806bf8ee76fd414ff28dca225
+- kind: project-relative
+  target: claude
+  value: .claude/skills/typography/references/web-typography.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:4457440d1d40aad905662c464411f3a30e6e20caece1c60e62a5e639d8ac3104
+- kind: project-relative
+  target: claude
+  value: .claude/skills/typography/scripts/check-type.py
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:2e17ca142595b4b354e5d4716b93d3ba3244acc19781b61d8e29cdc00d722617
+local_deployed_files:
+- .claude/skills/colour
+- .claude/skills/colour/SKILL.md
+- .claude/skills/colour/references/data-encoding.md
+- .claude/skills/colour/references/implementation.md
+- .claude/skills/colour/scripts/check-contrast.py
+- .claude/skills/design-direction
+- .claude/skills/design-direction/SKILL.md
+- .claude/skills/design-direction/references/ai-tells.md
+- .claude/skills/presentation
+- .claude/skills/presentation/SKILL.md
+- .claude/skills/presentation/references/structures.md
+- .claude/skills/typography
+- .claude/skills/typography/SKILL.md
+- .claude/skills/typography/references/craft-details.md
+- .claude/skills/typography/references/type-scale.md
+- .claude/skills/typography/references/web-typography.md
+- .claude/skills/typography/scripts/check-type.py
+local_deployed_file_hashes:
+  .claude/skills/colour/SKILL.md: sha256:1dd88ac2b8f6697b75f81e282d5d2fda29c81328c72f752a7c92098c85604dff
+  .claude/skills/colour/references/data-encoding.md: sha256:9578d597c11319166cd5e5ed31675bdbd9839b16a7f1e96279cf33c88977fd0a
+  .claude/skills/colour/references/implementation.md: sha256:6934ca5474b12d0b0722c562f8c6be1ac7148c0a3aceed4fe231219d6936f767
+  .claude/skills/colour/scripts/check-contrast.py: sha256:0675294fa0506afc07eb971d6dbbbac955ed90803c25ffef142542c244a80784
+  .claude/skills/design-direction/SKILL.md: sha256:11a3572b8bee78f2c5b7237b2c5b91f3f7cd5fd298242e820242ac8641abfe2a
+  .claude/skills/design-direction/references/ai-tells.md: sha256:38b60016d9e46a0be44de88a4a3fd3a897776c1b665687583c1079d820450357
+  .claude/skills/presentation/SKILL.md: sha256:eeac2b388cea16138babef797ca166613c55b10462c56cef576ccb7b94a0caf6
+  .claude/skills/presentation/references/structures.md: sha256:8b55784330928d1d0d8476a704a34a5c8ed2072937e16d08611f0ae4e086c810
+  .claude/skills/typography/SKILL.md: sha256:9893d791b5ecbfc10b4b80c5737e1946a1b45a99f6bb05d75a1314b857426999
+  .claude/skills/typography/references/craft-details.md: sha256:6160e15a5263b0eb8287fd1d4c6a533c8b7751de1561f958c71a8a94f434fb84
+  .claude/skills/typography/references/type-scale.md: sha256:e9f13479706b8db5e8accade7d42a48d1c367ae806bf8ee76fd414ff28dca225
+  .claude/skills/typography/references/web-typography.md: sha256:4457440d1d40aad905662c464411f3a30e6e20caece1c60e62a5e639d8ac3104
+  .claude/skills/typography/scripts/check-type.py: sha256:2e17ca142595b4b354e5d4716b93d3ba3244acc19781b61d8e29cdc00d722617
