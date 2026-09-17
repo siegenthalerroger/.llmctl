@@ -45,8 +45,8 @@ Usage:
 
   --since    the commit range to lint is REF..HEAD (CI passes the PR base)
   --subject  an extra subject to lint, e.g. the pull request title
-  --offline  skip gates that need the network (the pack gate's frozen install
-             fetches the pinned upstreams)
+  --offline  skip gates that need the network (the pack gate installs each
+             package's pinned upstreams)
 
 Exit codes: 0 all gates pass or were skipped, 1 one or more failed.
 """
@@ -68,7 +68,7 @@ import gates as gatelib  # noqa: E402
 import gen_notices  # noqa: E402
 import pack_marketplace  # noqa: E402
 import workspace  # noqa: E402
-from gates import Context, Gate, Need, Outcome, fail, ok, skip  # noqa: E402
+from gates import Context, Gate, Need, Outcome, fail, ok  # noqa: E402
 
 
 def sh(args, cwd) -> subprocess.CompletedProcess:
@@ -131,8 +131,9 @@ def gate_lockfiles(ctx: Context) -> Outcome:
                             % (package.directory, ", ".join(bad)))
         lock = workspace.read_lock(lock_path)
         if lock is None:
-            problems.append("%s: no apm.lock.yaml (a frozen install needs one even "
-                            "with no dependencies)" % package.directory)
+            problems.append("%s: no apm.lock.yaml -- packing installs from it, so "
+                            "every package needs one even with no dependencies"
+                            % package.directory)
             continue
         locked = workspace.locked_of(lock)
         for key in sorted(set(pins) | set(locked)):
