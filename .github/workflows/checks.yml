@@ -1,13 +1,15 @@
+# Every gate, on every pull request and once a week.
 name: checks
 
 on:
   pull_request:
-  push:
-    branches: [main]
   schedule:
     # Monday 06:17 UTC. Off the hour to reduce queueing.
     - cron: "17 6 * * 1"
   workflow_dispatch:
+
+# A push to main runs the same gates inside release.yml, immediately before the
+# release itself, so it is not duplicated here.
 
 permissions:
   contents: read
@@ -21,39 +23,58 @@ jobs:
     name: workspace gates
     runs-on: ubuntu-latest
     env:
-      # Ensure apm commands use authenticated Github API calls.
+      # Ensure apm commands use authenticated GitHub API calls.
       GITHUB_APM_PAT: ${{ github.token }}
     steps:
       - name: Check out the workspace
         uses: actions/checkout@v5
         with:
           path: .llmctl
-          # The parity gate dates each tracked file from its last commit, and
-          # release tags are the baseline for everything version-shaped.
+          # The commit gate reads the range back to the pull request's base, and
+          # the pack gate dates each package from its last release tag.
           fetch-depth: 0
+
+      - name: Install uv
+        # The scripts declare their own dependencies in a PEP 723 header; uv
+        # resolves them per script, so there is nothing to install here.
+        # Pinned to a full version on purpose: setup-uv stopped publishing
+        # major and minor tags at v8, so `@v10` does not resolve.
+        uses: astral-sh/setup-uv@v10.1.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: ".llmctl/scripts/*.py"
 
       - name: Install the APM CLI
         id: apm
         uses: microsoft/apm-action@v1
         with:
           setup-only: true
-          # Ensure breaking changes are caught early.
+          # Deliberately floating: the gates should fail when a new APM breaks
+          # this repo, rather than the next release finding out.
           apm-version: latest
 
-      - name: Deploy from the lockfile
-        # Targets are explicit: the repo carries signals for several harnesses.
+      - name: Deploy this repo's own primitives from the lockfile
+        # Feeds no gate. The packages are covered by the pack gate; this is the
+        # root `.apm/` -- the hook and the meta skills -- which nothing else
+        # installs.
         run: apm install --frozen --target claude,codex,agent-skills
         working-directory: .llmctl
 
-      - name: Run the workspace gates
-        # The same entry point a contributor runs before opening a PR. Every
-        # gate in it reads this repo only; the marketplace-facing ones live in
-        # release-check and run from release.yml, which checks that repo out.
-        run: apm run check
+      - name: Run the gates
+        # The same entry point a contributor runs before opening a pull request.
         working-directory: .llmctl
         env:
-          # The parity gate runs the drift audit, which reads the GitHub API.
+          SINCE: ${{ github.event.pull_request.base.sha }}
+          SUBJECT: ${{ github.event.pull_request.title }}
+          # The pack gate installs the pinned upstreams.
           GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          args=(--repo .)
+          # No base means no range to lint: on a schedule or a manual run the
+          # commit gate is skipped, and says so, rather than inventing one.
+          if [ -n "$SINCE" ]; then args+=(--since "$SINCE" --subject "$SUBJECT"); fi
+          uv run scripts/check.py "${args[@]}"
 
       - name: Say which APM ran
         # `apm-version: latest` is the point of the scheduled run, so a red

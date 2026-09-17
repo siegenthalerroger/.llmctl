@@ -170,8 +170,10 @@ def main(repo: Path = workspace.REPO_OPTION,
     client = githublib.GitHub(token) if token else None
     if not client:
         print("[note] no GitHub token; release notes will carry commits only")
-    notes = {p.name: release_notes.build(p, *(workspace.remote_slug(ws) if client else ("", "")),
-                                         client=client) for p in plans}
+    owner, repo_name = workspace.remote_slug(ws) if client else ("", "")
+    pulls: dict = {}
+    notes = {p.name: release_notes.build(p, owner, repo_name, client=client, cache=pulls)
+             for p in plans}
 
     if dry_run:
         for plan in plans:
