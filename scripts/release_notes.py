@@ -1,0 +1,102 @@
+"""Release notes for one package, from its commits and the pull requests behind them.
+
+Two sources, because they answer different questions. The commits say what
+changed, grouped by conventional-commit type -- that is the whole job the type
+still does now that it sizes no version. The pull request says why, in prose
+someone wrote for a reader: the section under a `## Release notes` heading in
+the pull request body, and only that section, so ordinary review chatter in the
+same body stays out of the published notes.
+
+A commit with no pull request, or a body with no such heading, contributes its
+subject line and nothing more. That is the common case and it is fine.
+"""
+from __future__ import annotations
+
+import re
+
+import commits as commitlib
+
+# Ordered, because the order is the message: what breaks, then what is new,
+# then what is fixed, then everything else.
+GROUPS = (
+    ("breaking", "Breaking changes"),
+    ("feat", "Features"),
+    ("fix", "Fixes"),
+    ("docs", "Documentation"),
+    ("other", "Other changes"),
+)
+
+SECTION_RE = re.compile(r"(?mis)^##\s+release\s+notes\s*$\n(.*?)(?=^##\s|\Z)")
+
+
+def extract_release_notes(body: str) -> str:
+    """The `## Release notes` section of a pull request body, or ""."""
+    match = SECTION_RE.search(body or "")
+    return match.group(1).strip() if match else ""
+
+
+def group_of(commit) -> str:
+    if commitlib.breaking(commit):
+        return "breaking"
+    parsed = commitlib.parse(commit.subject)
+    if parsed and parsed.type in ("feat", "fix", "docs"):
+        return parsed.type
+    return "other"
+
+
+def build(plan, owner: str = "", repo: str = "", client=None, log=print) -> str:
+    """The notes body for one release plan.
+
+    `client` is optional: without a token there is no pull request lookup, so
+    the notes are the commit list alone rather than nothing.
+    """
+    lines = []
+    since = plan.previous or "the start of the package"
+    lines.append("Commits in `packages/%s` since %s." % (plan.directory, since))
+    lines.append("")
+
+    grouped = {key: [] for key, _ in GROUPS}
+    for commit in plan.commits:
+        grouped[group_of(commit)].append(commit)
+    for key, heading in GROUPS:
+        if not grouped[key]:
+            continue
+        lines.append("### %s" % heading)
+        lines.append("")
+        for commit in grouped[key]:
+            lines.append("- %s (`%s`)" % (commit.subject, commit.sha[:7]))
+        lines.append("")
+
+    sections = pull_request_sections(plan, owner, repo, client, log=log)
+    if sections:
+        lines.append("## Release notes")
+        lines.append("")
+        for number, title, text in sections:
+            lines.append("### #%d %s" % (number, title))
+            lines.append("")
+            lines.append(text)
+            lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def pull_request_sections(plan, owner: str, repo: str, client, log=print):
+    """(number, title, text) for every distinct PR behind these commits that
+    carries a `## Release notes` section."""
+    if not client or not owner or not repo:
+        return []
+    seen, sections = set(), []
+    for commit in plan.commits:
+        try:
+            pulls = client.pulls_for_commit(owner, repo, commit.sha)
+        except Exception as exc:                       # notes must not fail a release
+            log("[notes] could not read pull requests for %s: %s" % (commit.sha[:7], exc))
+            continue
+        for pull in pulls:
+            number = pull.get("number")
+            if number in seen:
+                continue
+            seen.add(number)
+            text = extract_release_notes(pull.get("body") or "")
+            if text:
+                sections.append((number, str(pull.get("title") or ""), text))
+    return sections

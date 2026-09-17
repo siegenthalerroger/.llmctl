@@ -1,20 +1,21 @@
-#!/usr/bin/env python3
-"""Shared provenance/licence model for check-licenses.py and gen-notices.py.
+"""Shared provenance/licence model for the gates, the notices and the drift audit.
 
 One parse of `metadata.provenance`, one obligation table, one path->default-licence
-rule. check-licenses.py, gen-notices.py and the meta-upstream-sync drift audit all
-import from here, so they cannot disagree about what a file claims. The block is
-walked line by line rather than matched with one spanning regex: the object form
-nests, and a regex that tries to span it matches nothing, dropping the file from
-every consumer at once with no error.
+rule. check_licenses.py, gen_notices.py, pack_marketplace.py and check_updates.py
+all import from here, so they cannot disagree about what a file claims.
 
-Deliberately dependency-free, matching pack-marketplace.py: it reads the handful of
-keys it needs rather than pulling in a YAML parser, and every form it does not
-recognise is reported rather than skipped.
+The frontmatter is read with python-frontmatter (YAML), and a block that yields
+no entries -- or an entry with no `url` -- is reported as malformed rather than
+skipped: a file that silently stops being tracked drops out of every consumer at
+once with no error anywhere, and that is the one failure this module exists to
+make loud.
 """
-import io
+from __future__ import annotations
+
 import os
-import re
+from pathlib import Path
+
+import frontmatter
 
 # --- The licence model -----------------------------------------------------
 
@@ -55,7 +56,7 @@ PERMITTED_OUTBOUND = {
     # with no permitted outbound deliberately, to enforce re-evaluation of LICENSE.md
     # if any more than `inspiration-only` is used.
     "W3C-20150513": (),
-    # No grant of rights at all — nothing is permitted. Such a source is usable
+    # No grant of rights at all -- nothing is permitted. Such a source is usable
     # only at a fidelity that attaches no obligation, i.e. cite it, never copy it.
     # `Proprietary` covers the vendor documentation sites: reproducing their
     # wording has no licensable remedy, so the only fix is rewriting.
@@ -68,7 +69,7 @@ KNOWN_LICENSES = tuple(PERMITTED_OUTBOUND)
 # Files carrying steering content. Everything else in the tree is code/config.
 # `.md` alone, deliberately: the customization types (`*.agent.md`,
 # `*.prompt.md`, `*.instructions.md`, `SKILL.md`) are all Markdown, and so are
-# the `references/` files they link to — which is where a reproduced spec table
+# the `references/` files they link to -- which is where a reproduced spec table
 # is most likely to land. Listing the four types would exclude exactly those.
 CONTENT_SUFFIXES = (".md",)
 
@@ -78,136 +79,120 @@ CONTENT_SUFFIXES = (".md",)
 CUSTOMIZATION_NAMES = ("SKILL.md",)
 CUSTOMIZATION_SUFFIXES = (".agent.md", ".instructions.md", ".prompt.md")
 
+PROVENANCE_KEYS = ("adaptedFrom", "authoritativeSpec")
 
-def is_customization(path):
+
+def is_customization(path) -> bool:
     """True for the four primitive-defining file types."""
-    name = os.path.basename(path)
+    name = os.path.basename(str(path))
     return name in CUSTOMIZATION_NAMES or name.endswith(CUSTOMIZATION_SUFFIXES)
 
 
-def default_license_for(path):
+def default_license_for(path) -> str:
     """The repo default for a path, before any per-file `license:` override."""
-    return DEFAULT_CONTENT if path.replace("\\", "/").endswith(".md") else DEFAULT_CODE
+    return DEFAULT_CONTENT if str(path).replace("\\", "/").endswith(".md") else DEFAULT_CODE
 
 
 # --- Frontmatter parsing ---------------------------------------------------
 
 
-def frontmatter(text):
-    """Return the raw frontmatter block, or None when the file has none."""
-    if not text.startswith("---"):
-        return None
-    lines = text.split("\n")
-    if lines[0].strip() != "---":
-        return None
-    for i in range(1, len(lines)):
-        if lines[i].strip() == "---":
-            return "\n".join(lines[1:i])
-    return None
+def _entry(url, form, license=None, fidelity=None, took=None) -> dict:
+    return {"url": url, "license": license, "fidelity": fidelity, "took": took,
+            "form": form}
 
 
-def scalar(block, key):
-    """A top-level scalar field's value, unquoted. None when absent."""
-    m = re.search(r"(?m)^%s:[ \t]*(.*)$" % re.escape(key), block)
-    if not m:
-        return None
-    return m.group(1).strip().strip("\"'") or None
+def _entries(value) -> list[dict]:
+    """Normalise one provenance key's value into entry dicts.
 
-
-def _parse_block(lines, start, key):
-    """Parse one provenance key into entry dicts. Returns (entries, next_index).
-
-    The block ends at the first line indented no deeper than the key. A spanning
-    regex would match nothing on the nested form and drop the file silently --
-    from this parse, and so from every tool that reads it.
+    Three forms are accepted, as documented in CONTRIBUTING.md: a URL string, a
+    list of URL strings, or a list of objects carrying `url` plus any of
+    `license` / `fidelity` / `took`. Anything else yields an entry with no url,
+    which the caller reports as malformed.
     """
-    key_indent = len(lines[start]) - len(lines[start].lstrip())
-    inline = lines[start].split(":", 1)[1].strip()
+    if isinstance(value, str):
+        return [_entry(value.strip() or None, "string")]
+    if not isinstance(value, list):
+        return [_entry(None, "object")]
     entries = []
-
-    if re.match(r'^["\']?https?://', inline):
-        entries.append({"url": inline.strip("\"'"), "license": None,
-                        "fidelity": None, "took": None, "form": "string"})
-        return entries, start + 1
-
-    i = start + 1
-    while i < len(lines):
-        line = lines[i]
-        if not line.strip():
-            i += 1
-            continue
-        if len(line) - len(line.lstrip()) <= key_indent:
-            break
-        m = re.match(r'^[ \t]*-[ \t]*url[ \t]*:[ \t]*["\']?(https?://[^"\'\s]+)', line)
-        if m:
-            entries.append({"url": m.group(1), "license": None,
-                            "fidelity": None, "took": None, "form": "object"})
-        elif re.match(r'^[ \t]*-[ \t]*["\']?https?://', line):
-            url = re.sub(r"^[ \t]*-[ \t]*", "", line).strip().strip("\"'")
-            entries.append({"url": url, "license": None,
-                            "fidelity": None, "took": None, "form": "string"})
-        elif re.match(r"^[ \t]*-[ \t]*$", line):
-            # A dash with the url on a following line: not a form we emit, but
-            # accepting it silently would hide a malformed entry.
-            entries.append({"url": None, "license": None,
-                            "fidelity": None, "took": None, "form": "object"})
+    for item in value:
+        if isinstance(item, str):
+            entries.append(_entry(item.strip() or None, "string"))
+        elif isinstance(item, dict):
+            url = item.get("url")
+            entries.append(_entry(
+                str(url).strip() if url else None, "object",
+                license=_text(item.get("license")),
+                fidelity=_text(item.get("fidelity")),
+                took=_text(item.get("took"))))
         else:
-            for field in ("license", "fidelity", "took"):
-                m = re.match(r"^[ \t]*%s[ \t]*:[ \t]*(.+?)[ \t]*$" % field, line)
-                if m and entries:
-                    entries[-1][field] = m.group(1).strip().strip("\"'")
-                    break
-        i += 1
-    return entries, i
+            entries.append(_entry(None, "object"))
+    return entries
 
 
-def parse(path):
+def _text(value):
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
+
+
+def parse(path) -> dict:
     """Read one file's provenance.
 
     Returns a dict with `path`, `declared` (top-level `license:` or None),
-    `effective` (declared or the path default), and `entries` — one record per
-    upstream URL, tagged with the provenance key it came from.
+    `effective` (declared or the path default), `entries` -- one record per
+    upstream URL, tagged with the provenance key it came from -- and
+    `malformed`, the problems a consumer must not skip past.
     """
-    text = io.open(path, encoding="utf-8").read()
-    block = frontmatter(text)
     result = {
-        "path": path,
+        "path": str(path),
         "declared": None,
         "effective": default_license_for(path),
         "entries": [],
         "malformed": [],
     }
-    if block is None:
+    with open(path, encoding="utf-8") as handle:
+        text = handle.read()
+    if not text.startswith("---"):
+        return result
+    try:
+        metadata = frontmatter.loads(text).metadata
+    except Exception as exc:  # YAML errors surface as several exception types
+        result["malformed"].append("frontmatter does not parse as YAML: %s"
+                                   % str(exc).split("\n")[0])
+        return result
+    if not isinstance(metadata, dict):
         return result
 
-    result["declared"] = scalar(block, "license")
-    if result["declared"]:
-        result["effective"] = result["declared"]
+    declared = _text(metadata.get("license"))
+    if declared:
+        result["declared"] = declared
+        result["effective"] = declared
 
-    lines = block.split("\n")
-    i = 0
-    while i < len(lines):
-        m = re.match(r"^[ \t]*(adaptedFrom|authoritativeSpec)[ \t]*:", lines[i])
-        if not m:
-            i += 1
+    provenance = (metadata.get("metadata") or {}).get("provenance") \
+        if isinstance(metadata.get("metadata"), dict) else None
+    if not isinstance(provenance, dict):
+        return result
+
+    for key in PROVENANCE_KEYS:
+        if key not in provenance:
             continue
-        key = m.group(1)
-        entries, i = _parse_block(lines, i, key)
+        entries = _entries(provenance.get(key))
         if not entries:
             result["malformed"].append("`%s` yields no entries" % key)
-        for e in entries:
-            if not e["url"]:
+        for entry in entries:
+            if not entry["url"]:
                 result["malformed"].append("`%s` has an entry with no url" % key)
                 continue
-            e["kind"] = key
-            result["entries"].append(e)
+            entry["kind"] = key
+            result["entries"].append(entry)
     return result
 
 
-def effective_fidelity(entry):
+def effective_fidelity(entry: dict) -> str:
     """The fidelity to judge an entry by, applying the documented defaults.
 
-    A bare `authoritativeSpec` URL asserts a citation — nothing reproduced. A bare
+    A bare `authoritativeSpec` URL asserts a citation -- nothing reproduced. A bare
     `adaptedFrom` URL asserts whole-file derivation.
     """
     if entry["fidelity"]:
@@ -217,26 +202,28 @@ def effective_fidelity(entry):
     return "largely-derived"
 
 
+SKIP_DIRS = {".git", "apm_modules", "build", "node_modules", "__pycache__",
+             ".claude", ".agents", ".codex", "LICENSES"}
+
+
 def iter_files(root):
     """Every authored content file under `packages/` and `.apm/`.
 
     Repo-root docs (README, CONTRIBUTING, AGENTS, TODO) are covered by the same
     default rule but carry no provenance, so there is nothing to check on them.
 
-    Every name in `skip` holds copies rather than sources — APM dependencies, the
-    deploy mirrors `apm install` writes next to a package, and build scratch. A
-    vendored upstream carries its own `adaptedFrom` and a deployed mirror carries
-    the same one twice, so walking either would attribute an upstream's
-    provenance to this repository.
+    Every name in `SKIP_DIRS` holds copies rather than sources -- APM
+    dependencies, the deploy mirrors `apm install` writes next to a package, and
+    build scratch. A vendored upstream carries its own `adaptedFrom` and a
+    deployed mirror carries the same one twice, so walking either would
+    attribute an upstream's provenance to this repository.
     """
-    skip = {".git", "apm_modules", "build", "node_modules", "__pycache__",
-            ".claude", ".agents", "LICENSES"}
     for base in ("packages", ".apm"):
-        top = os.path.join(root, base)
-        if not os.path.isdir(top):
+        top = Path(root) / base
+        if not top.is_dir():
             continue
         for dirpath, dirnames, filenames in os.walk(top):
-            dirnames[:] = sorted(d for d in dirnames if d not in skip)
+            dirnames[:] = sorted(d for d in dirnames if d not in SKIP_DIRS)
             for name in sorted(filenames):
                 if name.endswith(CONTENT_SUFFIXES):
                     yield os.path.join(dirpath, name)
