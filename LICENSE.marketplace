@@ -1,0 +1,41 @@
+# Licence
+
+Copyright (c) 2026 Roger Siegenthaler
+
+This repository holds **generated** plugin bundles packed from
+[`.llmctl`](https://github.com/siegenthalerroger/.llmctl), and carries that
+repository's split licence unchanged:
+
+| What | Licence | Full text |
+| --- | --- | --- |
+| **Documentation and steering content** — every `*.md` file inside a bundle: skills, agents, prompts, instructions, `references/` | **CC-BY-SA-4.0** | [LICENSES/CC-BY-SA-4.0.txt](LICENSES/CC-BY-SA-4.0.txt) |
+| **Everything else** — scripts, hooks, and all `*.py`, `*.ps1`, `*.json`, `*.yml` files | **MIT** | [LICENSES/MIT.txt](LICENSES/MIT.txt) |
+
+The SPDX expression for the repository as a whole is `MIT AND CC-BY-SA-4.0`.
+
+## What ShareAlike means here
+
+The content half is copyleft. If you adapt a skill, an agent, or any other `*.md`
+file from a bundle in this repository, your adaptation must be released under
+CC-BY-SA-4.0 as well, with attribution and an indication that you changed it.
+Using the content as-is, including commercially, is unrestricted.
+
+The MIT half carries no such condition — copy the scripts wherever you like, keep
+the notice.
+
+## Per-file exceptions and third-party content
+
+Two things in a bundle are **not** covered by the table above:
+
+- **Files with their own `license:` frontmatter field.** A file may override the
+  default for its path where it adapts third-party content whose terms the default
+  cannot satisfy. The frontmatter declaration always wins.
+- **Vendored upstream skills.** Bundles carry skills consumed by `.llmctl` as
+  pinned APM dependencies. Those keep their own licences — MIT and Apache-2.0
+  ([LICENSES/Apache-2.0.txt](LICENSES/Apache-2.0.txt)). Nothing here relicenses them.
+
+Both are enumerated, with attribution and statements of change, in
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). Each bundle additionally ships
+its own `LICENSE`, a `LICENSES/` directory holding only the texts that bundle
+actually needs, and an `apm.lock.yaml` recording the upstream `repo_url`, resolved
+commit, and a SHA-256 for every file it carries.
