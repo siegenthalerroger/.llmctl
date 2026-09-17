@@ -22,7 +22,9 @@ Start with [Before you start](#before-you-start), then choose your setup:
 | `llmctl-product` | Writing epic and feature PRDs |
 | `llmctl-design` | Design direction, colour, typography and presentations |
 
-`core` is the general baseline. Add `workflow` for code work, and the domain plugins where they fit. Each plugin has its own version; the catalogue in [apm.yml](apm.yml) lists the published versions.
+`core` is the general baseline. Add `workflow` for code work, and the domain plugins where they fit.
+
+Each plugin carries a calendar version, `YYYY.M.N` — the year, the month, and which release of that package it was within the month. The catalogue in [apm.yml](apm.yml) lists what is published.
 
 ## Before you start
 

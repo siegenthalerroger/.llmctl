@@ -74,7 +74,6 @@ import gen_notices  # noqa: E402
 import provenance  # noqa: E402
 import versions as versionlib  # noqa: E402
 import workspace  # noqa: E402
-from workspace import git  # noqa: E402
 
 # What a marketplace tree may contain at the top level. Anything else is
 # deleted by sync(): the repo holds generated output and nothing authored.
