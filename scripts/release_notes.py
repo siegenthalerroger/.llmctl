@@ -44,11 +44,14 @@ def group_of(commit) -> str:
     return "other"
 
 
-def build(plan, owner: str = "", repo: str = "", client=None, log=print) -> str:
+def build(plan, owner: str = "", repo: str = "", client=None, log=print,
+          cache: dict | None = None) -> str:
     """The notes body for one release plan.
 
     `client` is optional: without a token there is no pull request lookup, so
-    the notes are the commit list alone rather than nothing.
+    the notes are the commit list alone rather than nothing. `cache` is shared
+    across the packages of one release, because a commit touching two of them
+    is one pull request, not two lookups.
     """
     lines = []
     since = plan.previous or "the start of the package"
@@ -67,7 +70,7 @@ def build(plan, owner: str = "", repo: str = "", client=None, log=print) -> str:
             lines.append("- %s (`%s`)" % (commit.subject, commit.sha[:7]))
         lines.append("")
 
-    sections = pull_request_sections(plan, owner, repo, client, log=log)
+    sections = pull_request_sections(plan, owner, repo, client, log=log, cache=cache)
     if sections:
         lines.append("## Release notes")
         lines.append("")
@@ -79,18 +82,25 @@ def build(plan, owner: str = "", repo: str = "", client=None, log=print) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-def pull_request_sections(plan, owner: str, repo: str, client, log=print):
+def pull_request_sections(plan, owner: str, repo: str, client, log=print,
+                          cache: dict | None = None):
     """(number, title, text) for every distinct PR behind these commits that
     carries a `## Release notes` section."""
     if not client or not owner or not repo:
         return []
+    cache = {} if cache is None else cache
     seen, sections = set(), []
     for commit in plan.commits:
-        try:
-            pulls = client.pulls_for_commit(owner, repo, commit.sha)
-        except Exception as exc:                       # notes must not fail a release
-            log("[notes] could not read pull requests for %s: %s" % (commit.sha[:7], exc))
-            continue
+        if commit.sha in cache:
+            pulls = cache[commit.sha]
+        else:
+            try:
+                pulls = client.pulls_for_commit(owner, repo, commit.sha)
+            except Exception as exc:                   # notes must not fail a release
+                log("[notes] could not read pull requests for %s: %s"
+                    % (commit.sha[:7], exc))
+                pulls = []
+            cache[commit.sha] = pulls
         for pull in pulls:
             number = pull.get("number")
             if number in seen:

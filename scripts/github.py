@@ -85,13 +85,13 @@ class GitHub:
         raise ApiError("GitHub API returned %d for %s"
                        % (response.status_code, response.request.url))
 
-    def get(self, path: str, ok_404: bool = False, **params: Any) -> Any:
+    def get(self, path: str, ok_404: bool = False, missing=(404,), **params: Any) -> Any:
         try:
             response = self.client.get(path, params={k: v for k, v in params.items()
                                                      if v not in (None, "")})
         except httpx.HTTPError as exc:
             raise ApiError("GitHub API request failed: %s" % exc)
-        if response.status_code == 404 and ok_404:
+        if ok_404 and response.status_code in missing:
             return None
         if response.status_code >= 400:
             self._raise(response)
@@ -167,8 +167,15 @@ class GitHub:
         return self.get("/repos/%s/%s/compare/%s...%s" % (owner, repo, base, head))
 
     def pulls_for_commit(self, owner: str, repo: str, sha: str) -> list[dict]:
+        """The pull requests a commit arrived through, or [].
+
+        422 joins 404 as "none": that is what the API answers for a commit it
+        cannot see yet, which is every commit of a release being rehearsed
+        locally before the branch is pushed. Neither is an error worth printing
+        -- a commit with no pull request is the ordinary case.
+        """
         payload = self.get("/repos/%s/%s/commits/%s/pulls" % (owner, repo, sha),
-                           ok_404=True)
+                           ok_404=True, missing=(404, 422))
         return payload or []
 
     # -- releases and metadata ------------------------------------------
