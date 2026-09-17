@@ -1,0 +1,384 @@
+lockfile_version: '1'
+generated_at: '2026-09-17T16:48:19.451084+00:00'
+apm_version: 0.28.0
+dependencies:
+- repo_url: antonbabenko/terraform-skill
+  name: terraform-skill
+  host: github.com
+  resolved_commit: 0a3a4a66e99001347d36a41e10260a825be3ab62
+  resolved_ref: 0a3a4a66e99001347d36a41e10260a825be3ab62
+  version: unknown
+  virtual_path: skills/terraform-skill
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .claude/skills/terraform-skill
+  - .claude/skills/terraform-skill/SKILL.md
+  - .claude/skills/terraform-skill/references/ci-cd-workflows.md
+  - .claude/skills/terraform-skill/references/code-intelligence-lsp.md
+  - .claude/skills/terraform-skill/references/code-patterns.md
+  - .claude/skills/terraform-skill/references/module-patterns.md
+  - .claude/skills/terraform-skill/references/quick-reference.md
+  - .claude/skills/terraform-skill/references/security-compliance.md
+  - .claude/skills/terraform-skill/references/state-management.md
+  - .claude/skills/terraform-skill/references/testing-frameworks.md
+  deployed_file_hashes:
+    .claude/skills/terraform-skill/SKILL.md: sha256:70c0038375d3738b4ecfca1016add39ef48a206cbed653c9a1cb336026a5e384
+    .claude/skills/terraform-skill/references/ci-cd-workflows.md: sha256:3ebb9a1d1e88c1f321381a0c179b9f9701e5dc0376bd6fac889feac4dd2de6c4
+    .claude/skills/terraform-skill/references/code-intelligence-lsp.md: sha256:ee5f167d265948960f37dddb393e8473f67090e68e1f2be612db9d1c02e7434e
+    .claude/skills/terraform-skill/references/code-patterns.md: sha256:791e4cb2ed1097fd0b7ddfec94da5440a2ea79bc521c36c6f2fc7e54a14eb1a1
+    .claude/skills/terraform-skill/references/module-patterns.md: sha256:1d98ddc72dca8be36e12ee669c2ba605d255fc5f67ad42e0ee23314e7fe05a3d
+    .claude/skills/terraform-skill/references/quick-reference.md: sha256:07fefaa3d3f84ef53129dc61a081415291d396666d9a613b0a9820e92ca1dd8e
+    .claude/skills/terraform-skill/references/security-compliance.md: sha256:9db93c0a08001ec759b380855afd9378a9b6f452c0f875415c7509888038a2b8
+    .claude/skills/terraform-skill/references/state-management.md: sha256:9912a56d21df2ddc12f9dbda6fa8f9712c16d85e7030991f3011971f999ecc64
+    .claude/skills/terraform-skill/references/testing-frameworks.md: sha256:a35483a965a649603065882498587c62a2badc373a05d6e6620b19eb8dcb425f
+  content_hash: sha256:f00210f88a20678005a95175bb5505131ba7a5530266a36465a54df012df9737
+deployments:
+- kind: project-relative
+  target: claude
+  value: .claude/rules/helm.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:b4842e81a213d3e487e4370b342ff9c9b3e1d3b68d44450d31a67b3427de8921
+- kind: project-relative
+  target: claude
+  value: .claude/rules/tf.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:5632b6e9e5da2c8897a280643ecb24390029fe7978b18fda14cf1e7efc770447
+- kind: project-relative
+  target: claude
+  value: .claude/skills/helm-charts
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/helm-charts/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:450157eaa962f5a33a9041f6388c766f42d481fb65abf5d43ce3ce50e956b389
+- kind: project-relative
+  target: claude
+  value: .claude/skills/helm-templates
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/helm-templates/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:93f55cd7a88f79a23b764fc9928b6b14beec1da9c1b059779da1c0558e3634b0
+- kind: project-relative
+  target: claude
+  value: .claude/skills/helm-values
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/helm-values/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:0505401ad7bdc324d02f3bf973aab6d2437eb98f18076c32a7dc3badf9182562
+- kind: project-relative
+  target: claude
+  value: .claude/skills/helm-values/references/helm-docs-comments.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:7b09e6ec85f3b2f1340c3e89566e1ed0d96e7ed2f8c6f8cdfd8bf28e96bb9138
+- kind: project-relative
+  target: claude
+  value: .claude/skills/helm-values/references/helm-schema-annotations.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:d2a9f6b818b9f64490ada9e8f82de89e17bb3e06abd188c43256481a17d5213e
+- kind: project-relative
+  target: claude
+  value: .claude/skills/k8s-standards
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/k8s-standards/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:b8ea124dbd41531b42281054d55e12d086a7c7c1422a0d5dc323f6d73bc61f2b
+- kind: project-relative
+  target: claude
+  value: .claude/skills/terraform-skill
+  runtime: null
+  scope: project
+  owners:
+  - antonbabenko/terraform-skill/skills/terraform-skill
+  active_owner: antonbabenko/terraform-skill/skills/terraform-skill
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/terraform-skill/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - antonbabenko/terraform-skill/skills/terraform-skill
+  active_owner: antonbabenko/terraform-skill/skills/terraform-skill
+  content_hash: sha256:70c0038375d3738b4ecfca1016add39ef48a206cbed653c9a1cb336026a5e384
+- kind: project-relative
+  target: claude
+  value: .claude/skills/terraform-skill/references/ci-cd-workflows.md
+  runtime: null
+  scope: project
+  owners:
+  - antonbabenko/terraform-skill/skills/terraform-skill
+  active_owner: antonbabenko/terraform-skill/skills/terraform-skill
+  content_hash: sha256:3ebb9a1d1e88c1f321381a0c179b9f9701e5dc0376bd6fac889feac4dd2de6c4
+- kind: project-relative
+  target: claude
+  value: .claude/skills/terraform-skill/references/code-intelligence-lsp.md
+  runtime: null
+  scope: project
+  owners:
+  - antonbabenko/terraform-skill/skills/terraform-skill
+  active_owner: antonbabenko/terraform-skill/skills/terraform-skill
+  content_hash: sha256:ee5f167d265948960f37dddb393e8473f67090e68e1f2be612db9d1c02e7434e
+- kind: project-relative
+  target: claude
+  value: .claude/skills/terraform-skill/references/code-patterns.md
+  runtime: null
+  scope: project
+  owners:
+  - antonbabenko/terraform-skill/skills/terraform-skill
+  active_owner: antonbabenko/terraform-skill/skills/terraform-skill
+  content_hash: sha256:791e4cb2ed1097fd0b7ddfec94da5440a2ea79bc521c36c6f2fc7e54a14eb1a1
+- kind: project-relative
+  target: claude
+  value: .claude/skills/terraform-skill/references/module-patterns.md
+  runtime: null
+  scope: project
+  owners:
+  - antonbabenko/terraform-skill/skills/terraform-skill
+  active_owner: antonbabenko/terraform-skill/skills/terraform-skill
+  content_hash: sha256:1d98ddc72dca8be36e12ee669c2ba605d255fc5f67ad42e0ee23314e7fe05a3d
+- kind: project-relative
+  target: claude
+  value: .claude/skills/terraform-skill/references/quick-reference.md
+  runtime: null
+  scope: project
+  owners:
+  - antonbabenko/terraform-skill/skills/terraform-skill
+  active_owner: antonbabenko/terraform-skill/skills/terraform-skill
+  content_hash: sha256:07fefaa3d3f84ef53129dc61a081415291d396666d9a613b0a9820e92ca1dd8e
+- kind: project-relative
+  target: claude
+  value: .claude/skills/terraform-skill/references/security-compliance.md
+  runtime: null
+  scope: project
+  owners:
+  - antonbabenko/terraform-skill/skills/terraform-skill
+  active_owner: antonbabenko/terraform-skill/skills/terraform-skill
+  content_hash: sha256:9db93c0a08001ec759b380855afd9378a9b6f452c0f875415c7509888038a2b8
+- kind: project-relative
+  target: claude
+  value: .claude/skills/terraform-skill/references/state-management.md
+  runtime: null
+  scope: project
+  owners:
+  - antonbabenko/terraform-skill/skills/terraform-skill
+  active_owner: antonbabenko/terraform-skill/skills/terraform-skill
+  content_hash: sha256:9912a56d21df2ddc12f9dbda6fa8f9712c16d85e7030991f3011971f999ecc64
+- kind: project-relative
+  target: claude
+  value: .claude/skills/terraform-skill/references/testing-frameworks.md
+  runtime: null
+  scope: project
+  owners:
+  - antonbabenko/terraform-skill/skills/terraform-skill
+  active_owner: antonbabenko/terraform-skill/skills/terraform-skill
+  content_hash: sha256:a35483a965a649603065882498587c62a2badc373a05d6e6620b19eb8dcb425f
+- kind: project-relative
+  target: claude
+  value: .claude/skills/tf-standards
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/tf-standards/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:6e80286fc5fd9deba089f2fc55f8551ea1d78eded26b30adf9e0d8378c82e201
+- kind: project-relative
+  target: claude
+  value: .claude/skills/tf-standards/references/opentofu-patterns.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:c03102a38215cf4a9d73f6abaa8229a324cb60e5041878eafbff6b37c2b2ef58
+- kind: project-relative
+  target: claude
+  value: .claude/skills/tf-standards/references/organization.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:b2d6e1231a09999bb5cfb8a024b5f3ae3a4c0d6b578814dab0d2e15077cbf004
+- kind: project-relative
+  target: claude
+  value: .claude/skills/tf-standards/references/provider-config.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:94a641ac0664c5ba81d39d24e78f04897fc47c9144e4d1006807a69cb47b3919
+- kind: project-relative
+  target: claude
+  value: .claude/skills/tf-standards/references/restful-provider.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:d5bdfbf9df191c4acf604607ce732737a51cb3bf3a1819ab69c32df6fe21e8c4
+- kind: project-relative
+  target: claude
+  value: .claude/skills/tf-standards/references/variables.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:b4a4098a2f998cbb4be211b2643724eb2b8e0446d4b9841e362e29735a3faa4c
+- kind: uri
+  target: mcp
+  value: aws-knowledge-mcp
+  runtime: claude
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: uri
+  target: mcp
+  value: microsoft.docs.mcp
+  runtime: claude
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: uri
+  target: mcp
+  value: opentofu-registry
+  runtime: claude
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+mcp_servers:
+- aws-knowledge-mcp
+- microsoft.docs.mcp
+- opentofu-registry
+mcp_configs:
+  aws-knowledge-mcp:
+    name: aws-knowledge-mcp
+    transport: http
+    registry: false
+    url: https://knowledge-mcp.global.api.aws
+  microsoft.docs.mcp:
+    name: microsoft.docs.mcp
+    transport: streamable-http
+    registry: false
+    url: https://learn.microsoft.com/api/mcp
+  opentofu-registry:
+    name: opentofu-registry
+    transport: streamable-http
+    registry: false
+    url: https://mcp.opentofu.org/mcp
+mcp_target_servers:
+  claude:
+  - aws-knowledge-mcp
+  - microsoft.docs.mcp
+  - opentofu-registry
+local_deployed_files:
+- .claude/rules/helm.md
+- .claude/rules/tf.md
+- .claude/skills/helm-charts
+- .claude/skills/helm-charts/SKILL.md
+- .claude/skills/helm-templates
+- .claude/skills/helm-templates/SKILL.md
+- .claude/skills/helm-values
+- .claude/skills/helm-values/SKILL.md
+- .claude/skills/helm-values/references/helm-docs-comments.md
+- .claude/skills/helm-values/references/helm-schema-annotations.md
+- .claude/skills/k8s-standards
+- .claude/skills/k8s-standards/SKILL.md
+- .claude/skills/tf-standards
+- .claude/skills/tf-standards/SKILL.md
+- .claude/skills/tf-standards/references/opentofu-patterns.md
+- .claude/skills/tf-standards/references/organization.md
+- .claude/skills/tf-standards/references/provider-config.md
+- .claude/skills/tf-standards/references/restful-provider.md
+- .claude/skills/tf-standards/references/variables.md
+local_deployed_file_hashes:
+  .claude/rules/helm.md: sha256:b4842e81a213d3e487e4370b342ff9c9b3e1d3b68d44450d31a67b3427de8921
+  .claude/rules/tf.md: sha256:5632b6e9e5da2c8897a280643ecb24390029fe7978b18fda14cf1e7efc770447
+  .claude/skills/helm-charts/SKILL.md: sha256:450157eaa962f5a33a9041f6388c766f42d481fb65abf5d43ce3ce50e956b389
+  .claude/skills/helm-templates/SKILL.md: sha256:93f55cd7a88f79a23b764fc9928b6b14beec1da9c1b059779da1c0558e3634b0
+  .claude/skills/helm-values/SKILL.md: sha256:0505401ad7bdc324d02f3bf973aab6d2437eb98f18076c32a7dc3badf9182562
+  .claude/skills/helm-values/references/helm-docs-comments.md: sha256:7b09e6ec85f3b2f1340c3e89566e1ed0d96e7ed2f8c6f8cdfd8bf28e96bb9138
+  .claude/skills/helm-values/references/helm-schema-annotations.md: sha256:d2a9f6b818b9f64490ada9e8f82de89e17bb3e06abd188c43256481a17d5213e
+  .claude/skills/k8s-standards/SKILL.md: sha256:b8ea124dbd41531b42281054d55e12d086a7c7c1422a0d5dc323f6d73bc61f2b
+  .claude/skills/tf-standards/SKILL.md: sha256:6e80286fc5fd9deba089f2fc55f8551ea1d78eded26b30adf9e0d8378c82e201
+  .claude/skills/tf-standards/references/opentofu-patterns.md: sha256:c03102a38215cf4a9d73f6abaa8229a324cb60e5041878eafbff6b37c2b2ef58
+  .claude/skills/tf-standards/references/organization.md: sha256:b2d6e1231a09999bb5cfb8a024b5f3ae3a4c0d6b578814dab0d2e15077cbf004
+  .claude/skills/tf-standards/references/provider-config.md: sha256:94a641ac0664c5ba81d39d24e78f04897fc47c9144e4d1006807a69cb47b3919
+  .claude/skills/tf-standards/references/restful-provider.md: sha256:d5bdfbf9df191c4acf604607ce732737a51cb3bf3a1819ab69c32df6fe21e8c4
+  .claude/skills/tf-standards/references/variables.md: sha256:b4a4098a2f998cbb4be211b2643724eb2b8e0446d4b9841e362e29735a3faa4c
