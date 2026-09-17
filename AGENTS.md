@@ -14,7 +14,9 @@ Content that cannot be published lives in a **separate private workspace**, not 
 
 ## Upstream dependencies
 
-Upstream-sourced content is declared in the relevant package's `apm.yml` (`packages/*/apm.yml`) and installed via `apm install`. MCP servers are scoped per package: universal dev servers in `packages/core/apm.yml`, cloud/IaC doc servers in `packages/ops/apm.yml`.
+Upstream-sourced content is declared in the relevant package's `apm.yml` (`packages/*/apm.yml`), pinned to a full commit SHA, and resolved in that package's committed `apm.lock.yaml`. MCP servers are scoped per package: universal dev servers in `packages/core/apm.yml`, cloud/IaC doc servers in `packages/ops/apm.yml`.
+
+A pin and its lockfile move only through the `meta-update-repo` skill, in one commit, after its safety review has read the upstream diff. `apm install --frozen` does not check which commit a pin resolves to, so it cannot stand in for that.
 
 ## Authoring rules
 
@@ -28,19 +30,24 @@ This is a quick reference, see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed d
 - **Hooks:** deterministic, event-driven guardrails/side-effects only — not behavioral steering. Prefer cross-platform (Python/Node) scripts. Name definition files `*.hook.json`.
 - **Plugins:** bundled distribution of multiple components. Add only when shipping a curated subset for marketplace/external use.
 - **Provenance:** track upstream sources via `metadata.provenance.{adaptedFrom,authoritativeSpec}` — prefer APM dependencies over vendored copies. On the object form, `license` (upstream SPDX id) and `fidelity` (`inspiration-only`/`structural-echo`/`partly-derived`/`largely-derived`) are required wherever expression was copied; `took` records only what was taken.
-- **Licensing:** `*.md` is CC-BY-SA-4.0, everything else MIT — see [LICENSE](LICENSE). A file adapting an upstream whose terms the default cannot satisfy declares a top-level `license:` in its frontmatter. Run `apm run check-licenses` after touching provenance or adding a dependency.
+- **Licensing:** `*.md` is CC-BY-SA-4.0, everything else MIT — see [LICENSE](LICENSE). A file adapting an upstream whose terms the default cannot satisfy declares a top-level `license:` in its frontmatter. Run `apm run check` after touching provenance or adding a dependency.
+- **Scripts:** one file per command under `scripts/`, run with `uv run` — each entry script declares its own dependencies in a PEP 723 header, so there is no `pyproject.toml` and nothing to install first.
 
 ## Commits
 
-Conventional — the type sizes the release bump, so it is not decoration:
+Conventional, and enforced by a gate rather than trusted:
 
 ```text
 <type>(<scope>): <description>
 ```
 
-`type` ∈ `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`; `!` before the colon marks a breaking change. `scope` is the package (`core`, `workflow`, etc.) or, outside `packages/`, the area (`scripts`, `docs`, `ci`). Which package a commit releases comes from the paths it touched; a scope that disagrees with those paths is reported by `release.py`. See [CONTRIBUTING.md](CONTRIBUTING.md#commit-convention).
+`type` ∈ `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`; `!` before the colon marks a breaking change. `scope` is optional, and when present must name a package the commit touched (`core`, `workflow`, …) or an area outside `packages/` (`scripts`, `ci`, `meta`, `docs`, `repo`).
+
+The type no longer sizes anything — versions are calendar-derived — it decides which heading the commit lands under in the release notes. Which package a commit releases comes from the paths it touched. Prose for the notes goes in the pull request body under a `## Release notes` heading. See [CONTRIBUTING.md](CONTRIBUTING.md#commit-convention).
 
 ## Do not do
 
 - Don't ignore the conventions defined in this repository, see [CONTRIBUTING.md](CONTRIBUTING.md)
-- Don't hand-edit generated files: anything under the marketplace repo's `plugins/`, either `marketplace.json`, or `THIRD-PARTY-NOTICES.md`. Regenerate instead.
+- **Don't edit anything in the marketplace repositories.** Every file there is generated, and a release deletes whatever it did not produce. The sources are here: `README.marketplace.md`, `LICENSE.marketplace`, `.gitignore.marketplace`, `apm.marketplace.yml`, and the packages themselves.
+- **Don't hand-edit `packages/*/apm.lock.yaml`,** and don't refresh one on its own. It moves with its `apm.yml` pin, in one commit, through the `meta-update-repo` skill.
+- **Don't edit `version:` in a package manifest.** It is a placeholder; the release stamps the real calendar version into a scratch copy and records it as a tag.

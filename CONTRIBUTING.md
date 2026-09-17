@@ -12,16 +12,17 @@
 | `packages/product` | Per-project (product) | PRD skills; product-manager + ux-expert agents | `apm install <repo>/packages/product` |
 | `packages/design` | Per-project (design) | `design-direction`, `colour`, `typography`, `presentation` skills; upstream layout/identity/dataviz practice | `apm install <repo>/packages/design` |
 | `packages/python` | Per-project (Python) | `python-standards` + `python-scripts` skills; python instructions; upstream `modern-python` project tooling | `apm install <repo>/packages/python` |
-| root `.apm/` | Repo-local only | `meta-updater` agent + `meta-update-models` / `meta-upstream-sync` audit skills, frontmatter-validation hook | Deployed only when developing this repo |
+| root `.apm/` | Repo-local only | `meta-updater` agent + `meta-update-repo` / `meta-update-models` audit skills, frontmatter-validation hook | Deployed only when developing this repo |
 
 ### Rules
 
 - **Each sub-package uses the `.apm/` layout.** A package is `packages/<name>/apm.yml` + `packages/<name>/.apm/{agents,skills,prompts,instructions,hooks}/`. Bare `agents/`/`skills/` at a package root are misclassified by APM as a single skill bundle — everything must live under `.apm/`.
 - **Place a new primitive by scope, not by type.** Ask: universal and domain-neutral (core, which also owns the authoring guidance), code-specific (workflow), domain-specific (ops/product/design or a new package), or operates on *this repo's own files* (root `.apm/`)? `core` is the baseline that loads in *every* context, including ones with no code in them — anything that presumes a codebase belongs in `workflow`.
 - **Scope each MCP server to the package whose work needs it.** Universal dev servers (`github`, `context7`) live in `packages/core/apm.yml`; domain servers live in their domain package (cloud/IaC doc servers in `packages/ops/apm.yml`). A server loads only where its package is installed, so keep global tool surface minimal.
-- **Consume upstream content as a pinned `dependencies.apm` entry, never a vendored copy** (see the APM-first rule below). Use the git subdir form to take a single skill out of a larger repo — `owner/repo/path/to/skill#<sha>` — and always pin a commit or tag; an unpinned entry tracks the default branch and drifts. Scope the dependency to the package whose work needs it, exactly like MCP servers, and record in a comment why that upstream was chosen and what was deliberately left behind. Bump with `apm outdated` → `apm update --dry-run` → `apm update -y`.
+- **Consume upstream content as a pinned `dependencies.apm` entry, never a vendored copy** (see the APM-first rule below). Use the git subdir form to take a single skill out of a larger repo — `owner/repo/path/to/skill#<sha>` — and always pin a commit or tag; an unpinned entry tracks the default branch and drifts. Scope the dependency to the package whose work needs it, exactly like MCP servers, and record in a comment why that upstream was chosen and what was deliberately left behind. Bump through the `meta-update-repo` skill, which runs that loop per package, reads the diff of everything that moved before it is committed, and keeps `apm.yml` and `apm.lock.yaml` in one commit. **Every pin is a full commit SHA and every package commits its `apm.lock.yaml`** — see [Lockfiles](#lockfiles).
 - **The marketplace is a separate repository.** Manifests and packed plugin bundles live in [`.llmctl-marketplace`](https://github.com/siegenthalerroger/.llmctl-marketplace), not here. A plugin host (claude.ai Cowork, Claude Desktop/Code) clones the marketplace repo and reads each `packages[].source` path *as committed* — it never runs `apm install` — so any package carrying APM dependencies has to be published as a bundle with those skills already vendored into it. Keeping that generated output out of this repo is the point of the split; `apm pack` also refuses to write a manifest across a `..` boundary, which rules out generating it here.
-- **Publish with `python scripts/release.py`** (or `apm run release`), which derives each package's version bump from its commits and then calls `scripts/pack-marketplace.py`. The packing script runs `apm install` + `apm pack -o <marketplace>/plugins` for every package, cleans the transient deploy output back out of the package directory, prunes superseded bundles, propagates the licence files, syncs each `source:`/`version:` in the marketplace `apm.yml`, and regenerates both manifests there. Both roots are explicit flags with no defaults — `--repo` for the workspace being released and `--marketplace` for the repo it publishes into — because a derived marketplace path would silently publish into the wrong repo; [apm.yml](apm.yml) supplies them. Never hand-edit anything under `plugins/`, either `marketplace.json`, or `THIRD-PARTY-NOTICES.md` — all four are generated. **Packages version independently** (`per_package`); see [Releasing](#releasing).
+- **The marketplace repository holds nothing that is authored there.** Its `README.md`, `LICENSE`, `.gitignore` and `apm.yml` all have a source in this workspace — `README.marketplace.md`, `LICENSE.marketplace`, `.gitignore.marketplace`, `apm.marketplace.yml` — and [scripts/pack_marketplace.py](scripts/pack_marketplace.py) writes them out beside the bundles it packs, filling in each catalogue entry's `source` and `version`. Anything else it finds in that tree is **deleted**, so "everything there is generated" is enforced rather than asserted. Edit the sources here and regenerate; never edit the marketplace.
+- **A release publishes; it does not commit here.** [scripts/release.py](scripts/release.py) (or `apm run release`, which previews) derives each package's calendar version, packs from a scratch export of `HEAD`, commits and pushes the marketplace, and records the version as an annotated `<name>@<version>` tag plus the GitHub release beside it. Both roots are explicit flags with no defaults — `--repo` for the workspace being released and `--marketplace` for the repo it publishes into — because a derived marketplace path would silently publish into the wrong repo; [apm.yml](apm.yml) supplies them. **Packages version independently** (`per_package`); see [Releasing](#releasing).
 - **Content that cannot be public lives in a separate workspace, never in `packages/` here.** This repo and its marketplace are public. A private package gets its own private source repo and its own private marketplace, laid out identically but with no `scripts/` — it borrows this repo's release code by sibling clone and shares nothing else. `LICENSES/` and `dependency-licenses.yml` are read from the workspace being released, so a private repo carries its own copies rather than resolving against this one. See [Releasing another workspace](#releasing-another-workspace).
 - **The plugin path is reduced-fidelity; `apm install` remains the full deploy.** Treat **skills** and **commands** (prompts) as the only primitives you can rely on reaching a marketplace consumer. APM 0.26 does pack `agents/`, `instructions/`, and `.mcp.json` into the bundle, but whether a given host loads them is version-dependent and unverified — and packed MCP entries lose their `headers` (so an API-keyed server will not authenticate). Use `apm install` where those primitives matter. The marketplace also does not reach claude.ai Chat or hosted ChatGPT.
 
@@ -32,7 +33,7 @@ APM is the primary mechanism for consuming upstream content. Prefer declaring up
 | Category | When to use | Provenance field | Storage / update |
 |---|---:|---|---|
 | APM dependency (default) | Upstream package available as APM | none required (declare in `apm.yml`) | Installed to `apm_modules/` (git-ignored). Update with `apm install -g` |
-| Adapted / synthesised (local) | Any local copy of upstream material, from a light borrowing to a near-verbatim carry-over — only if APM cannot manage it | `metadata.provenance.adaptedFrom` | Tracked by `meta-upstream-sync` for drift detection; file lives in repo |
+| Adapted / synthesised (local) | Any local copy of upstream material, from a light borrowing to a near-verbatim carry-over — only if APM cannot manage it | `metadata.provenance.adaptedFrom` | Tracked by `meta-update-repo` for drift detection; file lives in repo |
 
 ### APM dependency (default)
 
@@ -44,7 +45,7 @@ APM is the primary mechanism for consuming upstream content. Prefer declaring up
 ### Adapted / synthesised (local)
 
 - Use whenever anything at all was taken from an upstream file that APM cannot manage — whether the local file restructures the material for local conventions, synthesises several sources, or carries most of one upstream across near-verbatim.
-- Add `metadata.provenance.adaptedFrom` listing upstream sources, and set each entry's `fidelity` to say how much was taken plus its `license` wherever that fidelity copies expression. These files are tracked by `meta-upstream-sync` for drift and merge-review workflows.
+- Add `metadata.provenance.adaptedFrom` listing upstream sources, and set each entry's `fidelity` to say how much was taken plus its `license` wherever that fidelity copies expression. These files are tracked by `meta-update-repo` for drift and merge-review workflows.
 - Before adding one, verify the upstream isn't available as an APM package.
 - Run `apm run check-licenses` afterwards. It is the only thing that catches a provenance block which parses to nothing — a file that stops being tracked looks exactly like one with nothing to track.
 
@@ -142,7 +143,7 @@ A bare URL means **the whole file** derives from that upstream. Prefer the objec
 
 Absent means whole-file derivation, treated as `largely-derived`.
 
-`license` is the SPDX id of the **upstream**, not of this file — `NONE` when the upstream has no LICENSE file, which grants no rights at all and is only safe at `inspiration-only`. It is required wherever `fidelity` implies an obligation, because it decides what the local file may be licensed under. [scripts/check-licenses.py](scripts/check-licenses.py) enforces this; see [Licensing](#licensing) below.
+`license` is the SPDX id of the **upstream**, not of this file — `NONE` when the upstream has no LICENSE file, which grants no rights at all and is only safe at `inspiration-only`. It is required wherever `fidelity` implies an obligation, because it decides what the local file may be licensed under. [scripts/check_licenses.py](scripts/check_licenses.py) enforces this; see [Licensing](#licensing) below.
 
 `took` then records **what was taken**, and nothing else. Three rules keep it from rotting:
 
@@ -150,7 +151,7 @@ Absent means whole-file derivation, treated as `largely-derived`.
 - **Never record measurements** (line-overlap percentages, sizes, counts). Both sides move; `fidelity` carries the same signal durably. Keep numbers in the commit or the TODO item that motivated them.
 - **Never overload it.** `took` records what was taken — nothing else. Licensing belongs in the sibling `license:` field, and the obligation level in `fidelity:`. The one exception: a short note on why the URL is *not* a line-for-line comparison base (upstream moved or restructured the adapted path) belongs, because it changes how the next reviewer reads the diff.
 
-Full rules and parser behaviour: [source-url-reference.md](.apm/skills/meta-upstream-sync/references/source-url-reference.md).
+Full rules and parser behaviour: [source-url-reference.md](.apm/skills/meta-update-repo/references/source-url-reference.md).
 
 This is a **repository convention**, not a universal standard.
 
@@ -229,23 +230,42 @@ Authoritative sources are maintained in the `meta-update-models` skill frontmatt
 
 ## Upstream Update Tooling
 
-The `meta-updater` agent and `meta-upstream-sync` skill audit **locally-committed files** with provenance declarations. APM dependencies are updated separately via `apm install -g`.
+Three kinds of upstream feed this repository, and the `meta-update-repo` skill —
+driven by the `meta-updater` agent — covers all three:
 
-Use the `meta-updater` agent together with the `meta-upstream-sync` skill to audit and synthesize upstream updates.
+| Input | Declared in | Audited by |
+| --- | --- | --- |
+| APM dependencies | `dependencies.apm`, resolved in `packages/*/apm.lock.yaml` | `apm outdated` / `apm update`, per package |
+| Adapted content | `metadata.provenance.adaptedFrom` | `uv run scripts/check_updates.py --repo .` |
+| Specifications | `metadata.provenance.authoritativeSpec` | the same script, with `--specs` |
 
-A merge that pulls across more text than before raises the entry's `fidelity`, and a raised fidelity can attach upstream terms the local file's licence cannot carry. Update `fidelity` and `license` in the same edit as the merge, then run `apm run check-licenses`.
+**Every bump is read before it is committed.** A pinned dependency is content an
+agent loads as instructions, and some of it ships scripts and hooks that run
+locally; `apm approve` gates *execution*, not content. `--compare` prints the
+upstream's own diff for a pin that moved in the working tree, filtered to the
+path this repository consumes, and the skill's
+[safety-review reference](.apm/skills/meta-update-repo/references/safety-review.md)
+says what to look for. It is a reading, not a scan — a table of strings to grep
+for was built and dropped for flagging a vendor's own install one-liner while
+missing anything phrased differently.
 
-The audit itself is [scripts/check-updates.py](scripts/check-updates.py) — `apm run check-updates`, or the script directly for its filtering flags. It lives in `scripts/` rather than under the skill because `meta-upstream-sync` is repo-local (root `.apm/`, in no package and no packed bundle), and because it parses provenance through the same [provenance.py](scripts/provenance.py) as `check-licenses.py`.
+**`apm update` cannot move every pin.** It resolves a full-SHA pin only to the
+newest *annotated* semver tag upstream, and an upstream that publishes none —
+`blader/humanizer` and `rshade/agent-skills` today — reports `unknown` and needs
+the manual path the skill documents: read `git ls-remote … HEAD`, edit the
+`#<sha>`, then `apm install` (never `--frozen`, which would not notice the pin
+moved).
 
-GitHub API authentication uses the `gh` CLI by default — run `gh auth login` once and `check-updates.py` reuses that login (`gh auth token`) automatically.
+A merge that pulls across more text than before raises the entry's `fidelity`,
+and a raised fidelity can attach upstream terms the local file's licence cannot
+carry. Update `fidelity` and `license` in the same edit as the merge, then run
+the gates.
 
-For CI or non-`gh` environments, supply a **Fine-grained Personal Access Token** instead:
-
-- Repository access: only the repositories you need to audit
-- Repository permissions: `Contents` = **Read-only**
-- No write permissions are required for update checks
-
-Provide the token via `GITHUB_TOKEN`/`GH_TOKEN`, or pass `--github-token` to `./scripts/check-updates.py`.
+The audit parses provenance through the same
+[provenance.py](scripts/provenance.py) as the licence gate, so the two cannot
+disagree about what is tracked. GitHub authentication uses `gh auth token` by
+default; for CI or non-`gh` environments supply a fine-grained token with
+`Contents: Read-only` via `GITHUB_TOKEN`/`GH_TOKEN`, or `--github-token`.
 
 ## Licensing
 
@@ -256,13 +276,13 @@ Provide the token via `GITHUB_TOKEN`/`GH_TOKEN`, or pass `--github-token` to `./
 | Every `*.md` file — skills, agents, prompts, instructions, `references/`, repo docs | **CC-BY-SA-4.0** |
 | Everything else — `scripts/`, hooks, `*.py`, `*.ps1`, `*.json`, `*.yml` | **MIT** |
 
-Three rules follow from that, and [scripts/check-licenses.py](scripts/check-licenses.py) enforces all three:
+Three rules follow from that, and [scripts/check_licenses.py](scripts/check_licenses.py) enforces all three:
 
 - **The content half is copyleft.** Adapting a `*.md` file from here means releasing your adaptation under CC-BY-SA-4.0 too. That is deliberate.
 - **A file's provenance decides its licence.** Where `metadata.provenance` records an obligation-bearing `fidelity`, the upstream's `license` constrains what the local file may be licensed under: MIT upstream permits either default; CC-BY-SA-4.0 upstream forces CC-BY-SA-4.0; Apache-2.0 and GPL-3.0 upstreams force their own licence and need a per-file override; `NONE` permits nothing beyond `inspiration-only`. Declare an override with a **top-level `license:` field** in the file's frontmatter — that always wins over the table above.
-- **Attribution is generated, never hand-written.** `THIRD-PARTY-NOTICES.md` in the marketplace repo is produced by [scripts/gen-notices.py](scripts/gen-notices.py) from provenance metadata plus each bundle's `apm.lock.yaml`. Sources whose terms attach land under *Notices*; everything else, including `inspiration-only` sources and upstreams with no licence at all, is still credited under *Acknowledgements*.
+- **Attribution is generated, never hand-written.** `THIRD-PARTY-NOTICES.md` in the marketplace repo is produced by [scripts/gen_notices.py](scripts/gen_notices.py) from provenance metadata plus each bundle's `apm.lock.yaml`. Sources whose terms attach land under *Notices*; everything else, including `inspiration-only` sources and upstreams with no licence at all, is still credited under *Acknowledgements*.
 
-Adding a dependency or an adaptation from a **new** upstream means recording its licence in [dependency-licenses.yml](dependency-licenses.yml) or the entry's `license:` field. Run `apm run check-licenses` before opening a PR.
+Adding a dependency or an adaptation from a **new** upstream means recording its licence in [dependency-licenses.yml](dependency-licenses.yml) or the entry's `license:` field. Run `apm run check` before opening a pull request.
 
 ## Commit Convention
 
@@ -275,62 +295,158 @@ Commits are **conventional**:
 - `type` — `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`. Append `!` before the colon for a breaking change (`refactor(core)!: …`).
 - `scope` — the package the change lands in: `core`, `design`, `meta`, `ops`, `product`, `workflow`. For anything outside `packages/`, use the area instead: `scripts`, `docs`, `ci`.
 
-[scripts/release.py](scripts/release.py) reads commits to size each package's next bump: `!` or a `BREAKING CHANGE` trailer → major, `feat` → minor, anything else → patch.
+**The type sizes nothing.** Versions are calendar-derived, so `feat` and `fix` no longer mean "minor" and "patch"; they decide which heading a commit lands under in the generated release notes, and nothing else. That is worth keeping, so the convention is now *enforced* rather than merely read: the `commits` gate refuses a subject outside the type list, and refuses a scope that names nothing the commit touched.
 
-**Which package a commit releases is decided by the paths it touched, not by the scope.** Paths are what actually changed and cannot be mistyped. The scope is still checked: when it names something other than the package the change landed in, `release.py` prints the mismatch rather than silently ignoring it, so a typo surfaces instead of quietly mis-labelling history.
+**Which package a commit releases is decided by the paths it touched, not by the scope.** Paths are what actually changed and cannot be mistyped. A scope is optional; when present it has to be one of the packages under `packages/` the commit touched, or an area outside it — `scripts`, `ci`, `meta`, `docs`, `repo`.
+
+The gate lints a range, not all of history: CI passes the pull request's base (and its title), and a run with no range reports the gate skipped rather than inventing one. Locally: `uv run scripts/check.py --repo . --since origin/main`.
+
+**Prose for the release notes goes in the pull request body**, under a `## Release notes` heading. The release copies that section, and only that section, into the GitHub release of every package the pull request touched; ordinary review discussion in the same body stays out.
 
 ## Releasing
 
-Packages version **independently** (`marketplace.versioning.strategy: per_package`). A change to `ops` moves `ops` only, so a version number always means something changed in that package.
+Versions are **calendar-derived**: `YYYY.M.N`, where `N` counts that package's
+releases within the UTC month, from 1. `llmctl-core@2026.9.1`, then `2026.9.2`.
+No zero padding, so the string stays semver-shaped for the hosts that parse it
+as one.
+
+Semantic versioning was the previous scheme and it never meant anything here.
+There is no API to break and no consumer who can act on "minor" versus "patch";
+what a reader of a steering package actually wants to know is how old it is.
+The commit types still exist and are still enforced, but they group the release
+notes rather than sizing a number.
+
+Packages version **independently** (`marketplace.versioning.strategy:
+per_package`). A change to `ops` releases `ops` only, so a version always means
+something in that package changed.
+
+### A release writes nothing to this repository
+
+`packages/*/apm.yml` carries `version: 0.0.0`, a placeholder. The real version
+is stamped into a scratch export at pack time, and the record of it is the
+annotated `<name>@<version>` tag plus the GitHub release beside it.
+
+That is what lets a release run on a push to protected `main` with no pull
+request, no bypass and no second CI cycle — pushing a tag is not pushing a
+branch. The release commit that used to be merged through a gated pull request,
+the token that had to author it, and the check-polling that waited on it are all
+gone.
+
+The marketplace is the opposite case: it is generated output, entirely, so it is
+committed and pushed directly. Protecting it would gate a robot against itself.
 
 ```bash
-apm run check                  # the workspace gates; no marketplace needed
-apm run release-check          # what a release would publish; needs the marketplace
-apm run release -- --dry-run   # show the derived bumps
-apm run release                # bump, pack, commit, tag both repos
+apm run check       # every gate, over this workspace alone
+apm run versions    # what each package's next version would be, and why
+apm run release     # what a release would publish, and its notes. Writes nothing
 ```
 
-`release.py` finds each package's last `llmctl-<package>@<version>` tag, reads the commits since that touched `packages/<package>/`, derives the bump, writes it to `packages/<package>/apm.yml` and the marketplace manifest, then packs, tags and pushes both repos (`--no-push` opts out). Everything runs locally; GitHub Actions only calls the same scripts.
-
-**Refreshing a pinned dependency is its own commit, never a release-time toggle.** Run the `apm outdated` → `apm update --dry-run` → `apm update -y` loop deliberately, read what moved, and commit the new SHAs on their own. A release then ships that commit like any other. A flag that refreshed upstreams mid-release folded an unreviewed third-party diff into a version bump, and it could not even be previewed — `--dry-run` skipped the update and derived its bumps from the old pins.
-
-**Tags are the baseline, and the clone has to have them.** `last_tag()` reads *local* tags, so a clone fetched without them measures from nothing: every package reads its entire history and bumps off all of it. Shallow clones and `--no-tags` fetches both land there — which is why `release.py` runs `git fetch --tags` before deriving anything. Run releases from a full clone as well: `git log` on a shallow one cannot see past the fetch depth.
-
-The tags `release.py` creates are annotated, because it pushes with `git push --follow-tags`, and that carries annotated tags only. Lightweight tags are not unpushable — `git push --tags` sends them, and the tags already on both remotes are lightweight for that reason — they just will not ride along with `--follow-tags`. Mixing the two is harmless: `--sort=-v:refname` and `<tag>..HEAD` treat them alike.
-
-A repo that has **never** been released has no baseline at all. `.llmctl` and `.llmctl-marketplace` are already seeded; a new workspace is not. Seed one by hand, once, at the commit whose versions are current:
+The real release runs in CI, on a push to `main`. To rehearse the whole thing
+locally against a throwaway clone of the marketplace:
 
 ```bash
-git tag -a llmctl-personal@0.1.0 -m "llmctl-personal 0.1.0" <commit>   # per package
-git push origin --tags                                                 # in both repos
+uv run scripts/release.py --repo . --marketplace ../scratch-marketplace --no-push
 ```
+
+`--package NAME --force` re-releases a package with no commits; `--package NAME
+--version 2026.9.7` releases it at an exact version, which must be unused and
+must sort above its last tag — the highest tag is the baseline, so a lower one
+would be invisible to the next run.
+
+**Tags are the baseline, and the clone has to have them.** Versions are derived
+from *local* tags, so a clone fetched without them measures from nothing: every
+package reads its entire history. Shallow clones and `--no-tags` fetches both
+land there — which is why the plan runs `git fetch --tags` first. Run releases
+from a full clone as well; `git log` on a shallow one cannot see past the fetch
+depth.
+
+The tags created are annotated, because the marketplace is pushed with
+`--follow-tags`, which carries annotated tags only. Mixing them with the
+lightweight tags already on the remotes is harmless: `--sort=-v:refname` and
+`<tag>..HEAD` treat them alike, and version sort puts `2026.9.1` above `0.4.0`
+without a special case.
+
+A repo that has **never** been released has no baseline for a package with no
+commits to release. Seed one by hand, once:
+
+```bash
+git tag -a llmctl-personal@2026.9.1 -m "llmctl-personal 2026.9.1" <commit>
+git push origin --tags
+```
+
+### Lockfiles
+
+Every package commits `apm.lock.yaml`, and it is the record of which upstream
+commit each pinned dependency resolved to. Packing installs from it and refuses
+to continue if installing moves any of those commits, so a bundle cannot ship
+something nobody reviewed.
+
+`apm install --frozen` is **not** what enforces that, which is worth knowing
+before relying on it: a frozen install checks that every dependency in `apm.yml`
+*appears* in the lockfile, keyed by repository and subpath, never at which
+commit. A pin moved without a lockfile refresh passes it. The `lockfiles` gate
+compares the two directly, and refuses any pin that is not a full commit SHA.
+
+A lockfile moves only through the `meta-update-repo` procedure, and always in
+the same commit as the `apm.yml` pin it belongs to. Never hand-edit one.
 
 ### Releasing another workspace
 
-Nothing in these scripts is specific to this repo. A private sibling laid out the same way — its own `packages/`, `LICENSE`, `LICENSES/` and `dependency-licenses.yml`, no `scripts/` — releases with this code by pointing the flags at it:
+Nothing in these scripts is specific to this repo. A private sibling laid out the
+same way — its own `packages/`, `LICENSE`, `LICENSES/`, `dependency-licenses.yml`
+and `*.marketplace.*` sources, no `scripts/` — releases with this code by
+pointing the flags at it:
 
 ```bash
-python ../.llmctl/scripts/release.py --repo . --marketplace ../<its-marketplace>
+uv run ../.llmctl/scripts/release.py --repo . --marketplace ../<its-marketplace>
 ```
 
-Nothing is shared but the code. Licence texts and dependency records are read from the workspace only, so a private repo's upstreams never resolve against this one's.
+Nothing is shared but the code. Licence texts, dependency records and marketplace
+sources are read from the workspace only, so a private repo's upstreams never
+resolve against this one's.
 
 ## Continuous Integration
 
-Github Actions are used to run CI. Most steps should shell out to `scripts/`, except for items that aren't expected to be ran locally (e.g. upstream update checks with dependabot or similar).
+GitHub Actions runs the same entry points a contributor runs. The scripts declare
+their own dependencies in a PEP 723 header, so every step is `uv run` and nothing
+is installed first.
 
 | Workflow | Trigger | What it runs | Locally |
 | --- | --- | --- | --- |
-| [checks.yml](.github/workflows/checks.yml) | PR, push to `main`, Mondays | the workspace gates | `apm run check` |
-| [release.yml](.github/workflows/release.yml) | manual | both gate sets, then `release.py` with the inputs you pick (defaults to a dry run) | `apm run release -- --dry-run` |
+| [checks.yml](.github/workflows/checks.yml) | pull request, Mondays, manual | every gate | `apm run check` |
+| [release.yml](.github/workflows/release.yml) | push to `main`, manual | every gate, then the release | `apm run release` (previews) |
 
-The gates come in two sets, split by what they read. [check.py](scripts/check.py) reads the workspace alone — frontmatter conventions, and licence obligations against what each file's provenance records. [release-check.py](scripts/release-check.py) reads the marketplace it publishes into — that the notices file is current, that versions and manifests match what would be regenerated, and that every bundle validates. Both drive the same runner in [gates.py](scripts/gates.py) and neither calls the other.
+**There is one gate set now, and it lives in [check.py](scripts/check.py).** It
+used to be two: workspace gates here, marketplace gates in a second script that
+needed the other repository checked out, which meant a pull request could only
+ever run half of them. The marketplace-shaped gates now pack into a scratch
+directory and validate that, so one checkout runs everything — frontmatter
+conventions, the commit convention, licence obligations, lockfiles against their
+pins, and a full pack that every bundle must survive.
 
-The split is what lets each one fail on a missing input rather than skip past it. checks.yml checks out one repo, so it runs `apm run check` and every gate in that set actually runs. release-check has nothing to say without the marketplace, so it exits 1 when there is no `apm.yml` beside it — an empty directory is exactly what a cross-repo checkout leaves behind when it cannot read the other repo, and a gate set that reported green on that would be worse than useless. [release.yml](.github/workflows/release.yml) checks the marketplace out and runs both sets before `release.py`.
+A push to `main` runs those same gates inside `release.yml`, immediately before
+publishing what they passed on, so `checks.yml` does not duplicate it.
 
-The private workspace carries its own `checks.yml` and `release.yml`. It holds no `scripts/` — it checks this repo out beside itself and runs its code, exactly as a sibling clone does locally. The marketplace repos have a `checks.yml` too, but theirs is self-contained: `apm pack --check-versions` and `--check-clean` read their own apm.yml, and everything else about a bundle is rewritten from source on every release.
+A gate declares what it needs, and the runner decides what a missing need means:
+no `--since` skips the commit gate and says so, a missing `claude` CLI skips
+bundle validation and says so, a missing `apm` fails the pack gate outright.
+Skipped is never silent and never green-by-omission.
+
+The private workspace carries its own `checks.yml` and `release.yml`. It holds no
+`scripts/` — it checks this repo out beside itself and runs its code, exactly as a
+sibling clone does locally.
+
+**The marketplace repositories have no CI at all.** They used to run
+`apm pack --check-versions` and `--check-clean` against their own committed
+manifests; there is nothing left there to check, because every file in them is
+regenerated from this repository on every release and anything else is deleted.
 
 ### Secrets
 
-- **`MARKETPLACE_TOKEN`** — `contents: write` on the marketplace repo. Set on this repo and on the private workspace. A release pushes to the marketplace, and it is private, so even a dry run needs this to read it.
+- **`MARKETPLACE_TOKEN`** — `contents: write` on the marketplace repo. Set on this repo and on the private workspace. A release regenerates and pushes the marketplace, so even a dry run has to read it.
 - **`TOOLING_TOKEN`** — `contents: read` on `.llmctl`. Set on the private workspace, whose CI borrows these scripts. Needed only while this repo is private.
+
+The release needs no token of its own beyond the workflow's: it pushes tags and
+creates releases, both of which `contents: write` on `GITHUB_TOKEN` covers. The
+`RELEASE_TOKEN` that used to author the release pull request is gone, along with
+the pull request.

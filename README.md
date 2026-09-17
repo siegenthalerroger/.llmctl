@@ -20,7 +20,7 @@ Start with [Deploy](#deploy) to install the published plugins. If you want to ex
 | `packages/product` | Product development | PRD skills + product-manager / UX agents |
 | `packages/design` | Design work | Direction-setting, colour, typography, presentation + upstream layout / identity / data-visualisation practice |
 | `packages/python` | Python work | Source-authoring standards + single-file script discipline (PEP 723) + upstream uv / ruff / ty project tooling |
-| _root `.apm/`_ | _**Repo-local only**_ | _`meta-updater` agent + `meta-update-models` / `meta-upstream-sync` audit skills, frontmatter-validation hook_ |
+| _root `.apm/`_ | _**Repo-local only**_ | _`meta-updater` agent + `meta-update-repo` / `meta-update-models` audit skills, frontmatter-validation hook_ |
 
 See [CONTRIBUTING.md](CONTRIBUTING.md#packaging-model) for the packaging rules.
 
@@ -99,9 +99,12 @@ apm install --target claude
 # Try a local package before releasing it
 apm install ~/.llmctl/packages/core --target claude
 
-# Check file conventions and licensing
-python3 scripts/check.py --repo .
+# Every gate: conventions, licensing, lockfiles, and a full pack
+uv run scripts/check.py --repo . --since origin/main
 ```
+
+The scripts declare their own dependencies in an inline PEP 723 header, so
+[uv](https://docs.astral.sh/uv/) runs them without anything being installed first.
 
 Use another `--target` if you work with a different assistant. Edit files under `packages/<name>/.apm/`; installed copies and marketplace bundles are replaced by later installs or releases.
 
@@ -121,12 +124,14 @@ apm run pack-marketplace
 The command in [apm.yml](apm.yml) supplies both required paths. For a different checkout location, call the script directly:
 
 ```bash
-python3 scripts/pack-marketplace.py --repo . --marketplace /path/to/.llmctl-marketplace
+uv run scripts/pack_marketplace.py --repo . --marketplace /path/to/.llmctl-marketplace --all
 ```
 
 Add `--dry-run` to preview what would be packed. Both `--repo` and `--marketplace` are required; the script does not infer paths from the environment.
 
-Packing writes each package to `plugins/<name>-<version>/`, copies the required licence texts, updates the marketplace's `apm.yml` bundle paths and versions, and regenerates `THIRD-PARTY-NOTICES.md` and both catalogues:
+**Nothing in the marketplace repository is authored there.** Its `README.md`, `LICENSE`, `.gitignore` and `apm.yml` are written from `README.marketplace.md`, `LICENSE.marketplace`, `.gitignore.marketplace` and `apm.marketplace.yml` in this repository, and anything else found in that tree is deleted. Edit the sources here.
+
+Packing writes each package to `plugins/<name>-<version>/` from its committed lockfile, copies the required licence texts, and regenerates `THIRD-PARTY-NOTICES.md` and both catalogues:
 
 | Generated file | Consumer |
 | --- | --- |
@@ -150,7 +155,17 @@ Do not hand-edit the bundles, either catalogue or `THIRD-PARTY-NOTICES.md`. Make
 
 ### Releasing
 
-Repacking updates the local marketplace checkout. To publish a release, follow [Releasing](CONTRIBUTING.md#releasing). `apm run release` derives version bumps from commits, packs the bundles, then commits, tags and pushes both repositories. Packages version independently: a change to `ops` moves `ops` alone.
+Releases are automatic: a push to `main` runs the gates and then publishes every
+package whose paths changed. Versions are calendar-derived — `YYYY.M.N`, counting
+that package's releases within the month — and recorded as annotated
+`<name>@<version>` tags with a GitHub release beside each one. Nothing is
+committed to this repository by a release.
+
+Packages version independently: a change to `ops` releases `ops` alone.
+
+`apm run versions` shows what each package's next version would be; `apm run
+release` shows what a release would publish, including its notes, and writes
+nothing. See [Releasing](CONTRIBUTING.md#releasing).
 
 ## Concept & Contributing
 
