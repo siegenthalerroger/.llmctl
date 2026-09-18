@@ -1,5 +1,4 @@
 lockfile_version: '1'
-generated_at: '2026-09-17T16:48:11.612329+00:00'
 apm_version: 0.28.0
 dependencies:
 - repo_url: blader/humanizer
