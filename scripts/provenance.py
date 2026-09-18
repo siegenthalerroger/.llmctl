@@ -9,11 +9,18 @@ make loud. The convention itself is in CONTRIBUTING.md#repository-frontmatter-pr
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Iterator, Literal
 
 import frontmatter
 
 from workspace import INSTALL_OUTPUT
+
+__all__ = ["DEFAULT_CODE", "DEFAULT_CONTENT", "Entry", "FIDELITIES",
+           "KNOWN_LICENSES", "OBLIGATION", "PERMITTED_OUTBOUND",
+           "PROVENANCE_KEYS", "Record", "default_license_for",
+           "effective_fidelity", "is_customization", "iter_files", "parse"]
 
 # --- The licence model -----------------------------------------------------
 
@@ -80,13 +87,13 @@ CUSTOMIZATION_SUFFIXES = (".agent.md", ".instructions.md", ".prompt.md")
 PROVENANCE_KEYS = ("adaptedFrom", "authoritativeSpec")
 
 
-def is_customization(path) -> bool:
+def is_customization(path: str | Path) -> bool:
     """True for the four primitive-defining file types."""
     name = os.path.basename(str(path))
     return name in CUSTOMIZATION_NAMES or name.endswith(CUSTOMIZATION_SUFFIXES)
 
 
-def default_license_for(path) -> str:
+def default_license_for(path: str | Path) -> str:
     """The repo default for a path, before any per-file `license:` override."""
     return DEFAULT_CONTENT if str(path).replace("\\", "/").endswith(".md") else DEFAULT_CODE
 
@@ -94,13 +101,31 @@ def default_license_for(path) -> str:
 # --- Frontmatter parsing ---------------------------------------------------
 
 
-def _entry(url, form, license=None, fidelity=None, took=None) -> dict:
-    return {"url": url, "license": license, "fidelity": fidelity, "took": took,
-            "form": form}
+@dataclass(frozen=True, slots=True)
+class Entry:
+    """One upstream a file declares, under the provenance key it came from."""
+
+    url: str | None
+    form: Literal["string", "object"]
+    kind: str = ""
+    license: str | None = None
+    fidelity: str | None = None
+    took: str | None = None
 
 
-def _entries(value) -> list[dict]:
-    """Normalise one provenance key's value into entry dicts.
+@dataclass(frozen=True, slots=True)
+class Record:
+    """One file's provenance: what it claims, and what it got wrong claiming it."""
+
+    path: str
+    declared: str | None
+    effective: str
+    entries: tuple[Entry, ...] = ()
+    malformed: tuple[str, ...] = ()
+
+
+def _entries(value: object, kind: str) -> list[Entry]:
+    """Normalise one provenance key's value into entries.
 
     Three forms are accepted, as documented in CONTRIBUTING.md: a URL string, a
     list of URL strings, or a list of objects carrying `url` plus any of
@@ -108,94 +133,85 @@ def _entries(value) -> list[dict]:
     which the caller reports as malformed.
     """
     if isinstance(value, str):
-        return [_entry(value.strip() or None, "string")]
+        return [Entry(value.strip() or None, "string", kind)]
     if not isinstance(value, list):
-        return [_entry(None, "object")]
+        return [Entry(None, "object", kind)]
     entries = []
     for item in value:
         if isinstance(item, str):
-            entries.append(_entry(item.strip() or None, "string"))
+            entries.append(Entry(item.strip() or None, "string", kind))
         elif isinstance(item, dict):
             url = item.get("url")
-            entries.append(_entry(
-                str(url).strip() if url else None, "object",
+            entries.append(Entry(
+                str(url).strip() if url else None, "object", kind,
                 license=_text(item.get("license")),
                 fidelity=_text(item.get("fidelity")),
                 took=_text(item.get("took"))))
         else:
-            entries.append(_entry(None, "object"))
+            entries.append(Entry(None, "object", kind))
     return entries
 
 
-def _text(value):
+def _text(value: object) -> str | None:
     if value is None:
         return None
     text = str(value).strip()
     return text or None
 
 
-def parse(path) -> dict:
-    """Read one file's provenance.
-
-    Returns a dict with `path`, `declared` (top-level `license:` or None),
-    `effective` (declared or the path default), `entries` -- one record per
-    upstream URL, tagged with the provenance key it came from -- and
-    `malformed`, the problems a consumer must not skip past.
-    """
-    result = {
-        "path": str(path),
-        "declared": None,
-        "effective": default_license_for(path),
-        "entries": [],
-        "malformed": [],
-    }
-    with open(path, encoding="utf-8") as handle:
-        text = handle.read()
-    if not text.startswith("---"):
-        return result
-    try:
-        metadata = frontmatter.loads(text).metadata
-    except Exception as exc:  # YAML errors surface as several exception types
-        result["malformed"].append("frontmatter does not parse as YAML: %s"
-                                   % str(exc).split("\n")[0])
-        return result
-    if not isinstance(metadata, dict):
-        return result
-
-    declared = _text(metadata.get("license"))
-    if declared:
-        result["declared"] = declared
-        result["effective"] = declared
-
-    provenance = (metadata.get("metadata") or {}).get("provenance") \
-        if isinstance(metadata.get("metadata"), dict) else None
-    if not isinstance(provenance, dict):
-        return result
-
+def _declared(provenance: dict) -> tuple[tuple[Entry, ...], tuple[str, ...]]:
+    """Every entry under a known provenance key, and every problem found doing it."""
+    entries, malformed = [], []
     for key in PROVENANCE_KEYS:
         if key not in provenance:
             continue
-        entries = _entries(provenance.get(key))
-        if not entries:
-            result["malformed"].append("`%s` yields no entries" % key)
-        for entry in entries:
-            if not entry["url"]:
-                result["malformed"].append("`%s` has an entry with no url" % key)
+        found = _entries(provenance.get(key), key)
+        if not found:
+            malformed.append("`%s` yields no entries" % key)
+        for entry in found:
+            if not entry.url:
+                malformed.append("`%s` has an entry with no url" % key)
                 continue
-            entry["kind"] = key
-            result["entries"].append(entry)
-    return result
+            entries.append(entry)
+    return tuple(entries), tuple(malformed)
 
 
-def effective_fidelity(entry: dict) -> str:
+def parse(path: str | Path) -> Record:
+    """Read one file's provenance.
+
+    A block that yields no entries, and an entry with no `url`, land in
+    `malformed` rather than being dropped: a file that silently stops being
+    tracked is the failure this exists to make loud.
+    """
+    default = default_license_for(path)
+    text = Path(path).read_text(encoding="utf-8")
+    if not text.startswith("---"):
+        return Record(str(path), None, default)
+    try:
+        metadata = frontmatter.loads(text).metadata
+    except Exception as exc:  # YAML errors surface as several exception types
+        return Record(str(path), None, default, malformed=(
+            "frontmatter does not parse as YAML: %s" % str(exc).split("\n")[0],))
+    if not isinstance(metadata, dict):
+        return Record(str(path), None, default)
+
+    declared = _text(metadata.get("license"))
+    container = metadata.get("metadata")
+    provenance = container.get("provenance") if isinstance(container, dict) else None
+    entries, malformed = (_declared(provenance) if isinstance(provenance, dict)
+                          else ((), ()))
+    return Record(str(path), declared, declared or default, entries, malformed)
+
+
+def effective_fidelity(entry: Entry) -> str:
     """The fidelity to judge an entry by, applying the documented defaults.
 
     A bare `authoritativeSpec` URL asserts a citation -- nothing reproduced. A bare
     `adaptedFrom` URL asserts whole-file derivation.
     """
-    if entry["fidelity"]:
-        return entry["fidelity"]
-    if entry["kind"] == "authoritativeSpec":
+    if entry.fidelity:
+        return entry.fidelity
+    if entry.kind == "authoritativeSpec":
         return "inspiration-only"
     return "largely-derived"
 
@@ -208,7 +224,7 @@ SKIP_DIRS = {".git", "build", "node_modules", "__pycache__", "LICENSES",
              *INSTALL_OUTPUT}
 
 
-def iter_files(root):
+def iter_files(root: str | Path) -> Iterator[str]:
     """Every authored content file under `packages/` and `.apm/`.
 
     Repo-root docs carry no provenance, so there is nothing to check on them.

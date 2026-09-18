@@ -38,10 +38,10 @@ import shutil
 import subprocess
 import sys
 import tarfile
-from collections import namedtuple
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable, NamedTuple
 
 import typer
 
@@ -49,7 +49,7 @@ import gen_notices
 import provenance
 import versions as versionlib
 import workspace
-from workspace import WorkspaceError
+from workspace import Log, WorkspaceError
 
 # What a marketplace tree may contain at the top level. Anything else is
 # deleted by sync(): the repo holds generated output and nothing authored.
@@ -93,14 +93,20 @@ VENDOR_CRUFT_FILES = ("apm.yml", "apm.lock.yaml", ".apm-pin", ".gitignore",
 # depends on these surviving. Never strip them, whatever else matches above.
 KEEP_PREFIXES = ("LICENSE", "LICENCE", "NOTICE", "COPYING")
 
-PackReport = namedtuple("PackReport", "packed kept removed versions")
+class PackReport(NamedTuple):
+    """What a sync did: bundles built, bundles left alone, paths deleted."""
+
+    packed: list[str]
+    kept: list[str]
+    removed: list[str]
+    versions: dict[str, str]
 
 
 class PackError(Exception):
     pass
 
 
-def run(args: list[str], cwd) -> subprocess.CompletedProcess:
+def run(args: list[str], cwd: Path | str) -> subprocess.CompletedProcess:
     result = subprocess.run(args, cwd=str(cwd), capture_output=True, text=True,
                             encoding="utf-8", errors="replace")
     if result.returncode != 0:
@@ -110,7 +116,7 @@ def run(args: list[str], cwd) -> subprocess.CompletedProcess:
     return result
 
 
-def pack_json(args: list[str], cwd) -> dict:
+def pack_json(args: list[str], cwd: Path | str) -> dict:
     """`apm pack --json ...`, parsed. Logs go to stderr, so stdout is the payload."""
     result = subprocess.run(["apm", "pack", "--json"] + args, cwd=str(cwd),
                             capture_output=True, text=True,
@@ -267,7 +273,7 @@ def licenses_needed(bundle_dir: Path, dep_licenses: set) -> list[str]:
         for dirpath, _, filenames in os.walk(top):
             for name in sorted(filenames):
                 if name.endswith(".md"):
-                    declared = provenance.parse(os.path.join(dirpath, name))["declared"]
+                    declared = provenance.parse(os.path.join(dirpath, name)).declared
                     if declared:
                         needed.add(declared)
     for dep in dep_licenses:
@@ -372,7 +378,7 @@ def install_reproducibly(export: Path, name: str) -> None:
                         % (name, "; ".join(moved)))
 
 
-def audit_export(export: Path, name: str, log) -> None:
+def audit_export(export: Path, name: str, log: Log) -> None:
     """Scan the materialised upstream content before it is packed.
 
     A pin fixes which content arrives, not what it does, and this content ships
@@ -439,7 +445,7 @@ class Packer:
 # --- The marketplace tree --------------------------------------------------
 
 
-def read_catalogue(ws: Path):
+def read_catalogue(ws: Path) -> Any:
     path = ws / CATALOGUE
     if not path.is_file():
         raise PackError("no %s in %s -- the marketplace catalogue is authored there"
@@ -504,8 +510,9 @@ def sync(marketplace: Path, expected_bundles: set[str]) -> list[str]:
     return removed
 
 
-def pack_all(ws: Path, marketplace: Path, versions: dict[str, str], repack: set[str],
-             *, scratch: Path, source: str, log=print) -> PackReport:
+def pack_all(ws: Path, marketplace: Path, versions: dict[str, str],
+             repack: set[str], *, scratch: Path, source: str,
+             log: Log = print) -> PackReport:
     """Bring `marketplace` to the state `versions` describes.
 
     `versions` maps every package name to the version its bundle must carry;
@@ -560,7 +567,7 @@ def pack_all(ws: Path, marketplace: Path, versions: dict[str, str], repack: set[
     return PackReport(packed, kept, removed, versions)
 
 
-def version_map(ws: Path, plans) -> dict[str, str]:
+def version_map(ws: Path, plans: Sequence[versionlib.Plan]) -> dict[str, str]:
     """Every package's version after a release, whether or not it is in it.
 
     The marketplace holds one bundle per package and a catalogue naming all of

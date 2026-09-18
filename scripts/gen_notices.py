@@ -27,8 +27,8 @@ from __future__ import annotations
 import os
 import re
 import sys
-from collections import namedtuple
 from pathlib import Path
+from typing import NamedTuple
 
 import typer
 from ruamel.yaml import YAML
@@ -36,6 +36,7 @@ from ruamel.yaml import YAML
 import github as githublib
 import provenance as prov
 import workspace
+from workspace import Log
 
 UNRECORDED = "UNRECORDED"
 
@@ -43,7 +44,7 @@ UNRECORDED = "UNRECORDED"
 # --- Readers ---------------------------------------------------------------
 
 
-def read_license_map(path) -> dict:
+def read_license_map(path: Path) -> dict:
     """dependency-licenses.yml as {source key: {spdx, holder, license_url, ...}}.
 
     A missing file is an empty map, not an error: a workspace with no vendored
@@ -65,7 +66,7 @@ def read_license_map(path) -> dict:
     return entries
 
 
-def read_lock_dependencies(bundle_dir) -> list[dict]:
+def read_lock_dependencies(bundle_dir: str | Path) -> list[dict]:
     """Every dependency recorded in a packed bundle's apm.lock.yaml."""
     lock = workspace.read_lock(Path(bundle_dir) / "apm.lock.yaml")
     return [dict(d) for d in (lock or {}).get("dependencies") or [] if d.get("repo_url")]
@@ -135,7 +136,14 @@ def upstream_path(url: str) -> str:
 # --- Gathering -------------------------------------------------------------
 
 
-def bundle_provenance(bundle_dir) -> list[dict]:
+class BundleFile(NamedTuple):
+    """One file inside a packed bundle, named as the bundle sees it."""
+
+    rel: str
+    record: prov.Record
+
+
+def bundle_provenance(bundle_dir: str) -> list[BundleFile]:
     """Provenance carried by the files inside a packed bundle."""
     found = []
     for sub in ("agents", "skills", "instructions", "commands"):
@@ -149,13 +157,13 @@ def bundle_provenance(bundle_dir) -> list[dict]:
                     continue
                 path = os.path.join(dirpath, name)
                 record = prov.parse(path)
-                if record["entries"] or record["declared"]:
-                    record["rel"] = os.path.relpath(path, bundle_dir).replace("\\", "/")
-                    found.append(record)
+                if record.entries or record.declared:
+                    rel = os.path.relpath(path, bundle_dir).replace("\\", "/")
+                    found.append(BundleFile(rel, record))
     return found
 
 
-def collect(marketplace) -> list[dict]:
+def collect(marketplace: str | Path) -> list[dict]:
     plugins = os.path.join(marketplace, "plugins")
     if not os.path.isdir(plugins):
         return []
@@ -211,18 +219,18 @@ def render(bundles: list[dict], licenses: dict) -> str:
             notices.append((dep.get("name", key), key, info.get("spdx", "?"),
                             info.get("holder", ""), str(dep.get("resolved_commit", ""))[:12]))
 
-        for record in bundle["files"]:
-            for entry in record["entries"]:
+        for rel, record in bundle["files"]:
+            for entry in record.entries:
                 fidelity = prov.effective_fidelity(entry)
-                key = canonical(slug(entry["url"]), licenses)
+                key = canonical(slug(entry.url), licenses)
                 if prov.OBLIGATION.get(fidelity, True):
                     info = licenses.get(key, {})
-                    exceptions.append((record["rel"], record["effective"],
-                                       entry["license"] or info.get("spdx", "?"),
+                    exceptions.append((rel, record.effective,
+                                       entry.license or info.get("spdx", "?"),
                                        fidelity, key, info.get("holder", ""),
-                                       upstream_path(entry["url"]), entry["url"]))
+                                       upstream_path(entry.url), entry.url))
                 else:
-                    ack.setdefault(key, (set(), entry["url"]))[0].add(fidelity)
+                    ack.setdefault(key, (set(), entry.url))[0].add(fidelity)
 
         if not notices and not exceptions:
             continue
@@ -304,7 +312,7 @@ def render(bundles: list[dict], licenses: dict) -> str:
     return "\n".join(out)
 
 
-def render_for(ws, marketplace) -> str:
+def render_for(ws: str | Path, marketplace: str | Path) -> str:
     """The notices text for `marketplace`, from `ws`'s licence map."""
     licenses = read_license_map(Path(ws) / "dependency-licenses.yml")
     bundles = collect(marketplace)
@@ -313,7 +321,7 @@ def render_for(ws, marketplace) -> str:
     return render(bundles, licenses)
 
 
-def write(ws, marketplace) -> Path:
+def write(ws: str | Path, marketplace: str | Path) -> Path:
     target = Path(marketplace) / "THIRD-PARTY-NOTICES.md"
     with open(target, "w", encoding="utf-8", newline="\n") as handle:
         handle.write(render_for(ws, marketplace))
@@ -329,7 +337,13 @@ def unrecorded(text: str) -> list[str]:
 # --- Verification ----------------------------------------------------------
 
 
-Checked = namedtuple("Checked", "key recorded reported status")
+class Checked(NamedTuple):
+    """One upstream's recorded licence against what its host reports today."""
+
+    key: str
+    recorded: str
+    reported: str
+    status: str
 
 
 def relicensing(licenses: dict, gh: githublib.GitHub) -> list[Checked]:
@@ -363,7 +377,7 @@ def relicensing(licenses: dict, gh: githublib.GitHub) -> list[Checked]:
     return rows
 
 
-def verify(licenses: dict, gh: githublib.GitHub, log=print) -> int:
+def verify(licenses: dict, gh: githublib.GitHub, log: Log = print) -> int:
     """Print every upstream's licence check; exit code counts the drift."""
     rows = relicensing(licenses, gh)
     for row in rows:
