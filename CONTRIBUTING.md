@@ -450,7 +450,9 @@ path after the checkout. That needs no cross-repository Actions permission, whic
 a reusable workflow between two private repos would.
 
 The private workspace holds no `scripts/` — it checks this repo out beside itself
-and runs its code and its actions, exactly as a sibling clone does locally.
+and runs its code and its actions, exactly as a sibling clone does locally. That
+checkout needs no secret and names no ref: this repository is public, so the
+workflow's own token reads it, and its default branch is what runs.
 
 **The gates float the APM version and the release pins it.** A new APM that breaks
 this repo should turn Monday red rather than surprise the next release; but what a
@@ -465,7 +467,6 @@ anything else is deleted.
 ### Secrets
 
 - **`MARKETPLACE_TOKEN`** — `contents: write` on the marketplace repo. Set on this repo and on the private workspace. A release regenerates and pushes the marketplace, so even a dry run has to read it.
-- **`TOOLING_TOKEN`** — `contents: read` on `.llmctl`. Set on the private workspace, whose CI borrows these scripts. Needed only while this repo is private.
 
 The release needs no token of its own beyond the workflow's: it pushes tags and
 creates releases, both of which `contents: write` on `GITHUB_TOKEN` covers.
