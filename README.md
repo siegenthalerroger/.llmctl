@@ -103,10 +103,7 @@ apm install ~/.llmctl/packages/core --target claude
 uv run scripts/check.py --repo . --since origin/main
 ```
 
-The scripts declare their own dependencies in an inline PEP 723 header, so
-[uv](https://docs.astral.sh/uv/) runs them without anything being installed first.
-The `scripts:` block in [apm.yml](apm.yml) lists them in the order you would run
-them: `check`, `update`, `check-updates`, `check-steering`, `versions`, `release`, `pack-marketplace`.
+The scripts declare their own dependencies in an inline PEP 723 header, so [uv](https://docs.astral.sh/uv/) runs them without anything being installed first. The `scripts:` block in [apm.yml](apm.yml) lists them in the order you would run them: `check`, `update`, `check-updates`, `check-steering`, `versions`, `release`, `pack-marketplace`.
 
 ### Updating what this repo consumes
 
@@ -115,11 +112,7 @@ apm run update          # move the pinned upstreams and print every diff that mo
 apm run check-updates   # the files adapted from an upstream, and the specs they cite
 ```
 
-`apm run update` commits nothing: it moves each package's pins as far as they go,
-proves the lockfile followed, scans what it materialised, and prints the upstream's
-own diff for each moved pin so it can be read before anything is kept. The
-`meta-update-repo` skill is the procedure around it, and its safety-review
-reference says what to look for.
+`apm run update` commits nothing: it moves each package's pins as far as they go, proves the lockfile followed, scans what it materialised, and prints the upstream's own diff for each moved pin so it can be read before anything is kept. The `meta-update-repo` skill is the procedure around it, and its safety-review reference says what to look for.
 
 Use another `--target` if you work with a different assistant. Edit files under `packages/<name>/.apm/`; installed copies and marketplace bundles are replaced by later installs or releases.
 
@@ -170,17 +163,11 @@ Do not hand-edit the bundles, either catalogue or `THIRD-PARTY-NOTICES.md`. Make
 
 ### Releasing
 
-Releases are automatic: a push to `main` runs the gates and then publishes every
-package whose paths changed. Versions are calendar-derived — `YYYY.M.N`, counting
-that package's releases within the month — and recorded as annotated
-`<name>@<version>` tags with a GitHub release beside each one. Nothing is
-committed to this repository by a release.
+Releases are automatic: a push to `main` runs the gates and then publishes every package whose paths changed. Versions are calendar-derived — `YYYY.M.N`, counting that package's releases within the month — and recorded as annotated `<name>@<version>` tags with a GitHub release beside each one. Nothing is committed to this repository by a release.
 
 Packages version independently: a change to `ops` releases `ops` alone.
 
-`apm run versions` shows what each package's next version would be; `apm run
-release` shows what a release would publish, including its notes, and writes
-nothing. See [Releasing](CONTRIBUTING.md#releasing).
+`apm run versions` shows what each package's next version would be; `apm run release` shows what a release would publish, including its notes, and writes nothing. See [Releasing](CONTRIBUTING.md#releasing).
 
 ## Concept & Contributing
 
