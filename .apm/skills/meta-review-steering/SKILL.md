@@ -1,0 +1,77 @@
+---
+name: "meta-review-steering"
+description: "Reviews this repository's steering files — skills, agents, instructions, prompts and hooks — against the meta-steering and meta-harness guidance that governs them, starting from the files git says were last touched before that guidance moved. ALWAYS invoke when asked whether the existing skills still follow the authoring conventions, to sweep the repository for steering that has fallen behind, or after the guidance itself has been refreshed. Do not judge a file compliant from its frontmatter alone, and do not rewrite one because a report called it behind — read the guidance commits in the gap first and close the ones that changed no rule it has to follow. Keywords: steering review, alignment sweep, authoring conventions, meta-steering, meta-harness, compliance audit, description shape, drift, stale skill, check-steering."
+compatibility: "Repo-local: needs `uv` and `git`, and drives this repository's `check-steering` and `check` commands. Runs offline."
+---
+
+# meta-review-steering
+
+Check what the guidance governs against what the guidance says. The other half
+of [meta-refresh-steering](../meta-refresh-steering/SKILL.md), which moves the
+guidance itself.
+
+## Where to start
+
+```bash
+uv run scripts/check_steering.py --repo .                    # everything
+uv run scripts/check_steering.py --repo . --include python   # one area
+```
+
+Every authored `SKILL.md`, `*.agent.md`, `*.instructions.md`, `*.prompt.md` and
+`*.hook.json`, each against the guidance pages for its own kind, with the
+guidance commits that landed after the file was last touched.
+
+**`behind` is a starting order, not a finding.** The signal is git, so it is
+wrong in both directions and knowing how is the difference between a review and
+a rewrite:
+
+- A cosmetic commit to the guidance — a typo, a renamed link — marks every file
+  it governs `behind`. Most of a run is usually this.
+- An edit to a file for an unrelated reason clears its flag with nobody having
+  re-read it. `current` therefore means *not measurable*, never *verified*.
+
+So: read the gap commits first. If none of them changed a rule that file has to
+follow, close it as no action and say so. That is the common case and it is a
+real result — record it rather than reaching for a diff.
+
+## What to review, once a file is worth reviewing
+
+The `frontmatter` gate already covers the mechanical half on every run, and it
+is not worth repeating by eye: missing `name`/`description`, skill name against
+its directory, kebab-case, reserved words, the 1024-character limit, block
+scalars, the line ceiling. Run it rather than reading for it:
+
+```bash
+uv run scripts/check.py --repo . --only frontmatter
+```
+
+What no gate can check, and what this review is for:
+
+| | Against |
+| --- | --- |
+| Is the description a directive with an explicit negative constraint, front-loaded, name-first? | [meta-steering §3](../../../packages/core/.apm/skills/meta-steering/SKILL.md#3-description-craft--all-four-types) |
+| Is this the right customization type at all, or a rule wearing the wrong one? | [meta-steering §1](../../../packages/core/.apm/skills/meta-steering/SKILL.md#1-pick-the-customization-type-first) |
+| Does the body earn its place in the discovery budget, or restate what the harness already does? | [meta-steering §4](../../../packages/core/.apm/skills/meta-steering/SKILL.md#4-frontmatter-shared-by-all-four-types) |
+| Does it fall into a named anti-pattern? | [meta-steering §5](../../../packages/core/.apm/skills/meta-steering/SKILL.md#5-anti-patterns-across-all-four-types) |
+| For a hook or an MCP entry: is it deterministic, and is the event name real? | [meta-harness](../../../packages/core/.apm/skills/meta-harness/SKILL.md) |
+
+## Constraints
+
+- **Propose, do not apply.** One file at a time, minimal diff, and nothing
+  committed without confirmation.
+- A file governed by a rule that changed gets re-read against the rule, not
+  against your memory of it. Open the guidance page.
+- Where a file deliberately diverges and says so, that is a decision, not a
+  finding. Leave it and report it as kept.
+- Reviewing a file does not make it compliant forever. There is no stamp and
+  nothing records that a review happened — the next run will flag it again the
+  next time the guidance moves.
+
+## Report
+
+Three groups, and the middle one is the point:
+
+1. **Changed** — file, which rule moved, the diff.
+2. **Closed** — file, which guidance commits were in its gap, why none of them
+   applied to it.
+3. **Kept** — file, the divergence, why it stands.
