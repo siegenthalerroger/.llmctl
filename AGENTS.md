@@ -16,7 +16,7 @@ Content that cannot be published lives in a **separate private workspace**, not 
 
 Upstream-sourced content is declared in the relevant package's `apm.yml` (`packages/*/apm.yml`), pinned to a full commit SHA, and resolved in that package's committed `apm.lock.yaml`. MCP servers are scoped per package: universal dev servers in `packages/core/apm.yml`, cloud/IaC doc servers in `packages/ops/apm.yml`.
 
-A pin and its lockfile move only through the `meta-update-repo` skill, in one commit, after its safety review has read the upstream diff. `apm install --frozen` does not check which commit a pin resolves to, so it cannot stand in for that.
+A pin and its lockfile move only through `apm run update`, in one commit, after the `meta-update-repo` skill's safety review has read the upstream diff. Nothing about that is `apm install --frozen`'s job — see [Lockfiles](CONTRIBUTING.md#lockfiles) for why.
 
 ## Authoring rules
 
@@ -31,7 +31,7 @@ This is a quick reference, see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed d
 - **Plugins:** bundled distribution of multiple components. Add only when shipping a curated subset for marketplace/external use.
 - **Provenance:** track upstream sources via `metadata.provenance.{adaptedFrom,authoritativeSpec}` — prefer APM dependencies over vendored copies. On the object form, `license` (upstream SPDX id) and `fidelity` (`inspiration-only`/`structural-echo`/`partly-derived`/`largely-derived`) are required wherever expression was copied; `took` records only what was taken.
 - **Licensing:** `*.md` is CC-BY-SA-4.0, everything else MIT — see [LICENSE](LICENSE). A file adapting an upstream whose terms the default cannot satisfy declares a top-level `license:` in its frontmatter. Run `apm run check` after touching provenance or adding a dependency.
-- **Scripts:** one file per command under `scripts/`, run with `uv run` — each entry script declares its own dependencies in a PEP 723 header, so there is no `pyproject.toml` and nothing to install first.
+- **Scripts:** one file per command under `scripts/`, run with `uv run` — each entry script declares its own dependencies in a PEP 723 header, so there is no `pyproject.toml` and nothing to install first. The `scripts:` block in [apm.yml](apm.yml) is the index: `check`, `update`, `check-updates`, `versions`, `release`, `pack-marketplace`, in the order you would run them.
 
 ## Commits
 
@@ -49,5 +49,5 @@ The type no longer sizes anything — versions are calendar-derived — it decid
 
 - Don't ignore the conventions defined in this repository, see [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Don't edit anything in the marketplace repositories.** Every file there is generated, and a release deletes whatever it did not produce. The sources are here: `README.marketplace.md`, `LICENSE.marketplace`, `.gitignore.marketplace`, `apm.marketplace.yml`, and the packages themselves.
-- **Don't hand-edit `packages/*/apm.lock.yaml`,** and don't refresh one on its own. It moves with its `apm.yml` pin, in one commit, through the `meta-update-repo` skill.
+- **Don't hand-edit `packages/*/apm.lock.yaml`,** and don't refresh one on its own. It moves with its `apm.yml` pin, in one commit, through `apm run update`.
 - **Don't edit `version:` in a package manifest.** It is a placeholder; the release stamps the real calendar version into a scratch copy and records it as a tag.
