@@ -63,6 +63,18 @@ github.com/Design-Machines-Studio/depot:
     Only the `design-practice` plugin's layout, identity and dataviz skills are
     consumed; the repository is a much larger multi-domain marketplace.
 
+github.com/trailofbits/skills:
+  spdx: CC-BY-SA-4.0
+  holder: "Trail of Bits"
+  license_url: https://github.com/trailofbits/skills/blob/main/LICENSE
+  note: >-
+    The LICENSE is the bare CC-BY-SA-4.0 text with no copyright line; the holder
+    above is attribution, taken from the README ("Made by Trail of Bits"), not a
+    quoted notice. ShareAlike matches the CC-BY-SA-4.0 default `*.md` takes here.
+    Only the `modern-python` plugin's skill of the same name is consumed -- not
+    that plugin's SessionStart hook, and not the security-audit plugins that make
+    up the rest of the repository.
+
 # --- Sources of adapted content (metadata.provenance) ------------------------
 
 github.com/github/awesome-copilot:
