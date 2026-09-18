@@ -29,8 +29,10 @@ import json
 import os
 import sys
 import urllib.parse
+from collections.abc import Sequence
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, NamedTuple
 
 import httpx
 import typer
@@ -39,6 +41,29 @@ import github as githublib
 import provenance as prov
 import workspace
 from github import ApiError
+
+# The audit's own vocabulary. `Item` is one tracked upstream of one file, `Row`
+# is that item plus a verdict -- both are the JSON this prints, so they stay
+# dicts; `Query` and `Options` never leave the process, so they do not.
+Item = dict[str, str]
+Row = dict[str, Any]
+
+
+class Query(NamedTuple):
+    """A GitHub URL taken apart into what the API asks for."""
+
+    owner: str
+    repo: str
+    ref: str
+    path: str
+
+
+class Options(NamedTuple):
+    """What the caller asked for, as every audit function reads it."""
+
+    change_details: bool
+    max_change_commits: int
+    allow_no_local_commit: bool
 
 # A source with no revision history to diff against -- a book, a paper, a vendor
 # doc page. A permanent property of the URL rather than a failure, so it is kept
@@ -54,8 +79,8 @@ def is_github(url: str) -> bool:
         return False
 
 
-def github_query(url: str) -> dict:
-    """(owner, repo, ref, path) from a repository, tree, or blob URL."""
+def github_query(url: str) -> Query:
+    """A repository, tree, or blob URL taken apart."""
     parts = urllib.parse.urlparse(url)
     segments = [s for s in parts.path.strip("/").split("/") if s]
     if len(segments) < 2:
@@ -65,10 +90,9 @@ def github_query(url: str) -> dict:
         # A bare repository URL names no branch. Leaving the ref empty lets the
         # API use the repository's own default; hardcoding `main` 404s on every
         # repo still using `master`, which reads like a broken URL.
-        return {"owner": owner, "repo": repo, "ref": "", "path": ""}
+        return Query(owner, repo, "", "")
     if len(segments) >= 4 and segments[2] in ("blob", "tree"):
-        return {"owner": owner, "repo": repo, "ref": segments[3],
-                "path": "/".join(segments[4:])}
+        return Query(owner, repo, segments[3], "/".join(segments[4:]))
     raise ApiError("Unsupported GitHub URL structure: '%s'. Use repository, tree, "
                    "or blob URLs." % url)
 
@@ -85,7 +109,7 @@ def probe(url: str) -> httpx.Response:
         raise ApiError("request failed: %s" % exc)
 
 
-def last_commit(repo, path) -> dict:
+def last_commit(repo: Path | str, path: str) -> dict[str, str]:
     """The local file's last commit, or empty strings when it has none."""
     out = workspace.git(["log", "-n", "1", "--format=%H|%cI", "--", str(path)],
                         repo, check=False)
@@ -101,24 +125,27 @@ def tracked_entries(root: Path, kind: str) -> list[dict]:
             continue
         record = prov.parse(path)
         relative = os.path.relpath(path, root).replace("\\", "/")
-        for entry in record["entries"]:
-            if entry["kind"] == kind:
-                entries.append({"file": relative, "source": entry["url"],
-                                "took": entry["took"] or "",
-                                "license": entry["license"] or "",
-                                "fidelity": entry["fidelity"] or ""})
+        for entry in record.entries:
+            if entry.kind == kind:
+                entries.append({"file": relative, "source": entry.url,
+                                "took": entry.took or "",
+                                "license": entry.license or "",
+                                "fidelity": entry.fidelity or ""})
     return entries
 
 
-def row(item, status, recommendation, reason, local=None, upstream=None,
-        days=None, commits=None) -> dict:
+def row(item: Item, status: str, recommendation: str, reason: str,
+        local: dict[str, str] | None = None,
+        upstream: dict[str, str] | None = None, days: int | None = None,
+        commits: list[dict] | None = None) -> Row:
     return dict(item, status=status, recommendation=recommendation, reason=reason,
                 local=local or {"sha": "", "date": ""},
                 upstream=upstream or {"sha": "", "date": ""},
                 days_behind=days, commits=commits or [])
 
 
-def audit_adapted(item, root, client, options) -> dict:
+def audit_adapted(item: Item, root: Path, client: githublib.GitHub,
+                  options: Options) -> Row:
     """Has the upstream file moved since the local one last did?"""
     if not is_github(item["source"]):
         return row(item, NOT_TRACKABLE, "none_source_has_no_revision_history",
@@ -126,7 +153,7 @@ def audit_adapted(item, root, client, options) -> dict:
 
     local = last_commit(root, item["file"])
     bootstrap = not local["date"]
-    if bootstrap and not options["allow_no_local_commit"]:
+    if bootstrap and not options.allow_no_local_commit:
         return row(item, "missing_local_commit", "commit_local_file_first",
                    "local_file_not_in_git_history", local)
 
@@ -134,12 +161,10 @@ def audit_adapted(item, root, client, options) -> dict:
         query = github_query(item["source"])
         # Before any date comparison: a path that no longer exists still has a
         # newest commit -- the one that removed it -- and would report healthy.
-        if not client.path_exists(query["owner"], query["repo"], query["path"],
-                                  query["ref"]):
+        if not client.path_exists(query.owner, query.repo, query.path, query.ref):
             return row(item, "source_missing", "repoint_or_drop_provenance",
                        "upstream_path_no_longer_exists", local)
-        head = client.latest_commit(query["owner"], query["repo"],
-                                    query["path"], query["ref"])
+        head = client.latest_commit(query.owner, query.repo, query.path, query.ref)
         upstream = {"sha": head["commitSha"], "date": head["commitDate"]}
     except ApiError as exc:
         return row(item, "fetch_failed", "check_source_url", str(exc), local)
@@ -160,7 +185,8 @@ def audit_adapted(item, root, client, options) -> dict:
                changes(client, query, options, since=local_date))
 
 
-def audit_spec(item, root, client, options) -> dict:
+def audit_spec(item: Item, root: Path, client: githublib.GitHub,
+               options: Options) -> Row:
     """Is the specification still there, and has it moved since we read it?"""
     if is_github(item["source"]):
         return audit_adapted(item, root, client, options)
@@ -197,19 +223,20 @@ def audit_spec(item, root, client, options) -> dict:
                "page_modified_since_local_commit", local, upstream, days)
 
 
-def changes(client, query, options, since=None) -> list[dict]:
+def changes(client: githublib.GitHub, query: Query, options: Options,
+            since: str | None = None) -> list[dict]:
     """Upstream commit rows, when --change-details asked for them."""
-    if not options["change_details"]:
+    if not options.change_details:
         return []
     try:
-        return client.commit_rows(query["owner"], query["repo"], query["path"],
-                                  query["ref"], options["max_change_commits"], since)
+        return client.commit_rows(query.owner, query.repo, query.path,
+                                  query.ref, options.max_change_commits, since)
     except ApiError as exc:
         return [{"error": str(exc)}]
 
 
-def summarize(results) -> dict:
-    def count(status):
+def summarize(results: Sequence[Row]) -> dict[str, int]:
+    def count(status: str) -> int:
         return sum(1 for r in results if r["status"] == status)
     return {
         "files": len({r["file"] for r in results}),
@@ -222,7 +249,7 @@ def summarize(results) -> dict:
     }
 
 
-def report(output) -> None:
+def report(output: dict[str, Any]) -> None:
     s = output["summary"]
     print("Upstream audit complete (%s)" % output["mode"])
     print("Auth: %s | Files: %d | Upstreams: %d | Up-to-date: %d | Update-available: "
@@ -270,9 +297,7 @@ def main(repo: Path = workspace.REPO_OPTION,
                          % (kind, " for --include '%s'" % include if include else ""))
         raise typer.Exit(1)
 
-    options = {"change_details": change_details,
-               "max_change_commits": max_change_commits,
-               "allow_no_local_commit": allow_no_local_commit}
+    options = Options(change_details, max_change_commits, allow_no_local_commit)
     auditor = audit_spec if specs else audit_adapted
     results = [auditor(item, root, client, options) for item in items]
 
