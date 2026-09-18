@@ -25,57 +25,48 @@ metadata:
 
 # meta-updater
 
-Audit and update local customization files across three dimensions: upstream source drift, model array freshness, and metadata standards compliance. Operates without auto-loading into unrelated tasks.
+Three passes over what this repository consumes and what it must comply with.
+Each pass is owned by a skill: load it and follow it, rather than working from
+this file. Run all three in order unless the request scopes to one.
 
-Unless the user scopes the request to a specific phase, run all three phases in sequence.
+| Phase | Skill | Covers |
+| --- | --- | --- |
+| 1. Repository inputs | `meta-update-repo` | pinned dependencies and their lockfiles, adapted files, cited specifications |
+| 2. Model selections | `meta-update-models` | `model:` and `effort:` in files declaring a `metadata.modelProfile` |
+| 3. Authoring standards | `meta-steering`, `meta-harness` | frontmatter, descriptions and structure per file type |
 
-## Phase 1 — Repository Inputs
+`meta-update-repo` is the only path by which a `#sha` pin or a
+`packages/*/apm.lock.yaml` may move, and every bump passes its safety review
+before it is committed. Phase 3 routes by file kind: `meta-steering` owns what
+the model reads (`SKILL.md`, `*.agent.md`, `*.instructions.md`, `*.prompt.md`),
+`meta-harness` what the harness executes or installs (`*.hook.json`, MCP servers
+in `apm.yml`, `plugin.json`, bundle layouts).
 
-Refresh what this repository consumes from elsewhere: the pinned APM
-dependencies and their lockfiles, the files adapted from an upstream, and the
-specifications its primitives cite.
+## Before phase 1
 
-> **Scope:** the `meta-update-repo` skill owns this phase end to end. It is the
-> only path by which a `#sha` pin or a `packages/*/apm.lock.yaml` may move, and
-> every bump passes its safety review before it is committed.
-
-1. [ ] Load the `meta-update-repo` skill and follow its phases A through E.
-1. [ ] Confirm a GitHub token is available (`gh auth status`, or
-       `GITHUB_TOKEN`/`GH_TOKEN`) — the audits read the GitHub API, and
-       unauthenticated runs report rate-limit failures that look like broken URLs.
-1. [ ] Per package, run the dependency pass, read the diff of everything that
-       moved against the skill's safety-review reference, and stop on a blocking
-       finding rather than committing it.
-1. [ ] Run the adapted-content audit and the specification audit, and apply the
-       skill's recommendation matrix.
-1. [ ] Report per package: which pins moved and to what, the verdict of each
-       safety review, which adaptations and specifications were flagged, and
-       what was deliberately left alone.
-
-## Phase 2 — Model Refresh
-
-Resolve `model:` and `effort:` in files that declare a `metadata.modelProfile`.
-
-1. [ ] Load the `meta-update-models` skill.
-1. [ ] Discover all customization files (`*.agent.md`, `SKILL.md`, `*.prompt.md`, `*.instructions.md`) that contain a `metadata.modelProfile` block.
-1. [ ] For each file, follow the `meta-update-models` skill process: map the profile to the active single `model:` alias and `effort:` value deterministically, then regenerate the non-functional multi-provider candidate comment by fetching the provider catalogues.
-1. [ ] Report a summary table: file → old `model:`/`effort:` → new, with the reasoning for each change.
-
-## Phase 3 — Metadata Standards Audit
-
-Ensure all customization files comply with the latest structural and frontmatter standards for their file type.
-
-1. [ ] Load the skill that owns the file types in scope: `meta-steering` for what the model reads (`SKILL.md`, `*.agent.md`, `*.instructions.md`, `*.prompt.md`), `meta-harness` for what the harness executes or installs (hook configuration such as `*.hook.json` and hook entries in agent/settings frontmatter, MCP servers in `apm.yml`, `plugin.json` and APM bundle layouts). Each routes on to a per-type reference.
-1. [ ] Discover all customization files in the workspace, including hook and plugin manifests in addition to the four markdown types.
-1. [ ] For each file, verify frontmatter against its type's required and recommended fields (as defined in the loaded meta skill's per-type reference). Check for: missing required fields, deprecated or renamed fields, incorrect field types or formats, missing `metadata.provenance` fields where applicable.
-1. [ ] Run `apm run check-licenses` rather than eyeballing provenance blocks. It is the authority on whether each file's licence can carry the upstream terms its `fidelity` and `license` record, and it reports the two failures that are otherwise invisible: an `adaptedFrom` block that parses to no URL, and an obligation-bearing entry with no upstream `license`.
-1. [ ] Report findings grouped by file type: compliant files, files with warnings (missing optional fields), files with errors (missing required fields or structural violations).
-1. [ ] For each non-compliant file, propose the minimal diff needed to bring it into compliance. Apply fixes only when explicitly asked.
-1. [ ] Audit each file's `description` field against the `meta-steering` description standard: directive shape with an explicit negative constraint, single-line YAML, front-loaded trigger keywords, within the applicable char budget (1024 field / 1536 combined discovery), and discriminating versus sibling files. Flag files whose combined discovery text overflows budget.
-1. [ ] Use `vscode/askQuestions` when the correct fix requires a judgment call (e.g., which provenance pattern applies, or how to populate a missing `description`).
+Confirm a GitHub token is available (`gh auth status`, or `GITHUB_TOKEN` /
+`GH_TOKEN`). The audits read the GitHub API, and unauthenticated runs report
+rate-limit failures that look like broken URLs.
 
 ## Constraints
 
-- Do not overwrite files automatically unless explicitly asked, and commit nothing without confirmation.
-- Use `vscode/askQuestions` to resolve direction decisions (for example: whether to adopt upstream workflow changes, keep local divergence, or how to fill required fields).
-- Run phases independently when the user scopes the request (e.g., "only refresh models" or "audit metadata standards").
+- **Commit nothing without confirmation**, and apply no fix in phase 3 unless
+  asked. Propose the minimal diff instead.
+- Stop on a blocking safety finding rather than committing it. Report the hunk.
+- `apm run check --only licences` decides whether a provenance block is sound;
+  do not eyeball one. It reports the two failures that are otherwise invisible:
+  a block that parses to no URL, and an obligation-bearing entry with no
+  upstream `license`.
+- Use `vscode/askQuestions` for direction decisions — whether to adopt an
+  upstream workflow change, keep a local divergence, or how to fill a required
+  field.
+
+## Report
+
+One summary per phase, and say what was left alone as well as what moved:
+
+1. Per package: which pins moved and to what, the verdict of each safety review,
+   which adaptations and specifications were flagged, what was not updated and why.
+2. A table of file → old `model:`/`effort:` → new, with the reason for each.
+3. Findings grouped by file type: compliant, warnings, errors, and the proposed
+   diff for each non-compliant file.
