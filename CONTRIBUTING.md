@@ -17,6 +17,7 @@
 ### Rules
 
 - **Each sub-package uses the `.apm/` layout.** A package is `packages/<name>/apm.yml` + `packages/<name>/.apm/{agents,skills,prompts,instructions,hooks}/`. Bare `agents/`/`skills/` at a package root are misclassified by APM as a single skill bundle — everything must live under `.apm/`.
+- **The root workspace depends on `packages/core` and `packages/python`.** Those are the two an agent editing this repo needs in context: `core` carries `meta-steering` and `meta-harness`, which every steering file here is written against, plus the prose and research skills the docs get written with; `python` carries the standards `scripts/` is held to. Deploying the root [apm.yml](apm.yml) therefore brings both along beside the repo-local procedures. Nothing else is added — the remaining packages are domain steering for work that does not happen in this repository.
 - **Place a new primitive by scope, not by type.** Ask: universal and domain-neutral (core, which also owns the authoring guidance), code-specific (workflow), domain-specific (ops/product/design or a new package), or operates on *this repo's own files* (root `.apm/`)? `core` is the baseline that loads in *every* context, including ones with no code in them — anything that presumes a codebase belongs in `workflow`.
 - **Scope each MCP server to the package whose work needs it.** Universal dev servers (`github`, `context7`) live in `packages/core/apm.yml`; domain servers live in their domain package (cloud/IaC doc servers in `packages/ops/apm.yml`). A server loads only where its package is installed, so keep global tool surface minimal.
 - **Consume upstream content as a pinned `dependencies.apm` entry, never a vendored copy** (see the APM-first rule below). Use the git subdir form to take a single skill out of a larger repo — `owner/repo/path/to/skill#<sha>` — and always pin a commit or tag; an unpinned entry tracks the default branch and drifts. Scope the dependency to the package whose work needs it, exactly like MCP servers, and record in a comment why that upstream was chosen and what was deliberately left behind. Bump through the `meta-update-repo` skill, which runs that loop per package, reads the diff of everything that moved before it is committed, and keeps `apm.yml` and `apm.lock.yaml` in one commit. **Every pin is a full commit SHA and every package commits its `apm.lock.yaml`** — see [Lockfiles](#lockfiles).
@@ -230,14 +231,9 @@ Authoritative sources are maintained in the `meta-update-models` skill frontmatt
 
 ## Upstream Update Tooling
 
-Three kinds of upstream feed this repository. `apm run update` handles the first;
-`apm run check-updates` audits the other two. The `meta-update-repo` skill is the
-procedure around them.
+Three kinds of upstream feed this repository. `apm run update` handles the first; `apm run check-updates` audits the other two. The `meta-update-repo` skill is the procedure around them.
 
-**Four procedures, no pipeline.** Updating is not one command, because the four
-things that go out of date go out of date on their own schedules. The
-`meta-updater` agent routes a request to one of them and asks which when the
-request does not say — it never runs all four because the ask was vague.
+**Four procedures, no pipeline.** Updating is not one command, because the four things that go out of date go out of date on their own schedules. The `meta-updater` agent routes a request to one of them and asks which when the request does not say — it never runs all four because the ask was vague.
 
 | Procedure | Moves | Run it when |
 | --- | --- | --- |
@@ -246,13 +242,7 @@ request does not say — it never runs all four because the ask was vague.
 | `meta-refresh-steering` | `meta-steering` and `meta-harness` themselves | the harnesses have moved on |
 | `meta-review-steering` | every steering file, against the guidance over it | the guidance changed, or it has been a while |
 
-The last two are a pair: refreshing the guidance is what makes the files it
-governs due for review. `apm run check-steering` says which those are, by asking
-git which guidance commits landed after each file was last touched. That is a
-reading order and not a verdict — a cosmetic commit to the guidance marks
-everything it governs behind, and editing a file for an unrelated reason clears
-its flag with nobody having re-read it, so `current` means *not measurable*
-rather than *verified*.
+The last two are a pair: refreshing the guidance is what makes the files it governs due for review. `apm run check-steering` says which those are, by asking git which guidance commits landed after each file was last touched. That is a reading order and not a verdict — a cosmetic commit to the guidance marks everything it governs behind, and editing a file for an unrelated reason clears its flag with nobody having re-read it, so `current` means *not measurable* rather than *verified*.
 
 | Input | Declared in | Command |
 | --- | --- | --- |
@@ -260,41 +250,17 @@ rather than *verified*.
 | Adapted content | `metadata.provenance.adaptedFrom` | `apm run check-updates` |
 | Specifications | `metadata.provenance.authoritativeSpec` | the same, with `--specs` |
 
-`apm run update` moves each package's pins as far as they go, installs, proves the
-lockfile followed, scans what was materialised with `apm audit`, and prints the
-upstream's own diff for everything that moved, filtered to the path this
-repository consumes. It commits nothing.
+`apm run update` moves each package's pins as far as they go, installs, proves the lockfile followed, scans what was materialised with `apm audit`, and prints the upstream's own diff for everything that moved, filtered to the path this repository consumes. It commits nothing.
 
-**Every bump is read before it is committed.** A pinned dependency is content an
-agent loads as instructions, and some of it ships scripts and hooks that run
-locally; `apm approve` gates *execution*, not content. The
-[safety-review reference](.apm/skills/meta-update-repo/references/safety-review.md)
-says what to look for. It is a reading, not a scan — a table of strings to grep
-for was built and dropped for flagging a vendor's own install one-liner while
-missing anything phrased differently.
+**Every bump is read before it is committed.** A pinned dependency is content an agent loads as instructions, and some of it ships scripts and hooks that run locally; `apm approve` gates *execution*, not content. The [safety-review reference](.apm/skills/meta-update-repo/references/safety-review.md) says what to look for. It is a reading, not a scan — a table of strings to grep for was built and dropped for flagging a vendor's own install one-liner while missing anything phrased differently.
 
-**Two upstreams `apm update` cannot move on its own.** It resolves a full-SHA pin
-only to the newest *annotated* semver tag, so an upstream publishing none —
-`blader/humanizer` and `rshade/agent-skills` today — needs the HEAD bump that
-`update.py` applies for exactly that case. Where a tag does exist, APM rewrites the
-pin and appends it as a comment (`#<sha> # v1.2.3`), which is what a future
-Renovate `apm` manager would read.
+**Two upstreams `apm update` cannot move on its own.** It resolves a full-SHA pin only to the newest *annotated* semver tag, so an upstream publishing none — `blader/humanizer` and `rshade/agent-skills` today — needs the HEAD bump that `update.py` applies for exactly that case. Where a tag does exist, APM rewrites the pin and appends it as a comment (`#<sha> # v1.2.3`), which is what a future Renovate `apm` manager would read.
 
-**And one it refuses outright.** A package pinning several subpaths of one
-repository at the same commit fails on APM 0.31 with "Expected exactly one apm.yml
-entry for `<sha>`, found N", and APM writes nothing. `packages/design` is in that
-state. The update reports it and exits non-zero rather than hand-editing around it;
-a hand-moved pin would skip the tag `apm update` would have chosen.
+**And one it refuses outright.** A package pinning several subpaths of one repository at the same commit fails on APM 0.31 with "Expected exactly one apm.yml entry for `<sha>`, found N", and APM writes nothing. `packages/design` is in that state. The update reports it and exits non-zero rather than hand-editing around it; a hand-moved pin would skip the tag `apm update` would have chosen.
 
-A merge that pulls across more text than before raises the entry's `fidelity`, and
-a raised fidelity can attach upstream terms the local file's licence cannot carry.
-Update `fidelity` and `license` in the same edit as the merge, then run the gates.
+A merge that pulls across more text than before raises the entry's `fidelity`, and a raised fidelity can attach upstream terms the local file's licence cannot carry. Update `fidelity` and `license` in the same edit as the merge, then run the gates.
 
-The audit parses provenance through the same
-[provenance.py](scripts/provenance.py) as the licence gate, so the two cannot
-disagree about what is tracked. GitHub authentication uses `gh auth token` by
-default; for CI or non-`gh` environments supply a fine-grained token with
-`Contents: Read-only` via `GITHUB_TOKEN`/`GH_TOKEN`, or `--github-token`.
+The audit parses provenance through the same [provenance.py](scripts/provenance.py) as the licence gate, so the two cannot disagree about what is tracked. GitHub authentication uses `gh auth token` by default; for CI or non-`gh` environments supply a fine-grained token with `Contents: Read-only` via `GITHUB_TOKEN`/`GH_TOKEN`, or `--github-token`.
 
 ## Licensing
 
@@ -334,32 +300,19 @@ The gate lints a range, not all of history: CI passes the pull request's base (a
 
 ## Releasing
 
-Versions are **calendar-derived**: `YYYY.M.N`, where `N` counts that package's
-releases within the UTC month, from 1. `llmctl-core@2026.9.1`, then `2026.9.2`.
-No zero padding, so the string stays semver-shaped for the hosts that parse it
-as one.
+Versions are **calendar-derived**: `YYYY.M.N`, where `N` counts that package's releases within the UTC month, from 1. `llmctl-core@2026.9.1`, then `2026.9.2`. No zero padding, so the string stays semver-shaped for the hosts that parse it as one.
 
-There is no API to break here and no consumer who can act on "minor" versus
-"patch"; what a reader of a steering package wants to know is how old it is. The
-commit types are still enforced, but they group the release notes rather than
-sizing a number.
+There is no API to break here and no consumer who can act on "minor" versus "patch"; what a reader of a steering package wants to know is how old it is. The commit types are still enforced, but they group the release notes rather than sizing a number.
 
-Packages version **independently** (`marketplace.versioning.strategy:
-per_package`). A change to `ops` releases `ops` only, so a version always means
-something in that package changed.
+Packages version **independently** (`marketplace.versioning.strategy: per_package`). A change to `ops` releases `ops` only, so a version always means something in that package changed.
 
 ### A release writes nothing to this repository
 
-`packages/*/apm.yml` carries `version: 0.0.0`, a placeholder. The real version
-is stamped into a scratch export at pack time, and the record of it is the
-annotated `<name>@<version>` tag plus the GitHub release beside it.
+`packages/*/apm.yml` carries `version: 0.0.0`, a placeholder. The real version is stamped into a scratch export at pack time, and the record of it is the annotated `<name>@<version>` tag plus the GitHub release beside it.
 
-That is what lets a release run on a push to protected `main` with no pull
-request, no bypass and no second CI cycle — pushing a tag is not pushing a
-branch.
+That is what lets a release run on a push to protected `main` with no pull request, no bypass and no second CI cycle — pushing a tag is not pushing a branch.
 
-The marketplace is the opposite case: it is generated output, entirely, so it is
-committed and pushed directly. Protecting it would gate a robot against itself.
+The marketplace is the opposite case: it is generated output, entirely, so it is committed and pushed directly. Protecting it would gate a robot against itself.
 
 ```bash
 apm run check       # every gate, over this workspace alone
@@ -367,33 +320,19 @@ apm run versions    # what each package's next version would be, and why
 apm run release     # what a release would publish, and its notes. Writes nothing
 ```
 
-The real release runs in CI, on a push to `main`. To rehearse the whole thing
-locally against a throwaway clone of the marketplace:
+The real release runs in CI, on a push to `main`. To rehearse the whole thing locally against a throwaway clone of the marketplace:
 
 ```bash
 uv run scripts/release.py --repo . --marketplace ../scratch-marketplace --no-push
 ```
 
-`--package NAME --force` re-releases a package with no commits; `--package NAME
---version 2026.9.7` releases it at an exact version, which must be unused and
-must sort above its last tag — the highest tag is the baseline, so a lower one
-would be invisible to the next run.
+`--package NAME --force` re-releases a package with no commits; `--package NAME --version 2026.9.7` releases it at an exact version, which must be unused and must sort above its last tag — the highest tag is the baseline, so a lower one would be invisible to the next run.
 
-**Tags are the baseline, and the clone has to have them.** Versions are derived
-from *local* tags, so a clone fetched without them measures from nothing: every
-package reads its entire history. Shallow clones and `--no-tags` fetches both
-land there — which is why the plan runs `git fetch --tags` first. Run releases
-from a full clone as well; `git log` on a shallow one cannot see past the fetch
-depth.
+**Tags are the baseline, and the clone has to have them.** Versions are derived from *local* tags, so a clone fetched without them measures from nothing: every package reads its entire history. Shallow clones and `--no-tags` fetches both land there — which is why the plan runs `git fetch --tags` first. Run releases from a full clone as well; `git log` on a shallow one cannot see past the fetch depth.
 
-The tags created are annotated, because the marketplace is pushed with
-`--follow-tags`, which carries annotated tags only. Mixing them with the
-lightweight tags already on the remotes is harmless: `--sort=-v:refname` and
-`<tag>..HEAD` treat them alike, and version sort puts `2026.9.1` above `0.4.0`
-without a special case.
+The tags created are annotated, because the marketplace is pushed with `--follow-tags`, which carries annotated tags only. Mixing them with the lightweight tags already on the remotes is harmless: `--sort=-v:refname` and `<tag>..HEAD` treat them alike, and version sort puts `2026.9.1` above `0.4.0` without a special case.
 
-A repo that has **never** been released has no baseline for a package with no
-commits to release. Seed one by hand, once:
+A repo that has **never** been released has no baseline for a package with no commits to release. Seed one by hand, once:
 
 ```bash
 git tag -a llmctl-personal@2026.9.1 -m "llmctl-personal 2026.9.1" <commit>
@@ -402,91 +341,49 @@ git push origin --tags
 
 ### Lockfiles
 
-Every package commits `apm.lock.yaml`, and it is the record of which upstream
-commit each pinned dependency resolved to. Packing installs from it and refuses
-to continue if installing moves any of those commits, so a bundle cannot ship
-something nobody reviewed.
+Every package commits `apm.lock.yaml`, and it is the record of which upstream commit each pinned dependency resolved to. Packing installs from it and refuses to continue if installing moves any of those commits, so a bundle cannot ship something nobody reviewed.
 
-**`apm install --frozen` is not what enforces that**, and this is the one place
-that fact is written down. A frozen install checks that every dependency in
-`apm.yml` *appears* in the lockfile, keyed by repository and subpath, never at
-which commit — so a pin moved without a lockfile refresh passes it. It also still
-cannot restore a manifestless repo-root package from a cold cache (verified on
-0.28.0 and 0.31.0), which is why packing installs normally and compares the
-resolved commits before and after instead. The `lockfiles` gate compares manifest
-against lockfile directly, offline, and refuses any pin that is not a full commit
-SHA. `apm audit --ci` checks the same thing where a package is already installed,
-and the pack gate runs it over each scratch export.
+**`apm install --frozen` is not what enforces that**, and this is the one place that fact is written down. A frozen install checks that every dependency in `apm.yml` *appears* in the lockfile, keyed by repository and subpath, never at which commit — so a pin moved without a lockfile refresh passes it. It also still cannot restore a manifestless repo-root package from a cold cache (verified on 0.28.0 and 0.31.0), which is why packing installs normally and compares the resolved commits before and after instead. The `lockfiles` gate compares manifest against lockfile directly, offline, and refuses any pin that is not a full commit SHA. `apm audit --ci` checks the same thing where a package is already installed, and the pack gate runs it over each scratch export.
 
-New lockfiles carry no `generated_at`, so two independent runs produce the same
-bytes. Deleting that line from an older one is permanent; APM does not add it back.
+New lockfiles carry no `generated_at`, so two independent runs produce the same bytes. Deleting that line from an older one is permanent; APM does not add it back.
 
-A lockfile moves only through `apm run update`, and always in the same commit as
-the `apm.yml` pin it belongs to. Never hand-edit one.
+A lockfile moves only through `apm run update`, and always in the same commit as the `apm.yml` pin it belongs to. Never hand-edit one.
 
 ### Releasing another workspace
 
-Nothing in these scripts is specific to this repo. A private sibling laid out the
-same way — its own `packages/`, `LICENSE`, `LICENSES/`, `dependency-licenses.yml`
-and `*.marketplace.*` sources, no `scripts/` — releases with this code by
-pointing the flags at it:
+Nothing in these scripts is specific to this repo. A private sibling laid out the same way — its own `packages/`, `LICENSE`, `LICENSES/`, `dependency-licenses.yml` and `*.marketplace.*` sources, no `scripts/` — releases with this code by pointing the flags at it:
 
 ```bash
 uv run ../.llmctl/scripts/release.py --repo . --marketplace ../<its-marketplace>
 ```
 
-Nothing is shared but the code. Licence texts, dependency records and marketplace
-sources are read from the workspace only, so a private repo's upstreams never
-resolve against this one's.
+Nothing is shared but the code. Licence texts, dependency records and marketplace sources are read from the workspace only, so a private repo's upstreams never resolve against this one's.
 
 ## Continuous Integration
 
-GitHub Actions runs the same entry points a contributor runs. The scripts declare
-their own dependencies in a PEP 723 header, so every step is `uv run` and nothing
-is installed first.
+GitHub Actions runs the same entry points a contributor runs. The scripts declare their own dependencies in a PEP 723 header, so every step is `uv run` and nothing is installed first.
 
 | Workflow | Trigger | What it runs | Locally |
 | --- | --- | --- | --- |
-| [checks.yml](.github/workflows/checks.yml) | pull request, Mondays, manual | every gate | `apm run check` |
+| [checks.yml](.github/workflows/checks.yml) | pull request, manual | every gate | `apm run check` |
 | [release.yml](.github/workflows/release.yml) | push to `main`, manual | every gate, then the release | `apm run release` (previews) |
 
-**There is one gate set, and it lives in [check.py](scripts/check.py).** The
-marketplace-shaped gates pack into a scratch directory and validate that, so one
-checkout runs everything — the tooling's own lint, frontmatter conventions, the
-commit convention, licence obligations, lockfiles against their pins, and a full
-pack that every bundle must survive.
+**There is one gate set, and it lives in [check.py](scripts/check.py).** The marketplace-shaped gates pack into a scratch directory and validate that, so one checkout runs everything — the tooling's own lint, frontmatter conventions, the commit convention, licence obligations, lockfiles against their pins, and a full pack that every bundle must survive.
 
-A push to `main` runs those same gates inside `release.yml`, immediately before
-publishing what they passed on, so `checks.yml` does not duplicate it.
+A push to `main` runs those same gates inside `release.yml`, immediately before publishing what they passed on, so `checks.yml` does not duplicate it.
 
-A gate declares what it needs, and the runner decides what a missing need means:
-no `--since` skips the commit gate and says so, a missing `claude` CLI skips
-bundle validation and says so, a missing `apm` fails the pack gate outright.
-Skipped is never silent and never green-by-omission.
+A gate declares what it needs, and the runner decides what a missing need means: no `--since` skips the commit gate and says so, a missing `claude` CLI skips bundle validation and says so, a missing `apm` fails the pack gate outright. Skipped is never silent and never green-by-omission.
 
-Both workflows here, and the private workspace's two, are thin: the shared steps
-live in composite actions under [.github/actions/](.github/actions/), referenced by
-path after the checkout. That needs no cross-repository Actions permission, which
-a reusable workflow between two private repos would.
+Both workflows here, and the private workspace's two, are thin: the shared steps live in composite actions under [.github/actions/](.github/actions/), referenced by path after the checkout. That needs no cross-repository Actions permission, which a reusable workflow between two private repos would.
 
-The private workspace holds no `scripts/` — it checks this repo out beside itself
-and runs its code and its actions, exactly as a sibling clone does locally. That
-checkout needs no secret and names no ref: this repository is public, so the
-workflow's own token reads it, and its default branch is what runs.
+The private workspace holds no `scripts/` — it checks this repo out beside itself and runs its code and its actions, exactly as a sibling clone does locally. That checkout needs no secret and names no ref: this repository is public, so the workflow's own token reads it, and its default branch is what runs.
 
-**The gates float the APM version and the release pins it.** A new APM that breaks
-this repo should turn Monday red rather than surprise the next release; but what a
-bundle contains depends on the packer that made it, so `release.yml` names a
-version (`APM_VERSION`) and moves it when a scheduled run proves the newer one
-green.
+**One APM version, pinned in one place.** What a bundle contains depends on the packer that made it, so the gates have to pass on the version that will pack it: the pin is the `apm-version` default in [.github/actions/setup](.github/actions/setup/action.yml), and every workflow in both workspaces inherits it. Moving it is a commit, and the gates on that commit are the proof — not a scheduled run against whatever was newest that morning.
 
-**The marketplace repositories have no CI at all.** There is nothing left there to
-check: every file in them is regenerated from this repository on every release, and
-anything else is deleted.
+**The marketplace repositories have no CI at all.** There is nothing left there to check: every file in them is regenerated from this repository on every release, and anything else is deleted.
 
 ### Secrets
 
 - **`MARKETPLACE_TOKEN`** — `contents: write` on the marketplace repo. Set on this repo and on the private workspace. A release regenerates and pushes the marketplace, so even a dry run has to read it.
 
-The release needs no token of its own beyond the workflow's: it pushes tags and
-creates releases, both of which `contents: write` on `GITHUB_TOKEN` covers.
+The release needs no token of its own beyond the workflow's: it pushes tags and creates releases, both of which `contents: write` on `GITHUB_TOKEN` covers.
