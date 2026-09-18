@@ -31,7 +31,7 @@ This is a quick reference, see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed d
 - **Plugins:** bundled distribution of multiple components. Add only when shipping a curated subset for marketplace/external use.
 - **Provenance:** track upstream sources via `metadata.provenance.{adaptedFrom,authoritativeSpec}` — prefer APM dependencies over vendored copies. On the object form, `license` (upstream SPDX id) and `fidelity` (`inspiration-only`/`structural-echo`/`partly-derived`/`largely-derived`) are required wherever expression was copied; `took` records only what was taken.
 - **Licensing:** `*.md` is CC-BY-SA-4.0, everything else MIT — see [LICENSE](LICENSE). A file adapting an upstream whose terms the default cannot satisfy declares a top-level `license:` in its frontmatter. Run `apm run check` after touching provenance or adding a dependency.
-- **Scripts:** one file per command under `scripts/`, run with `uv run` — each entry script declares its own dependencies in a PEP 723 header, so there is no `pyproject.toml` and nothing to install first. The `scripts:` block in [apm.yml](apm.yml) is the index: `check`, `update`, `check-updates`, `versions`, `release`, `pack-marketplace`, in the order you would run them.
+- **Scripts:** one file per command under `scripts/`, run with `uv run` — each entry script declares its own dependencies in a PEP 723 header, so there is no `pyproject.toml` and nothing to install first. The `scripts:` block in [apm.yml](apm.yml) is the index: `check`, `update`, `check-updates`, `check-steering`, `versions`, `release`, `pack-marketplace`, in the order you would run them.
 
 ## Commits
 
