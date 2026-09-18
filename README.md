@@ -99,12 +99,27 @@ apm install --target claude
 # Try a local package before releasing it
 apm install ~/.llmctl/packages/core --target claude
 
-# Every gate: conventions, licensing, lockfiles, and a full pack
+# Every gate: the tooling's own lint, conventions, licensing, lockfiles, and a full pack
 uv run scripts/check.py --repo . --since origin/main
 ```
 
 The scripts declare their own dependencies in an inline PEP 723 header, so
 [uv](https://docs.astral.sh/uv/) runs them without anything being installed first.
+The `scripts:` block in [apm.yml](apm.yml) lists them in the order you would run
+them: `check`, `update`, `check-updates`, `versions`, `release`, `pack-marketplace`.
+
+### Updating what this repo consumes
+
+```bash
+apm run update          # move the pinned upstreams and print every diff that moved
+apm run check-updates   # the files adapted from an upstream, and the specs they cite
+```
+
+`apm run update` commits nothing: it moves each package's pins as far as they go,
+proves the lockfile followed, scans what it materialised, and prints the upstream's
+own diff for each moved pin so it can be read before anything is kept. The
+`meta-update-repo` skill is the procedure around it, and its safety-review
+reference says what to look for.
 
 Use another `--target` if you work with a different assistant. Edit files under `packages/<name>/.apm/`; installed copies and marketplace bundles are replaced by later installs or releases.
 

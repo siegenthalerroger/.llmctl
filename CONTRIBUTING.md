@@ -47,7 +47,7 @@ APM is the primary mechanism for consuming upstream content. Prefer declaring up
 - Use whenever anything at all was taken from an upstream file that APM cannot manage — whether the local file restructures the material for local conventions, synthesises several sources, or carries most of one upstream across near-verbatim.
 - Add `metadata.provenance.adaptedFrom` listing upstream sources, and set each entry's `fidelity` to say how much was taken plus its `license` wherever that fidelity copies expression. These files are tracked by `meta-update-repo` for drift and merge-review workflows.
 - Before adding one, verify the upstream isn't available as an APM package.
-- Run `apm run check-licenses` afterwards. It is the only thing that catches a provenance block which parses to nothing — a file that stops being tracked looks exactly like one with nothing to track.
+- Run `apm run check` afterwards. Its `licences` gate is the only thing that catches a provenance block which parses to nothing — a file that stops being tracked looks exactly like one with nothing to track.
 
 Local-only skills (not available upstream) remain directly in this repository.
 
@@ -230,36 +230,45 @@ Authoritative sources are maintained in the `meta-update-models` skill frontmatt
 
 ## Upstream Update Tooling
 
-Three kinds of upstream feed this repository, and the `meta-update-repo` skill —
-driven by the `meta-updater` agent — covers all three:
+Three kinds of upstream feed this repository. `apm run update` handles the first;
+`apm run check-updates` audits the other two. The `meta-update-repo` skill, driven
+by the `meta-updater` agent, is the procedure around them.
 
-| Input | Declared in | Audited by |
+| Input | Declared in | Command |
 | --- | --- | --- |
-| APM dependencies | `dependencies.apm`, resolved in `packages/*/apm.lock.yaml` | `apm outdated` / `apm update`, per package |
-| Adapted content | `metadata.provenance.adaptedFrom` | `uv run scripts/check_updates.py --repo .` |
-| Specifications | `metadata.provenance.authoritativeSpec` | the same script, with `--specs` |
+| APM dependencies | `dependencies.apm`, resolved in `packages/*/apm.lock.yaml` | `apm run update` |
+| Adapted content | `metadata.provenance.adaptedFrom` | `apm run check-updates` |
+| Specifications | `metadata.provenance.authoritativeSpec` | the same, with `--specs` |
+
+`apm run update` moves each package's pins as far as they go, installs, proves the
+lockfile followed, scans what was materialised with `apm audit`, and prints the
+upstream's own diff for everything that moved, filtered to the path this
+repository consumes. It commits nothing.
 
 **Every bump is read before it is committed.** A pinned dependency is content an
 agent loads as instructions, and some of it ships scripts and hooks that run
-locally; `apm approve` gates *execution*, not content. `--compare` prints the
-upstream's own diff for a pin that moved in the working tree, filtered to the
-path this repository consumes, and the skill's
+locally; `apm approve` gates *execution*, not content. The
 [safety-review reference](.apm/skills/meta-update-repo/references/safety-review.md)
 says what to look for. It is a reading, not a scan — a table of strings to grep
 for was built and dropped for flagging a vendor's own install one-liner while
 missing anything phrased differently.
 
-**`apm update` cannot move every pin.** It resolves a full-SHA pin only to the
-newest *annotated* semver tag upstream, and an upstream that publishes none —
-`blader/humanizer` and `rshade/agent-skills` today — reports `unknown` and needs
-the manual path the skill documents: read `git ls-remote … HEAD`, edit the
-`#<sha>`, then `apm install` (never `--frozen`, which would not notice the pin
-moved).
+**Two upstreams `apm update` cannot move on its own.** It resolves a full-SHA pin
+only to the newest *annotated* semver tag, so an upstream publishing none —
+`blader/humanizer` and `rshade/agent-skills` today — needs the HEAD bump that
+`update.py` applies for exactly that case. Where a tag does exist, APM rewrites the
+pin and appends it as a comment (`#<sha> # v1.2.3`), which is what a future
+Renovate `apm` manager would read.
 
-A merge that pulls across more text than before raises the entry's `fidelity`,
-and a raised fidelity can attach upstream terms the local file's licence cannot
-carry. Update `fidelity` and `license` in the same edit as the merge, then run
-the gates.
+**And one it refuses outright.** A package pinning several subpaths of one
+repository at the same commit fails on APM 0.31 with "Expected exactly one apm.yml
+entry for `<sha>`, found N", and APM writes nothing. `packages/design` is in that
+state. The update reports it and exits non-zero rather than hand-editing around it;
+a hand-moved pin would skip the tag `apm update` would have chosen.
+
+A merge that pulls across more text than before raises the entry's `fidelity`, and
+a raised fidelity can attach upstream terms the local file's licence cannot carry.
+Update `fidelity` and `license` in the same edit as the merge, then run the gates.
 
 The audit parses provenance through the same
 [provenance.py](scripts/provenance.py) as the licence gate, so the two cannot
@@ -310,11 +319,10 @@ releases within the UTC month, from 1. `llmctl-core@2026.9.1`, then `2026.9.2`.
 No zero padding, so the string stays semver-shaped for the hosts that parse it
 as one.
 
-Semantic versioning was the previous scheme and it never meant anything here.
-There is no API to break and no consumer who can act on "minor" versus "patch";
-what a reader of a steering package actually wants to know is how old it is.
-The commit types still exist and are still enforced, but they group the release
-notes rather than sizing a number.
+There is no API to break here and no consumer who can act on "minor" versus
+"patch"; what a reader of a steering package wants to know is how old it is. The
+commit types are still enforced, but they group the release notes rather than
+sizing a number.
 
 Packages version **independently** (`marketplace.versioning.strategy:
 per_package`). A change to `ops` releases `ops` only, so a version always means
@@ -328,9 +336,7 @@ annotated `<name>@<version>` tag plus the GitHub release beside it.
 
 That is what lets a release run on a push to protected `main` with no pull
 request, no bypass and no second CI cycle — pushing a tag is not pushing a
-branch. The release commit that used to be merged through a gated pull request,
-the token that had to author it, and the check-polling that waited on it are all
-gone.
+branch.
 
 The marketplace is the opposite case: it is generated output, entirely, so it is
 committed and pushed directly. Protecting it would gate a robot against itself.
@@ -381,14 +387,22 @@ commit each pinned dependency resolved to. Packing installs from it and refuses
 to continue if installing moves any of those commits, so a bundle cannot ship
 something nobody reviewed.
 
-`apm install --frozen` is **not** what enforces that, which is worth knowing
-before relying on it: a frozen install checks that every dependency in `apm.yml`
-*appears* in the lockfile, keyed by repository and subpath, never at which
-commit. A pin moved without a lockfile refresh passes it. The `lockfiles` gate
-compares the two directly, and refuses any pin that is not a full commit SHA.
+**`apm install --frozen` is not what enforces that**, and this is the one place
+that fact is written down. A frozen install checks that every dependency in
+`apm.yml` *appears* in the lockfile, keyed by repository and subpath, never at
+which commit — so a pin moved without a lockfile refresh passes it. It also still
+cannot restore a manifestless repo-root package from a cold cache (verified on
+0.28.0 and 0.31.0), which is why packing installs normally and compares the
+resolved commits before and after instead. The `lockfiles` gate compares manifest
+against lockfile directly, offline, and refuses any pin that is not a full commit
+SHA. `apm audit --ci` checks the same thing where a package is already installed,
+and the pack gate runs it over each scratch export.
 
-A lockfile moves only through the `meta-update-repo` procedure, and always in
-the same commit as the `apm.yml` pin it belongs to. Never hand-edit one.
+New lockfiles carry no `generated_at`, so two independent runs produce the same
+bytes. Deleting that line from an older one is permanent; APM does not add it back.
+
+A lockfile moves only through `apm run update`, and always in the same commit as
+the `apm.yml` pin it belongs to. Never hand-edit one.
 
 ### Releasing another workspace
 
@@ -416,13 +430,11 @@ is installed first.
 | [checks.yml](.github/workflows/checks.yml) | pull request, Mondays, manual | every gate | `apm run check` |
 | [release.yml](.github/workflows/release.yml) | push to `main`, manual | every gate, then the release | `apm run release` (previews) |
 
-**There is one gate set now, and it lives in [check.py](scripts/check.py).** It
-used to be two: workspace gates here, marketplace gates in a second script that
-needed the other repository checked out, which meant a pull request could only
-ever run half of them. The marketplace-shaped gates now pack into a scratch
-directory and validate that, so one checkout runs everything — frontmatter
-conventions, the commit convention, licence obligations, lockfiles against their
-pins, and a full pack that every bundle must survive.
+**There is one gate set, and it lives in [check.py](scripts/check.py).** The
+marketplace-shaped gates pack into a scratch directory and validate that, so one
+checkout runs everything — the tooling's own lint, frontmatter conventions, the
+commit convention, licence obligations, lockfiles against their pins, and a full
+pack that every bundle must survive.
 
 A push to `main` runs those same gates inside `release.yml`, immediately before
 publishing what they passed on, so `checks.yml` does not duplicate it.
@@ -432,14 +444,23 @@ no `--since` skips the commit gate and says so, a missing `claude` CLI skips
 bundle validation and says so, a missing `apm` fails the pack gate outright.
 Skipped is never silent and never green-by-omission.
 
-The private workspace carries its own `checks.yml` and `release.yml`. It holds no
-`scripts/` — it checks this repo out beside itself and runs its code, exactly as a
-sibling clone does locally.
+Both workflows here, and the private workspace's two, are thin: the shared steps
+live in composite actions under [.github/actions/](.github/actions/), referenced by
+path after the checkout. That needs no cross-repository Actions permission, which
+a reusable workflow between two private repos would.
 
-**The marketplace repositories have no CI at all.** They used to run
-`apm pack --check-versions` and `--check-clean` against their own committed
-manifests; there is nothing left there to check, because every file in them is
-regenerated from this repository on every release and anything else is deleted.
+The private workspace holds no `scripts/` — it checks this repo out beside itself
+and runs its code and its actions, exactly as a sibling clone does locally.
+
+**The gates float the APM version and the release pins it.** A new APM that breaks
+this repo should turn Monday red rather than surprise the next release; but what a
+bundle contains depends on the packer that made it, so `release.yml` names a
+version (`APM_VERSION`) and moves it when a scheduled run proves the newer one
+green.
+
+**The marketplace repositories have no CI at all.** There is nothing left there to
+check: every file in them is regenerated from this repository on every release, and
+anything else is deleted.
 
 ### Secrets
 
@@ -447,6 +468,4 @@ regenerated from this repository on every release and anything else is deleted.
 - **`TOOLING_TOKEN`** — `contents: read` on `.llmctl`. Set on the private workspace, whose CI borrows these scripts. Needed only while this repo is private.
 
 The release needs no token of its own beyond the workflow's: it pushes tags and
-creates releases, both of which `contents: write` on `GITHUB_TOKEN` covers. The
-`RELEASE_TOKEN` that used to author the release pull request is gone, along with
-the pull request.
+creates releases, both of which `contents: write` on `GITHUB_TOKEN` covers.
