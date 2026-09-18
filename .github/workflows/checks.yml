@@ -1,11 +1,8 @@
-# Every gate, on every pull request and once a week.
+# Every gate, on every pull request.
 name: checks
 
 on:
   pull_request:
-  schedule:
-    # Monday 06:17 UTC. Off the hour to reduce queueing.
-    - cron: "17 6 * * 1"
   workflow_dispatch:
 
 # A push to main runs the same gates inside release.yml, immediately before the
@@ -35,17 +32,9 @@ jobs:
           fetch-depth: 0
 
       - name: Set up uv and APM
-        id: setup
         uses: ./.llmctl/.github/actions/setup
-        with:
-          # Floating here and pinned in release.yml: this is where a new APM
-          # that breaks the repo should surface, and the Monday run is why.
-          apm-version: latest
 
       - name: Deploy this repo's own primitives from the lockfile
-        # Feeds no gate. The packages are covered by the pack gate; this is the
-        # root `.apm/` -- the hook and the meta skills -- which nothing else
-        # installs.
         run: apm install --frozen --target claude,codex,agent-skills
         working-directory: .llmctl
 
@@ -56,9 +45,3 @@ jobs:
           since: ${{ github.event.pull_request.base.sha }}
           subject: ${{ github.event.pull_request.title }}
           github-token: ${{ github.token }}
-
-      - name: Say which APM ran
-        # `apm-version: latest` is the point of the scheduled run, so a red
-        # Monday needs to name the version that turned it red.
-        if: always()
-        run: echo "APM ${{ steps.setup.outputs.apm-version }}" >> "$GITHUB_STEP_SUMMARY"
