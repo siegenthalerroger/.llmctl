@@ -1,9 +1,8 @@
 # Safety review of an upstream diff
 
 What to read for when a pin moves, before the bump is committed. The input is
-`uv run scripts/check_updates.py --repo . --compare --package <dir>`, which
-prints the upstream's own diff between the committed pin and the new one,
-filtered to the path this repository consumes.
+what `apm run update` prints: the upstream's own diff between the committed pin
+and the new one, filtered to the path this repository consumes.
 
 **This is a reading, not a scan.** A table of strings to grep for was built and
 dropped: matching "ignore previous instructions", `~/.ssh` and `curl … | sh`
