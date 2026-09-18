@@ -19,6 +19,7 @@ Start with [Deploy](#deploy) to install the published plugins. If you want to ex
 | `packages/ops` | IT Operations | Helm / Kubernetes / OpenTofu skills + instructions + cloud/IaC doc MCP servers |
 | `packages/product` | Product development | PRD skills + product-manager / UX agents |
 | `packages/design` | Design work | Direction-setting, colour, typography, presentation + upstream layout / identity / data-visualisation practice |
+| `packages/python` | Python work | Source-authoring standards + single-file script discipline (PEP 723) + upstream uv / ruff / ty project tooling |
 | _root `.apm/`_ | _**Repo-local only**_ | _`meta-updater` agent + `meta-update-models` / `meta-upstream-sync` audit skills, frontmatter-validation hook_ |
 
 See [CONTRIBUTING.md](CONTRIBUTING.md#packaging-model) for the packaging rules.
@@ -77,6 +78,9 @@ apm install siegenthalerroger/.llmctl/packages/product --target claude
 
 cd your-design-repo
 apm install siegenthalerroger/.llmctl/packages/design --target claude
+
+cd your-python-repo
+apm install siegenthalerroger/.llmctl/packages/python --target claude
 ```
 
 By default this tracks the default branch, so APM will warn that the dependency is unpinned. Append a git reference as `#<sha>` or a `#llmctl-core@<version>` release tag (substitute the package name) to pin a context to a known-good state. Refresh unpinned installs with `apm update -g --yes` (user scope) or `apm update --yes` (project).
