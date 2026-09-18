@@ -10,16 +10,9 @@ dependencies:
   apm:
     - ./packages/core
     - ./packages/python
+    - ./packages/workflow
   mcp: []
 
-# The marketplace lives in the sibling `.llmctl-marketplace` repository and
-# holds nothing but generated output. Its README, LICENSE, .gitignore and
-# apm.yml are produced from the `*.marketplace.*` sources beside this file.
-
-# The lifecycle, in the order you would run it. Each entry is the whole command:
-# `apm run` accepts no extra arguments, so anything needing a flag not written
-# here calls the script directly. `uv run` reads each script's inline PEP 723
-# header, so nothing has to be installed first.
 scripts:
   # Every gate, over this workspace alone. The pre-PR check, and what CI runs.
   # Add `--since <ref>` by calling the script directly to lint a commit range;
