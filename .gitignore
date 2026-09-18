@@ -25,9 +25,11 @@ __pycache__/
 # VSCode
 .vscode/*
 
-# Github
+# Github: APM deploys Copilot primitives here, so the directory is ignored by
+# default -- workflows and the composite actions they share are authored.
 .github/*
 !.github/workflows/
+!.github/actions/
 
 # Agents
 .agents/*
