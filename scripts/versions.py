@@ -24,22 +24,40 @@ from __future__ import annotations
 import json
 import re
 import sys
-from collections import namedtuple
+from collections.abc import Sequence
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import NamedTuple, TextIO
 
 import typer
 
 import commits as commitlib
 import workspace
-from workspace import WorkspaceError, git
+from workspace import Log, WorkspaceError, git
 
 CALVER_RE = re.compile(r"^(?P<y>\d{4})\.(?P<m>\d{1,2})\.(?P<n>\d+)$")
 
 # `mismatches` is [(subject, scope)] -- commits whose scope names a package
 # other than the one whose paths they touched.
-Plan = namedtuple("Plan", "directory name previous next commits mismatches forced")
-Skip = namedtuple("Skip", "directory name tag version")
+class Plan(NamedTuple):
+    """A package that will be released, and the commits that earned it."""
+
+    directory: str
+    name: str
+    previous: str | None
+    next: str
+    commits: list[commitlib.Commit]
+    mismatches: list[tuple[str, str]]
+    forced: bool
+
+
+class Skip(NamedTuple):
+    """A package with nothing to release, held at the version its tag records."""
+
+    directory: str
+    name: str
+    tag: str | None
+    version: str
 
 
 def version_of(tag: str | None) -> str:
@@ -51,13 +69,13 @@ def version_key(version: str) -> tuple[int, ...]:
     return tuple(int(re.sub(r"\D.*$", "", p) or 0) for p in version.split("."))
 
 
-def last_tag(repo, name: str) -> str | None:
+def last_tag(repo: Path | str, name: str) -> str | None:
     """Newest `<name>@<version>` tag by version order, or None."""
     out = git(["tag", "--list", "%s@*" % name, "--sort=-v:refname"], repo)
     return out.split("\n")[0] if out else None
 
 
-def next_version(repo, name: str, now: datetime | None = None) -> str:
+def next_version(repo: Path | str, name: str, now: datetime | None = None) -> str:
     now = now or datetime.now(timezone.utc)
     prefix = "%d.%d." % (now.year, now.month)
     tags = git(["tag", "--list", "%s@%s*" % (name, prefix)], repo).split()
@@ -69,7 +87,8 @@ def next_version(repo, name: str, now: datetime | None = None) -> str:
     return "%s%d" % (prefix, highest + 1)
 
 
-def check_forced(repo, name: str, previous: str | None, version: str) -> None:
+def check_forced(repo: Path | str, name: str, previous: str | None,
+                 version: str) -> None:
     """Refuse a forced version the next run could not measure from."""
     if not CALVER_RE.match(version):
         raise WorkspaceError("--version %r is not YYYY.M.N" % version)
@@ -81,8 +100,9 @@ def check_forced(repo, name: str, previous: str | None, version: str) -> None:
             "so a lower one would never be measured from" % (version, previous))
 
 
-def plan(repo, only=(), force: bool = False, version: str | None = None,
-         fetch: bool = True, log=print) -> tuple[list[Plan], list[Skip]]:
+def plan(repo: Path | str, only: Sequence[str] = (), force: bool = False,
+         version: str | None = None, fetch: bool = True,
+         log: Log = print) -> tuple[list[Plan], list[Skip]]:
     """(plans, skips) for every package, in discovery order."""
     repo = Path(repo)
     packages = workspace.select(repo, list(only))
@@ -122,7 +142,8 @@ def line(p: Plan) -> str:
         p.previous or "the start", ", forced" if p.forced else "")
 
 
-def report(plans, skips, out=None) -> None:
+def report(plans: Sequence[Plan], skips: Sequence[Skip],
+           out: TextIO | None = None) -> None:
     """Print every plan and skip, mismatches included, in discovery order."""
     out = out or sys.stdout
     for p in plans:
@@ -135,7 +156,7 @@ def report(plans, skips, out=None) -> None:
               file=out)
 
 
-def as_json(plans, skips) -> dict:
+def as_json(plans: Sequence[Plan], skips: Sequence[Skip]) -> dict:
     return {
         "releases": [{"package": p.directory, "name": p.name,
                       "previous": p.previous, "next": p.next,

@@ -45,7 +45,7 @@ ENTRY_SCRIPTS = ("check.py", "check_licenses.py", "check_updates.py", "gen_notic
 HEADER_END = "# ///"
 
 
-def sh(args, cwd) -> subprocess.CompletedProcess:
+def sh(args: list[str], cwd: Path | str) -> subprocess.CompletedProcess:
     """errors="replace": these tools emit box-drawing and arrows, which the
     Windows console codepage cannot decode. A gate must not die on output it
     only prints."""

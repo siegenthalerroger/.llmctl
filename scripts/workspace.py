@@ -12,11 +12,22 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any, Callable
 
 import typer
 from ruamel.yaml import YAML
 
+__all__ = ["INSTALL_OUTPUT", "Log", "MARKETPLACE_OPTION", "Package",
+           "REPO_OPTION", "TOOLING", "WorkspaceError", "die", "diff_pins",
+           "dirty", "fetch_tags", "git", "label", "locked_of", "packages",
+           "pins_of", "read_lock", "read_yaml", "remote_slug", "select", "tag",
+           "write_yaml", "yaml_rt"]
+
 TOOLING = Path(__file__).resolve().parent.parent
+
+# Where a command sends its running commentary. Every script that reports as it
+# works takes one of these rather than printing, so a caller can capture it.
+Log = Callable[[str], None]
 
 
 class WorkspaceError(Exception):
@@ -66,12 +77,12 @@ def yaml_rt() -> YAML:
     return yaml
 
 
-def read_yaml(path: Path):
+def read_yaml(path: Path) -> Any:
     with open(path, encoding="utf-8") as handle:
         return yaml_rt().load(handle)
 
 
-def write_yaml(path: Path, data, header: str = "") -> None:
+def write_yaml(path: Path, data: Any, header: str = "") -> None:
     with open(path, "w", encoding="utf-8", newline="\n") as handle:
         if header:
             handle.write(header.rstrip("\n") + "\n")
@@ -114,7 +125,7 @@ def dirty(repo: Path | str) -> list[str]:
             if line.strip()]
 
 
-def fetch_tags(repo: Path | str, log=None) -> None:
+def fetch_tags(repo: Path | str, log: Log | None = None) -> None:
     """Fetch tags, and say so when it fails.
 
     Tags are the baseline for every version plan, so a silent failure here is
@@ -221,7 +232,7 @@ def locked_of(lock: dict) -> dict[tuple[str, str], str]:
     return locked
 
 
-def read_lock(path: Path):
+def read_lock(path: Path) -> Any | None:
     """A lockfile as plain data, or None when absent."""
     if not Path(path).is_file():
         return None

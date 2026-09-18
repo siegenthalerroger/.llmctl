@@ -8,10 +8,14 @@ in CONTRIBUTING.md#commit-convention.
 from __future__ import annotations
 
 import re
-from collections import namedtuple
+from collections.abc import Iterable
 from pathlib import Path
+from typing import NamedTuple
 
 from workspace import git
+
+__all__ = ["AREAS", "Commit", "Finding", "Subject", "TYPES", "breaking",
+           "lint", "log", "parse", "scopes_for"]
 
 TYPES = ("feat", "fix", "docs", "refactor", "chore", "test", "build", "ci")
 
@@ -28,9 +32,30 @@ AREAS = (
 )
 ROOT_CONFIG = ("apm.yml", "apm.lock.yaml", ".gitignore", "dependency-licenses.yml")
 
-Subject = namedtuple("Subject", "type scope bang description")
-Commit = namedtuple("Commit", "sha subject body paths")
-Finding = namedtuple("Finding", "sha subject reason")
+class Subject(NamedTuple):
+    """A conventional-commit subject line, taken apart."""
+
+    type: str
+    scope: str | None
+    bang: bool
+    description: str
+
+
+class Commit(NamedTuple):
+    """One commit. `paths` is empty unless the caller asked for it."""
+
+    sha: str
+    subject: str
+    body: str
+    paths: tuple[str, ...]
+
+
+class Finding(NamedTuple):
+    """One commit the convention rejects, and why."""
+
+    sha: str
+    subject: str
+    reason: str
 
 RECORD, FIELD = "\x1e", "\x1f"
 
@@ -76,7 +101,7 @@ def log(repo: Path | str, rng: str, path: str = "", *, paths: bool = False,
     return commits
 
 
-def scopes_for(paths) -> set[str]:
+def scopes_for(paths: Iterable[str]) -> set[str]:
     """Every scope a commit touching `paths` may legitimately carry."""
     scopes = set()
     for path in paths:

@@ -21,6 +21,9 @@ from rich.console import Console
 
 from workspace import git
 
+__all__ = ["Context", "Gate", "Need", "Outcome", "Runner", "Status",
+           "fail", "ok", "skip"]
+
 Status = Literal["pass", "fail", "skip"]
 NeedName = Literal["apm", "network", "git-range"]
 
@@ -89,7 +92,7 @@ LABEL = {"pass": "pass", "fail": "FAIL", "skip": "skipped"}
 
 class Runner:
     def __init__(self, gates: Sequence[Gate], *, only: Sequence[str] = (),
-                 skip_keys: Sequence[str] = (), json_out: bool = False):
+                 skip_keys: Sequence[str] = (), json_out: bool = False) -> None:
         keys = [g.key for g in gates]
         for key in list(only) + list(skip_keys):
             if key not in keys:

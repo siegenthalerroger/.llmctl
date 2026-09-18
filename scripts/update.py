@@ -29,8 +29,9 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
-from collections import namedtuple
+from collections.abc import Sequence
 from pathlib import Path
+from typing import NamedTuple
 
 import typer
 from ruamel.yaml import YAML
@@ -38,11 +39,18 @@ from ruamel.yaml import YAML
 import gen_notices
 import github as githublib
 import workspace
-from workspace import WorkspaceError, label
+from workspace import Log, Package, WorkspaceError, label
 
 # `via` is how the pin moved: what `apm update` did, or the manual HEAD bump for
 # an upstream it can never move.
-Moved = namedtuple("Moved", "package key before after via")
+class Moved(NamedTuple):
+    """One pin that moved, and how it moved."""
+
+    package: str
+    key: tuple[str, str]
+    before: str
+    after: str
+    via: str
 
 SEMVER_TAG_RE = re.compile(r"^refs/tags/v?\d+\.\d+\.\d+\^\{\}$")
 
@@ -122,8 +130,8 @@ def clean_install_output(package_path: Path) -> None:
             target.unlink()
 
 
-def update_package(ws: Path, package, review_only: bool,
-                   log=print) -> tuple[list[Moved], bool, str]:
+def update_package(ws: Path, package: Package, review_only: bool,
+                   log: Log = print) -> tuple[list[Moved], bool, str]:
     """Move this package's pins as far as they go.
 
     Returns what moved, whether anything was materialised, and what could not be
@@ -197,7 +205,7 @@ def last_summary(result: subprocess.CompletedProcess) -> str:
     return ""
 
 
-def audit(package, log=print) -> None:
+def audit(package: Package, log: Log = print) -> None:
     """Scan what was materialised for hidden Unicode and integrity drift.
 
     `apm approve` gates execution, not content, and a pin fixes which content
@@ -211,7 +219,8 @@ def audit(package, log=print) -> None:
         log("       audit: FINDINGS -- read them before committing\n%s" % tail(result, 14))
 
 
-def show_diff(client, move: Moved, max_files: int, log=print) -> None:
+def show_diff(client: githublib.GitHub | None, move: Moved, max_files: int,
+              log: Log = print) -> None:
     """The upstream's own diff for one moved pin, filtered to what we consume."""
     owner, _, repo = move.key[0].partition("/")
     path = move.key[1]
@@ -249,7 +258,8 @@ def show_diff(client, move: Moved, max_files: int, log=print) -> None:
             % (len(files) - max_files))
 
 
-def check_licences(ws: Path, client, log=print) -> None:
+def check_licences(ws: Path, client: githublib.GitHub | None,
+                   log: Log = print) -> None:
     """Has any upstream relicensed since its terms were recorded?
 
     Part of updating rather than of the gates: the licences gate checks that the
@@ -272,7 +282,7 @@ def check_licences(ws: Path, client, log=print) -> None:
         "any local `fidelity` that depends on it.")
 
 
-def preview(ws: Path, packages, log=print) -> None:
+def preview(ws: Path, packages: Sequence[Package], log: Log = print) -> None:
     """What would move, without moving it."""
     for package in packages:
         log("\n[%s]" % package.directory)
