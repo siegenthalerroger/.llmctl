@@ -560,14 +560,27 @@ def pack_all(ws: Path, marketplace: Path, versions: dict[str, str], repack: set[
     return PackReport(packed, kept, removed, versions)
 
 
-def version_map(plans, skips) -> dict[str, str]:
-    """Every package's version after a release: planned -> next, else its tag."""
-    versions = {p.name: p.next for p in plans}
-    for s in skips:
-        if not s.version:
-            raise PackError("%s has never been released and has no commits to "
-                            "release; seed a tag first" % s.name)
-        versions[s.name] = s.version
+def version_map(ws: Path, plans) -> dict[str, str]:
+    """Every package's version after a release, whether or not it is in it.
+
+    The marketplace holds one bundle per package and a catalogue naming all of
+    them, so a release of one package still has to say what version the other
+    four are at: the tag each already carries. Derived from every package rather
+    than from the plan, because a plan narrowed by --package knows nothing about
+    the rest.
+    """
+    planned = {p.name: p.next for p in plans}
+    versions = {}
+    for package in workspace.packages(ws):
+        if package.name in planned:
+            versions[package.name] = planned[package.name]
+            continue
+        version = versionlib.version_of(versionlib.last_tag(ws, package.name))
+        if not version:
+            raise PackError("%s has never been released and is not part of this "
+                            "release, so its bundle has no version; seed a tag "
+                            "first" % package.name)
+        versions[package.name] = version
     return versions
 
 
@@ -587,8 +600,8 @@ def main(repo: Path = workspace.REPO_OPTION,
                          % marketplace)
         raise typer.Exit(1)
     try:
-        plans, skips = versionlib.plan(ws, only=(), force=False, fetch=True)
-        versions = version_map(plans, skips)
+        plans, _ = versionlib.plan(ws, only=(), force=False, fetch=True)
+        versions = version_map(ws, plans)
         repack = set(versions) if all_ else {p.name for p in plans}
         if package:
             repack = {p.name for p in workspace.select(ws, package)}
