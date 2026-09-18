@@ -9,11 +9,12 @@ description: Install uv and the APM CLI, the two things every job here needs.
 inputs:
   apm-version:
     description: >-
-      The APM CLI to install. `latest` is deliberate for the gates -- they should
-      fail when a new APM breaks this repo, rather than the next release finding
-      out. A release pins instead: bundle bytes depend on the packer.
+      The APM CLI to install. The default is the pin every job here runs,
+      gates and releases alike: what a bundle contains depends on the packer
+      that made it, so the gates have to pass on the version that will pack it.
+      Moving the pin is a commit, and the gates on it are the proof.
     required: false
-    default: latest
+    default: "0.31.0"
 
 outputs:
   apm-version:

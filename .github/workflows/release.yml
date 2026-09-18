@@ -15,14 +15,12 @@ on:
         type: string
         default: ""
       version:
-        description: "Release the single package above at exactly this YYYY.M.N"
+        description: "Exact YYYY.M.N to release at; needs exactly one package above"
         type: string
         default: ""
 
-# A release writes nothing to this repository: it pushes annotated tags and
-# creates the releases beside them, both of which `contents: write` covers.
-# There is no branch push, so protected main needs no bypass and no pull
-# request, and a tag push starts no further workflow.
+# Annotated tags and the GitHub Releases beside them are the only writes this
+# workflow makes here, and both need `contents: write`.
 permissions:
   contents: write
 
@@ -31,12 +29,6 @@ permissions:
 concurrency:
   group: release
   cancel-in-progress: false
-
-env:
-  # Pinned, unlike checks.yml: what a bundle contains depends on the packer that
-  # made it, so a release runs the version the gates last passed with. Move it
-  # when a Monday run proves the newer one green.
-  APM_VERSION: "0.31.0"
 
 jobs:
   release:
@@ -76,8 +68,6 @@ jobs:
       - name: Set up uv and APM
         id: setup
         uses: ./.llmctl/.github/actions/setup
-        with:
-          apm-version: ${{ env.APM_VERSION }}
 
       - name: Deploy this repo's own primitives from the lockfile
         run: apm install --frozen --target claude,codex,agent-skills
