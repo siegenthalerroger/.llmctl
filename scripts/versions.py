@@ -11,44 +11,17 @@
 # [tool.uv]
 # exclude-newer = "2026-09-18T00:00:00Z"
 # ///
-"""What each package's next version would be, and why.
+"""What each package's next version would be, and why. Writes nothing.
 
-Split out of release.py so the question can be asked without answering it. This
-reads tags and commit subjects and prints; it writes no file, cuts no tag and
-opens nothing. release.py imports it rather than keeping a second copy, so the
-number reported here is the number a release would publish -- a preview that
-can disagree with the release is worse than no preview.
-
-Versions are calendar-derived: `YYYY.M.N`, where N counts this package's
-releases within the UTC month, from 1. No zero padding, so the string stays
-semver-shaped for the hosts that parse it as one. A package is planned when the
-paths under `packages/<dir>/` have commits since its last `<name>@<version>`
-tag; nothing about a commit's type sizes anything. The commit scope is still
-checked against the paths, and a mismatch is reported, so the convention stays
-meaningful without being load-bearing.
-
-Tags are the baseline, and they are read locally, so a clone fetched without
-tags -- shallow, or --no-tags -- measures from nothing and every package plans
-off its entire history. Hence the `git fetch --tags` below.
-
-Usage:
-  uv run scripts/versions.py --repo PATH [--package NAME]... [--force]
-                             [--version YYYY.M.N] [--json] [--no-fetch]
-
-  --package    report only these packages (repeatable)
-  --force      plan the named packages even with no commits since their tag --
-               a re-release. Requires --package
-  --version    release exactly one --package at this version instead of the
-               derived one. Must be YYYY.M.N, unused, and above the last tag
-  --json       machine-readable, for a caller that wants the number
-  --no-fetch   skip `git fetch --tags`, for an offline or read-only checkout
-
-Exit codes: 0 reported (even when nothing would bump), 1 error.
+A package is planned when `packages/<dir>/` has commits since its last
+`<name>@<version>` tag; the version is `YYYY.M.N`, counting that package's
+releases within the UTC month. release.py imports `plan()` rather than keeping a
+second copy, so the preview cannot disagree with what is published.
+The scheme is in CONTRIBUTING.md#releasing.
 """
 from __future__ import annotations
 
 import json
-import os
 import re
 import sys
 from collections import namedtuple
@@ -57,16 +30,14 @@ from pathlib import Path
 
 import typer
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import commits as commitlib  # noqa: E402
-import workspace  # noqa: E402
-from workspace import git  # noqa: E402
+import commits as commitlib
+import workspace
+from workspace import WorkspaceError, git
 
 CALVER_RE = re.compile(r"^(?P<y>\d{4})\.(?P<m>\d{1,2})\.(?P<n>\d+)$")
 
 # `mismatches` is [(subject, scope)] -- commits whose scope names a package
-# other than the one whose paths they touched. `commits` is the list of
-# commits.Commit records the release notes are built from.
+# other than the one whose paths they touched.
 Plan = namedtuple("Plan", "directory name previous next commits mismatches forced")
 Skip = namedtuple("Skip", "directory name tag version")
 
@@ -101,41 +72,27 @@ def next_version(repo, name: str, now: datetime | None = None) -> str:
 def check_forced(repo, name: str, previous: str | None, version: str) -> None:
     """Refuse a forced version the next run could not measure from."""
     if not CALVER_RE.match(version):
-        sys.stderr.write("--version %r is not YYYY.M.N\n" % version)
-        raise SystemExit(1)
+        raise WorkspaceError("--version %r is not YYYY.M.N" % version)
     if git(["tag", "--list", "%s@%s" % (name, version)], repo):
-        sys.stderr.write("%s@%s already exists\n" % (name, version))
-        raise SystemExit(1)
+        raise WorkspaceError("%s@%s already exists" % (name, version))
     if previous and version_key(version) <= version_key(version_of(previous)):
-        sys.stderr.write("--version %s does not sort above %s; the highest tag is "
-                         "the baseline, so a lower one would never be measured "
-                         "from\n" % (version, previous))
-        raise SystemExit(1)
+        raise WorkspaceError(
+            "--version %s does not sort above %s; the highest tag is the baseline, "
+            "so a lower one would never be measured from" % (version, previous))
 
 
 def plan(repo, only=(), force: bool = False, version: str | None = None,
-         fetch: bool = True) -> tuple[list[Plan], list[Skip]]:
+         fetch: bool = True, log=print) -> tuple[list[Plan], list[Skip]]:
     """(plans, skips) for every package, in discovery order."""
     repo = Path(repo)
-    packages = workspace.packages(repo)
-    if only:
-        wanted = set(only)
-        packages = [p for p in packages if p.directory in wanted or p.name in wanted]
-        if not packages:
-            sys.stderr.write("no package matched %s\n" % ", ".join(sorted(wanted)))
-            raise SystemExit(1)
+    packages = workspace.select(repo, list(only))
     if (force or version) and not only:
-        sys.stderr.write("--force/--version need --package to say which\n")
-        raise SystemExit(1)
+        raise WorkspaceError("--force/--version need --package to say which")
     if version and len(packages) != 1:
-        sys.stderr.write("--version applies to exactly one --package\n")
-        raise SystemExit(1)
+        raise WorkspaceError("--version applies to exactly one --package")
 
     if fetch:
-        # Tags are the baseline for every plan below, and they live on the
-        # remote. Without this a fresh clone sees none and reads the whole
-        # history instead.
-        git(["fetch", "--tags", "origin"], repo, check=False)
+        workspace.fetch_tags(repo, log=log)
 
     plans, skips = [], []
     for package in packages:
@@ -150,11 +107,9 @@ def plan(repo, only=(), force: bool = False, version: str | None = None,
             target = version
         else:
             target = next_version(repo, package.name)
-        mismatches = []
-        for commit in history:
-            parsed = commitlib.parse(commit.subject)
-            if parsed and parsed.scope and parsed.scope != package.directory:
-                mismatches.append((commit.subject, parsed.scope))
+        mismatches = [(c.subject, parsed.scope) for c in history
+                      for parsed in [commitlib.parse(c.subject)]
+                      if parsed and parsed.scope and parsed.scope != package.directory]
         plans.append(Plan(package.directory, package.name, tag, target, history,
                           mismatches, not history))
     return plans, skips
@@ -167,24 +122,17 @@ def line(p: Plan) -> str:
         p.previous or "the start", ", forced" if p.forced else "")
 
 
-def skip_line(s: Skip) -> str:
-    return "[skip]    %-18s no commits since %s" % (s.name, s.tag or "the start")
-
-
-def mismatch_lines(p: Plan) -> list[str]:
-    return ["          ! scope `%s` but the change is under packages/%s: %s"
-            % (scope, p.directory, subject[:60]) for subject, scope in p.mismatches]
-
-
 def report(plans, skips, out=None) -> None:
     """Print every plan and skip, mismatches included, in discovery order."""
     out = out or sys.stdout
     for p in plans:
         print(line(p), file=out)
-        for warning in mismatch_lines(p):
-            print(warning, file=out)
+        for subject, scope in p.mismatches:
+            print("          ! scope `%s` but the change is under packages/%s: %s"
+                  % (scope, p.directory, subject[:60]), file=out)
     for s in skips:
-        print(skip_line(s), file=out)
+        print("[skip]    %-18s no commits since %s" % (s.name, s.tag or "the start"),
+              file=out)
 
 
 def as_json(plans, skips) -> dict:
@@ -203,13 +151,22 @@ def as_json(plans, skips) -> dict:
 
 
 def main(repo: Path = workspace.REPO_OPTION,
-         package: list[str] = typer.Option([], "--package", help="only these packages"),
-         force: bool = typer.Option(False, "--force", help="plan even without commits"),
-         version: str = typer.Option("", "--version", help="release at this YYYY.M.N"),
-         json_out: bool = typer.Option(False, "--json"),
-         no_fetch: bool = typer.Option(False, "--no-fetch")) -> None:
-    plans, skips = plan(repo.resolve(), only=package, force=force,
-                        version=version or None, fetch=not no_fetch)
+         package: list[str] = typer.Option([], "--package",
+                                           help="Report only these packages."),
+         force: bool = typer.Option(False, "--force",
+                                    help="Plan a --package with no commits: a re-release."),
+         version: str = typer.Option("", "--version", metavar="YYYY.M.N",
+                                     help="Release one --package at exactly this version. "
+                                          "Must be unused and sort above its last tag."),
+         json_out: bool = typer.Option(False, "--json", help="Machine-readable output."),
+         no_fetch: bool = typer.Option(False, "--no-fetch",
+                                       help="Skip `git fetch --tags`, for an offline clone.")) -> None:
+    """Show what each package's next calendar version would be, and why."""
+    try:
+        plans, skips = plan(repo.resolve(), only=package, force=force,
+                            version=version or None, fetch=not no_fetch)
+    except WorkspaceError as exc:
+        raise workspace.die(exc)
     if json_out:
         json.dump(as_json(plans, skips), sys.stdout, indent=2)
         print()

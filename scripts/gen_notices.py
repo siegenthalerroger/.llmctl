@@ -13,50 +13,29 @@
 # ///
 """Generate THIRD-PARTY-NOTICES.md for the marketplace repo.
 
-Replaces a hand-maintained file that carried its own warning admitting it was
-never verified against what actually shipped. Three inputs, per bundle:
+Three inputs per bundle: the vendored APM dependencies its embedded apm.lock.yaml
+records, the per-file licence exceptions inside it, and every remaining provenance
+source. Obligation and credit are kept apart -- sources whose terms attach go under
+Notices, the rest under Acknowledgements, because listing an `inspiration-only`
+source as a notice would imply a condition that does not exist.
 
-  1. Vendored APM dependencies  -- each bundle embeds an enriched apm.lock.yaml
-     recording repo_url / resolved_commit / version for every skill packed into
-     it. It records no licence, so terms come from the workspace's
-     dependency-licenses.yml.
-  2. Per-file licence exceptions -- files inside the bundle whose frontmatter
-     declares a `license:` or carries obligation-bearing provenance.
-  3. Acknowledgements -- every remaining provenance source.
-
-Obligation and credit are kept apart on purpose. Listing an `inspiration-only`
-source under "Notices" would imply a licence condition that does not exist;
-omitting it entirely would drop credit that is owed as courtesy. So sources whose
-terms attach go under Notices, everything else under Acknowledgements.
-
-pack_marketplace.py imports `write()`; the `pack` gate in check.py reads the
-file it wrote and fails on any `UNRECORDED` upstream.
-
-Usage:
-  uv run scripts/gen_notices.py --repo PATH --marketplace PATH [--check] [--verify]
-
-  --check   regenerate to memory and diff against the file on disk; write
-            nothing, exit 1 when stale
-  --verify  re-query each upstream's licence via the GitHub API and warn on
-            drift from dependency-licenses.yml -- how an upstream relicence
-            surfaces. The API is not authoritative; the LICENSE file is
-
-Exit codes: 0 ok, 1 stale (--check), drift (--verify), or error.
+pack_marketplace.py imports `write()`; the `pack` gate fails on any `UNRECORDED`
+upstream. See CONTRIBUTING.md#licensing.
 """
 from __future__ import annotations
 
 import os
 import re
 import sys
+from collections import namedtuple
 from pathlib import Path
 
 import typer
 from ruamel.yaml import YAML
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import github as githublib  # noqa: E402
-import provenance as prov  # noqa: E402
-import workspace  # noqa: E402
+import github as githublib
+import provenance as prov
+import workspace
 
 UNRECORDED = "UNRECORDED"
 
@@ -350,40 +329,63 @@ def unrecorded(text: str) -> list[str]:
 # --- Verification ----------------------------------------------------------
 
 
-def verify(licenses: dict, gh: githublib.GitHub) -> int:
-    """Re-query each upstream and warn where the API disagrees with the map."""
-    drift = 0
+Checked = namedtuple("Checked", "key recorded reported status")
+
+
+def relicensing(licenses: dict, gh: githublib.GitHub) -> list[Checked]:
+    """Re-query each upstream's licence and say where the API disagrees.
+
+    How an upstream relicence surfaces. The API is not authoritative -- it
+    reports NOASSERTION for a LICENSE it cannot classify -- so `drift` means
+    "re-read their LICENSE", not "the record is wrong".
+    """
+    rows = []
     for key, info in sorted(licenses.items()):
+        recorded = info.get("spdx", "?")
         if not key.startswith("github.com/"):
             # A documentation host has no repo to query. Its terms come from the
             # site, which is exactly why the entry carries a `note`.
-            print("  %-44s %-14s skipped (not a repository)"
-                  % (key, info.get("spdx", "?")))
+            rows.append(Checked(key, recorded, "", "not a repository"))
             continue
         owner, _, repo = key[len("github.com/"):].partition("/")
         try:
             reported = gh.repo_license(owner, repo)
         except githublib.ApiError as exc:
-            print("  ? %s/%s: could not query (%s)" % (owner, repo, exc))
+            rows.append(Checked(key, recorded, "", "could not query (%s)" % exc))
             continue
-        recorded = info.get("spdx", "?")
-        if reported in (recorded, "NOASSERTION") or (reported == "NONE" and recorded == "NONE"):
-            status = "ok" if reported == recorded else "ok (API says %s; see note)" % reported
-            print("  %-44s %-14s %s" % (key, recorded, status))
+        if reported == recorded:
+            rows.append(Checked(key, recorded, reported, "ok"))
+        elif reported == "NOASSERTION":
+            rows.append(Checked(key, recorded, reported,
+                                "ok (API cannot classify it; see note)"))
         else:
-            drift += 1
-            print("  %-44s %-14s DRIFT: API now reports %s" % (key, recorded, reported))
+            rows.append(Checked(key, recorded, reported, "drift"))
+    return rows
+
+
+def verify(licenses: dict, gh: githublib.GitHub, log=print) -> int:
+    """Print every upstream's licence check; exit code counts the drift."""
+    rows = relicensing(licenses, gh)
+    for row in rows:
+        log("  %-44s %-14s %s" % (row.key, row.recorded, row.status))
+    drift = [row for row in rows if row.status == "drift"]
     if drift:
-        print("\n%d upstream(s) may have relicensed. Re-read their LICENSE file and "
-              "update dependency-licenses.yml." % drift)
+        log("\n%d upstream(s) may have relicensed. Re-read their LICENSE file and "
+            "update dependency-licenses.yml." % len(drift))
     return 1 if drift else 0
 
 
 def main(repo: Path = workspace.REPO_OPTION,
          marketplace: Path = workspace.MARKETPLACE_OPTION,
-         check: bool = typer.Option(False, "--check", help="fail if the committed file is stale"),
-         verify_: bool = typer.Option(False, "--verify", help="re-query upstream licences"),
-         github_token: str = typer.Option("", "--github-token", help="overrides GITHUB_TOKEN")) -> None:
+         check: bool = typer.Option(False, "--check",
+                                    help="Regenerate to memory and diff against the file on "
+                                         "disk; write nothing, exit 1 when stale."),
+         verify_: bool = typer.Option(False, "--verify",
+                                      help="Re-query each upstream's licence via the GitHub API "
+                                           "and warn on drift from dependency-licenses.yml."),
+         github_token: str = typer.Option("", "--github-token",
+                                          help="Overrides GITHUB_TOKEN / GH_TOKEN.")) -> None:
+    """Regenerate the marketplace's third-party notices from what each bundle carries."""
     ws, marketplace = repo.resolve(), marketplace.resolve()
     if verify_:
         licenses = read_license_map(ws / "dependency-licenses.yml")

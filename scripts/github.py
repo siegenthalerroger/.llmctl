@@ -1,14 +1,9 @@
 """The one GitHub API client the scripts share.
 
-Three callers, three very different needs -- the drift audit reads commit
-dates, the notices verifier reads licences, the release writes releases -- and
-each used to carry its own transport (urllib with an ssl context, `gh api`, or
-nothing). One httpx client means one token rule, one error type, and one place
-where a rate-limit 403 is explained rather than reported as a bare status.
-
-Authentication: `--github-token` where a script offers it, then GITHUB_TOKEN,
-then GH_TOKEN, then whatever `gh auth token` prints. The last is what a
-contributor's shell usually has; the env vars are what CI has.
+Three callers with different needs -- the drift audit reads commit dates, the
+notices verifier reads licences, the release writes releases -- and one token
+rule, one error type, and one place a rate-limit 403 is explained.
+Authentication: an explicit token, then GITHUB_TOKEN, GH_TOKEN, `gh auth token`.
 """
 from __future__ import annotations
 
@@ -180,6 +175,17 @@ class GitHub:
 
     # -- releases and metadata ------------------------------------------
 
+    def release_for_tag(self, owner: str, repo: str, tag: str) -> dict | None:
+        """The release already published for `tag`, or None.
+
+        A release is created after its tag is pushed, so the two can end up out
+        of step -- a failed or rate-limited create leaves a tag with no page.
+        Asking first is what lets the next run finish the job instead of
+        reporting nothing to do.
+        """
+        return self.get("/repos/%s/%s/releases/tags/%s" % (owner, repo, tag),
+                        ok_404=True)
+
     def create_release(self, owner: str, repo: str, tag: str, name: str,
                        body: str, target: str) -> dict:
         return self.post("/repos/%s/%s/releases" % (owner, repo), {
@@ -192,16 +198,3 @@ class GitHub:
         payload = self.get("/repos/%s/%s" % (owner, repo))
         info = (payload or {}).get("license") or {}
         return str(info.get("spdx_id") or "NONE")
-
-    def head(self, url: str) -> httpx.Response:
-        """A HEAD (falling back to GET) against an arbitrary URL, for the
-        authoritativeSpec probe. Not under the API base URL."""
-        try:
-            response = httpx.head(url, follow_redirects=True, timeout=30.0,
-                                  headers={"User-Agent": USER_AGENT})
-            if response.status_code in (405, 501):
-                response = httpx.get(url, follow_redirects=True, timeout=30.0,
-                                     headers={"User-Agent": USER_AGENT})
-            return response
-        except httpx.HTTPError as exc:
-            raise ApiError("request failed: %s" % exc)

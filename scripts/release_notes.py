@@ -1,14 +1,9 @@
 """Release notes for one package, from its commits and the pull requests behind them.
 
-Two sources, because they answer different questions. The commits say what
-changed, grouped by conventional-commit type -- that is the whole job the type
-still does now that it sizes no version. The pull request says why, in prose
-someone wrote for a reader: the section under a `## Release notes` heading in
-the pull request body, and only that section, so ordinary review chatter in the
-same body stays out of the published notes.
-
-A commit with no pull request, or a body with no such heading, contributes its
-subject line and nothing more. That is the common case and it is fine.
+The commits say what changed, grouped by conventional-commit type -- the whole job
+the type still does now that it sizes no version. The pull request says why, in the
+section under its `## Release notes` heading, and only that section, so review
+chatter stays out. A commit with neither contributes its subject line.
 """
 from __future__ import annotations
 

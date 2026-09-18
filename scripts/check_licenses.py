@@ -13,26 +13,9 @@
 # ///
 """Check that every file's licence can carry the upstream terms it inherits.
 
-The repository licence covers what is genuinely original (`*.md` CC-BY-SA-4.0,
-everything else MIT; see LICENSE). Anything beyond an idea-level borrowing carries
-its upstream's terms with it, so the per-file provenance decides the per-file
-licence -- not the other way round.
-
-For each provenance entry this asks two questions:
-
-  1. Does the fidelity mean expression was copied? (`partly-derived` and
-     `largely-derived` do; `inspiration-only` and `structural-echo` do not.)
-  2. If so, can this file's effective licence satisfy that upstream's licence?
-
-A `NONE` upstream -- no LICENSE file, hence no grant of rights -- passes only at a
-fidelity that copies nothing.
-
-check.py imports `check()` for its `licences` gate; this file is also the CLI.
-
-Usage:
-  uv run scripts/check_licenses.py --repo PATH [--json]
-
-Exit codes: 0 clean, 1 errors found.
+Per provenance entry: does the fidelity mean expression was copied, and if so can
+this file's effective licence satisfy that upstream's? check.py imports `check()`
+for its `licences` gate. Rules: CONTRIBUTING.md#licensing.
 """
 from __future__ import annotations
 
@@ -44,9 +27,8 @@ from pathlib import Path
 
 import typer
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import provenance as prov  # noqa: E402
-import workspace  # noqa: E402
+import provenance as prov
+import workspace
 
 Report = namedtuple("Report", "errors warnings records tracked obligated")
 
@@ -130,7 +112,9 @@ def summary(report: Report) -> str:
 
 
 def main(repo: Path = workspace.REPO_OPTION,
-         json_out: bool = typer.Option(False, "--json", help="machine-readable output")) -> None:
+         json_out: bool = typer.Option(False, "--json",
+                                       help="Machine-readable output on stdout.")) -> None:
+    """Check every file's licence against the upstream terms its provenance records."""
     root = repo.resolve()
     report = check(root)
 

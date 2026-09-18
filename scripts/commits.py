@@ -1,14 +1,9 @@
 """The conventional-commit convention, parsed once.
 
-Two consumers read commit subjects: the `commits` gate in check.py, which
-refuses a subject that breaks the convention, and the release notes, which
-group a package's commits by type. Sharing the parser is what keeps "what the
-gate accepts" and "what the notes understand" the same set.
-
-The type sizes nothing -- versions are calendar-derived -- so the allowlist is
-purely about legible history and grouping. The scope rule is the useful half:
-when a scope is given it has to name something the commit actually touched,
-which is how a typo'd scope surfaces instead of quietly mislabelling history.
+The `commits` gate refuses a subject that breaks it; the release notes group a
+package's commits by type. Sharing the parser is what keeps "what the gate
+accepts" and "what the notes understand" the same set. The rules themselves are
+in CONTRIBUTING.md#commit-convention.
 """
 from __future__ import annotations
 
@@ -23,17 +18,21 @@ TYPES = ("feat", "fix", "docs", "refactor", "chore", "test", "build", "ci")
 SUBJECT_RE = re.compile(
     r"^(?P<type>[a-z]+)(?:\((?P<scope>[^()\s]+)\))?(?P<bang>!)?: (?P<description>\S.*)$")
 
-# Areas for paths outside packages/. A commit may name any one it touched.
+# Which scope a path outside packages/ may be named by, first match winning.
+# A package path names its own directory instead, which `scopes_for` handles.
 AREAS = (
     ("scripts/", "scripts"),
     (".github/", "ci"),
     (".apm/", "meta"),
+    ("LICENSES/", "repo"),
 )
 ROOT_CONFIG = ("apm.yml", "apm.lock.yaml", ".gitignore", "dependency-licenses.yml")
 
 Subject = namedtuple("Subject", "type scope bang description")
-Commit = namedtuple("Commit", "sha subject body")
+Commit = namedtuple("Commit", "sha subject body paths")
 Finding = namedtuple("Finding", "sha subject reason")
+
+RECORD, FIELD = "\x1e", "\x1f"
 
 
 def parse(subject: str) -> Subject | None:
@@ -49,33 +48,35 @@ def breaking(commit: Commit) -> bool:
     return bool(parsed and parsed.bang) or "BREAKING CHANGE" in commit.body
 
 
-def log(repo: Path | str, rng: str, path: str = "", merges: bool = False) -> list[Commit]:
-    """(sha, subject, body) for every commit in `rng`, optionally under `path`."""
-    args = ["log", "--format=%H%x1f%s%x1f%b%x1e"]
+def log(repo: Path | str, rng: str, path: str = "", *, paths: bool = False,
+        merges: bool = False) -> list[Commit]:
+    """Every commit in `rng`, optionally under `path`, newest first.
+
+    `paths=True` also fills each commit's touched files, in the same `git log`
+    rather than a `git show` per commit.
+    """
+    args = ["log", "--format=%s%%H%s%%s%s%%b%s" % (RECORD, FIELD, FIELD, FIELD)]
     if not merges:
         args.append("--no-merges")
+    if paths:
+        args.append("--name-only")
     if rng:
         args.append(rng)
     if path:
         args += ["--", path]
-    raw = git(args, repo)
+
     commits = []
-    for chunk in raw.split("\x1e"):
-        chunk = chunk.strip()
-        if not chunk:
+    for chunk in git(args, repo).split(RECORD):
+        if not chunk.strip():
             continue
-        sha, _, rest = chunk.partition("\x1f")
-        subject, _, body = rest.partition("\x1f")
-        commits.append(Commit(sha.strip(), subject.strip(), body.strip()))
+        sha, subject, body, touched = (chunk.split(FIELD) + ["", "", ""])[:4]
+        commits.append(Commit(
+            sha.strip(), subject.strip(), body.strip(),
+            tuple(line.strip() for line in touched.split("\n") if line.strip())))
     return commits
 
 
-def touched(repo: Path | str, sha: str) -> list[str]:
-    out = git(["show", "--name-only", "--format=", sha], repo)
-    return [line.strip() for line in out.split("\n") if line.strip()]
-
-
-def scopes_for(paths: list[str]) -> set[str]:
+def scopes_for(paths) -> set[str]:
     """Every scope a commit touching `paths` may legitimately carry."""
     scopes = set()
     for path in paths:
@@ -90,13 +91,12 @@ def scopes_for(paths: list[str]) -> set[str]:
                 scopes.add(area)
                 break
         else:
-            if "/" not in path:
-                if path.endswith(".md"):
-                    scopes.add("docs")
-                if path in ROOT_CONFIG or path.startswith("LICENSE") \
-                        or ".marketplace." in path or path.endswith(".marketplace"):
-                    scopes.add("repo")
-            elif path.startswith("LICENSES/"):
+            if "/" in path:
+                continue
+            if path.endswith(".md"):
+                scopes.add("docs")
+            if path in ROOT_CONFIG or path.startswith("LICENSE") \
+                    or ".marketplace." in path or path.endswith(".marketplace"):
                 scopes.add("repo")
     return scopes
 
@@ -114,20 +114,21 @@ def check_subject(subject: str) -> str | None:
 def lint(repo: Path | str, since: str, subject: str | None = None) -> tuple[int, list[Finding]]:
     """(commits checked, findings) for `since..HEAD`, plus an optional extra subject."""
     findings = []
-    commits = log(repo, "%s..HEAD" % since)
+    commits = log(repo, "%s..HEAD" % since, paths=True)
     for commit in commits:
         reason = check_subject(commit.subject)
         if reason:
             findings.append(Finding(commit.sha, commit.subject, reason))
             continue
         scope = parse(commit.subject).scope
-        if scope:
-            allowed = scopes_for(touched(repo, commit.sha))
-            if scope not in allowed:
-                findings.append(Finding(
-                    commit.sha, commit.subject,
-                    "scope `%s` names nothing this commit touched (%s)"
-                    % (scope, ", ".join(sorted(allowed)) or "no scope applies")))
+        if not scope:
+            continue
+        allowed = scopes_for(commit.paths)
+        if scope not in allowed:
+            findings.append(Finding(
+                commit.sha, commit.subject,
+                "scope `%s` names nothing this commit touched (%s)"
+                % (scope, ", ".join(sorted(allowed)) or "no scope applies")))
     if subject:
         reason = check_subject(subject)
         if reason:
