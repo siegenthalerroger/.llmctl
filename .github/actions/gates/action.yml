@@ -1,0 +1,44 @@
+name: Run the workspace gates
+description: Every gate, over one workspace -- the same entry point a contributor runs.
+
+inputs:
+  workspace:
+    description: The checkout to act on.
+    required: true
+  scripts:
+    description: Where the scripts are, relative to the workspace.
+    required: false
+    default: scripts
+  since:
+    description: >-
+      The base of the commit range to lint. Empty, or an all-zero sha from a
+      branch that did not exist yet, skips that gate rather than inventing a range.
+    required: false
+    default: ""
+  subject:
+    description: An extra subject to lint, such as a pull request title.
+    required: false
+    default: ""
+  github-token:
+    description: Read access for the pack gate, which installs the pinned upstreams.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Run the gates
+      shell: bash
+      working-directory: ${{ inputs.workspace }}
+      env:
+        SCRIPTS: ${{ inputs.scripts }}
+        SINCE: ${{ inputs.since }}
+        SUBJECT: ${{ inputs.subject }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: |
+        set -euo pipefail
+        args=(--repo .)
+        if [ -n "$SINCE" ] && [ "$SINCE" != "0000000000000000000000000000000000000000" ]; then
+          args+=(--since "$SINCE")
+          if [ -n "$SUBJECT" ]; then args+=(--subject "$SUBJECT"); fi
+        fi
+        uv run "$SCRIPTS/check.py" "${args[@]}"

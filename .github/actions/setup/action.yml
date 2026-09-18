@@ -1,0 +1,41 @@
+# Used by this repo's workflows and by the private workspace's, which checks
+# this repo out beside itself and refers to this action by path. That is why it
+# is an action rather than a reusable workflow: a path reference needs no
+# cross-repository Actions permission, and the private workspace already has the
+# checkout it needs.
+name: Set up uv and APM
+description: Install uv and the APM CLI, the two things every job here needs.
+
+inputs:
+  apm-version:
+    description: >-
+      The APM CLI to install. `latest` is deliberate for the gates -- they should
+      fail when a new APM breaks this repo, rather than the next release finding
+      out. A release pins instead: bundle bytes depend on the packer.
+    required: false
+    default: latest
+
+outputs:
+  apm-version:
+    description: The APM version that was installed.
+    value: ${{ steps.apm.outputs.apm-version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install uv
+      # Pinned to a full version on purpose: setup-uv stopped publishing major
+      # and minor tags at v8, so `@v10` does not resolve.
+      uses: astral-sh/setup-uv@v10.1.0
+      with:
+        enable-cache: true
+        # The scripts declare their own dependencies in a PEP 723 header, so
+        # this is the only cache key that matters.
+        cache-dependency-glob: ".llmctl/scripts/*.py"
+
+    - name: Install the APM CLI
+      id: apm
+      uses: microsoft/apm-action@v1
+      with:
+        setup-only: true
+        apm-version: ${{ inputs.apm-version }}

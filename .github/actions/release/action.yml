@@ -1,0 +1,77 @@
+name: Release the workspace
+description: >-
+  Pack, tag and publish every package whose paths changed. Tags and GitHub
+  releases in the workspace; a commit and push in the marketplace.
+
+inputs:
+  workspace:
+    description: The checkout to release.
+    required: true
+  marketplace:
+    description: The marketplace checkout to publish into, relative to the workspace.
+    required: true
+  scripts:
+    description: Where the scripts are, relative to the workspace.
+    required: false
+    default: scripts
+  dry-run:
+    description: Show what would be released and write nothing.
+    required: false
+    default: "false"
+  packages:
+    description: Force these packages, space-separated. Blank releases whatever has commits.
+    required: false
+    default: ""
+  version:
+    description: Release the single package above at exactly this YYYY.M.N.
+    required: false
+    default: ""
+  github-token:
+    description: Pushes the tags and creates the release beside each one.
+    required: true
+  apm-version:
+    description: Reported in the step summary, so a bundle can be traced to its packer.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Identify the committer
+      # Only the marketplace commit carries an author: the workspace is tagged,
+      # never committed to.
+      shell: bash
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+    - name: Release
+      shell: bash
+      working-directory: ${{ inputs.workspace }}
+      env:
+        SCRIPTS: ${{ inputs.scripts }}
+        MARKETPLACE: ${{ inputs.marketplace }}
+        DRY_RUN: ${{ inputs.dry-run }}
+        PACKAGES: ${{ inputs.packages }}
+        VERSION: ${{ inputs.version }}
+        APM_VERSION: ${{ inputs.apm-version }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: |
+        set -euo pipefail
+        args=(--repo . --marketplace "$MARKETPLACE")
+        # A push releases; a dispatch previews unless told otherwise.
+        if [ "${DRY_RUN:-false}" = "true" ]; then args+=(--dry-run); fi
+        for package in $PACKAGES; do args+=(--package "$package"); done
+        if [ -n "$PACKAGES" ]; then args+=(--force); fi
+        if [ -n "$VERSION" ]; then args+=(--version "$VERSION"); fi
+        echo "release.py ${args[*]}"
+        uv run "$SCRIPTS/release.py" "${args[@]}" | tee "$RUNNER_TEMP/release.log"
+        {
+          echo "## Release"
+          echo
+          echo "Packed with APM ${APM_VERSION:-unknown}."
+          echo
+          echo '```'
+          cat "$RUNNER_TEMP/release.log"
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"

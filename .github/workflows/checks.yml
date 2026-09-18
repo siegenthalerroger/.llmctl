@@ -27,30 +27,19 @@ jobs:
       GITHUB_APM_PAT: ${{ github.token }}
     steps:
       - name: Check out the workspace
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           path: .llmctl
           # The commit gate reads the range back to the pull request's base, and
           # the pack gate dates each package from its last release tag.
           fetch-depth: 0
 
-      - name: Install uv
-        # The scripts declare their own dependencies in a PEP 723 header; uv
-        # resolves them per script, so there is nothing to install here.
-        # Pinned to a full version on purpose: setup-uv stopped publishing
-        # major and minor tags at v8, so `@v10` does not resolve.
-        uses: astral-sh/setup-uv@v10.1.0
+      - name: Set up uv and APM
+        id: setup
+        uses: ./.llmctl/.github/actions/setup
         with:
-          enable-cache: true
-          cache-dependency-glob: ".llmctl/scripts/*.py"
-
-      - name: Install the APM CLI
-        id: apm
-        uses: microsoft/apm-action@v1
-        with:
-          setup-only: true
-          # Deliberately floating: the gates should fail when a new APM breaks
-          # this repo, rather than the next release finding out.
+          # Floating here and pinned in release.yml: this is where a new APM
+          # that breaks the repo should surface, and the Monday run is why.
           apm-version: latest
 
       - name: Deploy this repo's own primitives from the lockfile
@@ -61,23 +50,15 @@ jobs:
         working-directory: .llmctl
 
       - name: Run the gates
-        # The same entry point a contributor runs before opening a pull request.
-        working-directory: .llmctl
-        env:
-          SINCE: ${{ github.event.pull_request.base.sha }}
-          SUBJECT: ${{ github.event.pull_request.title }}
-          # The pack gate installs the pinned upstreams.
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          args=(--repo .)
-          # No base means no range to lint: on a schedule or a manual run the
-          # commit gate is skipped, and says so, rather than inventing one.
-          if [ -n "$SINCE" ]; then args+=(--since "$SINCE" --subject "$SUBJECT"); fi
-          uv run scripts/check.py "${args[@]}"
+        uses: ./.llmctl/.github/actions/gates
+        with:
+          workspace: .llmctl
+          since: ${{ github.event.pull_request.base.sha }}
+          subject: ${{ github.event.pull_request.title }}
+          github-token: ${{ github.token }}
 
       - name: Say which APM ran
         # `apm-version: latest` is the point of the scheduled run, so a red
         # Monday needs to name the version that turned it red.
         if: always()
-        run: echo "APM ${{ steps.apm.outputs.apm-version }}" >> "$GITHUB_STEP_SUMMARY"
+        run: echo "APM ${{ steps.setup.outputs.apm-version }}" >> "$GITHUB_STEP_SUMMARY"

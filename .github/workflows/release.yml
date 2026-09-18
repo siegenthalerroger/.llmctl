@@ -32,6 +32,12 @@ concurrency:
   group: release
   cancel-in-progress: false
 
+env:
+  # Pinned, unlike checks.yml: what a bundle contains depends on the packer that
+  # made it, so a release runs the version the gates last passed with. Move it
+  # when a Monday run proves the newer one green.
+  APM_VERSION: "0.31.0"
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -50,7 +56,7 @@ jobs:
           fi
 
       - name: Check out the workspace
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           path: .llmctl
           # Each package is measured from its last tag, and packed from HEAD; a
@@ -58,7 +64,7 @@ jobs:
           fetch-depth: 0
 
       - name: Check out the marketplace
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: siegenthalerroger/.llmctl-marketplace
           path: .llmctl-marketplace
@@ -67,20 +73,11 @@ jobs:
           # MARKETPLACE_TOKEN needs to reach.
           token: ${{ secrets.MARKETPLACE_TOKEN }}
 
-      - name: Install uv
-        # Pinned to a full version on purpose: setup-uv stopped publishing
-        # major and minor tags at v8, so `@v10` does not resolve.
-        uses: astral-sh/setup-uv@v10.1.0
+      - name: Set up uv and APM
+        id: setup
+        uses: ./.llmctl/.github/actions/setup
         with:
-          enable-cache: true
-          cache-dependency-glob: ".llmctl/scripts/*.py"
-
-      - name: Install the APM CLI
-        id: apm
-        uses: microsoft/apm-action@v1
-        with:
-          setup-only: true
-          apm-version: latest
+          apm-version: ${{ env.APM_VERSION }}
 
       - name: Deploy this repo's own primitives from the lockfile
         run: apm install --frozen --target claude,codex,agent-skills
@@ -88,51 +85,19 @@ jobs:
 
       - name: Run the gates
         # Every gate, immediately before publishing what they passed on.
-        working-directory: .llmctl
-        env:
-          SINCE: ${{ github.event.before }}
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          args=(--repo .)
-          # An all-zero `before` is a branch that did not exist yet; there is no
-          # range to lint, so the commit gate is skipped rather than invented.
-          if [ -n "$SINCE" ] && [ "$SINCE" != "0000000000000000000000000000000000000000" ]; then
-            args+=(--since "$SINCE")
-          fi
-          uv run scripts/check.py "${args[@]}"
-
-      - name: Identify the committer
-        # Only the marketplace commit carries an author: this repo is tagged,
-        # never committed to.
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        uses: ./.llmctl/.github/actions/gates
+        with:
+          workspace: .llmctl
+          since: ${{ github.event.before }}
+          github-token: ${{ github.token }}
 
       - name: Release
-        working-directory: .llmctl
-        env:
-          DRY_RUN: ${{ inputs.dry_run }}
-          PACKAGES: ${{ inputs.packages }}
-          VERSION: ${{ inputs.version }}
-          # Tags, and the GitHub release beside each one.
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          args=(--repo . --marketplace ../.llmctl-marketplace)
-          # A push releases; a dispatch previews unless told otherwise.
-          if [ "${DRY_RUN:-false}" = "true" ]; then args+=(--dry-run); fi
-          for package in $PACKAGES; do args+=(--package "$package"); done
-          if [ -n "$PACKAGES" ]; then args+=(--force); fi
-          if [ -n "$VERSION" ]; then args+=(--version "$VERSION"); fi
-          echo "release.py ${args[*]}"
-          uv run scripts/release.py "${args[@]}" | tee "$RUNNER_TEMP/release.log"
-          {
-            echo "## Release"
-            echo
-            echo "Packed with APM ${{ steps.apm.outputs.apm-version }}."
-            echo
-            echo '```'
-            cat "$RUNNER_TEMP/release.log"
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+        uses: ./.llmctl/.github/actions/release
+        with:
+          workspace: .llmctl
+          marketplace: ../.llmctl-marketplace
+          dry-run: ${{ inputs.dry_run }}
+          packages: ${{ inputs.packages }}
+          version: ${{ inputs.version }}
+          github-token: ${{ github.token }}
+          apm-version: ${{ steps.setup.outputs.apm-version }}
