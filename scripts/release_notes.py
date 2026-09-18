@@ -8,8 +8,17 @@ chatter stays out. A commit with neither contributes its subject line.
 from __future__ import annotations
 
 import re
+from typing import TYPE_CHECKING
 
 import commits as commitlib
+from workspace import Log
+
+if TYPE_CHECKING:
+    from github import GitHub
+    from versions import Plan
+
+__all__ = ["GROUPS", "build", "extract_release_notes", "group_of",
+           "pull_request_sections"]
 
 # Ordered, because the order is the message: what breaks, then what is new,
 # then what is fixed, then everything else.
@@ -30,7 +39,7 @@ def extract_release_notes(body: str) -> str:
     return match.group(1).strip() if match else ""
 
 
-def group_of(commit) -> str:
+def group_of(commit: commitlib.Commit) -> str:
     if commitlib.breaking(commit):
         return "breaking"
     parsed = commitlib.parse(commit.subject)
@@ -39,8 +48,9 @@ def group_of(commit) -> str:
     return "other"
 
 
-def build(plan, owner: str = "", repo: str = "", client=None, log=print,
-          cache: dict | None = None) -> str:
+def build(plan: Plan, owner: str = "", repo: str = "",
+          client: GitHub | None = None, log: Log = print,
+          cache: dict[str, list[dict]] | None = None) -> str:
     """The notes body for one release plan.
 
     `client` is optional: without a token there is no pull request lookup, so
@@ -77,8 +87,10 @@ def build(plan, owner: str = "", repo: str = "", client=None, log=print,
     return "\n".join(lines).rstrip() + "\n"
 
 
-def pull_request_sections(plan, owner: str, repo: str, client, log=print,
-                          cache: dict | None = None):
+def pull_request_sections(plan: Plan, owner: str, repo: str,
+                          client: GitHub | None, log: Log = print,
+                          cache: dict[str, list[dict]] | None = None
+                          ) -> list[tuple[int, str, str]]:
     """(number, title, text) for every distinct PR behind these commits that
     carries a `## Release notes` section."""
     if not client or not owner or not repo:

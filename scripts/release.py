@@ -26,6 +26,7 @@ any version whose bundle is missing. See CONTRIBUTING.md#releasing.
 from __future__ import annotations
 
 import sys
+from collections.abc import Sequence
 from pathlib import Path
 
 import typer
@@ -36,7 +37,7 @@ import pack_marketplace
 import release_notes
 import versions as versionlib
 import workspace
-from workspace import WorkspaceError, git
+from workspace import Log, Package, WorkspaceError, git
 
 
 def refuse_dirty(marketplace: Path, allowed: bool, show: int = 12) -> None:
@@ -66,7 +67,7 @@ def refuse_dirty(marketplace: Path, allowed: bool, show: int = 12) -> None:
         % (marketplace, len(soiled), listing))
 
 
-def refuse_taken_tags(ws: Path, plans) -> None:
+def refuse_taken_tags(ws: Path, plans: Sequence[versionlib.Plan]) -> None:
     """A tag that exists is a release that happened; re-cutting it would publish
     different bundles under a version somebody already has."""
     taken = []
@@ -80,7 +81,7 @@ def refuse_taken_tags(ws: Path, plans) -> None:
         raise WorkspaceError("already released: %s" % ", ".join(taken))
 
 
-def tag_plan(ws: Path, package, tag: str):
+def tag_plan(ws: Path, package: Package, tag: str) -> versionlib.Plan:
     """A Plan for a tag already cut, so its notes read like a fresh release's."""
     siblings = git(["tag", "--list", "%s@*" % package.name, "--sort=-v:refname"],
                    ws).split()
@@ -93,7 +94,10 @@ def tag_plan(ws: Path, package, tag: str):
                            versionlib.version_of(tag), commits, [], False)
 
 
-def ensure_releases(ws: Path, packages, client, prepared=None, log=print) -> None:
+def ensure_releases(ws: Path, packages: Sequence[Package],
+                    client: githublib.GitHub,
+                    prepared: dict[str, str] | None = None,
+                    log: Log = print) -> None:
     """Give every package's newest tag a release page, if it has none.
 
     Publishing is two steps -- push the tag, then create the release -- so they
@@ -160,8 +164,9 @@ def main(repo: Path = workspace.REPO_OPTION,
         raise workspace.die(exc)
 
 
-def release(ws: Path, marketplace: Path, only, force, version, *,
-            dry_run, no_push, allow_dirty, token) -> None:
+def release(ws: Path, marketplace: Path, only: Sequence[str], force: bool,
+            version: str | None, *, dry_run: bool, no_push: bool,
+            allow_dirty: bool, token: str) -> None:
     # The same code `apm run versions` prints from, so a preview cannot disagree
     # with what gets published.
     plans, skips = versionlib.plan(ws, only=only, force=force, version=version)
