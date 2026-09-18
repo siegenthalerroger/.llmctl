@@ -1,6 +1,4 @@
 name: llmctl-workflow
-# Placeholder: the release stamps the real YYYY.M.N into a scratch copy at pack
-# time and records it as a `<name>@<version>` tag. Never edit this line.
 version: 0.0.0
 description: Code delivery steering — the code-reviewer agent plus TDD, git worktrees, merge-conflict resolution, code-review reception, and lint pipelines.
 author: siegenthalerroger

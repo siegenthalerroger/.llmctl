@@ -1,6 +1,4 @@
 name: llmctl-product
-# Placeholder: the release stamps the real YYYY.M.N into a scratch copy at pack
-# time and records it as a `<name>@<version>` tag. Never edit this line.
 version: 0.0.0
 description: Product steering — Epic/Feature PRD skills and the product-manager and UX-expert agents.
 author: siegenthalerroger

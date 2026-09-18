@@ -1,6 +1,4 @@
 name: llmctl-python
-# Placeholder: the release stamps the real YYYY.M.N into a scratch copy at pack
-# time and records it as a `<name>@<version>` tag. Never edit this line.
 version: 0.0.0
 description: Python steering — source-authoring standards and single-file script discipline, plus the upstream modern tooling setup for uv/ruff/ty projects.
 author: siegenthalerroger

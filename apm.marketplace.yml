@@ -2,32 +2,12 @@ name: llmctl-marketplace
 version: 0.1.0
 description: Published plugin marketplace for the .llmctl agent steering collection.
 author: siegenthalerroger
-# Mirrors the split licence of .llmctl: CC-BY-SA-4.0 for the markdown/steering
-# content, MIT for scripts and config. Full texts travel in each bundle's
-# LICENSES/ directory; per-file exceptions and third-party attribution are
-# enumerated in the generated THIRD-PARTY-NOTICES.md.
 license: MIT AND CC-BY-SA-4.0
-
-# This is the source of the marketplace repository's apm.yml. The marketplace
-# holds generated output only -- nothing is authored there -- and this file,
-# with `source:` and `version:` filled in per package, is what
-# scripts/pack_marketplace.py writes into it on every release.
-#
-#   plugins/<name>-<version>/   packed plugin bundles
-#   .claude-plugin/             marketplace.json for Claude Code / Desktop / Cowork
-#   .agents/plugins/            marketplace.json for Codex
-#
-# `packages[].source` must point at a path that exists in the marketplace
-# repository: a plugin host clones the repo and reads that path directly -- it
-# never runs `apm install`. Versions are calendar-derived from the release tags
-# (`YYYY.M.N`), so neither field is written here.
 
 marketplace:
   description: ".llmctl — personal agent steering: coding, research, authoring, ops, and product."
-  # `claude plugin validate` reads the marketplace description from
-  # `metadata.description`, while APM emits the `description:` above at the top
-  # level. APM passes this block through verbatim, so declaring it here satisfies
-  # the validator without post-processing the generated manifest.
+  # Duplicated: `claude plugin validate` reads `metadata.description`, while APM
+  # emits the top-level `description:`.
   metadata:
     description: ".llmctl — personal agent steering: coding, research, authoring, ops, and product."
   owner:
@@ -37,13 +17,8 @@ marketplace:
     claude: {}
     codex: {}
   versioning:
-    # Packages move independently: a change to `ops` should not re-release
-    # `core`, or a version number stops meaning anything. Each package gets
-    # its next `YYYY.M.N` only when its paths have commits since its last tag.
     strategy: per_package
   packages:
-    # Only `name`, `description` and `category` are authored. The packer fills
-    # in `source` and `version`; `category` is what Codex requires.
     - name: llmctl-core
       category: Development
       description: Core steering skills — research, troubleshooting, batch execution, and Mermaid diagramming.
