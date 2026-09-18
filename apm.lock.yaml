@@ -341,7 +341,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:6911af03ae2ba6e8f7182309e75d258b567de6261287681223ae6dc158d9b09c
+  content_hash: sha256:f2e0c5ea530425fbe74c9aa4f016383beb7904c677346e5fbbebe00500f261c6
 - kind: project-relative
   target: claude
   value: .claude/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py
@@ -360,6 +360,42 @@ deployments:
   - ./packages/python
   active_owner: ./packages/python
   content_hash: sha256:faf876bfb78663be685376c7a1310a391ba8a5de339cef22f13bf39d00e3453e
+- kind: project-relative
+  target: claude
+  value: .claude/skills/meta-refresh-steering
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/meta-refresh-steering/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:1b6c91cf74d2053c29ce9ee14ed4a7b7c8f2c6bbc1ddacdbe1566b5efa7fbcc2
+- kind: project-relative
+  target: claude
+  value: .claude/skills/meta-review-steering
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/meta-review-steering/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:34fbf84ef9ea6ac49abc71174b7f7cb3f820943e4889ea2c5122a041f8f11382
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-update-models
@@ -638,7 +674,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:1c2d15739e40831e7abf6848590a209567f75abbaf12e14b30aede3885706096
+  content_hash: sha256:ea0b969cbcda2aa1cf35dc330d190d1589b077468f02b153d0eb5f8ff70d25f2
 - kind: project-relative
   target: codex
   value: .codex/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py
@@ -648,6 +684,42 @@ deployments:
   - .
   active_owner: .
   content_hash: sha256:419f214ebf17fc5a6493686fa91d3cade4ac28fe98796ccf7834c678d66d0d7c
+- kind: project-relative
+  target: legacy
+  value: .agents/skills/meta-refresh-steering
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: legacy
+  value: .agents/skills/meta-refresh-steering/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:1b6c91cf74d2053c29ce9ee14ed4a7b7c8f2c6bbc1ddacdbe1566b5efa7fbcc2
+- kind: project-relative
+  target: legacy
+  value: .agents/skills/meta-review-steering
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: legacy
+  value: .agents/skills/meta-review-steering/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:34fbf84ef9ea6ac49abc71174b7f7cb3f820943e4889ea2c5122a041f8f11382
 - kind: project-relative
   target: legacy
   value: .agents/skills/meta-update-models
@@ -703,6 +775,10 @@ deployments:
   active_owner: .
   content_hash: sha256:51ae8a2083ade24a21c7405a9524ddf03776d94993e27a84a6a98226db236d2c
 local_deployed_files:
+- .agents/skills/meta-refresh-steering
+- .agents/skills/meta-refresh-steering/SKILL.md
+- .agents/skills/meta-review-steering
+- .agents/skills/meta-review-steering/SKILL.md
 - .agents/skills/meta-update-models
 - .agents/skills/meta-update-models/SKILL.md
 - .agents/skills/meta-update-repo
@@ -711,6 +787,10 @@ local_deployed_files:
 - .agents/skills/meta-update-repo/references/source-url-reference.md
 - .claude/agents/meta-updater.md
 - .claude/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py
+- .claude/skills/meta-refresh-steering
+- .claude/skills/meta-refresh-steering/SKILL.md
+- .claude/skills/meta-review-steering
+- .claude/skills/meta-review-steering/SKILL.md
 - .claude/skills/meta-update-models
 - .claude/skills/meta-update-models/SKILL.md
 - .claude/skills/meta-update-repo
@@ -720,15 +800,19 @@ local_deployed_files:
 - .codex/agents/meta-updater.toml
 - .codex/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py
 local_deployed_file_hashes:
+  .agents/skills/meta-refresh-steering/SKILL.md: sha256:1b6c91cf74d2053c29ce9ee14ed4a7b7c8f2c6bbc1ddacdbe1566b5efa7fbcc2
+  .agents/skills/meta-review-steering/SKILL.md: sha256:34fbf84ef9ea6ac49abc71174b7f7cb3f820943e4889ea2c5122a041f8f11382
   .agents/skills/meta-update-models/SKILL.md: sha256:9bcea364875f3647fdbb8bc0af4ba9453fe63c0d0ec8b380bad96e2f44277160
   .agents/skills/meta-update-repo/SKILL.md: sha256:9a719194106d8343bb955ca75cee65e8b8ec68fd580ef2e38bb4feef6aac26c1
   .agents/skills/meta-update-repo/references/safety-review.md: sha256:4d25b7785769cae5abc6cfa9eabe1442002e3b72a2fcf7b1328fffab5283dc88
   .agents/skills/meta-update-repo/references/source-url-reference.md: sha256:51ae8a2083ade24a21c7405a9524ddf03776d94993e27a84a6a98226db236d2c
-  .claude/agents/meta-updater.md: sha256:6911af03ae2ba6e8f7182309e75d258b567de6261287681223ae6dc158d9b09c
+  .claude/agents/meta-updater.md: sha256:f2e0c5ea530425fbe74c9aa4f016383beb7904c677346e5fbbebe00500f261c6
   .claude/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py: sha256:419f214ebf17fc5a6493686fa91d3cade4ac28fe98796ccf7834c678d66d0d7c
+  .claude/skills/meta-refresh-steering/SKILL.md: sha256:1b6c91cf74d2053c29ce9ee14ed4a7b7c8f2c6bbc1ddacdbe1566b5efa7fbcc2
+  .claude/skills/meta-review-steering/SKILL.md: sha256:34fbf84ef9ea6ac49abc71174b7f7cb3f820943e4889ea2c5122a041f8f11382
   .claude/skills/meta-update-models/SKILL.md: sha256:9bcea364875f3647fdbb8bc0af4ba9453fe63c0d0ec8b380bad96e2f44277160
   .claude/skills/meta-update-repo/SKILL.md: sha256:9a719194106d8343bb955ca75cee65e8b8ec68fd580ef2e38bb4feef6aac26c1
   .claude/skills/meta-update-repo/references/safety-review.md: sha256:4d25b7785769cae5abc6cfa9eabe1442002e3b72a2fcf7b1328fffab5283dc88
   .claude/skills/meta-update-repo/references/source-url-reference.md: sha256:51ae8a2083ade24a21c7405a9524ddf03776d94993e27a84a6a98226db236d2c
-  .codex/agents/meta-updater.toml: sha256:1c2d15739e40831e7abf6848590a209567f75abbaf12e14b30aede3885706096
+  .codex/agents/meta-updater.toml: sha256:ea0b969cbcda2aa1cf35dc330d190d1589b077468f02b153d0eb5f8ff70d25f2
   .codex/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py: sha256:419f214ebf17fc5a6493686fa91d3cade4ac28fe98796ccf7834c678d66d0d7c
