@@ -7,7 +7,12 @@ license: MIT AND CC-BY-SA-4.0
 includes: auto
 
 dependencies:
-  apm: []
+  apm:
+    # This repository's own Python package, by local path: `scripts/` is the
+    # only code here, and it is Python, so an agent working on this repo gets
+    # the same steering a consumer of the package would. It deploys the two
+    # local skills plus the upstream `modern-python` they pin.
+    - ./packages/python
   mcp: []
 
 # The marketplace lives in the sibling `.llmctl-marketplace` repository and
