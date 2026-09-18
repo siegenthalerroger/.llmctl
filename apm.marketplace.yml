@@ -59,3 +59,6 @@ marketplace:
     - name: llmctl-design
       category: Design
       description: Design steering — direction-setting, colour, typography, and presentation.
+    - name: llmctl-python
+      category: Development
+      description: Python steering — source-authoring standards, single-file script discipline, and modern uv/ruff/ty project tooling.

@@ -1,0 +1,290 @@
+lockfile_version: '1'
+apm_version: 0.31.0
+dependencies:
+- repo_url: trailofbits/skills
+  name: modern-python
+  host: github.com
+  resolved_commit: 123037ec8aed26f0d86327cc39137ee5043e5deb
+  resolved_ref: 123037ec8aed26f0d86327cc39137ee5043e5deb
+  version: unknown
+  virtual_path: plugins/modern-python/skills/modern-python
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .claude/skills/modern-python
+  - .claude/skills/modern-python/SKILL.md
+  - .claude/skills/modern-python/agents/openai.yaml
+  - .claude/skills/modern-python/assets/trail-of-bits-mark.svg
+  - .claude/skills/modern-python/references/dependabot.md
+  - .claude/skills/modern-python/references/migration-checklist.md
+  - .claude/skills/modern-python/references/pep723-scripts.md
+  - .claude/skills/modern-python/references/prek.md
+  - .claude/skills/modern-python/references/pyproject.md
+  - .claude/skills/modern-python/references/ruff-config.md
+  - .claude/skills/modern-python/references/security-setup.md
+  - .claude/skills/modern-python/references/testing.md
+  - .claude/skills/modern-python/references/uv-commands.md
+  - .claude/skills/modern-python/templates/dependabot.yml
+  - .claude/skills/modern-python/templates/pre-commit-config.yaml
+  deployed_file_hashes:
+    .claude/skills/modern-python/SKILL.md: sha256:ef774b925eb1d1fc12e4f5ddc3f5ad925ecd795315827447228c70cc44c6170c
+    .claude/skills/modern-python/agents/openai.yaml: sha256:f56c544187af5bd3c76f1cd082619644090ab7b6d8abe77d4d3115d39dced5c1
+    .claude/skills/modern-python/assets/trail-of-bits-mark.svg: sha256:4bf74c789b38dcf6ad762c136b6832363d27ae19fbaa9a18ec18d66ecce6ca05
+    .claude/skills/modern-python/references/dependabot.md: sha256:d3678e32472305c0ef136bca99b26c3f75554d63675930e396f26a91a97451ad
+    .claude/skills/modern-python/references/migration-checklist.md: sha256:58c947e6200a91f350c9adc898af7fc6263fda41d36ae81ffd4dd923b3a1015e
+    .claude/skills/modern-python/references/pep723-scripts.md: sha256:c348b136613a4fed8f623d6013c0c6413d2c24f2973b2e5f85b80ecc68646045
+    .claude/skills/modern-python/references/prek.md: sha256:4be1c181c71aab64ba58573242a1c451d576a5c61ceeb400bb5827f4e1f9532a
+    .claude/skills/modern-python/references/pyproject.md: sha256:aec906835ec687024700d31e5c146baaabc9524129384304857b3aa81809401b
+    .claude/skills/modern-python/references/ruff-config.md: sha256:8d247862f1beaf76816ed6775f5a0c8dc96d74c7f2b71bbf1aaedc4937373b17
+    .claude/skills/modern-python/references/security-setup.md: sha256:32d6754a87d5006f923706d10446cc617cb22d36cfc30b55d39bd7f4c61d864c
+    .claude/skills/modern-python/references/testing.md: sha256:82e36068fbf28a9615d3c96e5d946e304ce8f89ae1ba7475d20934501d55b0d9
+    .claude/skills/modern-python/references/uv-commands.md: sha256:348cd69e8c780a0c7d54a2fac3c2956c7efe5630229782753da1685416672cdc
+    .claude/skills/modern-python/templates/dependabot.yml: sha256:a85ede8ff9cc3a2f63cb1fba24e65c36a5885ecc95722af15157dc5258f28a12
+    .claude/skills/modern-python/templates/pre-commit-config.yaml: sha256:18efd067e75cba5fc71705c2f90c548a03c3cded4cd2a7f9b4a1d617e115db0d
+  content_hash: sha256:3fbae401503c0f6b5caca44437984f45a495be5bf85572165331f06df832e3d6
+deployments:
+- kind: project-relative
+  target: claude
+  value: .claude/rules/python.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:f8bf4386702a0f2100e9b4a669de859e23d190722f294a9e6a1a2220cf3f9277
+- kind: project-relative
+  target: claude
+  value: .claude/skills/modern-python
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/modern-python/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:ef774b925eb1d1fc12e4f5ddc3f5ad925ecd795315827447228c70cc44c6170c
+- kind: project-relative
+  target: claude
+  value: .claude/skills/modern-python/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:f56c544187af5bd3c76f1cd082619644090ab7b6d8abe77d4d3115d39dced5c1
+- kind: project-relative
+  target: claude
+  value: .claude/skills/modern-python/assets/trail-of-bits-mark.svg
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:4bf74c789b38dcf6ad762c136b6832363d27ae19fbaa9a18ec18d66ecce6ca05
+- kind: project-relative
+  target: claude
+  value: .claude/skills/modern-python/references/dependabot.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:d3678e32472305c0ef136bca99b26c3f75554d63675930e396f26a91a97451ad
+- kind: project-relative
+  target: claude
+  value: .claude/skills/modern-python/references/migration-checklist.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:58c947e6200a91f350c9adc898af7fc6263fda41d36ae81ffd4dd923b3a1015e
+- kind: project-relative
+  target: claude
+  value: .claude/skills/modern-python/references/pep723-scripts.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:c348b136613a4fed8f623d6013c0c6413d2c24f2973b2e5f85b80ecc68646045
+- kind: project-relative
+  target: claude
+  value: .claude/skills/modern-python/references/prek.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:4be1c181c71aab64ba58573242a1c451d576a5c61ceeb400bb5827f4e1f9532a
+- kind: project-relative
+  target: claude
+  value: .claude/skills/modern-python/references/pyproject.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:aec906835ec687024700d31e5c146baaabc9524129384304857b3aa81809401b
+- kind: project-relative
+  target: claude
+  value: .claude/skills/modern-python/references/ruff-config.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:8d247862f1beaf76816ed6775f5a0c8dc96d74c7f2b71bbf1aaedc4937373b17
+- kind: project-relative
+  target: claude
+  value: .claude/skills/modern-python/references/security-setup.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:32d6754a87d5006f923706d10446cc617cb22d36cfc30b55d39bd7f4c61d864c
+- kind: project-relative
+  target: claude
+  value: .claude/skills/modern-python/references/testing.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:82e36068fbf28a9615d3c96e5d946e304ce8f89ae1ba7475d20934501d55b0d9
+- kind: project-relative
+  target: claude
+  value: .claude/skills/modern-python/references/uv-commands.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:348cd69e8c780a0c7d54a2fac3c2956c7efe5630229782753da1685416672cdc
+- kind: project-relative
+  target: claude
+  value: .claude/skills/modern-python/templates/dependabot.yml
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:a85ede8ff9cc3a2f63cb1fba24e65c36a5885ecc95722af15157dc5258f28a12
+- kind: project-relative
+  target: claude
+  value: .claude/skills/modern-python/templates/pre-commit-config.yaml
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:18efd067e75cba5fc71705c2f90c548a03c3cded4cd2a7f9b4a1d617e115db0d
+- kind: project-relative
+  target: claude
+  value: .claude/skills/python-scripts
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/python-scripts/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:3ed5aca91992d8166cbbb3ce22b8588e24d2b13001507c83eb45586315ac48e1
+- kind: project-relative
+  target: claude
+  value: .claude/skills/python-scripts/references/inline-metadata.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:30e40489731c4168191e8fad47bab1eb3cf8da17ec349407d0bb786299c60e50
+- kind: project-relative
+  target: claude
+  value: .claude/skills/python-scripts/references/script-template.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:b54fbe7aeb7f5ac09fd8aee004eadcbc0e02380462cb0aaa78a844c3f8e4dd83
+- kind: project-relative
+  target: claude
+  value: .claude/skills/python-standards
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/python-standards/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:77b8c270d619161a6e687240fe35c23f238fdb9e7fe0c6d85c869b7f3b0fac5f
+- kind: project-relative
+  target: claude
+  value: .claude/skills/python-standards/references/design.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:446921fec49ea8aab4b21872d18553a0ae54af1a3aad0be63cbb6d9d83af394d
+- kind: project-relative
+  target: claude
+  value: .claude/skills/python-standards/references/runtime.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:399530b0514fa865258bf142254c3788023d1d978fcc01cb50aa815f2eb2d5ee
+- kind: project-relative
+  target: claude
+  value: .claude/skills/python-standards/references/typing.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:54afffcc8f46579defe200a3a46c550fc66e37683b7df2dcb6d6545109f94871
+local_deployed_files:
+- .claude/rules/python.md
+- .claude/skills/python-scripts
+- .claude/skills/python-scripts/SKILL.md
+- .claude/skills/python-scripts/references/inline-metadata.md
+- .claude/skills/python-scripts/references/script-template.md
+- .claude/skills/python-standards
+- .claude/skills/python-standards/SKILL.md
+- .claude/skills/python-standards/references/design.md
+- .claude/skills/python-standards/references/runtime.md
+- .claude/skills/python-standards/references/typing.md
+local_deployed_file_hashes:
+  .claude/rules/python.md: sha256:f8bf4386702a0f2100e9b4a669de859e23d190722f294a9e6a1a2220cf3f9277
+  .claude/skills/python-scripts/SKILL.md: sha256:3ed5aca91992d8166cbbb3ce22b8588e24d2b13001507c83eb45586315ac48e1
+  .claude/skills/python-scripts/references/inline-metadata.md: sha256:30e40489731c4168191e8fad47bab1eb3cf8da17ec349407d0bb786299c60e50
+  .claude/skills/python-scripts/references/script-template.md: sha256:b54fbe7aeb7f5ac09fd8aee004eadcbc0e02380462cb0aaa78a844c3f8e4dd83
+  .claude/skills/python-standards/SKILL.md: sha256:77b8c270d619161a6e687240fe35c23f238fdb9e7fe0c6d85c869b7f3b0fac5f
+  .claude/skills/python-standards/references/design.md: sha256:446921fec49ea8aab4b21872d18553a0ae54af1a3aad0be63cbb6d9d83af394d
+  .claude/skills/python-standards/references/runtime.md: sha256:399530b0514fa865258bf142254c3788023d1d978fcc01cb50aa815f2eb2d5ee
+  .claude/skills/python-standards/references/typing.md: sha256:54afffcc8f46579defe200a3a46c550fc66e37683b7df2dcb6d6545109f94871
