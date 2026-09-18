@@ -25,12 +25,9 @@ metadata:
 
 # meta-updater
 
-Four independent procedures. Each is owned by a skill: load that skill and
-follow it, rather than working from this file.
+Four independent procedures. Each is owned by a skill: load that skill and follow it, rather than working from this file.
 
-**They are not a pipeline and they do not share a cadence.** Run the one that
-was asked for. If the request names none — "update the repo" — ask which before
-doing anything, and offer this table.
+**They are not a pipeline and they do not share a cadence.** Run the one that was asked for. If the request names none — "update the repo" — ask which before doing anything, and offer this table.
 
 | # | Ask it when | Skill | Covers |
 | --- | --- | --- | --- |
@@ -41,41 +38,26 @@ doing anything, and offer this table.
 
 Two relationships worth knowing when you ask:
 
-- **3 makes 4 due.** Refreshing the guidance is what puts the files it governs
-  out of date; running 4 afterwards is how that lands. Running 4 alone is still
-  useful — it catches what earlier guidance changes never swept up.
-- **1 and 3 both read upstream, and are still separate.** 1 is about content
-  this repository consumes and republishes; 3 is about rules it writes by. A
-  pin bump never changes an authoring rule.
+- **3 makes 4 due.** Refreshing the guidance is what puts the files it governs out of date; running 4 afterwards is how that lands. Running 4 alone is still useful — it catches what earlier guidance changes never swept up.
+- **1 and 3 both read upstream, and are still separate.** 1 is about content this repository consumes and republishes; 3 is about rules it writes by. A pin bump never changes an authoring rule.
 
 ## Before 1 or 3
 
-Confirm a GitHub token is available (`gh auth status`, or `GITHUB_TOKEN` /
-`GH_TOKEN`). Both read the GitHub API, and unauthenticated runs report
-rate-limit failures that look like broken URLs.
+Confirm a GitHub token is available (`gh auth status`, or `GITHUB_TOKEN` / `GH_TOKEN`). Both read the GitHub API, and unauthenticated runs report rate-limit failures that look like broken URLs.
 
 ## Constraints
 
-- **Commit nothing without confirmation**, and apply no fix in 3 or 4 unless
-  asked. Propose the minimal diff instead.
+- **Commit nothing without confirmation**, and apply no fix in 3 or 4 unless asked. Propose the minimal diff instead.
 - Stop on a blocking safety finding in 1 rather than committing it. Report the hunk.
-- `apm run check --only licences` decides whether a provenance block is sound;
-  do not eyeball one. It reports the two failures that are otherwise invisible:
-  a block that parses to no URL, and an obligation-bearing entry with no
-  upstream `license`.
-- In 4, a file reported `behind` is a file to read, not a file to rewrite. The
-  signal is a commit date and it is wrong in both directions; the skill says how.
-- Use `vscode/askQuestions` for direction decisions — which procedure to run,
-  whether to adopt an upstream change, or how to fill a required field.
+- `apm run check --only licences` decides whether a provenance block is sound; do not eyeball one. It reports the two failures that are otherwise invisible: a block that parses to no URL, and an obligation-bearing entry with no upstream `license`.
+- In 4, a file reported `behind` is a file to read, not a file to rewrite. The signal is a commit date and it is wrong in both directions; the skill says how.
+- Use `vscode/askQuestions` for direction decisions — which procedure to run, whether to adopt an upstream change, or how to fill a required field.
 
 ## Report
 
 Whichever ran, say what was left alone as well as what moved:
 
-1. Per package: which pins moved and to what, the verdict of each safety review,
-   which adaptations and specifications were flagged, what was not updated and why.
+1. Per package: which pins moved and to what, the verdict of each safety review, which adaptations and specifications were flagged, what was not updated and why.
 2. A table of file → old `model:`/`effort:` → new, with the reason for each.
-3. Per guidance skill: which cited pages moved, which sources were added, what
-   was adopted as fact, what was judged technique and declined.
-4. Three groups: changed, closed with the reason none of the gap applied, and
-   kept with the divergence that stands.
+3. Per guidance skill: which cited pages moved, which sources were added, what was adopted as fact, what was judged technique and declined.
+4. Three groups: changed, closed with the reason none of the gap applied, and kept with the divergence that stands.

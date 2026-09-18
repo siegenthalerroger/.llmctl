@@ -6,9 +6,7 @@ compatibility: "Repo-local: needs `uv` and `git`, and drives this repository's `
 
 # meta-review-steering
 
-Check what the guidance governs against what the guidance says. The other half
-of [meta-refresh-steering](../meta-refresh-steering/SKILL.md), which moves the
-guidance itself.
+Check what the guidance governs against what the guidance says. The other half of [meta-refresh-steering](../meta-refresh-steering/SKILL.md), which moves the guidance itself.
 
 ## Where to start
 
@@ -17,29 +15,24 @@ uv run scripts/check_steering.py --repo .                    # everything
 uv run scripts/check_steering.py --repo . --include python   # one area
 ```
 
-Every authored `SKILL.md`, `*.agent.md`, `*.instructions.md`, `*.prompt.md` and
-`*.hook.json`, each against the guidance pages for its own kind, with the
-guidance commits that landed after the file was last touched.
+Every authored `SKILL.md`, `*.agent.md`, `*.instructions.md`, `*.prompt.md` and `*.hook.json`, each against the guidance pages for its own kind, with the guidance commits that landed after the file was last touched.
 
-**`behind` is a starting order, not a finding.** The signal is git, so it is
-wrong in both directions and knowing how is the difference between a review and
-a rewrite:
+**`behind` is a starting order, not a finding.** The signal is git, so it is wrong in both directions and knowing how is the difference between a review and a rewrite:
 
-- A cosmetic commit to the guidance — a typo, a renamed link — marks every file
-  it governs `behind`. Most of a run is usually this.
-- An edit to a file for an unrelated reason clears its flag with nobody having
-  re-read it. `current` therefore means *not measurable*, never *verified*.
+- A cosmetic commit to the guidance — a typo, a renamed link — marks every file it governs `behind`. Most of a run is usually this.
+- An edit to a file for an unrelated reason clears its flag with nobody having re-read it. `current` therefore means *not measurable*, never *verified*.
 
-So: read the gap commits first. If none of them changed a rule that file has to
-follow, close it as no action and say so. That is the common case and it is a
-real result — record it rather than reaching for a diff.
+So: read the gap commits first. If none of them changed a rule that file has to follow, close it as no action and say so. That is the common case and it is a real result — record it rather than reaching for a diff.
+
+## One subagent per package
+
+A sweep is a wide read — every governed file, plus the guidance pages behind it — and doing it in one context degrades the files that come last: by then the guidance is being recalled from a summary of itself rather than read.
+
+So split the run and give each split its own subagent. One per package (`--include core`, `--include ops`, …) plus one for the root `.apm/`, or finer where a package holds unrelated blocks: a set of skills that cite each other is worth keeping in one context, a set that does not is worth separating. Each subagent gets the paths it owns and the `check_steering.py` rows for them, opens the guidance itself, and returns the three groups below for its own files only. Merge the reports here.
 
 ## What to review, once a file is worth reviewing
 
-The `frontmatter` gate already covers the mechanical half on every run, and it
-is not worth repeating by eye: missing `name`/`description`, skill name against
-its directory, kebab-case, reserved words, the 1024-character limit, block
-scalars, the line ceiling. Run it rather than reading for it:
+The `frontmatter` gate already covers the mechanical half on every run, and it is not worth repeating by eye: missing `name`/`description`, skill name against its directory, kebab-case, reserved words, the 1024-character limit, block scalars, the line ceiling. Run it rather than reading for it:
 
 ```bash
 uv run scripts/check.py --repo . --only frontmatter
@@ -57,21 +50,15 @@ What no gate can check, and what this review is for:
 
 ## Constraints
 
-- **Propose, do not apply.** One file at a time, minimal diff, and nothing
-  committed without confirmation.
-- A file governed by a rule that changed gets re-read against the rule, not
-  against your memory of it. Open the guidance page.
-- Where a file deliberately diverges and says so, that is a decision, not a
-  finding. Leave it and report it as kept.
-- Reviewing a file does not make it compliant forever. There is no stamp and
-  nothing records that a review happened — the next run will flag it again the
-  next time the guidance moves.
+- **Propose, do not apply.** One file at a time, minimal diff, and nothing committed without confirmation.
+- A file governed by a rule that changed gets re-read against the rule, not against your memory of it. Open the guidance page.
+- Where a file deliberately diverges and says so, that is a decision, not a finding. Leave it and report it as kept.
+- Reviewing a file does not make it compliant forever. There is no stamp and nothing records that a review happened — the next run will flag it again the next time the guidance moves.
 
 ## Report
 
 Three groups, and the middle one is the point:
 
 1. **Changed** — file, which rule moved, the diff.
-2. **Closed** — file, which guidance commits were in its gap, why none of them
-   applied to it.
+2. **Closed** — file, which guidance commits were in its gap, why none of them applied to it.
 3. **Kept** — file, the divergence, why it stands.
