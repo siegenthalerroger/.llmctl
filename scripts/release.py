@@ -192,7 +192,7 @@ def release(ws: Path, marketplace: Path, only, force, version, *,
     refuse_dirty(marketplace, allow_dirty)
     refuse_taken_tags(ws, plans)
 
-    versions = pack_marketplace.version_map(plans, skips)
+    versions = pack_marketplace.version_map(ws, plans)
     try:
         pack_marketplace.pack_all(ws, marketplace, versions, {p.name for p in plans},
                                   scratch=ws / "build", source="HEAD")
