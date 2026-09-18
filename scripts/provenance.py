@@ -1,14 +1,10 @@
 """Shared provenance/licence model for the gates, the notices and the drift audit.
 
 One parse of `metadata.provenance`, one obligation table, one path->default-licence
-rule. check_licenses.py, gen_notices.py, pack_marketplace.py and check_updates.py
-all import from here, so they cannot disagree about what a file claims.
-
-The frontmatter is read with python-frontmatter (YAML), and a block that yields
-no entries -- or an entry with no `url` -- is reported as malformed rather than
-skipped: a file that silently stops being tracked drops out of every consumer at
-once with no error anywhere, and that is the one failure this module exists to
-make loud.
+rule, so the four consumers cannot disagree about what a file claims. A block that
+yields no entries, or an entry with no `url`, is reported as malformed rather than
+skipped: a file that silently stops being tracked is the failure this exists to
+make loud. The convention itself is in CONTRIBUTING.md#repository-frontmatter-provenance-convention.
 """
 from __future__ import annotations
 
@@ -16,6 +12,8 @@ import os
 from pathlib import Path
 
 import frontmatter
+
+from workspace import INSTALL_OUTPUT
 
 # --- The licence model -----------------------------------------------------
 
@@ -202,21 +200,18 @@ def effective_fidelity(entry: dict) -> str:
     return "largely-derived"
 
 
-SKIP_DIRS = {".git", "apm_modules", "build", "node_modules", "__pycache__",
-             ".claude", ".agents", ".codex", "LICENSES"}
+# Copies rather than sources: APM dependencies, the deploy mirrors `apm install`
+# writes beside a package, and build scratch. A vendored upstream carries its own
+# adaptedFrom and a deployed mirror carries the same one twice, so walking either
+# would attribute an upstream's provenance to this repository.
+SKIP_DIRS = {".git", "build", "node_modules", "__pycache__", "LICENSES",
+             *INSTALL_OUTPUT}
 
 
 def iter_files(root):
     """Every authored content file under `packages/` and `.apm/`.
 
-    Repo-root docs (README, CONTRIBUTING, AGENTS, TODO) are covered by the same
-    default rule but carry no provenance, so there is nothing to check on them.
-
-    Every name in `SKIP_DIRS` holds copies rather than sources -- APM
-    dependencies, the deploy mirrors `apm install` writes next to a package, and
-    build scratch. A vendored upstream carries its own `adaptedFrom` and a
-    deployed mirror carries the same one twice, so walking either would
-    attribute an upstream's provenance to this repository.
+    Repo-root docs carry no provenance, so there is nothing to check on them.
     """
     for base in ("packages", ".apm"):
         top = Path(root) / base

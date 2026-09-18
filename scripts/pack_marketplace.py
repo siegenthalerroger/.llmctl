@@ -13,47 +13,21 @@
 # ///
 """Pack every package into a marketplace tree, and make that tree nothing but output.
 
-The marketplace is published from a separate repository because a plugin host
-(Cowork, Claude Desktop/Code, Codex) clones the marketplace repo and reads each
-`packages[].source` path *as committed* -- it never runs `apm install`. Bundles
-therefore have to exist as files in that repo, and `apm pack` refuses to write
-a marketplace manifest across a `..` boundary, so the two halves run separately:
+A plugin host clones the marketplace repo and reads each `packages[].source` path
+as committed -- it never runs `apm install` -- so the bundles have to exist there
+as files. Two phases, because `apm pack` refuses to write a marketplace manifest
+across a `..` boundary:
 
-  1. per package  export packages/<dir> to a scratch directory, stamp the
-                  version into the copy's apm.yml, install there and prove the
-                  committed lockfile is what was materialised (see
-                  `install_reproducibly`), `apm pack -o <marketplace>/plugins`
-                  -> plugins/<name>-<version>/ with plugin.json, the skills/
-                     agents/commands, and an embedded apm.lock.yaml
-                  then strip upstream repo scaffolding out of the vendored
-                  skills/, write the Codex manifest, add the licence texts
-  2. marketplace  emit apm.yml from the workspace's apm.marketplace.yml, copy
-                  the other `*.marketplace.*` sources and LICENSES/, delete
-                  everything that is not expected output, `apm pack`
-                  -> .claude-plugin/marketplace.json + .agents/plugins/marketplace.json
-                  then regenerate THIRD-PARTY-NOTICES.md
+  1. per package  export packages/<dir> to scratch, stamp the version, install
+                  and prove the committed lockfile is what was materialised,
+                  `apm pack` into <marketplace>/plugins/<name>-<version>/
+  2. marketplace  emit apm.yml from apm.marketplace.yml, copy the other
+                  `*.marketplace.*` sources, delete everything that is not
+                  expected output, `apm pack`, regenerate the notices
 
-Nothing in the marketplace repo is authored there. Every file either comes out
-of step 1 or 2 or is deleted by `sync()`, which is what lets the release commit
-the whole tree with `git add -A` and be sure of what it published.
-
-The scratch export is the reason the workspace is never dirtied and its version
-never has to be committed: `packages/*/apm.yml` carries a placeholder, the
-export gets the real one. A release exports from `HEAD` (a dirty worktree
-cannot leak into a tag); the `pack` gate exports the worktree so a contributor
-can check uncommitted work.
-
-Usage:
-  uv run scripts/pack_marketplace.py --repo PATH --marketplace PATH
-                                     [--dry-run] [--all] [--package NAME]...
-
-  --dry-run  print what would be packed; touch nothing
-  --all      re-pack every package, not only the ones with commits since their
-             tag. Unchanged packages are otherwise left byte-for-byte alone:
-             a bundle's lockfile carries `packed_at`, so re-packing always diffs
-  --package  limit to these packages (implies re-packing them)
-
-Exit codes: 0 packed, 1 error.
+Nothing there is authored: `sync()` deletes whatever the two phases did not
+produce, which is what lets a release commit the whole tree with `git add -A`.
+See CONTRIBUTING.md#packaging-model.
 """
 from __future__ import annotations
 
@@ -65,15 +39,17 @@ import subprocess
 import sys
 import tarfile
 from collections import namedtuple
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 import typer
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import gen_notices  # noqa: E402
-import provenance  # noqa: E402
-import versions as versionlib  # noqa: E402
-import workspace  # noqa: E402
+import gen_notices
+import provenance
+import versions as versionlib
+import workspace
+from workspace import WorkspaceError
 
 # What a marketplace tree may contain at the top level. Anything else is
 # deleted by sync(): the repo holds generated output and nothing authored.
@@ -88,15 +64,12 @@ MARKETPLACE_SOURCES = {
     ".gitignore.marketplace": ".gitignore",
 }
 CATALOGUE = "apm.marketplace.yml"
-# What a catalogue entry may declare. `source` and `version` are filled in
-# here; the rest of APM's allowed keys are not used and refused so a typo
-# cannot pass through unnoticed.
+# What a catalogue entry may declare. `source` and `version` are filled in here;
+# the rest of APM's allowed keys are refused so a typo cannot pass unnoticed.
 CATALOGUE_KEYS = frozenset({"name", "description", "category"})
 
-# Install output and scratch that never belongs in an export of the worktree.
-WORKTREE_IGNORE = shutil.ignore_patterns("apm_modules", ".claude", ".agents", ".codex",
-                                         ".github", "build", ".mcp.json", ".vscode",
-                                         "__pycache__")
+WORKTREE_IGNORE = shutil.ignore_patterns(*workspace.INSTALL_OUTPUT,
+                                         "build", ".vscode", "__pycache__")
 
 # A vendored upstream skill arrives as whatever its repo happens to contain.
 # When the skill's SKILL.md sits at its repo root (e.g. blader/humanizer), APM
@@ -127,13 +100,27 @@ class PackError(Exception):
     pass
 
 
-def run(args: list[str], cwd) -> None:
+def run(args: list[str], cwd) -> subprocess.CompletedProcess:
     result = subprocess.run(args, cwd=str(cwd), capture_output=True, text=True,
                             encoding="utf-8", errors="replace")
     if result.returncode != 0:
         raise PackError("%s failed in %s (exit %d)\n%s%s"
                         % (" ".join(args), cwd, result.returncode,
                            result.stdout, result.stderr))
+    return result
+
+
+def pack_json(args: list[str], cwd) -> dict:
+    """`apm pack --json ...`, parsed. Logs go to stderr, so stdout is the payload."""
+    result = subprocess.run(["apm", "pack", "--json"] + args, cwd=str(cwd),
+                            capture_output=True, text=True,
+                            encoding="utf-8", errors="replace")
+    try:
+        return json.loads(result.stdout)
+    except ValueError:
+        raise PackError("apm pack --json %s produced no JSON in %s (exit %d)\n%s"
+                        % (" ".join(args), cwd, result.returncode,
+                           (result.stdout + result.stderr)[-600:]))
 
 
 # --- One package -----------------------------------------------------------
@@ -188,14 +175,9 @@ def write_codex_manifest(bundle_dir: Path, category: str) -> None:
     Codex reads `.codex-plugin/plugin.json`; it does not fall back to the
     Claude manifest, and a marketplace entry carrying only a name and a source
     path is deliberately non-installable rather than treated as stand-in
-    metadata (openai/codex#28789). Without this file every bundle is listed in
-    `.agents/plugins/marketplace.json` and installable from none of it.
-
-    Derived from the manifest APM just generated rather than from apm.yml a
-    second time, so the two cannot end up describing the same bundle
-    differently. `interface` is the one Codex-only block; its `capabilities` is
-    specified as a free-form "capability list from implementation", so it
-    reports what this bundle actually carries rather than a guessed vocabulary.
+    metadata (openai/codex#28789). Derived from the manifest APM just generated
+    rather than from apm.yml a second time, so the two cannot end up describing
+    the same bundle differently.
     """
     with open(bundle_dir / ".claude-plugin" / "plugin.json", encoding="utf-8") as handle:
         base = json.load(handle)
@@ -242,16 +224,13 @@ def write_codex_manifest(bundle_dir: Path, category: str) -> None:
 def strip_vendor_cruft(bundle_dir: Path) -> list[str]:
     """Drop upstream repo scaffolding from vendored skills in a packed bundle.
 
-    Scoped to `skills/<name>/` only. The bundle root is left alone because
-    relocate_manifest puts the plugin's own manifest in `.claude-plugin/`
-    there, and the root `apm.lock.yaml` is what THIRD-PARTY-NOTICES is
-    generated from.
+    Scoped to `skills/<name>/` only: the bundle root holds the plugin's own
+    manifest and the lockfile the notices are generated from.
 
     Deliberately a denylist of known scaffolding rather than an allowlist of
-    known content: a skill may legitimately ship `scripts/`, `references/`,
-    `assets/`, or anything else its SKILL.md links to, and silently dropping
-    one of those breaks the skill at runtime with no error. Anything
-    unrecognised stays -- a few stale KB is cheaper than a broken skill.
+    known content: a skill may legitimately ship `scripts/`, `references/` or
+    anything else its SKILL.md links to, and silently dropping one breaks the
+    skill at runtime with no error. A few stale KB is cheaper.
     """
     skills_dir = bundle_dir / "skills"
     if not skills_dir.is_dir():
@@ -277,7 +256,7 @@ def licenses_needed(bundle_dir: Path, dep_licenses: set) -> list[str]:
     """SPDX ids whose full text has to ship inside this bundle.
 
     Three sources, because a bundle mixes three kinds of content: the repo
-    defaults that cover the authored files, any per-file `license:` override, and
+    defaults covering the authored files, any per-file `license:` override, and
     the licence of every vendored upstream skill.
     """
     needed = {provenance.DEFAULT_CONTENT, provenance.DEFAULT_CODE}
@@ -361,21 +340,19 @@ def install_reproducibly(export: Path, name: str) -> None:
     Not `apm install --frozen`, for two reasons. It checks the wrong thing: a
     frozen install only verifies that every dependency in apm.yml *appears* in
     the lockfile, keyed by repo and subpath -- never at which commit -- so a pin
-    moved without a lockfile refresh passes it and packs the old code. And it is
-    version-dependent: APM 0.28.0 cannot restore a manifestless repo-root
-    package (blader/humanizer) from a cold cache under --frozen at all.
+    moved without a lockfile refresh passes it and packs the old code. And it
+    still cannot restore a manifestless repo-root package (blader/humanizer)
+    from a cold cache: verified against APM 0.28.0 and again on 0.31.0.
 
-    What actually makes the build reproducible is this: every pin is a full
-    commit SHA, so a plain install cannot resolve anything new, and the
-    lockfile's resolved commits are compared before and after. If the install
-    changed which commit any dependency sits at, the pack stops -- that is a
-    lockfile someone has to refresh deliberately, through the update skill, not
-    something a release quietly absorbs.
+    What makes the build reproducible is this: every pin is a full commit SHA,
+    so a plain install cannot resolve anything new, and the lockfile's resolved
+    commits are compared before and after. If installing moved any of them, the
+    pack stops -- that is a lockfile someone has to refresh deliberately,
+    through update.py, not something a release quietly absorbs.
     """
-    manifest = workspace.read_yaml(export / "apm.yml")
     try:
-        pins = workspace.pins_of(manifest)
-    except ValueError as exc:
+        pins = workspace.pins_of(workspace.read_yaml(export / "apm.yml"))
+    except WorkspaceError as exc:
         raise PackError("%s: %s" % (name, exc))
     floating = sorted(spec for spec in pins.values() if not workspace.SHA_RE.match(spec))
     if floating:
@@ -387,15 +364,7 @@ def install_reproducibly(export: Path, name: str) -> None:
     run(["apm", "install", "--target", "claude"], export)
     after = workspace.locked_of(workspace.read_lock(export / "apm.lock.yaml"))
 
-    moved = []
-    for key in sorted(set(before) | set(after)):
-        label = "%s%s" % (key[0], "/" + key[1] if key[1] else "")
-        if key not in after:
-            moved.append("%s disappeared" % label)
-        elif key not in before:
-            moved.append("%s appeared" % label)
-        elif before[key].lower() != after[key].lower():
-            moved.append("%s %s -> %s" % (label, before[key][:12], after[key][:12]))
+    moved = workspace.diff_pins(before, after)
     if moved:
         raise PackError("%s: installing moved what the committed lockfile records "
                         "(%s). Refresh packages/*/apm.lock.yaml deliberately -- a "
@@ -403,40 +372,68 @@ def install_reproducibly(export: Path, name: str) -> None:
                         % (name, "; ".join(moved)))
 
 
-def pack_package(ws: Path, package: workspace.Package, version: str, scratch: Path,
-                 plugins_dir: Path, dep_map: dict, category: str, source: str,
-                 log=print) -> Path:
-    """Export, stamp, frozen-install, pack and finish one bundle; return its dir."""
-    export = scratch / package.directory
-    export_package(ws, package.directory, export, source)
-    stamp_version(export / "apm.yml", version)
-    if not (export / "apm.lock.yaml").is_file():
-        raise PackError("%s: packages/%s/apm.lock.yaml is missing; commit one "
-                        "(the update skill produces it) before packing"
-                        % (package.name, package.directory))
+def audit_export(export: Path, name: str, log) -> None:
+    """Scan the materialised upstream content before it is packed.
 
-    bundle = "%s-%s" % (package.name, version)
-    bundle_dir = plugins_dir / bundle
-    if bundle_dir.exists():
-        shutil.rmtree(bundle_dir)
-    plugins_dir.mkdir(parents=True, exist_ok=True)
+    A pin fixes which content arrives, not what it does, and this content ships
+    to plugin hosts. `apm audit --ci` reads the deployed files for critical
+    hidden Unicode -- tag characters and bidi overrides, invisible to a reviewer
+    and not to a tokenizer -- and for drift from the lockfile's hashes.
+    """
+    result = subprocess.run(["apm", "audit", "--ci", "--no-policy"], cwd=str(export),
+                            capture_output=True, text=True,
+                            encoding="utf-8", errors="replace")
+    if result.returncode != 0:
+        findings = [line.strip() for line in result.stdout.split("\n")
+                    if line.strip().startswith(("[x]", "[!]"))]
+        raise PackError("%s: apm audit rejected the materialised content:\n%s"
+                        % (name, "\n".join(findings[:6]) or result.stdout[-500:]))
+    log("       audit: clean")
 
-    install_reproducibly(export, package.name)
-    run(["apm", "pack", "-o", str(plugins_dir)], export)
-    shutil.rmtree(export, ignore_errors=True)
 
-    if not bundle_dir.is_dir():
-        raise PackError("%s: apm pack did not produce %s" % (package.name, bundle_dir))
-    dropped = strip_vendor_cruft(bundle_dir)
-    if dropped:
-        log("       stripped %d vendored path(s): %s" % (len(dropped), ", ".join(dropped)))
-    if not relocate_manifest(bundle_dir):
-        raise PackError("%s: packed bundle has no plugin.json" % package.name)
-    write_codex_manifest(bundle_dir, category)
-    carried = add_licenses(ws, bundle_dir, package.name, version,
-                           bundle_dep_licenses(bundle_dir, dep_map))
-    log("       licences: %s" % ", ".join(carried))
-    return bundle_dir
+@dataclass(frozen=True)
+class Packer:
+    """The parts of a pack run that are the same for every package."""
+    ws: Path
+    plugins_dir: Path
+    dep_map: dict
+    scratch: Path
+    source: str
+    log: Callable = print
+
+    def pack(self, package: workspace.Package, version: str, category: str) -> Path:
+        """Export, stamp, install, audit, pack and finish one bundle."""
+        export = self.scratch / package.directory
+        export_package(self.ws, package.directory, export, self.source)
+        stamp_version(export / "apm.yml", version)
+        if not (export / "apm.lock.yaml").is_file():
+            raise PackError("%s: packages/%s/apm.lock.yaml is missing; commit one "
+                            "(update.py produces it) before packing"
+                            % (package.name, package.directory))
+
+        bundle_dir = self.plugins_dir / ("%s-%s" % (package.name, version))
+        if bundle_dir.exists():
+            shutil.rmtree(bundle_dir)
+        self.plugins_dir.mkdir(parents=True, exist_ok=True)
+
+        install_reproducibly(export, package.name)
+        audit_export(export, package.name, self.log)
+        run(["apm", "pack", "-o", str(self.plugins_dir)], export)
+        shutil.rmtree(export, ignore_errors=True)
+
+        if not bundle_dir.is_dir():
+            raise PackError("%s: apm pack did not produce %s" % (package.name, bundle_dir))
+        dropped = strip_vendor_cruft(bundle_dir)
+        if dropped:
+            self.log("       stripped %d vendored path(s): %s"
+                     % (len(dropped), ", ".join(dropped)))
+        if not relocate_manifest(bundle_dir):
+            raise PackError("%s: packed bundle has no plugin.json" % package.name)
+        write_codex_manifest(bundle_dir, category)
+        carried = add_licenses(self.ws, bundle_dir, package.name, version,
+                               bundle_dep_licenses(bundle_dir, self.dep_map))
+        self.log("       licences: %s" % ", ".join(carried))
+        return bundle_dir
 
 
 # --- The marketplace tree --------------------------------------------------
@@ -507,11 +504,6 @@ def sync(marketplace: Path, expected_bundles: set[str]) -> list[str]:
     return removed
 
 
-def finish(ws: Path, marketplace: Path) -> None:
-    run(["apm", "pack"], marketplace)
-    gen_notices.write(ws, marketplace)
-
-
 def pack_all(ws: Path, marketplace: Path, versions: dict[str, str], repack: set[str],
              *, scratch: Path, source: str, log=print) -> PackReport:
     """Bring `marketplace` to the state `versions` describes.
@@ -523,8 +515,7 @@ def pack_all(ws: Path, marketplace: Path, versions: dict[str, str], repack: set[
     """
     ws, marketplace, scratch = Path(ws), Path(marketplace), Path(scratch)
     packages = workspace.packages(ws)
-    catalogue = read_catalogue(ws)
-    entries = {e["name"]: e for e in catalogue["marketplace"]["packages"]}
+    entries = {e["name"]: e for e in read_catalogue(ws)["marketplace"]["packages"]}
 
     names = {p.name for p in packages}
     orphaned = set(entries) - names
@@ -541,20 +532,20 @@ def pack_all(ws: Path, marketplace: Path, versions: dict[str, str], repack: set[
 
     # Workspace data, not tooling data: a private repo declares its own
     # upstreams, and has no scripts/ to keep them under. Absent means none.
-    dep_map = gen_notices.read_license_map(ws / "dependency-licenses.yml")
-    plugins_dir = marketplace / "plugins"
+    packer = Packer(ws, marketplace / "plugins",
+                    gen_notices.read_license_map(ws / "dependency-licenses.yml"),
+                    scratch, source, log)
     marketplace.mkdir(parents=True, exist_ok=True)
 
     packed, kept = [], []
     for package in packages:
         version = versions[package.name]
         bundle = "%s-%s" % (package.name, version)
-        if package.name not in repack and (plugins_dir / bundle).is_dir():
+        if package.name not in repack and (packer.plugins_dir / bundle).is_dir():
             kept.append(bundle)
             continue
         log("[pack] %s %s" % (package.name, version))
-        pack_package(ws, package, version, scratch, plugins_dir, dep_map,
-                     entries[package.name]["category"], source, log=log)
+        packer.pack(package, version, entries[package.name]["category"])
         packed.append(bundle)
 
     emit_catalogue(ws, marketplace, versions)
@@ -562,7 +553,8 @@ def pack_all(ws: Path, marketplace: Path, versions: dict[str, str], repack: set[
     removed = sync(marketplace, {"%s-%s" % (n, v) for n, v in versions.items()})
     for entry in removed:
         log("[sync] removed %s" % entry)
-    finish(ws, marketplace)
+    run(["apm", "pack"], marketplace)
+    gen_notices.write(ws, marketplace)
     log("[done] %d bundle(s) packed, %d kept, both marketplace manifests in %s"
         % (len(packed), len(kept), marketplace))
     return PackReport(packed, kept, removed, versions)
@@ -581,27 +573,25 @@ def version_map(plans, skips) -> dict[str, str]:
 
 def main(repo: Path = workspace.REPO_OPTION,
          marketplace: Path = workspace.MARKETPLACE_OPTION,
-         dry_run: bool = typer.Option(False, "--dry-run"),
-         all_: bool = typer.Option(False, "--all", help="re-pack every package"),
-         package: list[str] = typer.Option([], "--package", help="only these packages")) -> None:
+         dry_run: bool = typer.Option(False, "--dry-run",
+                                      help="Print what would be packed; touch nothing."),
+         all_: bool = typer.Option(False, "--all",
+                                   help="Re-pack every package, not only the ones with "
+                                        "commits since their tag."),
+         package: list[str] = typer.Option([], "--package",
+                                           help="Limit to these packages (implies re-packing them).")) -> None:
+    """Regenerate a marketplace tree from this workspace, in place."""
     ws, marketplace = repo.resolve(), marketplace.resolve()
     if not (marketplace / ".git").exists():
         sys.stderr.write("%s is not a git checkout -- pass the marketplace clone\n"
                          % marketplace)
         raise typer.Exit(1)
-    plans, skips = versionlib.plan(ws, only=(), force=False, fetch=True)
     try:
+        plans, skips = versionlib.plan(ws, only=(), force=False, fetch=True)
         versions = version_map(plans, skips)
-        repack = {p.name for p in plans}
-        if all_:
-            repack = set(versions)
+        repack = set(versions) if all_ else {p.name for p in plans}
         if package:
-            wanted = {p.name for p in workspace.packages(ws)
-                      if p.directory in set(package) or p.name in set(package)}
-            if not wanted:
-                sys.stderr.write("no package matched %s\n" % ", ".join(package))
-                raise typer.Exit(1)
-            repack = wanted
+            repack = {p.name for p in workspace.select(ws, package)}
         if dry_run:
             for name in sorted(versions):
                 print("[%s] %s %s" % ("pack" if name in repack else "keep",
@@ -610,9 +600,8 @@ def main(repo: Path = workspace.REPO_OPTION,
             return
         pack_all(ws, marketplace, versions, repack, scratch=ws / "build",
                  source="worktree")
-    except PackError as exc:
-        sys.stderr.write("%s\n" % exc)
-        raise typer.Exit(1)
+    except (PackError, WorkspaceError) as exc:
+        raise workspace.die(exc)
 
 
 if __name__ == "__main__":
