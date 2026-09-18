@@ -170,12 +170,8 @@ github.com/agentskills/agentskills:
 
 # --- Published works (no repository, so `not_trackable` in the drift audit) ---
 #
-# Books and articles are all-rights-reserved by default, hence `NONE`: usable
-# only at `inspiration-only`, which is exactly what taking an idea from one is.
-# Keyed by ISBN or by article URL so each work gets its own row -- gen-notices.py
-# keeps the identifier in the slug for resolver hosts rather than collapsing them
-# all onto `openlibrary.org`. `holder` doubles as the citation, because it is the
-# only human-readable field in the Acknowledgements row.
+# All-rights-reserved by default, hence `NONE`. Keyed by ISBN or article URL so
+# each work keeps its own row; `holder` doubles as the citation.
 
 openlibrary.org/isbn/9780273710516:
   spdx: NONE
@@ -210,22 +206,12 @@ github.com/arisng/github-copilot-fc:
   spdx: NONE
   holder: "arisng"
   license_url: ""
-  note: >-
-    No LICENSE file, so no grant of rights at all. Usable only where nothing
-    protected was taken; check_licenses.py enforces that. Credited under
-    Acknowledgements rather than Notices, because there is no licence to notice.
 
 # --- Cited specifications (metadata.provenance.authoritativeSpec) ------------
 #
-# Nothing here is reproduced locally -- scripts/check_licenses.py treats a bare
-# authoritativeSpec URL as a citation, and an audit on 2026-08-02 confirmed no
-# verbatim prose runs survive against any of them. They are recorded so the
-# Acknowledgements table can state a licence instead of "not recorded", and so
-# the position is deliberate if a future edit ever does reproduce one.
-#
-# The vendor documentation sites publish no reuse grant at all. Reproducing their
-# wording has no licensable remedy at any repo licence, so the only correct fix
-# there is rewriting -- which is what the 2026-08-02 audit did to four files.
+# Cited, never reproduced; recorded so the Acknowledgements table can state a
+# licence. The vendor documentation sites grant no reuse at all, so the only fix
+# for a reproduced run there is rewriting it.
 
 github.com/mermaid-js/mermaid:
   spdx: MIT
