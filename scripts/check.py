@@ -40,8 +40,9 @@ from gates import Context, Gate, Need, Outcome, fail, ok
 # has to reach all of them or `uv run` resolves a different environment per
 # script. The shared modules carry no header: the entry importing them supplies
 # the dependencies.
-ENTRY_SCRIPTS = ("check.py", "check_licenses.py", "check_updates.py", "gen_notices.py",
-                 "pack_marketplace.py", "release.py", "update.py", "versions.py")
+ENTRY_SCRIPTS = ("check.py", "check_licenses.py", "check_steering.py",
+                 "check_updates.py", "gen_notices.py", "pack_marketplace.py",
+                 "release.py", "update.py", "versions.py")
 HEADER_END = "# ///"
 
 
