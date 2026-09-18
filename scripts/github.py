@@ -53,7 +53,8 @@ def iso(value: str) -> str:
 
 
 class GitHub:
-    def __init__(self, auth: str = "", base_url: str = API_ROOT, timeout: float = 30.0):
+    def __init__(self, auth: str = "", base_url: str = API_ROOT,
+                 timeout: float = 30.0) -> None:
         headers = {
             "User-Agent": USER_AGENT,
             "Accept": "application/vnd.github+json",
@@ -80,10 +81,18 @@ class GitHub:
         raise ApiError("GitHub API returned %d for %s"
                        % (response.status_code, response.request.url))
 
-    def get(self, path: str, ok_404: bool = False, missing=(404,), **params: Any) -> Any:
+    def get(self, endpoint: str, *, ok_404: bool = False,
+            missing: tuple[int, ...] = (404,), **params: Any) -> Any:
+        """GET `endpoint` with `params` as the query string.
+
+        The endpoint is not called `path` because `path` is itself a GitHub
+        query parameter: `commits(path=...)` would bind to it and raise
+        "multiple values for argument" instead of filtering by path.
+        """
         try:
-            response = self.client.get(path, params={k: v for k, v in params.items()
-                                                     if v not in (None, "")})
+            response = self.client.get(endpoint,
+                                       params={k: v for k, v in params.items()
+                                               if v not in (None, "")})
         except httpx.HTTPError as exc:
             raise ApiError("GitHub API request failed: %s" % exc)
         if ok_404 and response.status_code in missing:
@@ -92,9 +101,9 @@ class GitHub:
             self._raise(response)
         return response.json()
 
-    def post(self, path: str, payload: dict) -> Any:
+    def post(self, endpoint: str, payload: dict) -> Any:
         try:
-            response = self.client.post(path, json=payload)
+            response = self.client.post(endpoint, json=payload)
         except httpx.HTTPError as exc:
             raise ApiError("GitHub API request failed: %s" % exc)
         if response.status_code >= 400:
@@ -104,7 +113,7 @@ class GitHub:
             except ValueError:
                 pass
             raise ApiError("GitHub API returned %d for POST %s%s"
-                           % (response.status_code, path,
+                           % (response.status_code, endpoint,
                               (": " + detail) if detail else ""))
         return response.json()
 
