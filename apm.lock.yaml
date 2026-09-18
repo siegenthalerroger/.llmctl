@@ -207,6 +207,19 @@ dependencies:
   source: local
   local_path: ./packages/python
   declared_license: MIT AND CC-BY-SA-4.0
+- repo_url: _local/workflow
+  name: llmctl-workflow
+  version: 0.0.0
+  package_type: apm_package
+  deployed_files:
+  - .claude/agents/code-reviewer.md
+  - .codex/agents/code-reviewer.toml
+  deployed_file_hashes:
+    .claude/agents/code-reviewer.md: sha256:9321157e489aa43d4f359ee25be5370b338947315a70737845007e99d631e545
+    .codex/agents/code-reviewer.toml: sha256:8c4a80e1d56031ae539d98e4daa897fa268ad7c1af40871cbca6d954d5155423
+  source: local
+  local_path: ./packages/workflow
+  declared_license: MIT AND CC-BY-SA-4.0
 - repo_url: blader/humanizer
   name: humanizer
   host: github.com
@@ -263,6 +276,62 @@ dependencies:
   content_hash: sha256:a94d622eee9ad27732611b7ab1a79e7d74ad4c63d07ac2be8488ed3ef4bd317b
   declared_license: MIT
 - repo_url: mattpocock/skills
+  name: resolving-merge-conflicts
+  host: github.com
+  resolved_commit: 2ab958093e83e0ec752e6c1c5932da465bf23e0c
+  resolved_ref: 2ab958093e83e0ec752e6c1c5932da465bf23e0c
+  version: unknown
+  virtual_path: skills/engineering/resolving-merge-conflicts
+  is_virtual: true
+  depth: 2
+  resolved_by: _local/workflow
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/resolving-merge-conflicts
+  - .agents/skills/resolving-merge-conflicts/SKILL.md
+  - .agents/skills/resolving-merge-conflicts/agents/openai.yaml
+  - .claude/skills/resolving-merge-conflicts
+  - .claude/skills/resolving-merge-conflicts/SKILL.md
+  - .claude/skills/resolving-merge-conflicts/agents/openai.yaml
+  deployed_file_hashes:
+    .agents/skills/resolving-merge-conflicts/SKILL.md: sha256:c7c9ba81362a786aac05d2223123bf1bd2f8a99c3243a72882ede9c68bedfb24
+    .agents/skills/resolving-merge-conflicts/agents/openai.yaml: sha256:a1f4f96838f2ed6282eb28abbbf99029cb8fadce552baf53da90a025b8bffddf
+    .claude/skills/resolving-merge-conflicts/SKILL.md: sha256:c7c9ba81362a786aac05d2223123bf1bd2f8a99c3243a72882ede9c68bedfb24
+    .claude/skills/resolving-merge-conflicts/agents/openai.yaml: sha256:a1f4f96838f2ed6282eb28abbbf99029cb8fadce552baf53da90a025b8bffddf
+  content_hash: sha256:bfafce942f3d1264eb6bb931cd39b66cf8889f08072ba6264b5b111b141d2354
+- repo_url: mattpocock/skills
+  name: tdd
+  host: github.com
+  resolved_commit: 2ab958093e83e0ec752e6c1c5932da465bf23e0c
+  resolved_ref: 2ab958093e83e0ec752e6c1c5932da465bf23e0c
+  version: unknown
+  virtual_path: skills/engineering/tdd
+  is_virtual: true
+  depth: 2
+  resolved_by: _local/workflow
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/tdd
+  - .agents/skills/tdd/SKILL.md
+  - .agents/skills/tdd/agents/openai.yaml
+  - .agents/skills/tdd/mocking.md
+  - .agents/skills/tdd/tests.md
+  - .claude/skills/tdd
+  - .claude/skills/tdd/SKILL.md
+  - .claude/skills/tdd/agents/openai.yaml
+  - .claude/skills/tdd/mocking.md
+  - .claude/skills/tdd/tests.md
+  deployed_file_hashes:
+    .agents/skills/tdd/SKILL.md: sha256:5363bb2775679fe9311fbb67947f95359169c6e7f1fac77c0f25e190bca6cf2f
+    .agents/skills/tdd/agents/openai.yaml: sha256:ea6f01cf1b8c06a4b0f5b649d74b1b8ce8685e72af1b38d70d877693e092af0b
+    .agents/skills/tdd/mocking.md: sha256:3ceb807fdf4a47d6a93d4d9a891e5ba6d362a6247bd08adc451feebfc17361ef
+    .agents/skills/tdd/tests.md: sha256:859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a
+    .claude/skills/tdd/SKILL.md: sha256:5363bb2775679fe9311fbb67947f95359169c6e7f1fac77c0f25e190bca6cf2f
+    .claude/skills/tdd/agents/openai.yaml: sha256:ea6f01cf1b8c06a4b0f5b649d74b1b8ce8685e72af1b38d70d877693e092af0b
+    .claude/skills/tdd/mocking.md: sha256:3ceb807fdf4a47d6a93d4d9a891e5ba6d362a6247bd08adc451feebfc17361ef
+    .claude/skills/tdd/tests.md: sha256:859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a
+  content_hash: sha256:f8a22902156d595540b198ee06c0ca793a67935eeb9b681df5dbdf0e193b286e
+- repo_url: mattpocock/skills
   name: grill-me
   host: github.com
   resolved_commit: 2ab958093e83e0ec752e6c1c5932da465bf23e0c
@@ -310,6 +379,74 @@ dependencies:
     .claude/skills/grilling/SKILL.md: sha256:44331dda57f461db4fec3f2efb6ddabe7aaaa0a57ae0f88a883bc61aed8a0587
     .claude/skills/grilling/agents/openai.yaml: sha256:cf29b9a8dbf35a58a908a6ca4f64dcd86c2b2130291eee0a78b9f706b138825b
   content_hash: sha256:1f05b0ffe26fb4d4457e3e40b41ec2f3e379ae2d6877613240bc6ffef5f7f338
+- repo_url: obra/superpowers
+  name: receiving-code-review
+  host: github.com
+  resolved_commit: 44c9b2d6e889982ac18c27d05a19fefe335194e1
+  resolved_ref: 44c9b2d6e889982ac18c27d05a19fefe335194e1
+  version: unknown
+  virtual_path: skills/receiving-code-review
+  is_virtual: true
+  depth: 2
+  resolved_by: _local/workflow
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/receiving-code-review
+  - .agents/skills/receiving-code-review/SKILL.md
+  - .claude/skills/receiving-code-review
+  - .claude/skills/receiving-code-review/SKILL.md
+  deployed_file_hashes:
+    .agents/skills/receiving-code-review/SKILL.md: sha256:091df1629510af1b92fc4abd6f96732ebedb4cb2c0f3457e8f2740b0504a2438
+    .claude/skills/receiving-code-review/SKILL.md: sha256:091df1629510af1b92fc4abd6f96732ebedb4cb2c0f3457e8f2740b0504a2438
+  content_hash: sha256:59361179fc9225173e0c145ffd9bafbf9fdbf8b43ce3dc308497a0b4f83a6063
+- repo_url: obra/superpowers
+  name: using-git-worktrees
+  host: github.com
+  resolved_commit: 44c9b2d6e889982ac18c27d05a19fefe335194e1
+  resolved_ref: 44c9b2d6e889982ac18c27d05a19fefe335194e1
+  version: unknown
+  virtual_path: skills/using-git-worktrees
+  is_virtual: true
+  depth: 2
+  resolved_by: _local/workflow
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/using-git-worktrees
+  - .agents/skills/using-git-worktrees/SKILL.md
+  - .claude/skills/using-git-worktrees
+  - .claude/skills/using-git-worktrees/SKILL.md
+  deployed_file_hashes:
+    .agents/skills/using-git-worktrees/SKILL.md: sha256:8cfb86f121269e8f7f12361e6795c4f6738828340e28964c9229d365666c9edd
+    .claude/skills/using-git-worktrees/SKILL.md: sha256:8cfb86f121269e8f7f12361e6795c4f6738828340e28964c9229d365666c9edd
+  content_hash: sha256:48c8a1040e378e0cb7208107294e3afa9067b9370c3f33b49a443eb6b7528b0d
+- repo_url: rshade/agent-skills
+  name: lint-fix
+  host: github.com
+  resolved_commit: 68cd2523ca9b989d11a54e65f5e7c7226dbe051c
+  resolved_ref: 68cd2523ca9b989d11a54e65f5e7c7226dbe051c
+  version: unknown
+  virtual_path: skills/lint-fix
+  is_virtual: true
+  depth: 2
+  resolved_by: _local/workflow
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/lint-fix
+  - .agents/skills/lint-fix/SKILL.md
+  - .agents/skills/lint-fix/references/fix-protocol.md
+  - .agents/skills/lint-fix/references/tool-detection.md
+  - .claude/skills/lint-fix
+  - .claude/skills/lint-fix/SKILL.md
+  - .claude/skills/lint-fix/references/fix-protocol.md
+  - .claude/skills/lint-fix/references/tool-detection.md
+  deployed_file_hashes:
+    .agents/skills/lint-fix/SKILL.md: sha256:bd7f86143dbf4ec5eaa27de51633cf67a9e204d0a276bf11f52ef91c2cbd3a44
+    .agents/skills/lint-fix/references/fix-protocol.md: sha256:e8bdaae655da27144c3e8fa3d810908569a0d3659790d279c95d0468e511cea7
+    .agents/skills/lint-fix/references/tool-detection.md: sha256:1b427e480ad48b955c564bca5a5c3ea0f5b923e893f057b1c22a356820beea1a
+    .claude/skills/lint-fix/SKILL.md: sha256:bd7f86143dbf4ec5eaa27de51633cf67a9e204d0a276bf11f52ef91c2cbd3a44
+    .claude/skills/lint-fix/references/fix-protocol.md: sha256:e8bdaae655da27144c3e8fa3d810908569a0d3659790d279c95d0468e511cea7
+    .claude/skills/lint-fix/references/tool-detection.md: sha256:1b427e480ad48b955c564bca5a5c3ea0f5b923e893f057b1c22a356820beea1a
+  content_hash: sha256:64d79ed7216a9c4de210564db7f4cedd35e184e229c0c4e28b7411d8bebba782
 - repo_url: trailofbits/skills
   name: modern-python
   host: github.com
@@ -626,6 +763,42 @@ deployments:
   - blader/humanizer
   active_owner: blader/humanizer
   content_hash: sha256:d2c5496ca73a8ce2d3f0cad6681724170d8566bef54d36dfc1e5d3972597b614
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/lint-fix
+  runtime: null
+  scope: project
+  owners:
+  - rshade/agent-skills/skills/lint-fix
+  active_owner: rshade/agent-skills/skills/lint-fix
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/lint-fix/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - rshade/agent-skills/skills/lint-fix
+  active_owner: rshade/agent-skills/skills/lint-fix
+  content_hash: sha256:bd7f86143dbf4ec5eaa27de51633cf67a9e204d0a276bf11f52ef91c2cbd3a44
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/lint-fix/references/fix-protocol.md
+  runtime: null
+  scope: project
+  owners:
+  - rshade/agent-skills/skills/lint-fix
+  active_owner: rshade/agent-skills/skills/lint-fix
+  content_hash: sha256:e8bdaae655da27144c3e8fa3d810908569a0d3659790d279c95d0468e511cea7
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/lint-fix/references/tool-detection.md
+  runtime: null
+  scope: project
+  owners:
+  - rshade/agent-skills/skills/lint-fix
+  active_owner: rshade/agent-skills/skills/lint-fix
+  content_hash: sha256:1b427e480ad48b955c564bca5a5c3ea0f5b923e893f057b1c22a356820beea1a
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/meta-harness
@@ -1042,6 +1215,96 @@ deployments:
   content_hash: sha256:54afffcc8f46579defe200a3a46c550fc66e37683b7df2dcb6d6545109f94871
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/receiving-code-review
+  runtime: null
+  scope: project
+  owners:
+  - obra/superpowers/skills/receiving-code-review
+  active_owner: obra/superpowers/skills/receiving-code-review
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/receiving-code-review/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - obra/superpowers/skills/receiving-code-review
+  active_owner: obra/superpowers/skills/receiving-code-review
+  content_hash: sha256:091df1629510af1b92fc4abd6f96732ebedb4cb2c0f3457e8f2740b0504a2438
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/resolving-merge-conflicts
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/resolving-merge-conflicts
+  active_owner: mattpocock/skills/skills/engineering/resolving-merge-conflicts
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/resolving-merge-conflicts/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/resolving-merge-conflicts
+  active_owner: mattpocock/skills/skills/engineering/resolving-merge-conflicts
+  content_hash: sha256:c7c9ba81362a786aac05d2223123bf1bd2f8a99c3243a72882ede9c68bedfb24
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/resolving-merge-conflicts/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/resolving-merge-conflicts
+  active_owner: mattpocock/skills/skills/engineering/resolving-merge-conflicts
+  content_hash: sha256:a1f4f96838f2ed6282eb28abbbf99029cb8fadce552baf53da90a025b8bffddf
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/tdd
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/tdd
+  active_owner: mattpocock/skills/skills/engineering/tdd
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/tdd/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/tdd
+  active_owner: mattpocock/skills/skills/engineering/tdd
+  content_hash: sha256:5363bb2775679fe9311fbb67947f95359169c6e7f1fac77c0f25e190bca6cf2f
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/tdd/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/tdd
+  active_owner: mattpocock/skills/skills/engineering/tdd
+  content_hash: sha256:ea6f01cf1b8c06a4b0f5b649d74b1b8ce8685e72af1b38d70d877693e092af0b
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/tdd/mocking.md
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/tdd
+  active_owner: mattpocock/skills/skills/engineering/tdd
+  content_hash: sha256:3ceb807fdf4a47d6a93d4d9a891e5ba6d362a6247bd08adc451feebfc17361ef
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/tdd/tests.md
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/tdd
+  active_owner: mattpocock/skills/skills/engineering/tdd
+  content_hash: sha256:859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/troubleshooting
   runtime: null
   scope: project
@@ -1058,6 +1321,33 @@ deployments:
   - ./packages/core
   active_owner: ./packages/core
   content_hash: sha256:82a951e941e97516f2f4d6c08170b0dddaef135205963aa03bc9685ac894300f
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/using-git-worktrees
+  runtime: null
+  scope: project
+  owners:
+  - obra/superpowers/skills/using-git-worktrees
+  active_owner: obra/superpowers/skills/using-git-worktrees
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/using-git-worktrees/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - obra/superpowers/skills/using-git-worktrees
+  active_owner: obra/superpowers/skills/using-git-worktrees
+  content_hash: sha256:8cfb86f121269e8f7f12361e6795c4f6738828340e28964c9229d365666c9edd
+- kind: project-relative
+  target: claude
+  value: .claude/agents/code-reviewer.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/workflow
+  active_owner: ./packages/workflow
+  content_hash: sha256:9321157e489aa43d4f359ee25be5370b338947315a70737845007e99d631e545
 - kind: project-relative
   target: claude
   value: .claude/agents/executor-broad.md
@@ -1093,7 +1383,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:f2e0c5ea530425fbe74c9aa4f016383beb7904c677346e5fbbebe00500f261c6
+  content_hash: sha256:1d083b1d5abd104ff0d3a7f543c0ef8f0541ac86f7d3ae67100a07c3071c12f7
 - kind: project-relative
   target: claude
   value: .claude/agents/plan.md
@@ -1420,6 +1710,42 @@ deployments:
   content_hash: sha256:d2c5496ca73a8ce2d3f0cad6681724170d8566bef54d36dfc1e5d3972597b614
 - kind: project-relative
   target: claude
+  value: .claude/skills/lint-fix
+  runtime: null
+  scope: project
+  owners:
+  - rshade/agent-skills/skills/lint-fix
+  active_owner: rshade/agent-skills/skills/lint-fix
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/lint-fix/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - rshade/agent-skills/skills/lint-fix
+  active_owner: rshade/agent-skills/skills/lint-fix
+  content_hash: sha256:bd7f86143dbf4ec5eaa27de51633cf67a9e204d0a276bf11f52ef91c2cbd3a44
+- kind: project-relative
+  target: claude
+  value: .claude/skills/lint-fix/references/fix-protocol.md
+  runtime: null
+  scope: project
+  owners:
+  - rshade/agent-skills/skills/lint-fix
+  active_owner: rshade/agent-skills/skills/lint-fix
+  content_hash: sha256:e8bdaae655da27144c3e8fa3d810908569a0d3659790d279c95d0468e511cea7
+- kind: project-relative
+  target: claude
+  value: .claude/skills/lint-fix/references/tool-detection.md
+  runtime: null
+  scope: project
+  owners:
+  - rshade/agent-skills/skills/lint-fix
+  active_owner: rshade/agent-skills/skills/lint-fix
+  content_hash: sha256:1b427e480ad48b955c564bca5a5c3ea0f5b923e893f057b1c22a356820beea1a
+- kind: project-relative
+  target: claude
   value: .claude/skills/meta-harness
   runtime: null
   scope: project
@@ -1489,7 +1815,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:1b6c91cf74d2053c29ce9ee14ed4a7b7c8f2c6bbc1ddacdbe1566b5efa7fbcc2
+  content_hash: sha256:4d38c29ea1f0bef21dddc75289469df8c1b0444f65c5218d3d741941e96ee4d1
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-review-steering
@@ -1507,7 +1833,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:34fbf84ef9ea6ac49abc71174b7f7cb3f820943e4889ea2c5122a041f8f11382
+  content_hash: sha256:6223ababf7fac54b731b84746562350c3057f4e7c0b98005c6ea436218a35ecc
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-steering
@@ -1687,7 +2013,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:9a719194106d8343bb955ca75cee65e8b8ec68fd580ef2e38bb4feef6aac26c1
+  content_hash: sha256:61fc649cb7a0f1fdbbe768d87b3726a17c7bbe120f344974824e7204eb08ca78
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-update-repo/references/safety-review.md
@@ -1696,7 +2022,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:4d25b7785769cae5abc6cfa9eabe1442002e3b72a2fcf7b1328fffab5283dc88
+  content_hash: sha256:602fd5b3e71618243d174240924a0cbcac81065914b3e682ac9dfa5522030dca
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-update-repo/references/source-url-reference.md
@@ -1924,6 +2250,96 @@ deployments:
   content_hash: sha256:54afffcc8f46579defe200a3a46c550fc66e37683b7df2dcb6d6545109f94871
 - kind: project-relative
   target: claude
+  value: .claude/skills/receiving-code-review
+  runtime: null
+  scope: project
+  owners:
+  - obra/superpowers/skills/receiving-code-review
+  active_owner: obra/superpowers/skills/receiving-code-review
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/receiving-code-review/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - obra/superpowers/skills/receiving-code-review
+  active_owner: obra/superpowers/skills/receiving-code-review
+  content_hash: sha256:091df1629510af1b92fc4abd6f96732ebedb4cb2c0f3457e8f2740b0504a2438
+- kind: project-relative
+  target: claude
+  value: .claude/skills/resolving-merge-conflicts
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/resolving-merge-conflicts
+  active_owner: mattpocock/skills/skills/engineering/resolving-merge-conflicts
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/resolving-merge-conflicts/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/resolving-merge-conflicts
+  active_owner: mattpocock/skills/skills/engineering/resolving-merge-conflicts
+  content_hash: sha256:c7c9ba81362a786aac05d2223123bf1bd2f8a99c3243a72882ede9c68bedfb24
+- kind: project-relative
+  target: claude
+  value: .claude/skills/resolving-merge-conflicts/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/resolving-merge-conflicts
+  active_owner: mattpocock/skills/skills/engineering/resolving-merge-conflicts
+  content_hash: sha256:a1f4f96838f2ed6282eb28abbbf99029cb8fadce552baf53da90a025b8bffddf
+- kind: project-relative
+  target: claude
+  value: .claude/skills/tdd
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/tdd
+  active_owner: mattpocock/skills/skills/engineering/tdd
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/tdd/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/tdd
+  active_owner: mattpocock/skills/skills/engineering/tdd
+  content_hash: sha256:5363bb2775679fe9311fbb67947f95359169c6e7f1fac77c0f25e190bca6cf2f
+- kind: project-relative
+  target: claude
+  value: .claude/skills/tdd/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/tdd
+  active_owner: mattpocock/skills/skills/engineering/tdd
+  content_hash: sha256:ea6f01cf1b8c06a4b0f5b649d74b1b8ce8685e72af1b38d70d877693e092af0b
+- kind: project-relative
+  target: claude
+  value: .claude/skills/tdd/mocking.md
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/tdd
+  active_owner: mattpocock/skills/skills/engineering/tdd
+  content_hash: sha256:3ceb807fdf4a47d6a93d4d9a891e5ba6d362a6247bd08adc451feebfc17361ef
+- kind: project-relative
+  target: claude
+  value: .claude/skills/tdd/tests.md
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/tdd
+  active_owner: mattpocock/skills/skills/engineering/tdd
+  content_hash: sha256:859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a
+- kind: project-relative
+  target: claude
   value: .claude/skills/troubleshooting
   runtime: null
   scope: project
@@ -1940,6 +2356,33 @@ deployments:
   - ./packages/core
   active_owner: ./packages/core
   content_hash: sha256:82a951e941e97516f2f4d6c08170b0dddaef135205963aa03bc9685ac894300f
+- kind: project-relative
+  target: claude
+  value: .claude/skills/using-git-worktrees
+  runtime: null
+  scope: project
+  owners:
+  - obra/superpowers/skills/using-git-worktrees
+  active_owner: obra/superpowers/skills/using-git-worktrees
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/using-git-worktrees/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - obra/superpowers/skills/using-git-worktrees
+  active_owner: obra/superpowers/skills/using-git-worktrees
+  content_hash: sha256:8cfb86f121269e8f7f12361e6795c4f6738828340e28964c9229d365666c9edd
+- kind: project-relative
+  target: codex
+  value: .codex/agents/code-reviewer.toml
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/workflow
+  active_owner: ./packages/workflow
+  content_hash: sha256:8c4a80e1d56031ae539d98e4daa897fa268ad7c1af40871cbca6d954d5155423
 - kind: project-relative
   target: codex
   value: .codex/agents/executor-broad.toml
@@ -1975,7 +2418,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:ea0b969cbcda2aa1cf35dc330d190d1589b077468f02b153d0eb5f8ff70d25f2
+  content_hash: sha256:d545cc0f3e76cf5cccb882f1e30d842d74f1deab3e3dafda3c872bb557848136
 - kind: project-relative
   target: codex
   value: .codex/agents/plan.toml
@@ -2020,7 +2463,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:1b6c91cf74d2053c29ce9ee14ed4a7b7c8f2c6bbc1ddacdbe1566b5efa7fbcc2
+  content_hash: sha256:4d38c29ea1f0bef21dddc75289469df8c1b0444f65c5218d3d741941e96ee4d1
 - kind: project-relative
   target: legacy
   value: .agents/skills/meta-review-steering
@@ -2038,7 +2481,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:34fbf84ef9ea6ac49abc71174b7f7cb3f820943e4889ea2c5122a041f8f11382
+  content_hash: sha256:6223ababf7fac54b731b84746562350c3057f4e7c0b98005c6ea436218a35ecc
 - kind: project-relative
   target: legacy
   value: .agents/skills/meta-update-models
@@ -2074,7 +2517,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:9a719194106d8343bb955ca75cee65e8b8ec68fd580ef2e38bb4feef6aac26c1
+  content_hash: sha256:61fc649cb7a0f1fdbbe768d87b3726a17c7bbe120f344974824e7204eb08ca78
 - kind: project-relative
   target: legacy
   value: .agents/skills/meta-update-repo/references/safety-review.md
@@ -2083,7 +2526,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:4d25b7785769cae5abc6cfa9eabe1442002e3b72a2fcf7b1328fffab5283dc88
+  content_hash: sha256:602fd5b3e71618243d174240924a0cbcac81065914b3e682ac9dfa5522030dca
 - kind: project-relative
   target: legacy
   value: .agents/skills/meta-update-repo/references/source-url-reference.md
@@ -2183,19 +2626,19 @@ local_deployed_files:
 - .codex/agents/meta-updater.toml
 - .codex/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py
 local_deployed_file_hashes:
-  .agents/skills/meta-refresh-steering/SKILL.md: sha256:1b6c91cf74d2053c29ce9ee14ed4a7b7c8f2c6bbc1ddacdbe1566b5efa7fbcc2
-  .agents/skills/meta-review-steering/SKILL.md: sha256:34fbf84ef9ea6ac49abc71174b7f7cb3f820943e4889ea2c5122a041f8f11382
+  .agents/skills/meta-refresh-steering/SKILL.md: sha256:4d38c29ea1f0bef21dddc75289469df8c1b0444f65c5218d3d741941e96ee4d1
+  .agents/skills/meta-review-steering/SKILL.md: sha256:6223ababf7fac54b731b84746562350c3057f4e7c0b98005c6ea436218a35ecc
   .agents/skills/meta-update-models/SKILL.md: sha256:9bcea364875f3647fdbb8bc0af4ba9453fe63c0d0ec8b380bad96e2f44277160
-  .agents/skills/meta-update-repo/SKILL.md: sha256:9a719194106d8343bb955ca75cee65e8b8ec68fd580ef2e38bb4feef6aac26c1
-  .agents/skills/meta-update-repo/references/safety-review.md: sha256:4d25b7785769cae5abc6cfa9eabe1442002e3b72a2fcf7b1328fffab5283dc88
+  .agents/skills/meta-update-repo/SKILL.md: sha256:61fc649cb7a0f1fdbbe768d87b3726a17c7bbe120f344974824e7204eb08ca78
+  .agents/skills/meta-update-repo/references/safety-review.md: sha256:602fd5b3e71618243d174240924a0cbcac81065914b3e682ac9dfa5522030dca
   .agents/skills/meta-update-repo/references/source-url-reference.md: sha256:51ae8a2083ade24a21c7405a9524ddf03776d94993e27a84a6a98226db236d2c
-  .claude/agents/meta-updater.md: sha256:f2e0c5ea530425fbe74c9aa4f016383beb7904c677346e5fbbebe00500f261c6
+  .claude/agents/meta-updater.md: sha256:1d083b1d5abd104ff0d3a7f543c0ef8f0541ac86f7d3ae67100a07c3071c12f7
   .claude/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py: sha256:419f214ebf17fc5a6493686fa91d3cade4ac28fe98796ccf7834c678d66d0d7c
-  .claude/skills/meta-refresh-steering/SKILL.md: sha256:1b6c91cf74d2053c29ce9ee14ed4a7b7c8f2c6bbc1ddacdbe1566b5efa7fbcc2
-  .claude/skills/meta-review-steering/SKILL.md: sha256:34fbf84ef9ea6ac49abc71174b7f7cb3f820943e4889ea2c5122a041f8f11382
+  .claude/skills/meta-refresh-steering/SKILL.md: sha256:4d38c29ea1f0bef21dddc75289469df8c1b0444f65c5218d3d741941e96ee4d1
+  .claude/skills/meta-review-steering/SKILL.md: sha256:6223ababf7fac54b731b84746562350c3057f4e7c0b98005c6ea436218a35ecc
   .claude/skills/meta-update-models/SKILL.md: sha256:9bcea364875f3647fdbb8bc0af4ba9453fe63c0d0ec8b380bad96e2f44277160
-  .claude/skills/meta-update-repo/SKILL.md: sha256:9a719194106d8343bb955ca75cee65e8b8ec68fd580ef2e38bb4feef6aac26c1
-  .claude/skills/meta-update-repo/references/safety-review.md: sha256:4d25b7785769cae5abc6cfa9eabe1442002e3b72a2fcf7b1328fffab5283dc88
+  .claude/skills/meta-update-repo/SKILL.md: sha256:61fc649cb7a0f1fdbbe768d87b3726a17c7bbe120f344974824e7204eb08ca78
+  .claude/skills/meta-update-repo/references/safety-review.md: sha256:602fd5b3e71618243d174240924a0cbcac81065914b3e682ac9dfa5522030dca
   .claude/skills/meta-update-repo/references/source-url-reference.md: sha256:51ae8a2083ade24a21c7405a9524ddf03776d94993e27a84a6a98226db236d2c
-  .codex/agents/meta-updater.toml: sha256:ea0b969cbcda2aa1cf35dc330d190d1589b077468f02b153d0eb5f8ff70d25f2
+  .codex/agents/meta-updater.toml: sha256:d545cc0f3e76cf5cccb882f1e30d842d74f1deab3e3dafda3c872bb557848136
   .codex/hooks/llmctl/.apm/hooks/validate-customization-frontmatter.py: sha256:419f214ebf17fc5a6493686fa91d3cade4ac28fe98796ccf7834c678d66d0d7c

@@ -103,7 +103,7 @@ apm install ~/.llmctl/packages/core --target claude
 uv run scripts/check.py --repo . --since origin/main
 ```
 
-The scripts declare their own dependencies in an inline PEP 723 header, so [uv](https://docs.astral.sh/uv/) runs them without anything being installed first. The `scripts:` block in [apm.yml](apm.yml) lists them in the order you would run them: `check`, `update`, `check-updates`, `check-steering`, `versions`, `release`, `pack-marketplace`.
+The scripts declare their own dependencies in an inline PEP 723 header, so [uv](https://docs.astral.sh/uv/) runs them without anything being installed first. The `scripts:` block in [apm.yml](apm.yml) lists them in the order you would run them: `check`, `update`, `check-updates`, `check-steering`, `versions`, `release`, `pack-marketplace`. Each entry is a whole command — `apm run` passes nothing through — so a flag that is not written into the entry means calling the script directly.
 
 ### Updating what this repo consumes
 
