@@ -74,7 +74,7 @@ Every prompt file carries YAML frontmatter with the following fields:
 - If `tools` are specified and the current agent is `ask` or `edit`, the default agent becomes `agent`
 - Be explicit about `agent` when tool requirements or side effects matter; do not rely on implicit escalation
 - Preserve any additional metadata (`language`, `tags`, `visibility`, etc.) required by your organization
-- For provenance tracking, use `metadata.provenance` fields (`adaptedFrom`, `authoritativeSpec`); use the same convention for prompts, instructions, skills, and agents. Where an entry's `fidelity` is `partly-derived` or `largely-derived`, its `license` is required — `scripts/check-licenses.py` rejects the file otherwise. See the [skill-frontmatter.md](./skill-frontmatter.md#provenance-metadata-recommended)
+- For provenance tracking, use `metadata.provenance` fields (`adaptedFrom`, `authoritativeSpec`); use the same convention for prompts, instructions, skills, and agents. Where an entry's `fidelity` is `partly-derived` or `largely-derived`, its `license` is required — `scripts/check_licenses.py` rejects the file otherwise. See the [skill-frontmatter.md](./skill-frontmatter.md#provenance-metadata-recommended)
 
 ## Cross-Tool Compatibility (Copilot + Claude Code)
 

@@ -143,7 +143,7 @@ Treat `description` as routing text, not just a summary. State what the agent do
 
 Prefer fields documented by the target client, and label platform-specific examples explicitly.
 
-**Provenance metadata convention:** identical across skills, agents, instructions and prompts — `metadata.provenance.adaptedFrom` and `.authoritativeSpec`, with the `fidelity` / `license` interaction that `scripts/check-licenses.py` enforces. See [the router, section 4](../SKILL.md#4-frontmatter-shared-by-all-four-types).
+**Provenance metadata convention:** identical across skills, agents, instructions and prompts — `metadata.provenance.adaptedFrom` and `.authoritativeSpec`, with the `fidelity` / `license` interaction that `scripts/check_licenses.py` enforces. See [the router, section 4](../SKILL.md#4-frontmatter-shared-by-all-four-types).
 
 See [agent-frontmatter.md](./agent-frontmatter.md) for complete documentation of all available frontmatter properties.
 

@@ -251,7 +251,7 @@ metadata:
 
 `fidelity` is the obligation level — `inspiration-only` / `structural-echo` / `partly-derived` / `largely-derived`, absent meaning whole-file derivation. The first two mean only ideas or structure were taken, so no upstream terms attach; the last two mean expression was copied, so they do.
 
-`license` is the SPDX id of the **upstream**, not of this file. It is required wherever `fidelity` implies an obligation, because it decides what this file may be licensed under — `scripts/check-licenses.py` rejects a file whose own licence cannot satisfy it. Record `NONE` for an upstream with no LICENSE file: that grants no rights at all, and is only safe at `inspiration-only`.
+`license` is the SPDX id of the **upstream**, not of this file. It is required wherever `fidelity` implies an obligation, because it decides what this file may be licensed under — `scripts/check_licenses.py` rejects a file whose own licence cannot satisfy it. Record `NONE` for an upstream with no LICENSE file: that grants no rights at all, and is only safe at `inspiration-only`.
 
 `took` records what was taken and nothing else, so the drift audit can dismiss an upstream change without opening the diff: if the change touches nothing on the list, there is nothing to merge. Never add what was *not* taken — upstream can grow indefinitely, so that list rots without any local change to trigger a refresh.
 
