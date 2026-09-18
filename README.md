@@ -20,7 +20,7 @@ Start with [Deploy](#deploy) to install the published plugins. If you want to ex
 | `packages/product` | Product development | PRD skills + product-manager / UX agents |
 | `packages/design` | Design work | Direction-setting, colour, typography, presentation + upstream layout / identity / data-visualisation practice |
 | `packages/python` | Python work | Source-authoring standards + single-file script discipline (PEP 723) + upstream uv / ruff / ty project tooling |
-| _root `.apm/`_ | _**Repo-local only**_ | _`meta-updater` agent + `meta-update-repo` / `meta-update-models` audit skills, frontmatter-validation hook_ |
+| _root `.apm/`_ | _**Repo-local only**_ | _`meta-updater` dispatcher + the `meta-update-repo` / `meta-update-models` / `meta-refresh-steering` / `meta-review-steering` procedures, frontmatter-validation hook_ |
 
 See [CONTRIBUTING.md](CONTRIBUTING.md#packaging-model) for the packaging rules.
 
@@ -106,7 +106,7 @@ uv run scripts/check.py --repo . --since origin/main
 The scripts declare their own dependencies in an inline PEP 723 header, so
 [uv](https://docs.astral.sh/uv/) runs them without anything being installed first.
 The `scripts:` block in [apm.yml](apm.yml) lists them in the order you would run
-them: `check`, `update`, `check-updates`, `versions`, `release`, `pack-marketplace`.
+them: `check`, `update`, `check-updates`, `check-steering`, `versions`, `release`, `pack-marketplace`.
 
 ### Updating what this repo consumes
 

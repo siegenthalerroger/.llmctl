@@ -34,6 +34,10 @@ scripts:
   # The other half of updating: the files adapted from an upstream, and the
   # specifications cited. Read-only. `--specs` switches to the latter.
   check-updates: "uv run scripts/check_updates.py --repo ."
+  # Which steering files were last touched before the guidance that governs
+  # them moved. Read-only, and a reading order rather than a verdict: see the
+  # meta-review-steering skill for what a `behind` row is worth.
+  check-steering: "uv run scripts/check_steering.py --repo ."
   # What each package's next version would be, and why. Reads tags and commits.
   versions: "uv run scripts/versions.py --repo ."
   # What a release would publish, and its notes. The real release runs in CI,

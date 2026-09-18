@@ -12,7 +12,7 @@
 | `packages/product` | Per-project (product) | PRD skills; product-manager + ux-expert agents | `apm install <repo>/packages/product` |
 | `packages/design` | Per-project (design) | `design-direction`, `colour`, `typography`, `presentation` skills; upstream layout/identity/dataviz practice | `apm install <repo>/packages/design` |
 | `packages/python` | Per-project (Python) | `python-standards` + `python-scripts` skills; python instructions; upstream `modern-python` project tooling | `apm install <repo>/packages/python` |
-| root `.apm/` | Repo-local only | `meta-updater` agent + `meta-update-repo` / `meta-update-models` audit skills, frontmatter-validation hook | Deployed only when developing this repo |
+| root `.apm/` | Repo-local only | `meta-updater` dispatcher + the `meta-update-repo` / `meta-update-models` / `meta-refresh-steering` / `meta-review-steering` procedures, frontmatter-validation hook | Deployed only when developing this repo |
 
 ### Rules
 
@@ -231,8 +231,28 @@ Authoritative sources are maintained in the `meta-update-models` skill frontmatt
 ## Upstream Update Tooling
 
 Three kinds of upstream feed this repository. `apm run update` handles the first;
-`apm run check-updates` audits the other two. The `meta-update-repo` skill, driven
-by the `meta-updater` agent, is the procedure around them.
+`apm run check-updates` audits the other two. The `meta-update-repo` skill is the
+procedure around them.
+
+**Four procedures, no pipeline.** Updating is not one command, because the four
+things that go out of date go out of date on their own schedules. The
+`meta-updater` agent routes a request to one of them and asks which when the
+request does not say — it never runs all four because the ask was vague.
+
+| Procedure | Moves | Run it when |
+| --- | --- | --- |
+| `meta-update-repo` | pins and lockfiles, adapted files, cited specs, upstream licences | an upstream may have moved |
+| `meta-update-models` | `model:` / `effort:` where a `metadata.modelProfile` is declared | a new model shipped |
+| `meta-refresh-steering` | `meta-steering` and `meta-harness` themselves | the harnesses have moved on |
+| `meta-review-steering` | every steering file, against the guidance over it | the guidance changed, or it has been a while |
+
+The last two are a pair: refreshing the guidance is what makes the files it
+governs due for review. `apm run check-steering` says which those are, by asking
+git which guidance commits landed after each file was last touched. That is a
+reading order and not a verdict — a cosmetic commit to the guidance marks
+everything it governs behind, and editing a file for an unrelated reason clears
+its flag with nobody having re-read it, so `current` means *not measurable*
+rather than *verified*.
 
 | Input | Declared in | Command |
 | --- | --- | --- |
