@@ -1,17 +1,13 @@
 # Safety review of an upstream diff
 
-What to read for when a pin moves, before the bump is committed. The input is
-what `apm run update` prints: the upstream's own diff between the committed pin
-and the new one, filtered to the path this repository consumes.
+What to read for when a pin moves, before the bump is committed. The input is what `apm run update` prints: the upstream's own diff between the committed pin and the new one, filtered to the path this repository consumes.
 
-**This is a reading, not a scan.** A table of strings to grep for was built and
-dropped: matching "ignore previous instructions", `~/.ssh` and `curl … | sh`
-produced confident findings on ordinary documentation — a vendor's own install
-one-liner, a published placeholder key — while missing anything phrased
-differently. The two failures compound, because the noise trains you to skim
-exactly the diff the check existed to make you read. Read the diff.
+**This is a reading, not a scan.** A table of strings to grep for was built and dropped: matching "ignore previous instructions", `~/.ssh` and `curl … | sh` produced confident findings on ordinary documentation — a vendor's own install one-liner, a published placeholder key — while missing anything phrased differently. The two failures compound, because the noise trains you to skim exactly the diff the check existed to make you read. Read the diff.
 
 ## What to look for
+
+These rows are reasoned from what an APM dependency can do once it is deployed, not taken from a published threat model; finding one to check them against is [TODO 4k](../../../../TODO.md).
+
 
 | Look for | Why it matters | Verdict |
 | --- | --- | --- |
@@ -26,9 +22,6 @@ exactly the diff the check existed to make you read. Read the diff.
 
 ## How to record it
 
-Whatever the verdict, say what you read and what you concluded. A bump committed
-with "reviewed, no findings" and no sign of what was reviewed is the same as an
-unreviewed bump the next time someone asks.
+Whatever the verdict, say what you read and what you concluded. A bump committed with "reviewed, no findings" and no sign of what was reviewed is the same as an unreviewed bump the next time someone asks.
 
-For a block, quote the hunk, name the row above that it matches, and leave the
-pin at its committed value. For a flag, say what you decided and why.
+For a block, quote the hunk, name the row above that it matches, and leave the pin at its committed value. For a flag, say what you decided and why.
