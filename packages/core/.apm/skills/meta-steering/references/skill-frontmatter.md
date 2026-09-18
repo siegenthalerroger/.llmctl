@@ -100,7 +100,7 @@ metadata:
 
 **`fidelity`** is the obligation level, one of `inspiration-only` / `structural-echo` / `partly-derived` / `largely-derived`. Absent means whole-file derivation, treated as `largely-derived`. The first two mean only ideas or structure were taken, so no upstream terms attach; the last two mean expression was copied, so they do.
 
-**`license`** is the SPDX id of the **upstream**, not of this file. It is required whenever `fidelity` implies an obligation, because it decides what this file may be licensed under: `scripts/check-licenses.py` rejects a file whose own licence cannot satisfy it. Record `NONE` for an upstream with no LICENSE file — that grants no rights at all, and is only safe at `inspiration-only`.
+**`license`** is the SPDX id of the **upstream**, not of this file. It is required whenever `fidelity` implies an obligation, because it decides what this file may be licensed under: `scripts/check_licenses.py` rejects a file whose own licence cannot satisfy it. Record `NONE` for an upstream with no LICENSE file — that grants no rights at all, and is only safe at `inspiration-only`.
 
 **`took`** is single-line and records *what was taken*, nothing else. It lets the `meta-upstream-sync` audit close an upstream change without a merge review when the change touches nothing on the list. Never record what was *not* taken, or a line-overlap measurement — both rot without any local change to trigger a refresh.
 

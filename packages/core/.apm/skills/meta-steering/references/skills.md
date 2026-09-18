@@ -67,7 +67,7 @@ description: "Toolkit and guidelines for an example usecase. Use when asked to d
 
 > **Portable vs. private fields:** Only `name`, `description`, and `license` are part of the [agentskills.io](https://agentskills.io/) spec. Everything under `metadata.*` (provenance, modelProfile) is a **private convention** of this repository — other tools and consumers safely ignore it. Do not add `metadata.*` fields to skills intended for upstream publication without confirming the target registry supports them.
 
-For consistent provenance tracking, use `metadata.provenance` fields across prompt, instruction, skill, and agent frontmatter. `fidelity` decides whether upstream terms attach and therefore what `license` this file may carry — the rules, and the two fields' interaction with `scripts/check-licenses.py`, are in [skill-frontmatter.md](./skill-frontmatter.md#provenance-metadata-recommended).
+For consistent provenance tracking, use `metadata.provenance` fields across prompt, instruction, skill, and agent frontmatter. `fidelity` decides whether upstream terms attach and therefore what `license` this file may carry — the rules, and the two fields' interaction with `scripts/check_licenses.py`, are in [skill-frontmatter.md](./skill-frontmatter.md#provenance-metadata-recommended).
 
 #### Harness-Specific Fields
 

@@ -120,7 +120,7 @@ Always-loaded instructions have their own shared budget: frontier models reliabl
 
 - `metadata.provenance.adaptedFrom` — a URL string, an array of URLs, or an array of objects carrying `url` plus `license` (the upstream's SPDX id), `fidelity` (`inspiration-only` / `structural-echo` / `partly-derived` / `largely-derived`) and `took` (only what was taken, never what was not). String and array forms mean the **whole file** derives from that upstream.
 - `metadata.provenance.authoritativeSpec` — URLs of specs defining the format. A bare URL means cited only, nothing reproduced.
-- `fidelity` decides whether upstream terms attach, and therefore what `license` the file may carry. Where `fidelity` copies expression, `license` is **required** — `scripts/check-licenses.py` rejects the file otherwise.
+- `fidelity` decides whether upstream terms attach, and therefore what `license` the file may carry. Where `fidelity` copies expression, `license` is **required** — `scripts/check_licenses.py` rejects the file otherwise.
 - `license` — omit to take the repo default for the path (`*.md` is CC-BY-SA-4.0); declare it only where an upstream obligation the default cannot satisfy forces another.
 
 > **APM-first:** if the upstream is available as an APM package, consume it via `apm.yml` instead of copying it in. Use `adaptedFrom` only for content APM cannot manage.
