@@ -84,6 +84,16 @@ def tag_plan(ws: Path, package: Package, tag: str) -> versionlib.Plan:
     )
 
 
+def commit_of(ws: Path, tag: str) -> str:
+    """The commit a tag points at.
+
+    `target_commitish` takes a branch or a commit SHA. Handing it the tag name
+    is what made every `POST /releases` fail validation, silently, for as long
+    as the calendar pipeline has existed.
+    """
+    return git(["rev-list", "-n", "1", tag], ws)
+
+
 def ensure_releases(
     ws: Path,
     packages: Sequence[Package],
@@ -97,10 +107,16 @@ def ensure_releases(
     can end up out of step when the second fails or is rate-limited. Asking for
     the page rather than assuming it is what lets the next run finish the job,
     instead of reporting nothing to release and leaving a tag with no notes.
+
+    A failure here raises. The tag and the bundles are already published, so the
+    run did land something -- but a release nobody can read is not the release
+    this repository promises, and the first one of these went unnoticed for a
+    whole release precisely because it only wrote to stderr.
     """
     owner, repo = workspace.remote_slug(ws)
     prepared = prepared or {}
     pulls: dict = {}
+    failures = []
     for package in packages:
         tag = versionlib.last_tag(ws, package.name)
         if not tag:
@@ -115,14 +131,23 @@ def ensure_releases(
                     tag_plan(ws, package, tag), owner, repo, client=client, cache=pulls
                 )
             created = client.create_release(
-                owner, repo, tag=tag, name=f"{package.name} {version}", body=body, target=tag
+                owner,
+                repo,
+                tag=tag,
+                name=f"{package.name} {version}",
+                body=body,
+                target=commit_of(ws, tag),
             )
             log("[note] {}".format(created.get("html_url", tag)))
         except githublib.ApiError as exc:
-            # The tag is pushed and the bundles are published; a missing release
-            # page is a cosmetic loss, not a reason to fail the run and leave
-            # the operator wondering which half landed. The next run retries.
-            sys.stderr.write(f"could not publish the GitHub release for {tag}: {exc}\n")
+            failures.append(f"{tag}: {exc}")
+    if failures:
+        raise WorkspaceError(
+            "the tags and bundles are published, but {} release page(s) are "
+            "missing -- re-run to finish the job:\n  {}".format(
+                len(failures), "\n  ".join(failures)
+            )
+        )
 
 
 def main(
