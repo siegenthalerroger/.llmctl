@@ -94,20 +94,25 @@ class GitHub:
 
     def _raise(self, response: httpx.Response) -> None:
         detail = self._detail(response)
+        # The endpoint belongs in every message, not just the ones that are not
+        # 403. A permission gap is precisely the case where which call was
+        # refused is the whole question: a release publish touches three
+        # endpoints across two scopes, and "403 with authentication" alone
+        # cannot tell you which of them the token is short of.
+        request = response.request
+        where = f"{request.method} {request.url}"
+        hint = ""
         if response.status_code == httpx.codes.FORBIDDEN:
-            if not self.authenticated:
-                raise ApiError(
-                    "GitHub API returned 403 (likely the unauthenticated rate "
-                    "limit). Run 'gh auth login', set GITHUB_TOKEN/GH_TOKEN, or "
-                    f"pass --github-token. {detail}".strip()
-                )
-            raise ApiError(
-                "GitHub API returned 403 with authentication. Verify "
-                "the token's validity/scopes or wait for the rate "
-                f"limit to reset. {detail}".strip()
+            hint = (
+                " (likely the unauthenticated rate limit). Run 'gh auth login', "
+                "set GITHUB_TOKEN/GH_TOKEN, or pass --github-token."
+                if not self.authenticated
+                else " with authentication. Verify the token's validity and the "
+                "scopes this endpoint needs, or wait for the rate limit to reset."
             )
-        message = f"GitHub API returned {response.status_code} for {response.request.url}"
-        raise ApiError(f"{message}: {detail}" if detail else message)
+        message = f"GitHub API returned {response.status_code} for {where}{hint}"
+        return_detail = f" {detail}" if detail else ""
+        raise ApiError(f"{message}{return_detail}")
 
     def get(
         self,
