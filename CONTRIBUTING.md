@@ -12,6 +12,7 @@
 | `packages/product` | Per-project (product) | PRD skills; product-manager + ux-expert agents | `apm install <repo>/packages/product` |
 | `packages/design` | Per-project (design) | `design-direction`, `colour`, `typography`, `presentation` skills; upstream layout/identity/dataviz practice | `apm install <repo>/packages/design` |
 | `packages/python` | Per-project (Python) | `python-standards` + `python-scripts` skills; python instructions; upstream `modern-python` project tooling | `apm install <repo>/packages/python` |
+| `packages/travel` | Per-project (travel) | `destination-calendar` (scripted holiday/event check), `trip-planning`, `travel-entry-requirements` (scripted Schengen count), `itinerary-authoring` skills; the `plan-trip` prompt; flight / hotel / ferry / stay MCP servers |
 | root `.apm/` | Repo-local only | `meta-updater` dispatcher + the `meta-update-repo` / `meta-update-models` / `meta-refresh-steering` / `meta-review-steering`  procedures, the frontmatter-validation hook | Deployed only when developing this repo |
 
 ### Rules
@@ -282,6 +283,8 @@ Three rules follow from that, and [`llmctl-check-licenses`](src/llmctl/check_lic
 - **A file's provenance decides its licence.** Where `metadata.provenance` records an obligation-bearing `fidelity`, the upstream's `license` constrains what the local file may be licensed under: MIT upstream permits either default; CC-BY-SA-4.0 upstream forces CC-BY-SA-4.0; Apache-2.0 and GPL-3.0 upstreams force their own licence and need a per-file override; `NONE` permits nothing beyond `inspiration-only`. Declare an override with a **top-level `license:` field** in the file's frontmatter — that always wins over the table above.
 - **Attribution is generated, never hand-written.** `THIRD-PARTY-NOTICES.md` in the marketplace repo is produced by [`llmctl-gen-notices`](src/llmctl/gen_notices.py) from provenance metadata plus each bundle's `apm.lock.yaml`. Sources whose terms attach land under *Notices*; everything else, including `inspiration-only` sources and upstreams with no licence at all, is still credited under *Acknowledgements*.
 
+`CC-BY-NC-4.0` is recognised inbound with **no permitted outbound**. Its NonCommercial term is one neither default can carry — CC-BY-SA-4.0's ShareAlike requires the adaptation permit commercial use, and MIT cannot express the restriction at all — so such an upstream is usable only at a fidelity that attaches nothing. Take the shape, never the prose; `partly-derived` or above fails the `licences` gate by design rather than silently relicensing.
+
 Adding a dependency or an adaptation from a **new** upstream means recording its licence in [dependency-licenses.yml](dependency-licenses.yml) or the entry's `license:` field. Run `apm run check` before opening a pull request.
 
 ## Commit Convention
@@ -293,7 +296,7 @@ Commits are **conventional**:
 ```
 
 - `type` — `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`. Append `!` before the colon for a breaking change (`refactor(core)!: …`).
-- `scope` — the package the change lands in: `core`, `design`, `meta`, `ops`, `product`, `workflow`. For anything outside `packages/`, use the area instead: `tooling`, `docs`, `ci`.
+- `scope` — the package the change lands in: `core`, `design`, `meta`, `ops`, `product`, `travel`, `workflow`. For anything outside `packages/`, use the area instead: `tooling`, `docs`, `ci`.
 
 **The type sizes nothing.** Versions are calendar-derived, so `feat` and `fix` no longer mean "minor" and "patch"; they decide which heading a commit lands under in the generated release notes, and nothing else. That is worth keeping, so the convention is now *enforced* rather than merely read: the `commits` gate refuses a subject outside the type list, and refuses a scope that names nothing the commit touched.
 

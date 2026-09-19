@@ -21,6 +21,7 @@ Start with [Before you start](#before-you-start), then choose your setup:
 | `llmctl-ops` | Helm, Kubernetes and OpenTofu/Terraform |
 | `llmctl-product` | Writing epic and feature PRDs |
 | `llmctl-design` | Design direction, colour, typography and presentations |
+| `llmctl-travel` | Destination timing checks, trip planning, entry requirements and itineraries |
 
 `core` is the general baseline. Add `workflow` for code work, and the domain plugins where they fit.
 
