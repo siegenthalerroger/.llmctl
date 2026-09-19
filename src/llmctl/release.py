@@ -108,15 +108,23 @@ def ensure_releases(
     the page rather than assuming it is what lets the next run finish the job,
     instead of reporting nothing to release and leaving a tag with no notes.
 
-    A failure here raises. The tag and the bundles are already published, so the
-    run did land something -- but a release nobody can read is not the release
-    this repository promises, and the first one of these went unnoticed for a
-    whole release precisely because it only wrote to stderr.
+    A 403 is reported and the run carries on; anything else raises.
+
+    The two say different things. A 403 is standing: this token may not create
+    releases on this repository, and no re-run changes that -- .llmctl-private
+    refuses `POST /releases` while holding `Contents: write`, so the tags and
+    bundles it published are the whole release it is allowed to make. Failing
+    every run over a permission that is not ours to grant would leave that
+    workspace permanently red with nothing to fix.
+
+    Every other status is the request being wrong, which is ours. The 422 that
+    hid here for a whole release -- a tag name sent where a commitish belongs --
+    is exactly that, so it still fails the run.
     """
     owner, repo = workspace.remote_slug(ws)
     prepared = prepared or {}
     pulls: dict = {}
-    failures = []
+    failures, refused = [], []
     for package in packages:
         tag = versionlib.last_tag(ws, package.name)
         if not tag:
@@ -140,7 +148,9 @@ def ensure_releases(
             )
             log("[note] {}".format(created.get("html_url", tag)))
         except githublib.ApiError as exc:
-            failures.append(f"{tag}: {exc}")
+            (refused if exc.status == githublib.FORBIDDEN else failures).append(f"{tag}: {exc}")
+    for row in refused:
+        log(f"[note] not permitted to publish a release page here, so none was: {row}")
     if failures:
         raise WorkspaceError(
             "the tags and bundles are published, but {} release page(s) are "
