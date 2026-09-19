@@ -18,6 +18,10 @@ packages/*/.gitignore
 # APM pack scratch bundles
 build/
 
+# The tooling's own environment and build output (uv run / uv build).
+.venv/
+dist/
+
 # Python bytecode.
 __pycache__/
 *.py[cod]

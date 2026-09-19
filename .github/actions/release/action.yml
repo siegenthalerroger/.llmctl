@@ -10,10 +10,13 @@ inputs:
   marketplace:
     description: The marketplace checkout to publish into, relative to the workspace.
     required: true
-  scripts:
-    description: Where the scripts are, relative to the workspace.
+  tooling:
+    description: >-
+      Where the tooling comes from, as a requirement `uvx --from` accepts --
+      `git+https://github.com/siegenthalerroger/.llmctl@main` for a workspace
+      that holds none of it. Empty runs the workspace's own project, locked.
     required: false
-    default: scripts
+    default: ""
   dry-run:
     description: Show what would be released and write nothing.
     required: false
@@ -49,7 +52,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.workspace }}
       env:
-        SCRIPTS: ${{ inputs.scripts }}
+        TOOLING: ${{ inputs.tooling }}
         MARKETPLACE: ${{ inputs.marketplace }}
         DRY_RUN: ${{ inputs.dry-run }}
         PACKAGES: ${{ inputs.packages }}
@@ -64,8 +67,9 @@ runs:
         for package in $PACKAGES; do args+=(--package "$package"); done
         if [ -n "$PACKAGES" ]; then args+=(--force); fi
         if [ -n "$VERSION" ]; then args+=(--version "$VERSION"); fi
-        echo "release.py ${args[*]}"
-        uv run "$SCRIPTS/release.py" "${args[@]}" | tee "$RUNNER_TEMP/release.log"
+        if [ -n "$TOOLING" ]; then run=(uvx --from "$TOOLING"); else run=(uv run --locked); fi
+        echo "llmctl-release ${args[*]}"
+        "${run[@]}" llmctl-release "${args[@]}" | tee "$RUNNER_TEMP/release.log"
         {
           echo "## Release"
           echo

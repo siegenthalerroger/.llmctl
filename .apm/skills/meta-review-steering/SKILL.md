@@ -11,8 +11,8 @@ Check what the guidance governs against what the guidance says. The other half o
 ## Where to start
 
 ```bash
-uv run scripts/check_steering.py --repo .                    # everything
-uv run scripts/check_steering.py --repo . --include python   # one area
+uv run llmctl-check-steering --repo .                    # everything
+uv run llmctl-check-steering --repo . --include python   # one area
 ```
 
 Every authored `SKILL.md`, `*.agent.md`, `*.instructions.md`, `*.prompt.md` and `*.hook.json`, each against the guidance pages for its own kind, with the guidance commits that landed after the file was last touched.
@@ -35,7 +35,7 @@ So split the run and give each split its own subagent. One per package (`--inclu
 The `frontmatter` gate already covers the mechanical half on every run, and it is not worth repeating by eye: missing `name`/`description`, skill name against its directory, kebab-case, reserved words, the 1024-character limit, block scalars, the line ceiling. Run it rather than reading for it:
 
 ```bash
-uv run scripts/check.py --repo . --only frontmatter
+uv run llmctl-check --repo . --only frontmatter
 ```
 
 What no gate can check, and what this review is for:

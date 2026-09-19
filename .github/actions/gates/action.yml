@@ -5,10 +5,13 @@ inputs:
   workspace:
     description: The checkout to act on.
     required: true
-  scripts:
-    description: Where the scripts are, relative to the workspace.
+  tooling:
+    description: >-
+      Where the tooling comes from, as a requirement `uvx --from` accepts --
+      `git+https://github.com/siegenthalerroger/.llmctl@main` for a workspace
+      that holds none of it. Empty runs the workspace's own project, locked.
     required: false
-    default: scripts
+    default: ""
   since:
     description: >-
       The base of the commit range to lint. Empty, or an all-zero sha from a
@@ -30,7 +33,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.workspace }}
       env:
-        SCRIPTS: ${{ inputs.scripts }}
+        TOOLING: ${{ inputs.tooling }}
         SINCE: ${{ inputs.since }}
         SUBJECT: ${{ inputs.subject }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
@@ -41,4 +44,5 @@ runs:
           args+=(--since "$SINCE")
           if [ -n "$SUBJECT" ]; then args+=(--subject "$SUBJECT"); fi
         fi
-        uv run "$SCRIPTS/check.py" "${args[@]}"
+        if [ -n "$TOOLING" ]; then run=(uvx --from "$TOOLING"); else run=(uv run --locked); fi
+        "${run[@]}" llmctl-check "${args[@]}"

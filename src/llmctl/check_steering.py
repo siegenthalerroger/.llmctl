@@ -1,16 +1,3 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.11"
-# dependencies = [
-#   "ruamel.yaml==0.19.1",
-#   "typer==0.27.2",
-#   "rich==15.0.0",
-#   "httpx==0.28.1",
-#   "python-frontmatter==1.3.0",
-# ]
-# [tool.uv]
-# exclude-newer = "2026-09-18T00:00:00Z"
-# ///
 """Which steering files were last touched before the guidance that governs them.
 
 `meta-steering` and `meta-harness` say how every other steering file should be
@@ -33,8 +20,8 @@ from typing import NamedTuple, Sequence
 
 import typer
 
-import workspace
-from workspace import WorkspaceError, git
+from . import workspace
+from .workspace import WorkspaceError, git
 
 # What governs what. The guidance is one skill per column of the repository's
 # own type table: `meta-steering` owns what the model reads, `meta-harness`
@@ -214,5 +201,5 @@ def main(repo: Path = workspace.REPO_OPTION,
     report(rows)
 
 
-if __name__ == "__main__":
+def cli() -> None:
     typer.run(main)

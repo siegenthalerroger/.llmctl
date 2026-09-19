@@ -10,8 +10,8 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-import commits as commitlib
-from workspace import Log
+from . import commits as commitlib
+from .workspace import Log
 
 if TYPE_CHECKING:
     from github import GitHub

@@ -1,16 +1,3 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.11"
-# dependencies = [
-#   "ruamel.yaml==0.19.1",
-#   "typer==0.27.2",
-#   "rich==15.0.0",
-#   "httpx==0.28.1",
-#   "python-frontmatter==1.3.0",
-# ]
-# [tool.uv]
-# exclude-newer = "2026-09-18T00:00:00Z"
-# ///
 """What each package's next version would be, and why. Writes nothing.
 
 A package is planned when `packages/<dir>/` has commits since its last
@@ -31,9 +18,9 @@ from typing import NamedTuple, TextIO
 
 import typer
 
-import commits as commitlib
-import workspace
-from workspace import Log, WorkspaceError, git
+from . import commits as commitlib
+from . import workspace
+from .workspace import Log, WorkspaceError, git
 
 CALVER_RE = re.compile(r"^(?P<y>\d{4})\.(?P<m>\d{1,2})\.(?P<n>\d+)$")
 
@@ -197,5 +184,5 @@ def main(repo: Path = workspace.REPO_OPTION,
         print("\nnothing to release")
 
 
-if __name__ == "__main__":
+def cli() -> None:
     typer.run(main)

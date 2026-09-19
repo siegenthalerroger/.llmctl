@@ -19,7 +19,7 @@ from typing import Callable, Literal, Sequence
 
 from rich.console import Console
 
-from workspace import git
+from .workspace import git
 
 __all__ = ["Context", "Gate", "Need", "Outcome", "Runner", "Status",
            "fail", "ok", "skip"]

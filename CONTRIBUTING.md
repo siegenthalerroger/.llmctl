@@ -17,14 +17,14 @@
 ### Rules
 
 - **Each sub-package uses the `.apm/` layout.** A package is `packages/<name>/apm.yml` + `packages/<name>/.apm/{agents,skills,prompts,instructions,hooks}/`. Bare `agents/`/`skills/` at a package root are misclassified by APM as a single skill bundle — everything must live under `.apm/`.
-- **The root workspace depends on `packages/core`, `packages/python` and `packages/workflow`.** Those are the three an agent editing this repo needs in context: `core` carries `meta-steering` and `meta-harness`, which every steering file here is written against, plus the prose and research skills the docs get written with; `python` carries the standards `scripts/` is held to; `workflow` carries the delivery skills the editing itself runs on — worktrees, TDD, merge-conflict resolution, receiving code review, lint pipelines — and the `code-reviewer` agent for `scripts/`. Deploying the root [apm.yml](apm.yml) therefore brings all three along beside the repo-local procedures. Nothing else is added — `ops`, `product` and `design` are domain steering for work that does not happen in this repository.
+- **The root workspace depends on `packages/core`, `packages/python` and `packages/workflow`.** Those are the three an agent editing this repo needs in context: `core` carries `meta-steering` and `meta-harness`, which every steering file here is written against, plus the prose and research skills the docs get written with; `python` carries the standards `src/llmctl/` is held to; `workflow` carries the delivery skills the editing itself runs on — worktrees, TDD, merge-conflict resolution, receiving code review, lint pipelines — and the `code-reviewer` agent for `src/llmctl/`. Deploying the root [apm.yml](apm.yml) therefore brings all three along beside the repo-local procedures. Nothing else is added — `ops`, `product` and `design` are domain steering for work that does not happen in this repository.
 - **Place a new primitive by scope, not by type.** Ask: universal and domain-neutral (core, which also owns the authoring guidance), code-specific (workflow), domain-specific (ops/product/design or a new package), or operates on *this repo's own files* (root `.apm/`)? `core` is the baseline that loads in *every* context, including ones with no code in them — anything that presumes a codebase belongs in `workflow`.
 - **Scope each MCP server to the package whose work needs it.** Universal dev servers (`github`, `context7`) live in `packages/core/apm.yml`; domain servers live in their domain package (cloud/IaC doc servers in `packages/ops/apm.yml`). A server loads only where its package is installed, so keep global tool surface minimal.
 - **Consume upstream content as a pinned `dependencies.apm` entry, never a vendored copy** (see the APM-first rule below). Use the git subdir form to take a single skill out of a larger repo — `owner/repo/path/to/skill#<sha>` — and always pin a commit or tag; an unpinned entry tracks the default branch and drifts. Scope the dependency to the package whose work needs it, exactly like MCP servers, and record in a comment why that upstream was chosen and what was deliberately left behind. Bump through the `meta-update-repo` skill, which runs that loop per package, reads the diff of everything that moved before it is committed, and keeps `apm.yml` and `apm.lock.yaml` in one commit. **Every pin is a full commit SHA and every package commits its `apm.lock.yaml`** — see [Lockfiles](#lockfiles).
 - **The marketplace is a separate repository.** Manifests and packed plugin bundles live in [`.llmctl-marketplace`](https://github.com/siegenthalerroger/.llmctl-marketplace), not here. A plugin host (claude.ai Cowork, Claude Desktop/Code) clones the marketplace repo and reads each `packages[].source` path *as committed* — it never runs `apm install` — so any package carrying APM dependencies has to be published as a bundle with those skills already vendored into it. Keeping that generated output out of this repo is the point of the split; `apm pack` also refuses to write a manifest across a `..` boundary, which rules out generating it here.
-- **The marketplace repository holds nothing that is authored there.** Its `README.md`, `LICENSE`, `.gitignore` and `apm.yml` all have a source in this workspace — `README.marketplace.md`, `LICENSE.marketplace`, `.gitignore.marketplace`, `apm.marketplace.yml` — and [scripts/pack_marketplace.py](scripts/pack_marketplace.py) writes them out beside the bundles it packs, filling in each catalogue entry's `source` and `version`. Anything else it finds in that tree is **deleted**, so "everything there is generated" is enforced rather than asserted. Edit the sources here and regenerate; never edit the marketplace.
-- **A release publishes; it does not commit here.** [scripts/release.py](scripts/release.py) (or `apm run release`, which previews) derives each package's calendar version, packs from a scratch export of `HEAD`, commits and pushes the marketplace, and records the version as an annotated `<name>@<version>` tag plus the GitHub release beside it. Both roots are explicit flags with no defaults — `--repo` for the workspace being released and `--marketplace` for the repo it publishes into — because a derived marketplace path would silently publish into the wrong repo; [apm.yml](apm.yml) supplies them. **Packages version independently** (`per_package`); see [Releasing](#releasing).
-- **Content that cannot be public lives in a separate workspace, never in `packages/` here.** This repo and its marketplace are public. A private package gets its own private source repo and its own private marketplace, laid out identically but with no `scripts/` — it borrows this repo's release code by sibling clone and shares nothing else. `LICENSES/` and `dependency-licenses.yml` are read from the workspace being released, so a private repo carries its own copies rather than resolving against this one. See [Releasing another workspace](#releasing-another-workspace).
+- **The marketplace repository holds nothing that is authored there.** Its `README.md`, `LICENSE`, `.gitignore` and `apm.yml` all have a source in this workspace — `README.marketplace.md`, `LICENSE.marketplace`, `.gitignore.marketplace`, `apm.marketplace.yml` — and [`llmctl-pack-marketplace`](src/llmctl/pack_marketplace.py) writes them out beside the bundles it packs, filling in each catalogue entry's `source` and `version`. Anything else it finds in that tree is **deleted**, so "everything there is generated" is enforced rather than asserted. Edit the sources here and regenerate; never edit the marketplace.
+- **A release publishes; it does not commit here.** [`llmctl-release`](src/llmctl/release.py) (or `apm run release`, which previews) derives each package's calendar version, packs from a scratch export of `HEAD`, commits and pushes the marketplace, and records the version as an annotated `<name>@<version>` tag plus the GitHub release beside it. Both roots are explicit flags with no defaults — `--repo` for the workspace being released and `--marketplace` for the repo it publishes into — because a derived marketplace path would silently publish into the wrong repo; [apm.yml](apm.yml) supplies them. **Packages version independently** (`per_package`); see [Releasing](#releasing).
+- **Content that cannot be public lives in a separate workspace, never in `packages/` here.** This repo and its marketplace are public. A private package gets its own private source repo and its own private marketplace, laid out identically but holding none of this tooling — it runs this repo's commands from git and shares nothing else. `LICENSES/` and `dependency-licenses.yml` are read from the workspace being released, so a private repo carries its own copies rather than resolving against this one. See [Releasing another workspace](#releasing-another-workspace).
 - **The plugin path is reduced-fidelity; `apm install` remains the full deploy.** Treat **skills** and **commands** (prompts) as the only primitives you can rely on reaching a marketplace consumer. APM 0.26 does pack `agents/`, `instructions/`, and `.mcp.json` into the bundle, but whether a given host loads them is version-dependent and unverified — and packed MCP entries lose their `headers` (so an API-keyed server will not authenticate). Use `apm install` where those primitives matter. The marketplace also does not reach claude.ai Chat or hosted ChatGPT.
 
 ## Content Strategy: APM-First
@@ -144,7 +144,7 @@ A bare URL means **the whole file** derives from that upstream. Prefer the objec
 
 Absent means whole-file derivation, treated as `largely-derived`.
 
-`license` is the SPDX id of the **upstream**, not of this file — `NONE` when the upstream has no LICENSE file, which grants no rights at all and is only safe at `inspiration-only`. It is required wherever `fidelity` implies an obligation, because it decides what the local file may be licensed under. [scripts/check_licenses.py](scripts/check_licenses.py) enforces this; see [Licensing](#licensing) below.
+`license` is the SPDX id of the **upstream**, not of this file — `NONE` when the upstream has no LICENSE file, which grants no rights at all and is only safe at `inspiration-only`. It is required wherever `fidelity` implies an obligation, because it decides what the local file may be licensed under. [`llmctl-check-licenses`](src/llmctl/check_licenses.py) enforces this; see [Licensing](#licensing) below.
 
 `took` then records **what was taken**, and nothing else. Three rules keep it from rotting:
 
@@ -260,7 +260,7 @@ The last two are a pair: refreshing the guidance is what makes the files it gove
 
 A merge that pulls across more text than before raises the entry's `fidelity`, and a raised fidelity can attach upstream terms the local file's licence cannot carry. Update `fidelity` and `license` in the same edit as the merge, then run the gates.
 
-The audit parses provenance through the same [provenance.py](scripts/provenance.py) as the licence gate, so the two cannot disagree about what is tracked. GitHub authentication uses `gh auth token` by default; for CI or non-`gh` environments supply a fine-grained token with `Contents: Read-only` via `GITHUB_TOKEN`/`GH_TOKEN`, or `--github-token`.
+The audit parses provenance through the same [provenance.py](src/llmctl/provenance.py) as the licence gate, so the two cannot disagree about what is tracked. GitHub authentication uses `gh auth token` by default; for CI or non-`gh` environments supply a fine-grained token with `Contents: Read-only` via `GITHUB_TOKEN`/`GH_TOKEN`, or `--github-token`.
 
 ## Licensing
 
@@ -269,13 +269,13 @@ The audit parses provenance through the same [provenance.py](scripts/provenance.
 | What | Licence |
 | --- | --- |
 | Every `*.md` file — skills, agents, prompts, instructions, `references/`, repo docs | **CC-BY-SA-4.0** |
-| Everything else — `scripts/`, hooks, `*.py`, `*.ps1`, `*.json`, `*.yml` | **MIT** |
+| Everything else — `src/`, hooks, `*.py`, `*.ps1`, `*.json`, `*.yml` | **MIT** |
 
-Three rules follow from that, and [scripts/check_licenses.py](scripts/check_licenses.py) enforces all three:
+Three rules follow from that, and [`llmctl-check-licenses`](src/llmctl/check_licenses.py) enforces all three:
 
 - **The content half is copyleft.** Adapting a `*.md` file from here means releasing your adaptation under CC-BY-SA-4.0 too. That is deliberate.
 - **A file's provenance decides its licence.** Where `metadata.provenance` records an obligation-bearing `fidelity`, the upstream's `license` constrains what the local file may be licensed under: MIT upstream permits either default; CC-BY-SA-4.0 upstream forces CC-BY-SA-4.0; Apache-2.0 and GPL-3.0 upstreams force their own licence and need a per-file override; `NONE` permits nothing beyond `inspiration-only`. Declare an override with a **top-level `license:` field** in the file's frontmatter — that always wins over the table above.
-- **Attribution is generated, never hand-written.** `THIRD-PARTY-NOTICES.md` in the marketplace repo is produced by [scripts/gen_notices.py](scripts/gen_notices.py) from provenance metadata plus each bundle's `apm.lock.yaml`. Sources whose terms attach land under *Notices*; everything else, including `inspiration-only` sources and upstreams with no licence at all, is still credited under *Acknowledgements*.
+- **Attribution is generated, never hand-written.** `THIRD-PARTY-NOTICES.md` in the marketplace repo is produced by [`llmctl-gen-notices`](src/llmctl/gen_notices.py) from provenance metadata plus each bundle's `apm.lock.yaml`. Sources whose terms attach land under *Notices*; everything else, including `inspiration-only` sources and upstreams with no licence at all, is still credited under *Acknowledgements*.
 
 Adding a dependency or an adaptation from a **new** upstream means recording its licence in [dependency-licenses.yml](dependency-licenses.yml) or the entry's `license:` field. Run `apm run check` before opening a pull request.
 
@@ -288,13 +288,13 @@ Commits are **conventional**:
 ```
 
 - `type` — `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`. Append `!` before the colon for a breaking change (`refactor(core)!: …`).
-- `scope` — the package the change lands in: `core`, `design`, `meta`, `ops`, `product`, `workflow`. For anything outside `packages/`, use the area instead: `scripts`, `docs`, `ci`.
+- `scope` — the package the change lands in: `core`, `design`, `meta`, `ops`, `product`, `workflow`. For anything outside `packages/`, use the area instead: `tooling`, `docs`, `ci`.
 
 **The type sizes nothing.** Versions are calendar-derived, so `feat` and `fix` no longer mean "minor" and "patch"; they decide which heading a commit lands under in the generated release notes, and nothing else. That is worth keeping, so the convention is now *enforced* rather than merely read: the `commits` gate refuses a subject outside the type list, and refuses a scope that names nothing the commit touched.
 
-**Which package a commit releases is decided by the paths it touched, not by the scope.** Paths are what actually changed and cannot be mistyped. A scope is optional; when present it has to be one of the packages under `packages/` the commit touched, or an area outside it — `scripts`, `ci`, `meta`, `docs`, `repo`.
+**Which package a commit releases is decided by the paths it touched, not by the scope.** Paths are what actually changed and cannot be mistyped. A scope is optional; when present it has to be one of the packages under `packages/` the commit touched, or an area outside it — `tooling`, `ci`, `meta`, `docs`, `repo`.
 
-The gate lints a range, not all of history: CI passes the pull request's base (and its title), and a run with no range reports the gate skipped rather than inventing one. Locally: `uv run scripts/check.py --repo . --since origin/main`.
+The gate lints a range, not all of history: CI passes the pull request's base (and its title), and a run with no range reports the gate skipped rather than inventing one. Locally: `uv run llmctl-check --repo . --since origin/main`.
 
 **Prose for the release notes goes in the pull request body**, under a `## Release notes` heading. The release copies that section, and only that section, into the GitHub release of every package the pull request touched; ordinary review discussion in the same body stays out.
 
@@ -323,7 +323,7 @@ apm run release     # what a release would publish, and its notes. Writes nothin
 The real release runs in CI, on a push to `main`. To rehearse the whole thing locally against a throwaway clone of the marketplace:
 
 ```bash
-uv run scripts/release.py --repo . --marketplace ../scratch-marketplace --no-push
+uv run llmctl-release --repo . --marketplace ../scratch-marketplace --no-push
 ```
 
 `--package NAME --force` re-releases a package with no commits; `--package NAME --version 2026.9.7` releases it at an exact version, which must be unused and must sort above its last tag — the highest tag is the baseline, so a lower one would be invisible to the next run.
@@ -351,32 +351,32 @@ A lockfile moves only through `apm run update`, and always in the same commit as
 
 ### Releasing another workspace
 
-Nothing in these scripts is specific to this repo. A private sibling laid out the same way — its own `packages/`, `LICENSE`, `LICENSES/`, `dependency-licenses.yml` and `*.marketplace.*` sources, no `scripts/` — releases with this code by pointing the flags at it:
+Nothing in this tooling is specific to this repo. A private sibling laid out the same way — its own `packages/`, `LICENSE`, `LICENSES/`, `dependency-licenses.yml` and `*.marketplace.*` sources, none of this code — runs the same commands straight from this repository's git, with the flags pointed at itself:
 
 ```bash
-uv run ../.llmctl/scripts/release.py --repo . --marketplace ../<its-marketplace>
+uvx --from git+https://github.com/siegenthalerroger/.llmctl@main llmctl-release --repo . --marketplace ../<its-marketplace>
 ```
 
-Nothing is shared but the code. Licence texts, dependency records and marketplace sources are read from the workspace only, so a private repo's upstreams never resolve against this one's.
+`uvx` builds the project at that ref and runs the command, so nothing is cloned or installed by hand; the private workspace's `apm.yml` carries that one-liner for every command, and its workflows hand the same requirement to this repository's composite actions. Nothing is shared but the code. Licence texts, dependency records and marketplace sources are read from the workspace only, so a private repo's upstreams never resolve against this one's.
 
 ## Continuous Integration
 
-GitHub Actions runs the same entry points a contributor runs. The scripts declare their own dependencies in a PEP 723 header, so every step is `uv run` and nothing is installed first.
+GitHub Actions runs the same entry points a contributor runs. The tooling is a locked uv project, so here every step is `uv run --locked` and nothing is installed first; the private workspace runs the same commands through `uvx --from` a git ref.
 
 | Workflow | Trigger | What it runs | Locally |
 | --- | --- | --- | --- |
 | [checks.yml](.github/workflows/checks.yml) | pull request, manual | every gate | `apm run check` |
 | [release.yml](.github/workflows/release.yml) | push to `main`, manual | every gate, then the release | `apm run release` (previews) |
 
-**There is one gate set, and it lives in [check.py](scripts/check.py).** The marketplace-shaped gates pack into a scratch directory and validate that, so one checkout runs everything — the tooling's own lint, frontmatter conventions, the commit convention, licence obligations, lockfiles against their pins, and a full pack that every bundle must survive.
+**There is one gate set, and it lives in [check.py](src/llmctl/check.py).** The marketplace-shaped gates pack into a scratch directory and validate that, so one checkout runs everything — the tooling's own lint, frontmatter conventions, the commit convention, licence obligations, lockfiles against their pins, and a full pack that every bundle must survive.
 
 A push to `main` runs those same gates inside `release.yml`, immediately before publishing what they passed on, so `checks.yml` does not duplicate it.
 
 A gate declares what it needs, and the runner decides what a missing need means: no `--since` skips the commit gate and says so, a missing `claude` CLI skips bundle validation and says so, a missing `apm` fails the pack gate outright. Skipped is never silent and never green-by-omission.
 
-Both workflows here, and the private workspace's two, are thin: the shared steps live in composite actions under [.github/actions/](.github/actions/), referenced by path after the checkout. That needs no cross-repository Actions permission, which a reusable workflow between two private repos would.
+Both workflows here, and the private workspace's two, are thin: the shared steps live in composite actions under [.github/actions/](.github/actions/), referenced by path here and as `siegenthalerroger/.llmctl/.github/actions/<name>@main` from the private workspace. This repository is public, so that needs no checkout there and no cross-repository Actions permission.
 
-The private workspace holds no `scripts/` — it checks this repo out beside itself and runs its code and its actions, exactly as a sibling clone does locally. That checkout needs no secret and names no ref: this repository is public, so the workflow's own token reads it, and its default branch is what runs.
+The private workspace holds none of this code. Its workflows pass the actions a `tooling` requirement — `git+https://github.com/siegenthalerroger/.llmctl@main` — which they hand to `uvx --from`, exactly as its `apm.yml` does locally. No checkout, no secret and no pinned ref: the default branch is what runs, there as here.
 
 **One APM version, pinned in one place.** What a bundle contains depends on the packer that made it, so the gates have to pass on the version that will pack it: the pin is the `apm-version` default in [.github/actions/setup](.github/actions/setup/action.yml), and every workflow in both workspaces inherits it. Moving it is a commit, and the gates on that commit are the proof — not a scheduled run against whatever was newest that morning.
 

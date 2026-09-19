@@ -1,4 +1,4 @@
-"""The one GitHub API client the scripts share.
+"""The one GitHub API client the commands share.
 
 Three callers with different needs -- the drift audit reads commit dates, the
 notices verifier reads licences, the release writes releases -- and one token

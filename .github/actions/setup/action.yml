@@ -1,8 +1,6 @@
-# Used by this repo's workflows and by the private workspace's, which checks
-# this repo out beside itself and refers to this action by path. That is why it
-# is an action rather than a reusable workflow: a path reference needs no
-# cross-repository Actions permission, and the private workspace already has the
-# checkout it needs.
+# Used by this repo's workflows, by path, and by the private workspace's, which
+# names it as `siegenthalerroger/.llmctl/.github/actions/setup@main`: this
+# repository is public, so that needs no checkout and no permission.
 name: Set up uv and APM
 description: Install uv and the APM CLI, the two things every job here needs.
 
@@ -15,6 +13,15 @@ inputs:
       Moving the pin is a commit, and the gates on it are the proof.
     required: false
     default: "0.31.0"
+  cache-dependency-glob:
+    description: >-
+      What the uv cache is keyed on. The default is this project's own
+      resolution; a workspace that runs the tooling from git names the file
+      that says which ref, since it has no lockfile to name.
+    required: false
+    default: |
+      **/pyproject.toml
+      **/uv.lock
 
 outputs:
   apm-version:
@@ -30,9 +37,7 @@ runs:
       uses: astral-sh/setup-uv@v10.1.0
       with:
         enable-cache: true
-        # The scripts declare their own dependencies in a PEP 723 header, so
-        # this is the only cache key that matters.
-        cache-dependency-glob: ".llmctl/scripts/*.py"
+        cache-dependency-glob: ${{ inputs.cache-dependency-glob }}
 
     - name: Install the APM CLI
       id: apm

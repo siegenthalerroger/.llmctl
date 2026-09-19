@@ -1,16 +1,3 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.11"
-# dependencies = [
-#   "ruamel.yaml==0.19.1",
-#   "typer==0.27.2",
-#   "rich==15.0.0",
-#   "httpx==0.28.1",
-#   "python-frontmatter==1.3.0",
-# ]
-# [tool.uv]
-# exclude-newer = "2026-09-18T00:00:00Z"
-# ///
 """Check that every file's licence can carry the upstream terms it inherits.
 
 Per provenance entry: does the fidelity mean expression was copied, and if so can
@@ -27,8 +14,8 @@ from typing import NamedTuple
 
 import typer
 
-import provenance as prov
-import workspace
+from . import provenance as prov
+from . import workspace
 
 class Report(NamedTuple):
     """What one pass over the tree found. `errors` fail the gate; `warnings` do not."""
@@ -152,5 +139,5 @@ def main(repo: Path = workspace.REPO_OPTION,
     print("licences OK")
 
 
-if __name__ == "__main__":
+def cli() -> None:
     typer.run(main)

@@ -1,7 +1,6 @@
 """Which repo a script acts on, and the readers every script shares.
 
-`--repo` is the workspace being acted on and is never defaulted; the tooling
-checkout is derived from __file__. One copy of the package list, the pins in a
+`--repo` is the workspace being acted on and is never defaulted. One copy of the package list, the pins in a
 manifest and the commits a lockfile resolved them to, so the gates, the packer
 and the release cannot disagree. See CONTRIBUTING.md#releasing-another-workspace.
 """
@@ -18,12 +17,10 @@ import typer
 from ruamel.yaml import YAML
 
 __all__ = ["INSTALL_OUTPUT", "Log", "MARKETPLACE_OPTION", "Package",
-           "REPO_OPTION", "TOOLING", "WorkspaceError", "die", "diff_pins",
+           "REPO_OPTION", "WorkspaceError", "die", "diff_pins",
            "dirty", "fetch_tags", "git", "label", "locked_of", "packages",
            "pins_of", "read_lock", "read_yaml", "remote_slug", "select", "tag",
            "write_yaml", "yaml_rt"]
-
-TOOLING = Path(__file__).resolve().parent.parent
 
 # Where a command sends its running commentary. Every script that reports as it
 # works takes one of these rather than printing, so a caller can capture it.
@@ -53,11 +50,6 @@ MARKETPLACE_OPTION = typer.Option(
 # export and the update command cannot disagree about what is install output.
 INSTALL_OUTPUT = (".claude", ".agents", ".codex", ".github", "apm_modules",
                   ".mcp.json", ".gitignore")
-
-
-def script(*parts: str) -> Path:
-    """A path inside the tooling checkout, for spawning a sibling script."""
-    return TOOLING.joinpath(*parts)
 
 
 # --- YAML ------------------------------------------------------------------
