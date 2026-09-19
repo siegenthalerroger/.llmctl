@@ -305,3 +305,13 @@ microsoft.github.io:
   note: >-
     The APM documentation site. Published from microsoft/apm (MIT), but the
     rendered site carries no licence of its own - cite, never reproduce.
+
+github.com/apljacob/travel-agent:
+  spdx: CC-BY-NC-4.0
+  holder: "Copyright (c) 2026 Jacob Cassar"
+  license_url: https://github.com/apljacob/travel-agent/blob/main/LICENSE
+  note: >-
+    Source-available under CC BY-NC-4.0, whose NonCommercial term neither repo
+    default can carry. Taken at structural-echo only -- the phase sequence and
+    the day-entry / reservation-tracker skeletons -- so nothing attaches and the
+    local files stay CC-BY-SA-4.0. Its prose must not be carried across.

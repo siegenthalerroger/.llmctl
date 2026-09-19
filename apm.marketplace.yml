@@ -37,3 +37,6 @@ marketplace:
     - name: llmctl-python
       category: Development
       description: Python steering — source-authoring standards, single-file script discipline, and modern uv/ruff/ty project tooling.
+    - name: llmctl-travel
+      category: Productivity
+      description: Travel steering — destination timing checks against holidays and major events, trip planning, entry requirements, and itinerary authoring.
