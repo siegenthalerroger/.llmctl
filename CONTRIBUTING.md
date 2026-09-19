@@ -12,7 +12,7 @@
 | `packages/product` | Per-project (product) | PRD skills; product-manager + ux-expert agents | `apm install <repo>/packages/product` |
 | `packages/design` | Per-project (design) | `design-direction`, `colour`, `typography`, `presentation` skills; upstream layout/identity/dataviz practice | `apm install <repo>/packages/design` |
 | `packages/python` | Per-project (Python) | `python-standards` + `python-scripts` skills; python instructions; upstream `modern-python` project tooling | `apm install <repo>/packages/python` |
-| root `.apm/` | Repo-local only | `meta-updater` dispatcher + the `meta-update-repo` / `meta-update-models` / `meta-refresh-steering` / `meta-review-steering` procedures, frontmatter-validation hook | Deployed only when developing this repo |
+| root `.apm/` | Repo-local only | `meta-updater` dispatcher + the `meta-update-repo` / `meta-update-models` / `meta-refresh-steering` / `meta-review-steering`  procedures, the frontmatter-validation hook | Deployed only when developing this repo |
 
 ### Rules
 

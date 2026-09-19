@@ -15,6 +15,7 @@ from pathlib import Path
 
 import typer
 
+from . import check_frontmatter
 from . import check_licenses
 from . import commits as commitlib
 from . import gates as gatelib
@@ -22,9 +23,6 @@ from . import gen_notices
 from . import pack_marketplace
 from . import workspace
 from .gates import Context, Gate, Need, Outcome, fail, ok
-
-HOOK = "validate-customization-frontmatter.py"
-
 
 def sh(args: list[str], cwd: Path | str) -> subprocess.CompletedProcess:
     """errors="replace": these tools emit box-drawing and arrows, which the
@@ -70,28 +68,20 @@ def gate_tooling(ctx: Context) -> Outcome:
     return ok("; ".join(notes))
 
 
-def frontmatter_hook() -> Path:
-    """The hook file the gate runs: the source in this checkout when the
-    tooling runs from one, so an edit to it is what gets checked; otherwise
-    the copy the wheel carries beside this module (see pyproject.toml)."""
-    here = Path(__file__).resolve()
-    source = here.parents[2] / ".apm" / "hooks" / HOOK
-    return source if source.is_file() else here.parent / "hooks" / HOOK
-
-
 def gate_frontmatter(ctx: Context) -> Outcome:
-    """The edit-time hook's rules, applied to every file rather than one.
+    """The edit-time hook's rules, applied to the whole tree rather than one file.
 
-    Still a subprocess, deliberately: the hook is deployed on its own by APM
-    and runs under plain python3, so it stays stdlib and is not imported here.
+    The hook validates what a session just wrote; this validates everything,
+    including files no session has touched and rules added after they were
+    written. Same code either way -- the hook runs the same command.
     """
-    got = sh([sys.executable, str(frontmatter_hook()), "--repo", str(ctx.repo), "--all"],
-             ctx.repo)
-    lines = [line.strip() for line in (got.stdout + got.stderr).split("\n") if line.strip()]
-    if got.returncode == 0:
-        return ok(lines[-1].replace("[customization-frontmatter] ", "") if lines else "")
-    errors = [line for line in lines if "error:" in line]
-    return fail("; ".join(errors[:3])[:300], errors=errors)
+    report = check_frontmatter.check(ctx.repo)
+    if report.errors:
+        shown = ["%s: %s" % pair for pair in report.errors[:3]]
+        return fail("%d error(s): %s" % (len(report.errors), "; ".join(shown)[:250]),
+                    errors=[{"file": f, "message": m} for f, m in report.errors])
+    return ok(check_frontmatter.summary(report),
+              warnings=[{"file": f, "message": m} for f, m in report.warnings])
 
 
 def gate_commits(ctx: Context) -> Outcome:
