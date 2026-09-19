@@ -19,8 +19,24 @@ API_ROOT = "https://api.github.com"
 USER_AGENT = "llmctl-scripts"
 
 
+# The one status a caller branches on: it means this token may never do this,
+# however many times it is retried, which is a different thing from a request
+# the API rejected as malformed.
+FORBIDDEN = int(httpx.codes.FORBIDDEN)
+
+
 class ApiError(Exception):
-    pass
+    """A GitHub API call that failed, carrying the status it failed with.
+
+    The status is an attribute rather than something to read back out of the
+    message: telling "refused permanently" from "sent wrong" decides whether a
+    release run warns or fails, and matching on message text to decide that
+    would break the first time the wording changed.
+    """
+
+    def __init__(self, message: str, status: int | None = None) -> None:
+        super().__init__(message)
+        self.status = status
 
 
 def token(explicit: str = "") -> str:
@@ -112,7 +128,7 @@ class GitHub:
             )
         message = f"GitHub API returned {response.status_code} for {where}{hint}"
         return_detail = f" {detail}" if detail else ""
-        raise ApiError(f"{message}{return_detail}")
+        raise ApiError(f"{message}{return_detail}", response.status_code)
 
     def get(
         self,
