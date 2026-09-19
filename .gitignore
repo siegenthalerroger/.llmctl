@@ -35,14 +35,11 @@ __pycache__/
 !.github/workflows/
 !.github/actions/
 
-# Agents
+# Harness deploy output. Every file under these is written by `apm install`
+# from the sources in .apm/ and packages/, so none of it is authored and none
+# of it is committed -- a clone runs `apm install` and gets its own. That is
+# also why this repo's own PostToolUse hook only fires after that first
+# install: the wiring it lives in does not arrive with the checkout.
 .agents/*
-
-# Claude: Keep settings for global configs and apm-hooks as "lockfile-ish"
 .claude/*
-!.claude/settings.json
-!.claude/apm-hooks.json
-
-# Codex: Keep apm-hooks as "lockfile-ish"
 .codex/*
-!.codex/apm-hooks.json
