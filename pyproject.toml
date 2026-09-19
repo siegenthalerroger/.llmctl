@@ -44,3 +44,75 @@ build-backend = "uv_build"
 # Reproducible resolution without re-locking on every run: nothing newer than
 # this date is considered. Move it when the pins above move.
 exclude-newer = "2026-09-18T00:00:00Z"
+
+# Pinned like the runtime dependencies, and moved by the same procedure. These
+# never reach a workspace that installs from git -- a dependency group is not
+# wheel metadata -- so they hold only this checkout and CI to one linter.
+[dependency-groups]
+dev = [
+  "ruff==0.16.8",
+  "ty==0.0.82",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src"]
+
+# Curated families rather than `select = ["ALL"]`: every rule below is one this
+# code should hold to, so a finding is a defect and not a style opinion to
+# argue with in an ignore list.
+[tool.ruff.lint]
+select = [
+  "F",    # pyflakes -- what this gate checked before ruff replaced it
+  "E", "W",   # pycodestyle
+  "I",    # import order
+  "UP",   # pyupgrade: the floor is 3.11, so say so in the syntax
+  "B",    # bugbear
+  "C4",   # comprehensions
+  "SIM",  # simplifications
+  "PTH",  # pathlib over os.path -- a python-standards rule
+  "RET",  # returns: the early-return shape python-standards asks for
+  "ARG",  # unused arguments
+  "TID",  # tidy imports
+  "S",    # bandit
+  "PL",   # pylint
+  "RUF",  # ruff's own
+]
+ignore = [
+  # A command's arguments are its flags: typer builds the parser from the
+  # signature, so the count and the `= Option(...)` defaults are the API.
+  # Only the `main()` of each entry module trips these; the library functions
+  # behind them are keyword-only past their second argument.
+  "PLR0913",  # too-many-arguments
+  "PLR0917",  # too-many-positional-arguments
+  "B008",     # function-call-in-default-argument
+  # Every subprocess call here passes a literal list; none is built from input.
+  # The tools are looked up on PATH on purpose, so a workspace can run its own.
+  "S603",     # subprocess-without-shell-equals-true
+  "S607",     # start-process-with-partial-path
+  # `except Exception` is the contract in two places: a gate must not take the
+  # run down, and a hook must not block an edit. Both re-report what they caught.
+  "BLE001",   # blind-except
+]
+
+[tool.ruff.lint.pylint]
+# A status classifier returns one row per outcome, and `check_updates` has
+# seven. Naming the outcome in a variable to return it once at the bottom hides
+# exactly what the function is for.
+max-returns = 8
+
+[tool.ruff.lint.per-file-ignores]
+# The runner turns any exception into a failed gate, so the gates deliberately
+# assert nothing and let the caller see the message.
+"src/llmctl/gates.py" = ["S110"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
+
+[tool.ty.environment]
+# The package lives under src/, so that is the first-party root ty resolves
+# `llmctl.*` against -- not the project directory the checkout sits in.
+root = ["./src"]

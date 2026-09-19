@@ -11,12 +11,14 @@ reason clears the flag without anyone having re-read it. So the gap commits are
 printed rather than counted: one look at their subjects usually settles it.
 Deciding what the gap means is the `meta-review-steering` skill's job.
 """
+
 from __future__ import annotations
 
 import json
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import NamedTuple, Sequence
+from typing import NamedTuple
 
 import typer
 
@@ -33,43 +35,72 @@ STEERING = "packages/core/.apm/skills/meta-steering"
 HARNESS = "packages/core/.apm/skills/meta-harness"
 
 GOVERNED: tuple[tuple[str, str, tuple[str, ...]], ...] = (
-    ("SKILL.md", "skill", (
-        "%s/SKILL.md" % STEERING,
-        "%s/references/skills.md" % STEERING,
-        "%s/references/skill-body.md" % STEERING,
-        "%s/references/skill-frontmatter.md" % STEERING,
-        "%s/references/skill-spec.md" % STEERING,
-        "%s/references/skill-structure.md" % STEERING,
-    )),
-    ("*.agent.md", "agent", (
-        "%s/SKILL.md" % STEERING,
-        "%s/references/agents.md" % STEERING,
-        "%s/references/agent-frontmatter.md" % STEERING,
-        "%s/references/agent-handoff.md" % STEERING,
-        "%s/references/agent-patterns.md" % STEERING,
-        "%s/references/agent-subagent.md" % STEERING,
-        "%s/references/agent-tools.md" % STEERING,
-    )),
-    ("*.instructions.md", "instructions", (
-        "%s/SKILL.md" % STEERING,
-        "%s/references/instructions.md" % STEERING,
-        "%s/references/instruction-bootstrapping.md" % STEERING,
-    )),
-    ("*.prompt.md", "prompt", (
-        "%s/SKILL.md" % STEERING,
-        "%s/references/prompts.md" % STEERING,
-    )),
-    ("*.hook.json", "hook", (
-        "%s/SKILL.md" % HARNESS,
-        "%s/references/hooks.md" % HARNESS,
-    )),
+    (
+        "SKILL.md",
+        "skill",
+        (
+            f"{STEERING}/SKILL.md",
+            f"{STEERING}/references/skills.md",
+            f"{STEERING}/references/skill-body.md",
+            f"{STEERING}/references/skill-frontmatter.md",
+            f"{STEERING}/references/skill-spec.md",
+            f"{STEERING}/references/skill-structure.md",
+        ),
+    ),
+    (
+        "*.agent.md",
+        "agent",
+        (
+            f"{STEERING}/SKILL.md",
+            f"{STEERING}/references/agents.md",
+            f"{STEERING}/references/agent-frontmatter.md",
+            f"{STEERING}/references/agent-handoff.md",
+            f"{STEERING}/references/agent-patterns.md",
+            f"{STEERING}/references/agent-subagent.md",
+            f"{STEERING}/references/agent-tools.md",
+        ),
+    ),
+    (
+        "*.instructions.md",
+        "instructions",
+        (
+            f"{STEERING}/SKILL.md",
+            f"{STEERING}/references/instructions.md",
+            f"{STEERING}/references/instruction-bootstrapping.md",
+        ),
+    ),
+    (
+        "*.prompt.md",
+        "prompt",
+        (
+            f"{STEERING}/SKILL.md",
+            f"{STEERING}/references/prompts.md",
+        ),
+    ),
+    (
+        "*.hook.json",
+        "hook",
+        (
+            f"{HARNESS}/SKILL.md",
+            f"{HARNESS}/references/hooks.md",
+        ),
+    ),
 )
 
 # Where authored steering lives. `apm_modules/` is somebody else's content and
 # the deploy mirrors are copies, so neither is ours to hold to this standard.
 ROOTS = ("packages", ".apm")
-SKIP_DIRS = {".git", "apm_modules", "build", "node_modules", "__pycache__",
-             ".claude", ".agents", ".codex", "LICENSES"}
+SKIP_DIRS = {
+    ".git",
+    "apm_modules",
+    "build",
+    "node_modules",
+    "__pycache__",
+    ".claude",
+    ".agents",
+    ".codex",
+    "LICENSES",
+}
 
 # `apm.yml` is deliberately absent, though meta-harness governs its MCP block:
 # a manifest's newest commit is nearly always a pin bump, so measuring it here
@@ -115,8 +146,7 @@ def unseen(repo: Path, paths: Sequence[str], seen: str) -> tuple[str, ...]:
     """
     if not seen:
         return ()
-    out = git(["log", "--format=%h %s", "HEAD", "--not", seen, "--", *paths],
-              repo, check=False)
+    out = git(["log", "--format=%h %s", "HEAD", "--not", seen, "--", *paths], repo, check=False)
     return tuple(line for line in out.split("\n") if line.strip())
 
 
@@ -131,8 +161,11 @@ def governed_files(repo: Path) -> list[tuple[Path, str, tuple[str, ...]]]:
             if not path.is_file() or SKIP_DIRS & set(path.parts):
                 continue
             for pattern, kind, guidance in GOVERNED:
-                matches = (path.name == pattern if pattern == "SKILL.md"
-                           else path.name.endswith(pattern.lstrip("*")))
+                matches = (
+                    path.name == pattern
+                    if pattern == "SKILL.md"
+                    else path.name.endswith(pattern.lstrip("*"))
+                )
                 if matches:
                     found.append((path, kind, guidance))
                     break
@@ -146,8 +179,7 @@ def review(repo: Path, include: str = "") -> list[Row]:
     for path, kind, guidance in governed_files(repo):
         rel = path.relative_to(repo).as_posix()
         # The guidance cannot be measured against itself.
-        if any(rel == g or rel.startswith(g.rsplit("/", 1)[0] + "/")
-               for g in guidance):
+        if any(rel == g or rel.startswith(g.rsplit("/", 1)[0] + "/") for g in guidance):
             continue
         if include and include not in rel:
             continue
@@ -165,37 +197,58 @@ def report(rows: Sequence[Row], out=sys.stdout) -> None:
     for row in rows:
         if row.status == "current":
             continue
-        print("[%s] %-58s %s" % (row.status, row.path, row.stamp.date[:10]), file=out)
+        print(f"[{row.status}] {row.path:<58} {row.stamp.date[:10]}", file=out)
         for line in row.gap:
-            print("           guidance: %s" % line, file=out)
-    print("\n%d file(s): %d behind, %d current, %d uncommitted"
-          % (len(rows), len(behind),
-             sum(1 for r in rows if r.status == "current"),
-             sum(1 for r in rows if r.status == "uncommitted")), file=out)
+            print(f"           guidance: {line}", file=out)
+    current = sum(1 for r in rows if r.status == "current")
+    uncommitted = sum(1 for r in rows if r.status == "uncommitted")
+    print(
+        f"\n{len(rows)} file(s): {len(behind)} behind, {current} current, "
+        f"{uncommitted} uncommitted",
+        file=out,
+    )
     if behind:
-        print("A commit says the guidance moved, not that this file is wrong. Read "
-              "the gap commits above:\nif none of them changed a rule this file has "
-              "to follow, there is nothing to do.", file=out)
+        print(
+            "A commit says the guidance moved, not that this file is wrong. Read "
+            "the gap commits above:\nif none of them changed a rule this file has "
+            "to follow, there is nothing to do.",
+            file=out,
+        )
 
 
-def main(repo: Path = workspace.REPO_OPTION,
-         include: str = typer.Option("", "--include", metavar="TEXT",
-                                     help="Only paths containing this text."),
-         json_out: bool = typer.Option(False, "--json",
-                                       help="Machine-readable output on stdout.")) -> None:
+def main(
+    repo: Path = workspace.REPO_OPTION,
+    include: str = typer.Option(
+        "", "--include", metavar="TEXT", help="Only paths containing this text."
+    ),
+    json_out: bool = typer.Option(False, "--json", help="Machine-readable output on stdout."),
+) -> None:
     """Show which steering files predate the guidance that governs them."""
     try:
         rows = review(repo.resolve(), include)
     except WorkspaceError as exc:
-        raise workspace.die(exc)
+        raise workspace.die(exc) from None
 
     if json_out:
-        json.dump({"files": [{"path": r.path, "kind": r.kind, "status": r.status,
-                              "last_commit": r.stamp.sha[:7], "last_date": r.stamp.date,
-                              "guidance_commit": r.guidance.sha[:7],
-                              "guidance_date": r.guidance.date,
-                              "gap": list(r.gap)} for r in rows]},
-                  sys.stdout, indent=2)
+        json.dump(
+            {
+                "files": [
+                    {
+                        "path": r.path,
+                        "kind": r.kind,
+                        "status": r.status,
+                        "last_commit": r.stamp.sha[:7],
+                        "last_date": r.stamp.date,
+                        "guidance_commit": r.guidance.sha[:7],
+                        "guidance_date": r.guidance.date,
+                        "gap": list(r.gap),
+                    }
+                    for r in rows
+                ]
+            },
+            sys.stdout,
+            indent=2,
+        )
         print()
         return
     report(rows)

@@ -5,11 +5,13 @@ notices verifier reads licences, the release writes releases -- and one token
 rule, one error type, and one place a rate-limit 403 is explained.
 Authentication: an explicit token, then GITHUB_TOKEN, GH_TOKEN, `gh auth token`.
 """
+
 from __future__ import annotations
 
+import contextlib
 import os
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -24,12 +26,11 @@ class ApiError(Exception):
 
 def token(explicit: str = "") -> str:
     """Explicit flag, then the env vars, then whatever `gh` is logged in as."""
-    for candidate in (explicit, os.environ.get("GITHUB_TOKEN"),
-                      os.environ.get("GH_TOKEN")):
+    for candidate in (explicit, os.environ.get("GITHUB_TOKEN"), os.environ.get("GH_TOKEN")):
         if candidate and candidate.strip():
             return candidate.strip()
     try:
-        got = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True)
+        got = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True, check=False)
     except OSError:
         return ""
     return got.stdout.strip() if got.returncode == 0 else ""
@@ -44,7 +45,7 @@ def parse_date(value: str) -> datetime:
         text = text[:-1] + "+00:00"
     parsed = datetime.fromisoformat(text)
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
+        parsed = parsed.replace(tzinfo=UTC)
     return parsed
 
 
@@ -53,36 +54,44 @@ def iso(value: str) -> str:
 
 
 class GitHub:
-    def __init__(self, auth: str = "", base_url: str = API_ROOT,
-                 timeout: float = 30.0) -> None:
+    def __init__(self, auth: str = "", base_url: str = API_ROOT, timeout: float = 30.0) -> None:
         headers = {
             "User-Agent": USER_AGENT,
             "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28",
         }
         if auth:
-            headers["Authorization"] = "Bearer %s" % auth
+            headers["Authorization"] = f"Bearer {auth}"
         self.authenticated = bool(auth)
-        self.client = httpx.Client(base_url=base_url, headers=headers,
-                                   timeout=timeout, follow_redirects=True)
+        self.client = httpx.Client(
+            base_url=base_url, headers=headers, timeout=timeout, follow_redirects=True
+        )
 
     # -- transport ------------------------------------------------------
 
     def _raise(self, response: httpx.Response) -> None:
-        if response.status_code == 403:
+        if response.status_code == httpx.codes.FORBIDDEN:
             if not self.authenticated:
                 raise ApiError(
                     "GitHub API returned 403 (likely the unauthenticated rate "
                     "limit). Run 'gh auth login', set GITHUB_TOKEN/GH_TOKEN, or "
-                    "pass --github-token.")
-            raise ApiError("GitHub API returned 403 with authentication. Verify "
-                           "the token's validity/scopes or wait for the rate "
-                           "limit to reset.")
-        raise ApiError("GitHub API returned %d for %s"
-                       % (response.status_code, response.request.url))
+                    "pass --github-token."
+                )
+            raise ApiError(
+                "GitHub API returned 403 with authentication. Verify "
+                "the token's validity/scopes or wait for the rate "
+                "limit to reset."
+            )
+        raise ApiError(f"GitHub API returned {response.status_code} for {response.request.url}")
 
-    def get(self, endpoint: str, *, ok_404: bool = False,
-            missing: tuple[int, ...] = (404,), **params: Any) -> Any:
+    def get(
+        self,
+        endpoint: str,
+        *,
+        ok_404: bool = False,
+        missing: tuple[int, ...] = (404,),
+        **params: Any,
+    ) -> Any:
         """GET `endpoint` with `params` as the query string.
 
         The endpoint is not called `path` because `path` is itself a GitHub
@@ -90,14 +99,14 @@ class GitHub:
         "multiple values for argument" instead of filtering by path.
         """
         try:
-            response = self.client.get(endpoint,
-                                       params={k: v for k, v in params.items()
-                                               if v not in (None, "")})
+            response = self.client.get(
+                endpoint, params={k: v for k, v in params.items() if v not in (None, "")}
+            )
         except httpx.HTTPError as exc:
-            raise ApiError("GitHub API request failed: %s" % exc)
+            raise ApiError(f"GitHub API request failed: {exc}") from exc
         if ok_404 and response.status_code in missing:
             return None
-        if response.status_code >= 400:
+        if response.status_code >= httpx.codes.BAD_REQUEST:
             self._raise(response)
         return response.json()
 
@@ -105,55 +114,80 @@ class GitHub:
         try:
             response = self.client.post(endpoint, json=payload)
         except httpx.HTTPError as exc:
-            raise ApiError("GitHub API request failed: %s" % exc)
-        if response.status_code >= 400:
+            raise ApiError(f"GitHub API request failed: {exc}") from exc
+        if response.status_code >= httpx.codes.BAD_REQUEST:
             detail = ""
-            try:
+            with contextlib.suppress(ValueError):
                 detail = response.json().get("message", "")
-            except ValueError:
-                pass
-            raise ApiError("GitHub API returned %d for POST %s%s"
-                           % (response.status_code, endpoint,
-                              (": " + detail) if detail else ""))
+            suffix = f": {detail}" if detail else ""
+            raise ApiError(
+                f"GitHub API returned {response.status_code} for POST {endpoint}{suffix}"
+            )
         return response.json()
 
     # -- commits and content -------------------------------------------
 
-    def commits(self, owner: str, repo: str, path: str = "", ref: str = "",
-                per_page: int = 1, since: datetime | None = None) -> list[dict]:
+    def commits(
+        self,
+        owner: str,
+        repo: str,
+        *,
+        path: str = "",
+        ref: str = "",
+        per_page: int = 1,
+        since: datetime | None = None,
+    ) -> list[dict]:
         """`/commits` with the valueless parameters omitted: sending `sha=`
         empty is not the same as omitting it -- omitting it is what makes the
         API use the repository's default branch."""
-        payload = self.get("/repos/%s/%s/commits" % (owner, repo), path=path,
-                           sha=ref, per_page=per_page,
-                           since=since.astimezone(timezone.utc).isoformat()
-                           if since else None)
+        payload = self.get(
+            f"/repos/{owner}/{repo}/commits",
+            path=path,
+            sha=ref,
+            per_page=per_page,
+            since=since.astimezone(UTC).isoformat() if since else None,
+        )
         return payload if isinstance(payload, list) else ([payload] if payload else [])
 
     def latest_commit(self, owner: str, repo: str, path: str = "", ref: str = "") -> dict:
-        commits = self.commits(owner, repo, path, ref, per_page=1)
+        commits = self.commits(owner, repo, path=path, ref=ref, per_page=1)
         if not commits or not commits[0].get("sha"):
-            raise ApiError("No upstream commits found for '%s/%s' at ref '%s' and "
-                           "path '%s'." % (owner, repo, ref, path))
+            raise ApiError(
+                f"No upstream commits found for '{owner}/{repo}' at ref '{ref}' and path '{path}'."
+            )
         head = commits[0]
-        return {"commitSha": str(head["sha"]),
-                "commitDate": iso(head["commit"]["committer"]["date"])}
+        return {
+            "commitSha": str(head["sha"]),
+            "commitDate": iso(head["commit"]["committer"]["date"]),
+        }
 
-    def commit_rows(self, owner: str, repo: str, path: str, ref: str,
-                    max_commits: int, since: datetime | None = None) -> list[dict]:
+    def commit_rows(
+        self,
+        owner: str,
+        repo: str,
+        *,
+        path: str,
+        ref: str,
+        max_commits: int,
+        since: datetime | None = None,
+    ) -> list[dict]:
         rows = []
-        for commit in self.commits(owner, repo, path, ref, max_commits, since):
+        for commit in self.commits(
+            owner, repo, path=path, ref=ref, per_page=max_commits, since=since
+        ):
             sha = str(commit.get("sha") or "")
             if not sha:
                 continue
-            rows.append({
-                "sha": sha,
-                "shortSha": sha[:10],
-                "date": iso(commit["commit"]["committer"]["date"]),
-                "author": str(commit["commit"]["author"]["name"]),
-                "message": str(commit["commit"]["message"]).split("\n", 1)[0].rstrip("\r"),
-                "url": str(commit.get("html_url") or ""),
-            })
+            rows.append(
+                {
+                    "sha": sha,
+                    "shortSha": sha[:10],
+                    "date": iso(commit["commit"]["committer"]["date"]),
+                    "author": str(commit["commit"]["author"]["name"]),
+                    "message": str(commit["commit"]["message"]).split("\n", 1)[0].rstrip("\r"),
+                    "url": str(commit.get("html_url") or ""),
+                }
+            )
         return rows
 
     def path_exists(self, owner: str, repo: str, path: str, ref: str = "") -> bool:
@@ -164,11 +198,10 @@ class GitHub:
         """
         if not path:
             return True
-        return self.get("/repos/%s/%s/contents/%s" % (owner, repo, path),
-                        ok_404=True, ref=ref) is not None
+        return self.get(f"/repos/{owner}/{repo}/contents/{path}", ok_404=True, ref=ref) is not None
 
     def compare(self, owner: str, repo: str, base: str, head: str) -> dict:
-        return self.get("/repos/%s/%s/compare/%s...%s" % (owner, repo, base, head))
+        return self.get(f"/repos/{owner}/{repo}/compare/{base}...{head}")
 
     def pulls_for_commit(self, owner: str, repo: str, sha: str) -> list[dict]:
         """The pull requests a commit arrived through, or [].
@@ -178,8 +211,9 @@ class GitHub:
         locally before the branch is pushed. Neither is an error worth printing
         -- a commit with no pull request is the ordinary case.
         """
-        payload = self.get("/repos/%s/%s/commits/%s/pulls" % (owner, repo, sha),
-                           ok_404=True, missing=(404, 422))
+        payload = self.get(
+            f"/repos/{owner}/{repo}/commits/{sha}/pulls", ok_404=True, missing=(404, 422)
+        )
         return payload or []
 
     # -- releases and metadata ------------------------------------------
@@ -192,18 +226,25 @@ class GitHub:
         Asking first is what lets the next run finish the job instead of
         reporting nothing to do.
         """
-        return self.get("/repos/%s/%s/releases/tags/%s" % (owner, repo, tag),
-                        ok_404=True)
+        return self.get(f"/repos/{owner}/{repo}/releases/tags/{tag}", ok_404=True)
 
-    def create_release(self, owner: str, repo: str, tag: str, name: str,
-                       body: str, target: str) -> dict:
-        return self.post("/repos/%s/%s/releases" % (owner, repo), {
-            "tag_name": tag, "name": name, "body": body,
-            "target_commitish": target, "draft": False, "prerelease": False,
-        })
+    def create_release(
+        self, owner: str, repo: str, *, tag: str, name: str, body: str, target: str
+    ) -> dict:
+        return self.post(
+            f"/repos/{owner}/{repo}/releases",
+            {
+                "tag_name": tag,
+                "name": name,
+                "body": body,
+                "target_commitish": target,
+                "draft": False,
+                "prerelease": False,
+            },
+        )
 
     def repo_license(self, owner: str, repo: str) -> str:
         """The SPDX id GitHub detects for a repository, or NONE."""
-        payload = self.get("/repos/%s/%s" % (owner, repo))
+        payload = self.get(f"/repos/{owner}/{repo}")
         info = (payload or {}).get("license") or {}
         return str(info.get("spdx_id") or "NONE")

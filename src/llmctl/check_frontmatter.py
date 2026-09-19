@@ -14,14 +14,16 @@ self-correct; every other mode exits 1, like the rest of the gates.
 The authoring rationale behind each rule belongs to the meta-steering skill,
 which owns all four of the file kinds validated here.
 """
+
 from __future__ import annotations
 
 import json
 import os
 import re
 import sys
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator, Literal, NamedTuple
+from typing import Literal, NamedTuple
 
 import typer
 
@@ -40,6 +42,7 @@ KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 # combined `description` + `when_to_use` discovery entry past 1536 characters;
 # Anthropic's authoritative SKILL.md ceiling is under 500 lines (and <5000
 # tokens).
+NAME_MAX = 64
 DESC_MAX = 1024
 DISCOVERY_MAX = 1536
 SKILL_LINE_CEILING = 500
@@ -55,7 +58,7 @@ class Report(NamedTuple):
 
 def kind_of(path: str | Path) -> Kind | None:
     """Which of the four primitive-defining types a path is, if any."""
-    name = os.path.basename(str(path))
+    name = Path(path).name
     if name == "SKILL.md":
         return "skill"
     if name.endswith(".agent.md"):
@@ -93,7 +96,7 @@ def extract(text: str) -> str | None:
 
 def field_raw(frontmatter: str, key: str) -> str | None:
     """The unstripped remainder of a top-level field's line. None if absent."""
-    found = re.search(r"(?m)^%s:\s*(.*)$" % re.escape(key), frontmatter)
+    found = re.search(rf"(?m)^{re.escape(key)}:\s*(.*)$", frontmatter)
     return found.group(1) if found else None
 
 
@@ -105,7 +108,7 @@ def field(frontmatter: str, key: str) -> str | None:
     value = raw.strip()
     if value == "" or value in ("|", ">", "|-", ">-"):
         return "" if value == "" else "<block>"
-    if value[:1] in ("\"", "'") and value.endswith(value[:1]) and len(value) > 1:
+    if value[:1] in ('"', "'") and value.endswith(value[:1]) and len(value) > 1:
         value = value[1:-1]
     return value
 
@@ -117,14 +120,76 @@ def is_multiline(raw: str | None) -> bool:
     value = raw.strip()
     if value[:1] in ("|", ">"):
         return True
-    if value[:1] in ("\"", "'"):
+    if value[:1] in ('"', "'"):
         return not (len(value) > 1 and value.endswith(value[0]))
     return False
 
 
 def reserved_hits(value: str) -> list[str]:
     low = value.lower()
-    return [word for word in RESERVED if re.search(r"\b%s\b" % word, low)]
+    return [word for word in RESERVED if re.search(rf"\b{word}\b", low)]
+
+
+def skill_name_rules(path: str | Path, name: str) -> list[str]:
+    """A skill is addressed by its directory, so its `name` is not free text."""
+    errors = []
+    parent = Path(path).resolve().parent.name
+    if name != parent:
+        errors.append(f"skill `name` ('{name}') must match its parent directory ('{parent}')")
+    if len(name) > NAME_MAX:
+        errors.append(f"skill `name` exceeds {NAME_MAX} characters")
+    if not KEBAB.match(name):
+        errors.append(
+            "skill `name` must be lowercase letters/numbers/hyphens, "
+            "no leading/trailing or doubled hyphens"
+        )
+    return errors
+
+
+def skill_budget_rules(frontmatter: str, description: str | None, text: str) -> list[str]:
+    """The two discovery budgets a skill has to fit inside."""
+    warnings = []
+    when_to_use = field(frontmatter, "when_to_use")
+    if description and when_to_use and when_to_use != "<block>":
+        combined = len(description) + len(when_to_use)
+        if combined > DISCOVERY_MAX:
+            warnings.append(
+                f"`description` + `when_to_use` is {combined} characters; Claude Code "
+                f"truncates the discovery entry at {DISCOVERY_MAX} -- trim it, or move "
+                f"the detail into the body"
+            )
+    lines = text.count("\n") + 1
+    if lines > SKILL_LINE_CEILING:
+        warnings.append(
+            f"SKILL.md is {lines} lines; the upstream ceiling is under "
+            f"{SKILL_LINE_CEILING} lines (and <5000 tokens) -- split detail into "
+            f"references/ (house style targets ~200)"
+        )
+    return warnings
+
+
+def description_rules(
+    frontmatter: str, description: str | None, kind: Kind
+) -> tuple[list[str], list[str], bool]:
+    """(errors, warnings, multiline) for the one field discovery runs off."""
+    errors: list[str] = []
+    warnings: list[str] = []
+    # A multi-line or block `description` is valid YAML that some skill loaders
+    # (Claude Code among them) silently drop, leaving the skill undiscoverable.
+    multiline = is_multiline(field_raw(frontmatter, "description"))
+    if multiline:
+        warnings.append(
+            "`description` spans multiple lines or uses a block scalar "
+            "(`|`/`>`); keep it on a single line -- some loaders silently "
+            "ignore multi-line descriptions"
+        )
+    elif description and kind == "skill" and len(description) > DESC_MAX:
+        # Length only means anything for a value that parsed in full.
+        errors.append(
+            f"skill `description` is {len(description)} characters; the "
+            f"agentskills.io limit is {DESC_MAX}"
+        )
+    return errors, warnings, multiline
 
 
 def validate(path: str | Path, kind: Kind, text: str) -> tuple[list[str], list[str]]:
@@ -143,56 +208,27 @@ def validate(path: str | Path, kind: Kind, text: str) -> tuple[list[str], list[s
         errors.append("frontmatter is missing a non-empty `name`")
     if not description:
         errors.append("frontmatter is missing a non-empty `description`")
-
     if kind == "skill" and name:
-        parent = os.path.basename(os.path.dirname(os.path.abspath(str(path))))
-        if name != parent:
-            errors.append("skill `name` ('%s') must match its parent directory ('%s')"
-                          % (name, parent))
-        if len(name) > 64:
-            errors.append("skill `name` exceeds 64 characters")
-        if not KEBAB.match(name):
-            errors.append("skill `name` must be lowercase letters/numbers/hyphens, "
-                          "no leading/trailing or doubled hyphens")
+        errors.extend(skill_name_rules(path, name))
 
     for label, value in (("name", name), ("description", description)):
         hits = reserved_hits(value) if value else []
         if hits:
-            errors.append("`%s` contains reserved word(s): %s" % (label, ", ".join(hits)))
+            errors.append("`{}` contains reserved word(s): {}".format(label, ", ".join(hits)))
 
-    # A multi-line or block `description` is valid YAML that some skill loaders
-    # (Claude Code among them) silently drop, leaving the skill undiscoverable.
-    multiline = is_multiline(field_raw(frontmatter, "description"))
-    if multiline:
-        warnings.append("`description` spans multiple lines or uses a block scalar "
-                        "(`|`/`>`); keep it on a single line -- some loaders silently "
-                        "ignore multi-line descriptions")
-    elif description and kind == "skill" and len(description) > DESC_MAX:
-        # Length only means anything for a value that parsed in full.
-        errors.append("skill `description` is %d characters; the agentskills.io limit "
-                      "is %d" % (len(description), DESC_MAX))
+    found, noted, multiline = description_rules(frontmatter, description, kind)
+    errors.extend(found)
+    warnings.extend(noted)
 
     if kind == "skill":
-        when_to_use = field(frontmatter, "when_to_use")
-        if not multiline and description and when_to_use and when_to_use != "<block>":
-            combined = len(description) + len(when_to_use)
-            if combined > DISCOVERY_MAX:
-                warnings.append("`description` + `when_to_use` is %d characters; Claude "
-                                "Code truncates the discovery entry at %d -- trim it, or "
-                                "move the detail into the body" % (combined, DISCOVERY_MAX))
-        lines = text.count("\n") + 1
-        if lines > SKILL_LINE_CEILING:
-            warnings.append("SKILL.md is %d lines; the upstream ceiling is under %d lines "
-                            "(and <5000 tokens) -- split detail into references/ (house "
-                            "style targets ~200)" % (lines, SKILL_LINE_CEILING))
+        if not multiline:
+            warnings.extend(skill_budget_rules(frontmatter, description, text))
     else:
         # A skill is identified by its directory, so only the other three are
         # named by their file.
-        stem = re.sub(r"\.(agent|instructions|prompt)\.md$", "",
-                      os.path.basename(str(path)))
+        stem = re.sub(r"\.(agent|instructions|prompt)\.md$", "", Path(path).name)
         if not KEBAB.match(stem):
-            warnings.append("filename stem '%s' is not kebab-case (lowercase + hyphens)"
-                            % stem)
+            warnings.append(f"filename stem '{stem}' is not kebab-case (lowercase + hyphens)")
 
     return errors, warnings
 
@@ -201,7 +237,7 @@ def check(root: str | Path, paths: Iterator[str] | list[str] | None = None) -> R
     """Validate a whole workspace, or the paths given. check.py imports this."""
     root = Path(root)
     report = Report([], [], [])
-    for path in (discover(root) if paths is None else paths):
+    for path in discover(root) if paths is None else paths:
         kind = kind_of(path)
         if not kind:
             continue
@@ -219,7 +255,7 @@ def check(root: str | Path, paths: Iterator[str] | list[str] | None = None) -> R
 
 
 def summary(report: Report) -> str:
-    return "checked %d file(s)" % len(report.files)
+    return f"checked {len(report.files)} file(s)"
 
 
 def display_path(path: str, root: Path) -> str:
@@ -254,27 +290,33 @@ def run_hook(root: Path) -> int:
     rel = display_path(path, root)
 
     for warning in warnings:
-        print("[customization-frontmatter] warning: %s: %s" % (rel, warning),
-              file=sys.stderr)
+        print(f"[customization-frontmatter] warning: {rel}: {warning}", file=sys.stderr)
     if not errors:
         return 0
 
-    print("[customization-frontmatter] %s has frontmatter errors that must be fixed "
-          "(see the meta-steering skill):" % rel, file=sys.stderr)
+    print(
+        f"[customization-frontmatter] {rel} has frontmatter errors that must be fixed "
+        "(see the meta-steering skill):",
+        file=sys.stderr,
+    )
     for error in errors:
-        print("  - %s" % error, file=sys.stderr)
+        print(f"  - {error}", file=sys.stderr)
     # The PostToolUse contract: 2 is what feeds stderr back to the agent.
     return 2
 
 
-def main(repo: Path = workspace.REPO_OPTION,
-         files: list[Path] = typer.Argument(None, metavar="[FILE]...",
-                                            help="Validate these files instead of the tree."),
-         hook: bool = typer.Option(False, "--hook",
-                                   help="Read a PostToolUse event on stdin and validate "
-                                        "the file it names. Exits 2 on errors."),
-         json_out: bool = typer.Option(False, "--json",
-                                       help="Machine-readable output on stdout.")) -> None:
+def main(
+    repo: Path = workspace.REPO_OPTION,
+    files: list[Path] = typer.Argument(
+        None, metavar="[FILE]...", help="Validate these files instead of the tree."
+    ),
+    hook: bool = typer.Option(
+        False,
+        "--hook",
+        help="Read a PostToolUse event on stdin and validate the file it names. Exits 2 on errors.",
+    ),
+    json_out: bool = typer.Option(False, "--json", help="Machine-readable output on stdout."),
+) -> None:
     """Check customization frontmatter, over one file or a whole workspace."""
     root = repo.resolve()
     if hook:
@@ -283,20 +325,25 @@ def main(repo: Path = workspace.REPO_OPTION,
     report = check(root, [str(path) for path in files] if files else None)
 
     if json_out:
-        print(json.dumps({
-            "files": report.files,
-            "errors": [{"file": f, "message": m} for f, m in report.errors],
-            "warnings": [{"file": f, "message": m} for f, m in report.warnings],
-        }, indent=2))
+        print(
+            json.dumps(
+                {
+                    "files": report.files,
+                    "errors": [{"file": f, "message": m} for f, m in report.errors],
+                    "warnings": [{"file": f, "message": m} for f, m in report.warnings],
+                },
+                indent=2,
+            )
+        )
         raise typer.Exit(1 if report.errors else 0)
 
     for rel, message in report.warnings:
-        print("warning: %s: %s" % (rel, message), file=sys.stderr)
+        print(f"warning: {rel}: {message}", file=sys.stderr)
     for rel, message in report.errors:
-        print("error: %s: %s" % (rel, message), file=sys.stderr)
+        print(f"error: {rel}: {message}", file=sys.stderr)
     print(summary(report))
     if report.errors:
-        print("%d error(s)" % len(report.errors), file=sys.stderr)
+        print(f"{len(report.errors)} error(s)", file=sys.stderr)
         raise typer.Exit(1)
     print("frontmatter OK")
 
