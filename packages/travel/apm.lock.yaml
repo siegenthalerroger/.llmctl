@@ -27,7 +27,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:4229c24350d2e31a4c8ce8b205f4288a1eb19dcc1100fd99de83802e3b00aa80
+  content_hash: sha256:1436edb9399f1f5f7bbe557bfdf6f52daff660d37b8b042040c08ea0d2d51f21
 - kind: project-relative
   target: claude
   value: .claude/skills/destination-calendar/references/event-classes.md
@@ -45,7 +45,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:2fb58bab09c13b6f7b9d425780ffa1fdd8ca6f13ffd1107c8581593300c25dd6
+  content_hash: sha256:fc89ab6472c584c99fce479d0fc7e8739591816286d5593dc6e17c629e282fad
 - kind: project-relative
   target: claude
   value: .claude/skills/destination-calendar/references/verdict.md
@@ -336,9 +336,9 @@ local_deployed_files:
 - .claude/skills/trip-planning/references/tool-inventory.md
 local_deployed_file_hashes:
   .claude/commands/plan-trip.md: sha256:2a25c49d46165f604c5711a01e7469060e23794c97e4376c5ec9ab600d411ec0
-  .claude/skills/destination-calendar/SKILL.md: sha256:4229c24350d2e31a4c8ce8b205f4288a1eb19dcc1100fd99de83802e3b00aa80
+  .claude/skills/destination-calendar/SKILL.md: sha256:1436edb9399f1f5f7bbe557bfdf6f52daff660d37b8b042040c08ea0d2d51f21
   .claude/skills/destination-calendar/references/event-classes.md: sha256:d37e9c2bac7944738a521d223948edd745a605b7f9c75a1d43eed867c92d378b
-  .claude/skills/destination-calendar/references/search-protocol.md: sha256:2fb58bab09c13b6f7b9d425780ffa1fdd8ca6f13ffd1107c8581593300c25dd6
+  .claude/skills/destination-calendar/references/search-protocol.md: sha256:fc89ab6472c584c99fce479d0fc7e8739591816286d5593dc6e17c629e282fad
   .claude/skills/destination-calendar/references/verdict.md: sha256:89140af8d9cd0efecff0edb555153cd2c0f0f1c69a84ea68dd5dc73dff6257ba
   .claude/skills/destination-calendar/scripts/destination_calendar.py: sha256:2528bb743afae2ef13862e205af58da8a5c2910ebbe667f1b2c2f89904e5991a
   .claude/skills/itinerary-authoring/SKILL.md: sha256:ef4b7b13568d7f086776aef134fd9520e5b573db66af92f1467c9b04ccaea929

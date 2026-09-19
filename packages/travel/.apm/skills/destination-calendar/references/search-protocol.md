@@ -56,6 +56,35 @@ Three checks on anything found:
 An unconfirmed hit is reported as unconfirmed, with the date you have and the
 source you got it from.
 
+## Briefing a subagent
+
+This protocol is written to be handed to a research subagent whole. What the
+brief must pin down, because a vague one is the usual cause of thin findings:
+
+- **The place**, at city granularity, plus anywhere within about an hour that
+  could pull demand — a circuit, a second city, an airport town.
+- **The exact window**, as dates. Not "late June".
+- **The event classes to rule out**, from `event-classes.md`, named explicitly
+  so the absence of a class is a reported absence rather than an oversight.
+- **The source order above**, so effort goes to the convention centre calendar
+  before it goes to news search.
+- **The deliverable**: the findings table below, not prose. One row per
+  finding, and an explicit "nothing found" per class that came back empty.
+
+## Trusting what comes back
+
+Treat the subagent's findings as complete. Do not re-fetch a calendar it
+already read, and do not re-run its searches to confirm a date it sourced.
+
+The temptation is strongest in this domain, because a wrong date is expensive
+and confirming feels prudent. It is not: the subagent read the organiser's page,
+which is the same page a second look would read. If the findings seem thin or
+unsourced, the brief was thin — sharpen it and send it back rather than
+redoing the work in the main thread.
+
+The one exception is a finding the subagent itself flags as unconfirmed. That
+is an open question it is handing over, not a result to accept.
+
 ## What to record
 
 For each finding: what it is, exact dates, where it is within the city, which

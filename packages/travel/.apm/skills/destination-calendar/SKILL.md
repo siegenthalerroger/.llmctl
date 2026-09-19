@@ -41,16 +41,39 @@ Read the output as follows.
 - **Exit 2 means UNKNOWN, never "clear".** A failed source is not an empty calendar. Say the check did not complete.
 - **Outside Europe, school coverage is absent.** The script says so. Report it as a gap and fall back to searching the destination's own school-term publication.
 
-## 2. Work the event classes
+## 2. Work the event classes — in a subagent
 
-The script's last line is a reminder that it found no events. Go through
-[event-classes.md](references/event-classes.md) — the eight classes that
-actually move prices — and rule each in or out using
-[search-protocol.md](references/search-protocol.md), which fixes the sources to
-check and how to date-bound the queries.
+The script's last line is a reminder that it found no events. That search is
+the other half of the job, and it does not belong in the main thread.
+
+It crosses five distinct source types — convention centre, venues, tourism
+board, rail operator, news — and what turns up in one redirects the next. That
+is multi-source investigation with sequential discovery, so **delegate it to a
+research subagent**. Where the `complex-research` skill and a researcher agent
+are available, follow them; the `researcher-advanced` agent is built for
+exactly this shape of work. Without them, run the protocol inline and say so.
+
+Brief the subagent with the whole of
+[search-protocol.md](references/search-protocol.md) — it fixes the sources, the
+order and how to date-bound each query — and with
+[event-classes.md](references/event-classes.md), the eight classes that
+actually move prices. Require the findings table back, not prose.
+
+Then **trust what comes back**. Do not re-fetch a venue calendar the subagent
+already read or re-run its queries to confirm a date; the urge is strongest
+here, where a wrong date is expensive, and it buys nothing. If the findings
+look thin, the brief was thin — send it back with a sharper one.
+
+The script half stays in the main thread. It is one call and its output is
+small.
 
 Do not stop at the first hit. A Pride weekend and a congress can land on the
 same dates, and the combination is what makes a city unbookable.
+
+**Several destinations at once?** Checking two or three candidate windows is a
+parallel fan-out, not a sequence — one subagent per destination, dispatched
+together. The `batch-task-execution` skill covers doing that without the
+subagents duplicating each other's work.
 
 ## 3. Reach a verdict
 
