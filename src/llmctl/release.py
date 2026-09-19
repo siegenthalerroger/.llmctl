@@ -10,6 +10,7 @@ release the steering repo never recorded are the worse failure, and a marketplac
 push that dies after the tags landed heals itself, because the next run re-packs
 any version whose bundle is missing. See CONTRIBUTING.md#releasing.
 """
+
 from __future__ import annotations
 
 import sys
@@ -20,10 +21,8 @@ import typer
 
 from . import commits as commitlib
 from . import github as githublib
-from . import pack_marketplace
-from . import release_notes
+from . import pack_marketplace, release_notes, workspace
 from . import versions as versionlib
-from . import workspace
 from .workspace import Log, Package, WorkspaceError, git
 
 
@@ -39,19 +38,21 @@ def refuse_dirty(marketplace: Path, allowed: bool, show: int = 12) -> None:
     soiled = workspace.dirty(marketplace)
     if not soiled:
         return
-    listing = "\n".join("    %s" % line for line in soiled[:show])
+    listing = "\n".join(f"    {line}" for line in soiled[:show])
     if len(soiled) > show:
-        listing += "\n    ... and %d more" % (len(soiled) - show)
+        listing += f"\n    ... and {len(soiled) - show} more"
     if allowed:
-        print("[dirty] marketplace: %d uncommitted path(s) will be swept into the "
-              "release commit\n%s" % (len(soiled), listing))
+        print(
+            f"[dirty] marketplace: {len(soiled)} uncommitted path(s) will be swept "
+            f"into the release commit\n{listing}"
+        )
         return
     raise WorkspaceError(
-        "the marketplace tree at %s has %d uncommitted path(s):\n%s\n"
-        "A release runs `git add -A` there, so all of it would be committed and "
-        "pushed under the new version. Commit, stash or discard it first -- or "
-        "pass --allow-dirty if sweeping it in is the intent."
-        % (marketplace, len(soiled), listing))
+        f"the marketplace tree at {marketplace} has {len(soiled)} uncommitted "
+        f"path(s):\n{listing}\nA release runs `git add -A` there, so all of it would "
+        f"be committed and pushed under the new version. Commit, stash or discard it "
+        f"first -- or pass --allow-dirty if sweeping it in is the intent."
+    )
 
 
 def refuse_taken_tags(ws: Path, plans: Sequence[versionlib.Plan]) -> None:
@@ -59,32 +60,37 @@ def refuse_taken_tags(ws: Path, plans: Sequence[versionlib.Plan]) -> None:
     different bundles under a version somebody already has."""
     taken = []
     for plan in plans:
-        tag = "%s@%s" % (plan.name, plan.next)
+        tag = f"{plan.name}@{plan.next}"
         if git(["tag", "--list", tag], ws):
-            taken.append("%s (local)" % tag)
-        elif git(["ls-remote", "--tags", "origin", "refs/tags/%s" % tag], ws, check=False):
-            taken.append("%s (origin)" % tag)
+            taken.append(f"{tag} (local)")
+        elif git(["ls-remote", "--tags", "origin", f"refs/tags/{tag}"], ws, check=False):
+            taken.append(f"{tag} (origin)")
     if taken:
-        raise WorkspaceError("already released: %s" % ", ".join(taken))
+        raise WorkspaceError("already released: {}".format(", ".join(taken)))
 
 
 def tag_plan(ws: Path, package: Package, tag: str) -> versionlib.Plan:
     """A Plan for a tag already cut, so its notes read like a fresh release's."""
-    siblings = git(["tag", "--list", "%s@*" % package.name, "--sort=-v:refname"],
-                   ws).split()
+    siblings = git(["tag", "--list", f"{package.name}@*", "--sort=-v:refname"], ws).split()
     target = versionlib.version_key(versionlib.version_of(tag))
-    previous = next((t for t in siblings
-                     if versionlib.version_key(versionlib.version_of(t)) < target), None)
-    commits = commitlib.log(ws, "%s..%s" % (previous, tag) if previous else tag,
-                            "packages/%s" % package.directory)
-    return versionlib.Plan(package.directory, package.name, previous,
-                           versionlib.version_of(tag), commits, [], False)
+    previous = next(
+        (t for t in siblings if versionlib.version_key(versionlib.version_of(t)) < target), None
+    )
+    commits = commitlib.log(
+        ws, f"{previous}..{tag}" if previous else tag, f"packages/{package.directory}"
+    )
+    return versionlib.Plan(
+        package.directory, package.name, previous, versionlib.version_of(tag), commits, [], False
+    )
 
 
-def ensure_releases(ws: Path, packages: Sequence[Package],
-                    client: githublib.GitHub,
-                    prepared: dict[str, str] | None = None,
-                    log: Log = print) -> None:
+def ensure_releases(
+    ws: Path,
+    packages: Sequence[Package],
+    client: githublib.GitHub,
+    prepared: dict[str, str] | None = None,
+    log: Log = print,
+) -> None:
     """Give every package's newest tag a release page, if it has none.
 
     Publishing is two steps -- push the tag, then create the release -- so they
@@ -105,55 +111,78 @@ def ensure_releases(ws: Path, packages: Sequence[Package],
             version = versionlib.version_of(tag)
             body = prepared.get(tag)
             if body is None:
-                body = release_notes.build(tag_plan(ws, package, tag), owner, repo,
-                                           client=client, cache=pulls)
-            created = client.create_release(owner, repo, tag,
-                                            "%s %s" % (package.name, version),
-                                            body, tag)
-            log("[note] %s" % created.get("html_url", tag))
+                body = release_notes.build(
+                    tag_plan(ws, package, tag), owner, repo, client=client, cache=pulls
+                )
+            created = client.create_release(
+                owner, repo, tag=tag, name=f"{package.name} {version}", body=body, target=tag
+            )
+            log("[note] {}".format(created.get("html_url", tag)))
         except githublib.ApiError as exc:
             # The tag is pushed and the bundles are published; a missing release
             # page is a cosmetic loss, not a reason to fail the run and leave
             # the operator wondering which half landed. The next run retries.
-            sys.stderr.write("could not publish the GitHub release for %s: %s\n"
-                             % (tag, exc))
+            sys.stderr.write(f"could not publish the GitHub release for {tag}: {exc}\n")
 
 
-def main(repo: Path = workspace.REPO_OPTION,
-         marketplace: Path = workspace.MARKETPLACE_OPTION,
-         dry_run: bool = typer.Option(False, "--dry-run",
-                                      help="Show what would be released, and the notes. "
-                                           "Writes nothing."),
-         package: list[str] = typer.Option([], "--package", help="Release only these packages."),
-         force: bool = typer.Option(False, "--force",
-                                    help="Release a --package with no commits since its tag."),
-         version: str = typer.Option("", "--version", metavar="YYYY.M.N",
-                                     help="Release one --package at exactly this version."),
-         no_push: bool = typer.Option(False, "--no-push",
-                                      help="Pack, commit the marketplace and tag locally; "
-                                           "push nothing."),
-         allow_dirty: bool = typer.Option(False, "--allow-dirty",
-                                          help="Release even though the marketplace tree has "
-                                               "uncommitted changes, sweeping them in."),
-         github_token: str = typer.Option("", "--github-token",
-                                          help="Overrides GITHUB_TOKEN / GH_TOKEN.")) -> None:
+def main(
+    repo: Path = workspace.REPO_OPTION,
+    marketplace: Path = workspace.MARKETPLACE_OPTION,
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show what would be released, and the notes. Writes nothing."
+    ),
+    package: list[str] = typer.Option([], "--package", help="Release only these packages."),
+    force: bool = typer.Option(
+        False, "--force", help="Release a --package with no commits since its tag."
+    ),
+    version: str = typer.Option(
+        "", "--version", metavar="YYYY.M.N", help="Release one --package at exactly this version."
+    ),
+    no_push: bool = typer.Option(
+        False, "--no-push", help="Pack, commit the marketplace and tag locally; push nothing."
+    ),
+    allow_dirty: bool = typer.Option(
+        False,
+        "--allow-dirty",
+        help="Release even though the marketplace tree has uncommitted changes, sweeping them in.",
+    ),
+    github_token: str = typer.Option(
+        "", "--github-token", help="Overrides GITHUB_TOKEN / GH_TOKEN."
+    ),
+) -> None:
     """Pack, tag and publish every package whose paths changed since its last tag."""
     ws, marketplace = repo.resolve(), marketplace.resolve()
     if not (marketplace / ".git").exists():
-        sys.stderr.write("%s is not a git checkout -- pass the marketplace clone\n"
-                         % marketplace)
+        sys.stderr.write(f"{marketplace} is not a git checkout -- pass the marketplace clone\n")
         raise typer.Exit(1)
     try:
-        release(ws, marketplace, package, force, version or None,
-                dry_run=dry_run, no_push=no_push, allow_dirty=allow_dirty,
-                token=githublib.token(github_token))
+        release(
+            ws,
+            marketplace,
+            package,
+            force,
+            version or None,
+            dry_run=dry_run,
+            no_push=no_push,
+            allow_dirty=allow_dirty,
+            token=githublib.token(github_token),
+        )
     except (WorkspaceError, pack_marketplace.PackError) as exc:
-        raise workspace.die(exc)
+        raise workspace.die(exc) from None
 
 
-def release(ws: Path, marketplace: Path, only: Sequence[str], force: bool,
-            version: str | None, *, dry_run: bool, no_push: bool,
-            allow_dirty: bool, token: str) -> None:
+def release(
+    ws: Path,
+    marketplace: Path,
+    only: Sequence[str],
+    force: bool,
+    version: str | None,
+    *,
+    dry_run: bool,
+    no_push: bool,
+    allow_dirty: bool,
+    token: str,
+) -> None:
     # The same code `apm run versions` prints from, so a preview cannot disagree
     # with what gets published.
     plans, skips = versionlib.plan(ws, only=only, force=force, version=version)
@@ -161,8 +190,10 @@ def release(ws: Path, marketplace: Path, only: Sequence[str], force: bool,
 
     client = githublib.GitHub(token) if token else None
     if not client:
-        print("[note] no GitHub token; release notes will carry commits only, and "
-              "no release page is published")
+        print(
+            "[note] no GitHub token; release notes will carry commits only, and "
+            "no release page is published"
+        )
 
     if not plans:
         print("\nnothing to release")
@@ -172,12 +203,13 @@ def release(ws: Path, marketplace: Path, only: Sequence[str], force: bool,
 
     owner, repo_name = workspace.remote_slug(ws) if client else ("", "")
     pulls: dict = {}
-    notes = {p.name: release_notes.build(p, owner, repo_name, client=client, cache=pulls)
-             for p in plans}
+    notes = {
+        p.name: release_notes.build(p, owner, repo_name, client=client, cache=pulls) for p in plans
+    }
 
     if dry_run:
         for plan in plans:
-            print("\n--- %s@%s\n%s" % (plan.name, plan.next, notes[plan.name]))
+            print(f"\n--- {plan.name}@{plan.next}\n{notes[plan.name]}")
         print("\n[dry-run] no files written")
         return
 
@@ -186,17 +218,18 @@ def release(ws: Path, marketplace: Path, only: Sequence[str], force: bool,
 
     versions = pack_marketplace.version_map(ws, plans)
     try:
-        pack_marketplace.pack_all(ws, marketplace, versions, {p.name for p in plans},
-                                  scratch=ws / "build", source="HEAD")
+        pack_marketplace.pack_all(
+            ws, marketplace, versions, {p.name for p in plans}, scratch=ws / "build", source="HEAD"
+        )
     except pack_marketplace.PackError as exc:
-        raise pack_marketplace.PackError("%s\nNothing was committed or tagged." % exc)
+        raise pack_marketplace.PackError(f"{exc}\nNothing was committed or tagged.") from exc
 
-    summary = ", ".join("%s %s" % (p.name, p.next) for p in plans)
-    tags = ["%s@%s" % (p.name, p.next) for p in plans]
+    summary = ", ".join(f"{p.name} {p.next}" for p in plans)
+    tags = [f"{p.name}@{p.next}" for p in plans]
 
     git(["add", "-A"], marketplace)
     if git(["status", "--porcelain"], marketplace):
-        git(["commit", "-m", "chore(release): %s" % summary], marketplace)
+        git(["commit", "-m", f"chore(release): {summary}"], marketplace)
         print("[git ] committed in the marketplace")
     else:
         print("[git ] the marketplace is already up to date")
@@ -204,32 +237,37 @@ def release(ws: Path, marketplace: Path, only: Sequence[str], force: bool,
     head = git(["rev-parse", "HEAD"], ws)
     for tag in tags:
         name, _, number = tag.partition("@")
-        workspace.tag(ws, tag, "%s %s" % (name, number))
-        workspace.tag(marketplace, tag, "%s %s" % (name, number))
-        print("[tag ] %s -> %s" % (tag, head[:12]))
+        workspace.tag(ws, tag, f"{name} {number}")
+        workspace.tag(marketplace, tag, f"{name} {number}")
+        print(f"[tag ] {tag} -> {head[:12]}")
 
     if no_push:
-        print("\nReleased %d package(s), unpushed. The tags are the baseline for the "
-              "next release, so push both repos:\n"
-              "  git -C %s push --atomic origin %s\n"
-              "  git -C %s push --atomic --follow-tags origin HEAD"
-              % (len(plans), ws, " ".join(tags), marketplace))
+        pushable = " ".join(tags)
+        print(
+            f"\nReleased {len(plans)} package(s), unpushed. The tags are the baseline "
+            f"for the next release, so push both repos:\n"
+            f"  git -C {ws} push --atomic origin {pushable}\n"
+            f"  git -C {marketplace} push --atomic --follow-tags origin HEAD"
+        )
         return
 
     # The workspace half first: bundles published for a release the steering
     # repo never recorded are the worse failure. `--atomic` so a rejected tag
     # takes the others with it rather than half-releasing.
-    git(["push", "--atomic", "origin"] + tags, ws)
-    print("[push] %d tag(s)" % len(tags))
+    git(["push", "--atomic", "origin", *tags], ws)
+    print(f"[push] {len(tags)} tag(s)")
     git(["push", "--atomic", "--follow-tags", "origin", "HEAD"], marketplace)
     print("[push] marketplace")
 
     if client:
         released = {plan.name for plan in plans}
-        ensure_releases(ws, [p for p in workspace.packages(ws) if p.name in released],
-                        client, prepared={"%s@%s" % (p.name, p.next): notes[p.name]
-                                          for p in plans})
-    print("\nReleased and pushed %d package(s)." % len(plans))
+        ensure_releases(
+            ws,
+            [p for p in workspace.packages(ws) if p.name in released],
+            client,
+            prepared={f"{p.name}@{p.next}": notes[p.name] for p in plans},
+        )
+    print(f"\nReleased and pushed {len(plans)} package(s).")
 
 
 def cli() -> None:

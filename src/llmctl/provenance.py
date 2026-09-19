@@ -6,21 +6,35 @@ yields no entries, or an entry with no `url`, is reported as malformed rather th
 skipped: a file that silently stops being tracked is the failure this exists to
 make loud. The convention itself is in CONTRIBUTING.md#repository-frontmatter-provenance-convention.
 """
+
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator, Literal
+from typing import Literal
 
 import frontmatter
 
 from .workspace import INSTALL_OUTPUT
 
-__all__ = ["DEFAULT_CODE", "DEFAULT_CONTENT", "Entry", "FIDELITIES",
-           "KNOWN_LICENSES", "OBLIGATION", "PERMITTED_OUTBOUND",
-           "PROVENANCE_KEYS", "Record", "default_license_for",
-           "effective_fidelity", "is_customization", "iter_files", "parse"]
+__all__ = [
+    "DEFAULT_CODE",
+    "DEFAULT_CONTENT",
+    "FIDELITIES",
+    "KNOWN_LICENSES",
+    "OBLIGATION",
+    "PERMITTED_OUTBOUND",
+    "PROVENANCE_KEYS",
+    "Entry",
+    "Record",
+    "default_license_for",
+    "effective_fidelity",
+    "is_customization",
+    "iter_files",
+    "parse",
+]
 
 # --- The licence model -----------------------------------------------------
 
@@ -89,7 +103,7 @@ PROVENANCE_KEYS = ("adaptedFrom", "authoritativeSpec")
 
 def is_customization(path: str | Path) -> bool:
     """True for the four primitive-defining file types."""
-    name = os.path.basename(str(path))
+    name = Path(path).name
     return name in CUSTOMIZATION_NAMES or name.endswith(CUSTOMIZATION_SUFFIXES)
 
 
@@ -142,11 +156,16 @@ def _entries(value: object, kind: str) -> list[Entry]:
             entries.append(Entry(item.strip() or None, "string", kind))
         elif isinstance(item, dict):
             url = item.get("url")
-            entries.append(Entry(
-                str(url).strip() if url else None, "object", kind,
-                license=_text(item.get("license")),
-                fidelity=_text(item.get("fidelity")),
-                took=_text(item.get("took"))))
+            entries.append(
+                Entry(
+                    str(url).strip() if url else None,
+                    "object",
+                    kind,
+                    license=_text(item.get("license")),
+                    fidelity=_text(item.get("fidelity")),
+                    took=_text(item.get("took")),
+                )
+            )
         else:
             entries.append(Entry(None, "object", kind))
     return entries
@@ -167,10 +186,10 @@ def _declared(provenance: dict) -> tuple[tuple[Entry, ...], tuple[str, ...]]:
             continue
         found = _entries(provenance.get(key), key)
         if not found:
-            malformed.append("`%s` yields no entries" % key)
+            malformed.append(f"`{key}` yields no entries")
         for entry in found:
             if not entry.url:
-                malformed.append("`%s` has an entry with no url" % key)
+                malformed.append(f"`{key}` has an entry with no url")
                 continue
             entries.append(entry)
     return tuple(entries), tuple(malformed)
@@ -190,16 +209,19 @@ def parse(path: str | Path) -> Record:
     try:
         metadata = frontmatter.loads(text).metadata
     except Exception as exc:  # YAML errors surface as several exception types
-        return Record(str(path), None, default, malformed=(
-            "frontmatter does not parse as YAML: %s" % str(exc).split("\n")[0],))
+        return Record(
+            str(path),
+            None,
+            default,
+            malformed=("frontmatter does not parse as YAML: {}".format(str(exc).split("\n")[0]),),
+        )
     if not isinstance(metadata, dict):
         return Record(str(path), None, default)
 
     declared = _text(metadata.get("license"))
     container = metadata.get("metadata")
     provenance = container.get("provenance") if isinstance(container, dict) else None
-    entries, malformed = (_declared(provenance) if isinstance(provenance, dict)
-                          else ((), ()))
+    entries, malformed = _declared(provenance) if isinstance(provenance, dict) else ((), ())
     return Record(str(path), declared, declared or default, entries, malformed)
 
 
@@ -220,8 +242,7 @@ def effective_fidelity(entry: Entry) -> str:
 # writes beside a package, and build scratch. A vendored upstream carries its own
 # adaptedFrom and a deployed mirror carries the same one twice, so walking either
 # would attribute an upstream's provenance to this repository.
-SKIP_DIRS = {".git", "build", "node_modules", "__pycache__", "LICENSES",
-             *INSTALL_OUTPUT}
+SKIP_DIRS = {".git", "build", "node_modules", "__pycache__", "LICENSES", *INSTALL_OUTPUT}
 
 
 def iter_files(root: str | Path) -> Iterator[str]:
@@ -237,4 +258,4 @@ def iter_files(root: str | Path) -> Iterator[str]:
             dirnames[:] = sorted(d for d in dirnames if d not in SKIP_DIRS)
             for name in sorted(filenames):
                 if name.endswith(CONTENT_SUFFIXES):
-                    yield os.path.join(dirpath, name)
+                    yield str(Path(dirpath) / name)

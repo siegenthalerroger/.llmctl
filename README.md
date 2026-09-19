@@ -103,7 +103,7 @@ apm install ~/.llmctl/packages/core --target claude
 uv run llmctl-check --repo . --since origin/main
 ```
 
-The tooling is a small Python project — [pyproject.toml](pyproject.toml), one module per command under `src/llmctl/`, one `llmctl-<command>` console script each — and [uv](https://docs.astral.sh/uv/) runs it from this checkout with nothing installed first: `uv run` syncs the locked environment on the way. The `scripts:` block in [apm.yml](apm.yml) lists the commands in the order you would run them: `check`, `update`, `check-updates`, `check-steering`, `versions`, `release`, `pack-marketplace`. Each entry is a whole command — `apm run` passes nothing through — so a flag that is not written into the entry means calling the command directly.
+The tooling is a small Python project — [pyproject.toml](pyproject.toml), one module per command under `src/llmctl/`, one `llmctl-<command>` console script each — and [uv](https://docs.astral.sh/uv/) runs it from this checkout with nothing installed first: `uv run` syncs the locked environment on the way. It is formatted and linted with [ruff](https://docs.astral.sh/ruff/) and type-checked with [ty](https://docs.astral.sh/ty/), both pinned in the `dev` group and run by the `tooling` gate, so `uv run ruff format src/`, `uv run ruff check src/` and `uv run ty check src/` are what a change has to leave clean. The `scripts:` block in [apm.yml](apm.yml) lists the commands in the order you would run them: `check`, `update`, `check-updates`, `check-steering`, `versions`, `release`, `pack-marketplace`. Each entry is a whole command — `apm run` passes nothing through — so a flag that is not written into the entry means calling the command directly.
 
 ### Updating what this repo consumes
 

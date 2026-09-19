@@ -1,26 +1,48 @@
 """Which repo a script acts on, and the readers every script shares.
 
-`--repo` is the workspace being acted on and is never defaulted. One copy of the package list, the pins in a
-manifest and the commits a lockfile resolved them to, so the gates, the packer
-and the release cannot disagree. See CONTRIBUTING.md#releasing-another-workspace.
+`--repo` is the workspace being acted on and is never defaulted. One copy of the
+package list, the pins in a manifest and the commits a lockfile resolved them
+to, so the gates, the packer and the release cannot disagree.
+See CONTRIBUTING.md#releasing-another-workspace.
 """
+
 from __future__ import annotations
 
 import re
 import subprocess
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import typer
 from ruamel.yaml import YAML
 
-__all__ = ["INSTALL_OUTPUT", "Log", "MARKETPLACE_OPTION", "Package",
-           "REPO_OPTION", "WorkspaceError", "die", "diff_pins",
-           "dirty", "fetch_tags", "git", "label", "locked_of", "packages",
-           "pins_of", "read_lock", "read_yaml", "remote_slug", "select", "tag",
-           "write_yaml", "yaml_rt"]
+__all__ = [
+    "INSTALL_OUTPUT",
+    "MARKETPLACE_OPTION",
+    "REPO_OPTION",
+    "Log",
+    "Package",
+    "WorkspaceError",
+    "die",
+    "diff_pins",
+    "dirty",
+    "fetch_tags",
+    "git",
+    "label",
+    "locked_of",
+    "packages",
+    "pins_of",
+    "read_lock",
+    "read_yaml",
+    "remote_slug",
+    "select",
+    "tag",
+    "write_yaml",
+    "yaml_rt",
+]
 
 # Where a command sends its running commentary. Every script that reports as it
 # works takes one of these rather than printing, so a caller can capture it.
@@ -33,23 +55,38 @@ class WorkspaceError(Exception):
 
 def die(exc: Exception) -> typer.Exit:
     """Print a library error the way every CLI here reports one."""
-    sys.stderr.write("%s\n" % exc)
+    sys.stderr.write(f"{exc}\n")
     return typer.Exit(1)
 
 
 REPO_OPTION = typer.Option(
-    ..., "--repo", metavar="PATH", show_default=False,
+    ...,
+    "--repo",
+    metavar="PATH",
+    show_default=False,
     help="Workspace to act on: its packages/, LICENSE, LICENSES/, "
-         "dependency-licenses.yml, *.marketplace.* sources and git history.")
+    "dependency-licenses.yml, *.marketplace.* sources and git history.",
+)
 MARKETPLACE_OPTION = typer.Option(
-    ..., "--marketplace", metavar="PATH", show_default=False,
-    help="Marketplace repo to publish into.")
+    ...,
+    "--marketplace",
+    metavar="PATH",
+    show_default=False,
+    help="Marketplace repo to publish into.",
+)
 
 # What `apm install` writes into a package beside the lockfile. Git-ignored,
 # never exported, never committed -- one list, so the .gitignore, the worktree
 # export and the update command cannot disagree about what is install output.
-INSTALL_OUTPUT = (".claude", ".agents", ".codex", ".github", "apm_modules",
-                  ".mcp.json", ".gitignore")
+INSTALL_OUTPUT = (
+    ".claude",
+    ".agents",
+    ".codex",
+    ".github",
+    "apm_modules",
+    ".mcp.json",
+    ".gitignore",
+)
 
 
 # --- YAML ------------------------------------------------------------------
@@ -70,12 +107,12 @@ def yaml_rt() -> YAML:
 
 
 def read_yaml(path: Path) -> Any:
-    with open(path, encoding="utf-8") as handle:
+    with Path(path).open(encoding="utf-8") as handle:
         return yaml_rt().load(handle)
 
 
 def write_yaml(path: Path, data: Any, header: str = "") -> None:
-    with open(path, "w", encoding="utf-8", newline="\n") as handle:
+    with Path(path).open("w", encoding="utf-8", newline="\n") as handle:
         if header:
             handle.write(header.rstrip("\n") + "\n")
         yaml_rt().dump(data, handle)
@@ -84,15 +121,16 @@ def write_yaml(path: Path, data: Any, header: str = "") -> None:
 # --- Git -------------------------------------------------------------------
 
 
-def git(args: list[str], cwd: Path | str, check: bool = True,
-        capture: bool = True) -> str:
+def git(args: list[str], cwd: Path | str, check: bool = True, capture: bool = True) -> str:
     """Run git in `cwd`. `cwd` is required: a default would act on the tooling
     checkout, which is never the repo being released."""
-    result = subprocess.run(["git"] + list(args), cwd=str(cwd),
-                            capture_output=capture, text=True)
+    result = subprocess.run(
+        ["git", *list(args)], cwd=str(cwd), capture_output=capture, text=True, check=False
+    )
     if check and result.returncode != 0:
-        raise WorkspaceError("git %s failed in %s\n%s"
-                             % (" ".join(args), cwd, (result.stderr or "").strip()))
+        raise WorkspaceError(
+            "git {} failed in {}\n{}".format(" ".join(args), cwd, (result.stderr or "").strip())
+        )
     return (result.stdout or "").strip()
 
 
@@ -107,14 +145,13 @@ def remote_slug(repo: Path | str, remote: str = "origin") -> tuple[str, str]:
     url = git(["remote", "get-url", remote], repo)
     m = re.search(r"github\.com[:/]([^/]+)/([^/]+?)(?:\.git)?/?$", url)
     if not m:
-        raise WorkspaceError("cannot read owner/repo from remote %r (%s)" % (remote, url))
+        raise WorkspaceError(f"cannot read owner/repo from remote {remote!r} ({url})")
     return m.group(1), m.group(2)
 
 
 def dirty(repo: Path | str) -> list[str]:
     """Everything `git add -A` would stage here, tracked or not."""
-    return [line for line in git(["status", "--porcelain"], repo).split("\n")
-            if line.strip()]
+    return [line for line in git(["status", "--porcelain"], repo).split("\n") if line.strip()]
 
 
 def fetch_tags(repo: Path | str, log: Log | None = None) -> None:
@@ -123,13 +160,19 @@ def fetch_tags(repo: Path | str, log: Log | None = None) -> None:
     Tags are the baseline for every version plan, so a silent failure here is
     the one that measures every package from the start of history.
     """
-    result = subprocess.run(["git", "fetch", "--tags", "origin"], cwd=str(repo),
-                            capture_output=True, text=True)
+    result = subprocess.run(
+        ["git", "fetch", "--tags", "origin"],
+        cwd=str(repo),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
     if result.returncode != 0 and log:
-        log("[warn] git fetch --tags failed (%s). Versions are derived from the "
+        log(
+            "[warn] git fetch --tags failed ({}). Versions are derived from the "
             "tags in this clone, so a package with none will be measured from "
-            "the start of its history."
-            % (result.stderr or "").strip().split("\n")[-1][:120])
+            "the start of its history.".format((result.stderr or "").strip().split("\n")[-1][:120])
+        )
 
 
 # --- Packages --------------------------------------------------------------
@@ -137,17 +180,17 @@ def fetch_tags(repo: Path | str, log: Log | None = None) -> None:
 
 @dataclass(frozen=True)
 class Package:
-    directory: str      # packages/<directory>
-    path: Path          # absolute
-    name: str           # apm.yml `name:`
-    manifest: dict      # the parsed apm.yml (round-trip map)
+    directory: str  # packages/<directory>
+    path: Path  # absolute
+    name: str  # apm.yml `name:`
+    manifest: dict  # the parsed apm.yml (round-trip map)
 
 
 def packages(ws: Path | str) -> list[Package]:
     """Every packages/<dir>/ holding an apm.yml, in directory order."""
     root = Path(ws) / "packages"
     if not root.is_dir():
-        raise WorkspaceError("no packages/ in %s" % ws)
+        raise WorkspaceError(f"no packages/ in {ws}")
     found = []
     for entry in sorted(root.iterdir()):
         manifest = entry / "apm.yml"
@@ -156,7 +199,7 @@ def packages(ws: Path | str) -> list[Package]:
         data = read_yaml(manifest)
         name = data.get("name") if data else None
         if not name:
-            raise WorkspaceError("%s: missing name" % manifest)
+            raise WorkspaceError(f"{manifest}: missing name")
         found.append(Package(entry.name, entry.resolve(), str(name), data))
     return found
 
@@ -169,11 +212,14 @@ def select(ws: Path | str, wanted: list[str]) -> list[Package]:
     names = set(wanted)
     chosen = [p for p in found if p.directory in names or p.name in names]
     if not chosen:
-        raise WorkspaceError("no package matched %s" % ", ".join(sorted(names)))
+        raise WorkspaceError("no package matched {}".format(", ".join(sorted(names))))
     return chosen
 
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+
+# How many path segments an `owner/repo` prefix takes, before any subpath.
+OWNER_REPO = 2
 
 
 def parse_pin(spec: str) -> tuple[tuple[str, str], str]:
@@ -186,9 +232,9 @@ def parse_pin(spec: str) -> tuple[tuple[str, str], str]:
     location, _, ref = spec.partition("#")
     segments = [s for s in location.strip().split("/") if s]
     if segments and "." in segments[0]:
-        segments = segments[1:]          # a leading host such as github.com
-    if len(segments) < 2:
-        raise WorkspaceError("not an owner/repo dependency: %r" % spec)
+        segments = segments[1:]  # a leading host such as github.com
+    if len(segments) < OWNER_REPO:
+        raise WorkspaceError(f"not an owner/repo dependency: {spec!r}")
     repo = "/".join(segments[:2]).lower()
     subpath = "/".join(segments[2:])
     return (repo, subpath), ref.strip()
@@ -196,7 +242,7 @@ def parse_pin(spec: str) -> tuple[tuple[str, str], str]:
 
 def label(key: tuple[str, str]) -> str:
     """`owner/repo` or `owner/repo/subpath`, for a message about one pin."""
-    return "%s%s" % (key[0], "/" + key[1] if key[1] else "")
+    return "{}{}".format(key[0], "/" + key[1] if key[1] else "")
 
 
 def pins_of(manifest: dict) -> dict[tuple[str, str], str]:
@@ -205,7 +251,7 @@ def pins_of(manifest: dict) -> dict[tuple[str, str], str]:
     pins = {}
     for dep in deps:
         if not isinstance(dep, str):
-            raise WorkspaceError("unsupported dependency form: %r" % (dep,))
+            raise WorkspaceError(f"unsupported dependency form: {dep!r}")
         key, ref = parse_pin(dep)
         pins[key] = ref
     return pins
@@ -228,13 +274,17 @@ def read_lock(path: Path) -> Any | None:
     """A lockfile as plain data, or None when absent."""
     if not Path(path).is_file():
         return None
-    with open(path, encoding="utf-8") as handle:
+    with Path(path).open(encoding="utf-8") as handle:
         return YAML(typ="safe").load(handle)
 
 
-def diff_pins(before: dict[tuple[str, str], str], after: dict[tuple[str, str], str],
-              gone: str = "%s is gone", new: str = "%s appeared",
-              moved: str = "%s %s -> %s") -> list[str]:
+def diff_pins(
+    before: dict[tuple[str, str], str],
+    after: dict[tuple[str, str], str],
+    gone: str = "%s is gone",
+    new: str = "%s appeared",
+    moved: str = "%s %s -> %s",
+) -> list[str]:
     """How two `{key: sha}` maps differ, one message per difference.
 
     Both callers compare the same two things by the same key -- a manifest's

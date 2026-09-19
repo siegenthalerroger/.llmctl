@@ -5,6 +5,7 @@ the type still does now that it sizes no version. The pull request says why, in 
 section under its `## Release notes` heading, and only that section, so review
 chatter stays out. A commit with neither contributes its subject line.
 """
+
 from __future__ import annotations
 
 import re
@@ -14,11 +15,10 @@ from . import commits as commitlib
 from .workspace import Log
 
 if TYPE_CHECKING:
-    from github import GitHub
-    from versions import Plan
+    from .github import GitHub
+    from .versions import Plan
 
-__all__ = ["GROUPS", "build", "extract_release_notes", "group_of",
-           "pull_request_sections"]
+__all__ = ["GROUPS", "build", "extract_release_notes", "group_of", "pull_request_sections"]
 
 # Ordered, because the order is the message: what breaks, then what is new,
 # then what is fixed, then everything else.
@@ -48,9 +48,15 @@ def group_of(commit: commitlib.Commit) -> str:
     return "other"
 
 
-def build(plan: Plan, owner: str = "", repo: str = "",
-          client: GitHub | None = None, log: Log = print,
-          cache: dict[str, list[dict]] | None = None) -> str:
+def build(
+    plan: Plan,
+    owner: str = "",
+    repo: str = "",
+    *,
+    client: GitHub | None = None,
+    log: Log = print,
+    cache: dict[str, list[dict]] | None = None,
+) -> str:
     """The notes body for one release plan.
 
     `client` is optional: without a token there is no pull request lookup, so
@@ -60,7 +66,7 @@ def build(plan: Plan, owner: str = "", repo: str = "",
     """
     lines = []
     since = plan.previous or "the start of the package"
-    lines.append("Commits in `packages/%s` since %s." % (plan.directory, since))
+    lines.append(f"Commits in `packages/{plan.directory}` since {since}.")
     lines.append("")
 
     grouped = {key: [] for key, _ in GROUPS}
@@ -69,10 +75,10 @@ def build(plan: Plan, owner: str = "", repo: str = "",
     for key, heading in GROUPS:
         if not grouped[key]:
             continue
-        lines.append("### %s" % heading)
+        lines.append(f"### {heading}")
         lines.append("")
         for commit in grouped[key]:
-            lines.append("- %s (`%s`)" % (commit.subject, commit.sha[:7]))
+            lines.append(f"- {commit.subject} (`{commit.sha[:7]}`)")
         lines.append("")
 
     sections = pull_request_sections(plan, owner, repo, client, log=log, cache=cache)
@@ -80,17 +86,22 @@ def build(plan: Plan, owner: str = "", repo: str = "",
         lines.append("## Release notes")
         lines.append("")
         for number, title, text in sections:
-            lines.append("### #%d %s" % (number, title))
+            lines.append(f"### #{number} {title}")
             lines.append("")
             lines.append(text)
             lines.append("")
     return "\n".join(lines).rstrip() + "\n"
 
 
-def pull_request_sections(plan: Plan, owner: str, repo: str,
-                          client: GitHub | None, log: Log = print,
-                          cache: dict[str, list[dict]] | None = None
-                          ) -> list[tuple[int, str, str]]:
+def pull_request_sections(
+    plan: Plan,
+    owner: str,
+    repo: str,
+    client: GitHub | None,
+    *,
+    log: Log = print,
+    cache: dict[str, list[dict]] | None = None,
+) -> list[tuple[int, str, str]]:
     """(number, title, text) for every distinct PR behind these commits that
     carries a `## Release notes` section."""
     if not client or not owner or not repo:
@@ -103,9 +114,8 @@ def pull_request_sections(plan: Plan, owner: str, repo: str,
         else:
             try:
                 pulls = client.pulls_for_commit(owner, repo, commit.sha)
-            except Exception as exc:                   # notes must not fail a release
-                log("[notes] could not read pull requests for %s: %s"
-                    % (commit.sha[:7], exc))
+            except Exception as exc:  # notes must not fail a release
+                log(f"[notes] could not read pull requests for {commit.sha[:7]}: {exc}")
                 pulls = []
             cache[commit.sha] = pulls
         for pull in pulls:

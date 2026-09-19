@@ -15,7 +15,7 @@ Four kinds of upstream, audited separately because they fail differently:
 | Input | Declared in | Command |
 | --- | --- | --- |
 | APM dependencies | `dependencies.apm` in `packages/*/apm.yml`, resolved in `packages/*/apm.lock.yaml` | `apm run update` |
-| Tooling dependencies | `[project.dependencies]` in `pyproject.toml`, resolved in `uv.lock` | `uv lock --upgrade` |
+| Tooling dependencies | `[project.dependencies]` and `[dependency-groups] dev` in `pyproject.toml`, resolved in `uv.lock` | `uv lock --upgrade` |
 | Adapted content | `metadata.provenance.adaptedFrom` in a primitive's frontmatter | `apm run check-updates` |
 | Specifications | `metadata.provenance.authoritativeSpec` in a primitive's frontmatter | the same, with `--specs` |
 
@@ -56,7 +56,7 @@ The run exits non-zero and names it. Known cause on APM 0.31: a package pinning 
 
 ## Phase B — the tooling's own dependencies
 
-The release tooling is a uv project, so it pins third-party Python the way a package pins APM content: exact versions in [pyproject.toml](../../../pyproject.toml), resolved with hashes in `uv.lock`, under a `[tool.uv] exclude-newer` cutoff that bounds what the resolver may even see.
+The release tooling is a uv project, so it pins third-party Python the way a package pins APM content: exact versions in [pyproject.toml](../../../pyproject.toml), resolved with hashes in `uv.lock`, under a `[tool.uv] exclude-newer` cutoff that bounds what the resolver may even see. Two tables move together — `[project.dependencies]`, which is what a workspace installing from git resolves against, and `[dependency-groups] dev`, which holds ruff and ty for this checkout and CI.
 
 **`uv lock --upgrade` on its own reports "No lockfile changes detected" no matter what has been released, and that is not an answer.** The `==` pins and the cutoff each hold it independently, so both have to move:
 
@@ -71,8 +71,14 @@ Read what moved before keeping it. These are not content an agent reads — they
 Then pin back — `==` at exactly what `uv.lock` resolved, so a consumer installing from git gets this resolution and not a newer one — and re-lock:
 
 ```bash
-uv lock && uv run llmctl-check --repo .   # the `tooling` gate holds the lockfile to pyproject.toml
+uv lock && uv run llmctl-check --repo . --only tooling
 ```
+
+A ruff or ty bump is the one that can fail on more than the lockfile: a new release adds
+rules and tightens inference, so the gate's `ruff check` and `ty check` halves are where it
+surfaces. Fix what the new version found, or, where a rule is wrong for this code rather
+than right, add it to the `ignore` list in `pyproject.toml` **with the reason in a comment
+beside it** — an ignore nobody can explain later is how a linter stops meaning anything.
 
 Keep it as one commit, both files together, since either alone fails that gate:
 
@@ -85,7 +91,7 @@ A `uv pip list --outdated` run reports the project itself as outdated against an
 
 ### When the Python guidance moves
 
-`packages/python` carries the rules this tooling is written to: `python-standards` and `python-scripts` locally, `modern-python` pinned upstream. When phase A moves that pin, or either local skill changes, the code is what the change governs — re-read what moved and check `src/llmctl/` and `pyproject.toml` against it: a build-backend or dependency-group convention, a typing or error-handling rule, a project-layout rule, a linter or type-checker the repository does not yet run. Report the outcome either way; "nothing to change" is a result, and an unrecorded one gets re-derived next time.
+`packages/python` carries the rules this tooling is written to: `python-standards` and `python-scripts` locally, `modern-python` pinned upstream. When phase A moves that pin, or either local skill changes, the code is what the change governs — re-read what moved and check `src/llmctl/` and `pyproject.toml` against it: a build-backend or dependency-group convention, a typing or error-handling rule, a project-layout rule, a ruff rule family the `select` list does not yet enable, or a linter or type-checker the repository does not yet run. Report the outcome either way; "nothing to change" is a result, and an unrecorded one gets re-derived next time.
 
 This is the question `meta-review-steering` asks of steering files, asked of the code instead. Neither skill covers the other's files.
 
