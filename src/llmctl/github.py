@@ -8,7 +8,6 @@ Authentication: an explicit token, then GITHUB_TOKEN, GH_TOKEN, `gh auth token`.
 
 from __future__ import annotations
 
-import contextlib
 import os
 import subprocess
 from datetime import UTC, datetime
@@ -69,20 +68,46 @@ class GitHub:
 
     # -- transport ------------------------------------------------------
 
+    @staticmethod
+    def _detail(response: httpx.Response) -> str:
+        """GitHub's own account of what it rejected.
+
+        A bare status tells you nothing actionable: a 422 on a release reads
+        "Validation Failed" while the `errors` array names the offending field.
+        Dropping that is how a broken call stays undiagnosable across releases.
+        """
+        try:
+            payload = response.json()
+        except ValueError:
+            return (response.text or "").strip()[:200]
+        if not isinstance(payload, dict):
+            return ""
+        parts = [str(payload.get("message") or "").strip()]
+        for item in payload.get("errors") or []:
+            if isinstance(item, dict):
+                field = item.get("field") or item.get("resource") or ""
+                reason = item.get("message") or item.get("code") or ""
+                parts.append(f"{field}: {reason}".strip(": "))
+            else:
+                parts.append(str(item))
+        return "; ".join(part for part in parts if part)
+
     def _raise(self, response: httpx.Response) -> None:
+        detail = self._detail(response)
         if response.status_code == httpx.codes.FORBIDDEN:
             if not self.authenticated:
                 raise ApiError(
                     "GitHub API returned 403 (likely the unauthenticated rate "
                     "limit). Run 'gh auth login', set GITHUB_TOKEN/GH_TOKEN, or "
-                    "pass --github-token."
+                    f"pass --github-token. {detail}".strip()
                 )
             raise ApiError(
                 "GitHub API returned 403 with authentication. Verify "
                 "the token's validity/scopes or wait for the rate "
-                "limit to reset."
+                f"limit to reset. {detail}".strip()
             )
-        raise ApiError(f"GitHub API returned {response.status_code} for {response.request.url}")
+        message = f"GitHub API returned {response.status_code} for {response.request.url}"
+        raise ApiError(f"{message}: {detail}" if detail else message)
 
     def get(
         self,
@@ -116,13 +141,7 @@ class GitHub:
         except httpx.HTTPError as exc:
             raise ApiError(f"GitHub API request failed: {exc}") from exc
         if response.status_code >= httpx.codes.BAD_REQUEST:
-            detail = ""
-            with contextlib.suppress(ValueError):
-                detail = response.json().get("message", "")
-            suffix = f": {detail}" if detail else ""
-            raise ApiError(
-                f"GitHub API returned {response.status_code} for POST {endpoint}{suffix}"
-            )
+            self._raise(response)
         return response.json()
 
     # -- commits and content -------------------------------------------

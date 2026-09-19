@@ -317,6 +317,8 @@ Packages version **independently** (`marketplace.versioning.strategy: per_packag
 
 That is what lets a release run on a push to protected `main` with no pull request, no bypass and no second CI cycle — pushing a tag is not pushing a branch.
 
+The tag and the release page are two writes, so they can end up out of step: the tag pushes, then the release is created against the commit the tag points at. A run that lands the first and fails the second **fails**, and says which tags are missing a page. It used to only warn, which is how the first calendar release published its tags and bundles while every release page silently 422'd. Re-running finishes the job rather than reporting nothing to do — `ensure_releases` asks for each package's newest tag and creates only what is missing, so a release that failed half-way heals on the next run without re-packing anything.
+
 The marketplace is the opposite case: it is generated output, entirely, so it is committed and pushed directly. Protecting it would gate a robot against itself.
 
 ```bash
