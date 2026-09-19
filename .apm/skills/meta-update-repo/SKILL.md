@@ -31,7 +31,7 @@ Out of scope, handled elsewhere: model selections belong to `meta-update-models`
 
 ```bash
 apm run update                                   # every package
-uv run scripts/update.py --repo . --package core # or one
+uv run llmctl-update --repo . --package core # or one
 ```
 
 Per package it moves each pin as far as it goes, installs, proves the lockfile followed, scans what was materialised with `apm audit`, and prints the upstream's own diff for everything that moved, filtered to the path this repository consumes.
@@ -57,7 +57,7 @@ The run exits non-zero and names it. Known cause on APM 0.31: a package pinning 
 
 ```bash
 apm run check-updates                                                   # broad
-uv run scripts/check_updates.py --repo . --include "<glob>" --change-details
+uv run llmctl-check-updates --repo . --include "<glob>" --change-details
 ```
 
 Scope directly with `--include` when the target is known — never run a broad scan first in that case. This applies even when the request is indirect: if a specific file is contextually identifiable, treat it as an identified target.
@@ -80,7 +80,7 @@ For a stub or empty local file, fetch the full upstream content: commit summarie
 ## Phase C — specifications
 
 ```bash
-uv run scripts/check_updates.py --repo . --specs
+uv run llmctl-check-updates --repo . --specs
 ```
 
 A GitHub source is dated from its commits; anything else is probed over HTTP. `update_available` means the page changed since the local file last did — read it and check the claims the local file makes about it, a field name, a limit, a schema. Record the outcome either way. Edit only when asked.
@@ -106,6 +106,6 @@ Then report, per package: which pins moved and to what, the verdict of each safe
 
 ## Notes
 
-- `authoritativeSpec` declares which specification a file conforms to, not where content came from, so it is not in the phase B scan. It is not inert: `scripts/check_licenses.py` reads it too, treating a bare URL as a citation that reproduces nothing.
+- `authoritativeSpec` declares which specification a file conforms to, not where content came from, so it is not in the phase B scan. It is not inert: `llmctl-check-licenses` reads it too, treating a bare URL as a citation that reproduces nothing.
 - Provenance forms — a URL string, an array of URLs, or an array of objects carrying `url` plus `license` / `fidelity` / `took` — are described in [references/source-url-reference.md](references/source-url-reference.md).
-- Another workspace borrows these commands the same way it borrows the rest: `uv run ../.llmctl/scripts/update.py --repo .`.
+- Another workspace runs these commands from this repository's git, the same way it runs the rest: `uvx --from git+https://github.com/siegenthalerroger/.llmctl@main llmctl-update --repo .`.

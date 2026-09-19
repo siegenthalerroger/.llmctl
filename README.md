@@ -100,10 +100,10 @@ apm install --target claude
 apm install ~/.llmctl/packages/core --target claude
 
 # Every gate: the tooling's own lint, conventions, licensing, lockfiles, and a full pack
-uv run scripts/check.py --repo . --since origin/main
+uv run llmctl-check --repo . --since origin/main
 ```
 
-The scripts declare their own dependencies in an inline PEP 723 header, so [uv](https://docs.astral.sh/uv/) runs them without anything being installed first. The `scripts:` block in [apm.yml](apm.yml) lists them in the order you would run them: `check`, `update`, `check-updates`, `check-steering`, `versions`, `release`, `pack-marketplace`. Each entry is a whole command — `apm run` passes nothing through — so a flag that is not written into the entry means calling the script directly.
+The tooling is a small Python project — [pyproject.toml](pyproject.toml), one module per command under `src/llmctl/`, one `llmctl-<command>` console script each — and [uv](https://docs.astral.sh/uv/) runs it from this checkout with nothing installed first: `uv run` syncs the locked environment on the way. The `scripts:` block in [apm.yml](apm.yml) lists the commands in the order you would run them: `check`, `update`, `check-updates`, `check-steering`, `versions`, `release`, `pack-marketplace`. Each entry is a whole command — `apm run` passes nothing through — so a flag that is not written into the entry means calling the command directly.
 
 ### Updating what this repo consumes
 
@@ -129,13 +129,13 @@ cd ~/.llmctl
 apm run pack-marketplace
 ```
 
-The command in [apm.yml](apm.yml) supplies both required paths. For a different checkout location, call the script directly:
+The command in [apm.yml](apm.yml) supplies both required paths. For a different checkout location, call the command directly:
 
 ```bash
-uv run scripts/pack_marketplace.py --repo . --marketplace /path/to/.llmctl-marketplace --all
+uv run llmctl-pack-marketplace --repo . --marketplace /path/to/.llmctl-marketplace --all
 ```
 
-Add `--dry-run` to preview what would be packed. Both `--repo` and `--marketplace` are required; the script does not infer paths from the environment.
+Add `--dry-run` to preview what would be packed. Both `--repo` and `--marketplace` are required; the command does not infer paths from the environment.
 
 **Nothing in the marketplace repository is authored there.** Its `README.md`, `LICENSE`, `.gitignore` and `apm.yml` are written from `README.marketplace.md`, `LICENSE.marketplace`, `.gitignore.marketplace` and `apm.marketplace.yml` in this repository, and anything else found in that tree is deleted. Edit the sources here.
 

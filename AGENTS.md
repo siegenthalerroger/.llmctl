@@ -10,7 +10,7 @@ It is an **APM monorepo of context-scoped sub-packages**, so each context loads 
 
 Each `packages/<name>/` is a standalone APM package (`apm.yml` + `.apm/` layout). Adding a primitive means placing it in the correct sub-package by scope — do not add it to the root `.apm/` unless it operates on this repository itself. See the [packaging model in CONTRIBUTING.md](CONTRIBUTING.md#packaging-model).
 
-Content that cannot be published lives in a **separate private workspace**, not in `packages/` here — this repo and its marketplace are public. That workspace has the same layout minus `scripts/`, and borrows this repo's release scripts via `--repo`/`--marketplace`.
+Content that cannot be published lives in a **separate private workspace**, not in `packages/` here — this repo and its marketplace are public. That workspace has the same layout minus the tooling, and runs this repo's commands from git with its own `--repo`/`--marketplace`.
 
 ## Upstream dependencies
 
@@ -31,7 +31,7 @@ This is a quick reference, see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed d
 - **Plugins:** bundled distribution of multiple components. Add only when shipping a curated subset for marketplace/external use.
 - **Provenance:** track upstream sources via `metadata.provenance.{adaptedFrom,authoritativeSpec}` — prefer APM dependencies over vendored copies. On the object form, `license` (upstream SPDX id) and `fidelity` (`inspiration-only`/`structural-echo`/`partly-derived`/`largely-derived`) are required wherever expression was copied; `took` records only what was taken.
 - **Licensing:** `*.md` is CC-BY-SA-4.0, everything else MIT — see [LICENSE](LICENSE). A file adapting an upstream whose terms the default cannot satisfy declares a top-level `license:` in its frontmatter. Run `apm run check` after touching provenance or adding a dependency.
-- **Scripts:** one file per command under `scripts/`, run with `uv run` — each entry script declares its own dependencies in a PEP 723 header, so there is no `pyproject.toml` and nothing to install first. The `scripts:` block in [apm.yml](apm.yml) is the index: `check`, `update`, `check-updates`, `check-steering`, `versions`, `release`, `pack-marketplace`, in the order you would run them.
+- **Tooling:** a uv project — [pyproject.toml](pyproject.toml), one module per command under `src/llmctl/`, one `llmctl-<command>` console script each — run with `uv run`, which syncs the locked environment first. `uv.lock` moves only through `uv lock`, and the `tooling` gate holds it to `pyproject.toml`. The `scripts:` block in [apm.yml](apm.yml) is the index: `check`, `update`, `check-updates`, `check-steering`, `versions`, `release`, `pack-marketplace`, in the order you would run them.
 
 ## Commits
 
@@ -41,7 +41,7 @@ Conventional, and enforced by a gate rather than trusted:
 <type>(<scope>): <description>
 ```
 
-`type` ∈ `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`; `!` before the colon marks a breaking change. `scope` is optional, and when present must name a package the commit touched (`core`, `workflow`, …) or an area outside `packages/` (`scripts`, `ci`, `meta`, `docs`, `repo`).
+`type` ∈ `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`; `!` before the colon marks a breaking change. `scope` is optional, and when present must name a package the commit touched (`core`, `workflow`, …) or an area outside `packages/` (`tooling`, `ci`, `meta`, `docs`, `repo`).
 
 The type no longer sizes anything — versions are calendar-derived — it decides which heading the commit lands under in the release notes. Which package a commit releases comes from the paths it touched. Prose for the notes goes in the pull request body under a `## Release notes` heading. See [CONTRIBUTING.md](CONTRIBUTING.md#commit-convention).
 

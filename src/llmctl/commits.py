@@ -12,7 +12,7 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import NamedTuple
 
-from workspace import git
+from .workspace import git
 
 __all__ = ["AREAS", "Commit", "Finding", "Subject", "TYPES", "breaking",
            "lint", "log", "parse", "scopes_for"]
@@ -25,7 +25,9 @@ SUBJECT_RE = re.compile(
 # Which scope a path outside packages/ may be named by, first match winning.
 # A package path names its own directory instead, which `scopes_for` handles.
 AREAS = (
-    ("scripts/", "scripts"),
+    ("src/", "tooling"),
+    ("pyproject.toml", "tooling"),
+    ("uv.lock", "tooling"),
     (".github/", "ci"),
     (".apm/", "meta"),
     ("LICENSES/", "repo"),

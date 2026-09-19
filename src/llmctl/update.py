@@ -1,16 +1,3 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.11"
-# dependencies = [
-#   "ruamel.yaml==0.19.1",
-#   "typer==0.27.2",
-#   "rich==15.0.0",
-#   "httpx==0.28.1",
-#   "python-frontmatter==1.3.0",
-# ]
-# [tool.uv]
-# exclude-newer = "2026-09-18T00:00:00Z"
-# ///
 """Move each package's pinned upstreams, and show what arrived. Commits nothing.
 
 Per package: `apm update` where the upstream publishes an annotated semver tag,
@@ -36,10 +23,10 @@ from typing import NamedTuple
 import typer
 from ruamel.yaml import YAML
 
-import gen_notices
-import github as githublib
-import workspace
-from workspace import Log, Package, WorkspaceError, label
+from . import gen_notices
+from . import github as githublib
+from . import workspace
+from .workspace import Log, Package, WorkspaceError, label
 
 # `via` is how the pin moved: what `apm update` did, or the manual HEAD bump for
 # an upstream it can never move.
@@ -366,5 +353,5 @@ def report_problems(problems: list[str]) -> int:
     return 1
 
 
-if __name__ == "__main__":
+def cli() -> None:
     typer.run(main)

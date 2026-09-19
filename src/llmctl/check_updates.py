@@ -1,16 +1,3 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.11"
-# dependencies = [
-#   "ruamel.yaml==0.19.1",
-#   "typer==0.27.2",
-#   "rich==15.0.0",
-#   "httpx==0.28.1",
-#   "python-frontmatter==1.3.0",
-# ]
-# [tool.uv]
-# exclude-newer = "2026-09-18T00:00:00Z"
-# ///
 """Audit the upstreams this repo copies from, rather than depends on. Writes nothing.
 
 Two modes over `metadata.provenance`: `adaptedFrom` (content adapted from an
@@ -37,10 +24,10 @@ from typing import Any, NamedTuple
 import httpx
 import typer
 
-import github as githublib
-import provenance as prov
-import workspace
-from github import ApiError
+from . import github as githublib
+from . import provenance as prov
+from . import workspace
+from .github import ApiError
 
 # The audit's own vocabulary. `Item` is one tracked upstream of one file, `Row`
 # is that item plus a verdict -- both are the JSON this prints, so they stay
@@ -316,5 +303,5 @@ def main(repo: Path = workspace.REPO_OPTION,
         report(output)
 
 
-if __name__ == "__main__":
+def cli() -> None:
     typer.run(main)

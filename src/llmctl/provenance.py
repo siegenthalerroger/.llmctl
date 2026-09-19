@@ -15,7 +15,7 @@ from typing import Iterator, Literal
 
 import frontmatter
 
-from workspace import INSTALL_OUTPUT
+from .workspace import INSTALL_OUTPUT
 
 __all__ = ["DEFAULT_CODE", "DEFAULT_CONTENT", "Entry", "FIDELITIES",
            "KNOWN_LICENSES", "OBLIGATION", "PERMITTED_OUTBOUND",

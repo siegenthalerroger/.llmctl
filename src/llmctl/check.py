@@ -1,16 +1,3 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.11"
-# dependencies = [
-#   "ruamel.yaml==0.19.1",
-#   "typer==0.27.2",
-#   "rich==15.0.0",
-#   "httpx==0.28.1",
-#   "python-frontmatter==1.3.0",
-# ]
-# [tool.uv]
-# exclude-newer = "2026-09-18T00:00:00Z"
-# ///
 """Every gate, in one place. Writes nothing to the workspace.
 
 "Is this repo well-formed, and would it publish?" -- answered from one checkout,
@@ -28,22 +15,15 @@ from pathlib import Path
 
 import typer
 
-import check_licenses
-import commits as commitlib
-import gates as gatelib
-import gen_notices
-import pack_marketplace
-import workspace
-from gates import Context, Gate, Need, Outcome, fail, ok
+from . import check_licenses
+from . import commits as commitlib
+from . import gates as gatelib
+from . import gen_notices
+from . import pack_marketplace
+from . import workspace
+from .gates import Context, Gate, Need, Outcome, fail, ok
 
-# Every entry script declares the same dependencies, so an edit to one header
-# has to reach all of them or `uv run` resolves a different environment per
-# script. The shared modules carry no header: the entry importing them supplies
-# the dependencies.
-ENTRY_SCRIPTS = ("check.py", "check_licenses.py", "check_steering.py",
-                 "check_updates.py", "gen_notices.py", "pack_marketplace.py",
-                 "release.py", "update.py", "versions.py")
-HEADER_END = "# ///"
+HOOK = "validate-customization-frontmatter.py"
 
 
 def sh(args: list[str], cwd: Path | str) -> subprocess.CompletedProcess:
@@ -54,42 +34,49 @@ def sh(args: list[str], cwd: Path | str) -> subprocess.CompletedProcess:
                           encoding="utf-8", errors="replace")
 
 
-def gate_scripts(ctx: Context) -> Outcome:
-    """The tooling's own lint: identical headers, and no dead or broken code."""
-    scripts = workspace.script("scripts")
-    headers, problems = {}, []
-    for name in ENTRY_SCRIPTS:
-        path = scripts / name
-        if not path.is_file():
-            problems.append("%s is missing" % name)
-            continue
-        text = path.read_text(encoding="utf-8")
-        if HEADER_END not in text:
-            problems.append("%s has no PEP 723 header" % name)
-            continue
-        headers.setdefault(text.split(HEADER_END)[0], []).append(name)
-    if len(headers) > 1:
-        groups = ["{%s}" % ", ".join(names) for names in headers.values()]
-        problems.append("the PEP 723 headers differ across %s -- every entry script "
-                        "resolves its own environment, so they have to agree"
-                        % " vs ".join(groups))
+def gate_tooling(ctx: Context) -> Outcome:
+    """The tooling's own lint: its lockfile is current, and it compiles clean.
 
-    broken = sh([sys.executable, "-m", "compileall", "-q", str(scripts)], ctx.repo)
+    The lockfile half applies to a checkout of the project, where `uv run`
+    would otherwise sync a resolution nobody committed. Installed from git,
+    there is no lockfile beside the package, so only the code is checked.
+    """
+    package = Path(__file__).resolve().parent
+    project = package.parents[1]
+    problems, notes = [], []
+
+    if (project / "pyproject.toml").is_file() and shutil.which("uv") and not ctx.offline:
+        locked = sh(["uv", "lock", "--check"], project)
+        if locked.returncode != 0:
+            problems.append("uv.lock does not match pyproject.toml; run `uv lock`")
+        notes.append("uv.lock matches pyproject.toml")
+
+    broken = sh([sys.executable, "-m", "compileall", "-q", str(package)], ctx.repo)
     if broken.returncode != 0:
         problems.append((broken.stdout + broken.stderr).strip().split("\n")[-1][:200])
 
-    note = "pyflakes skipped (--offline)"
     if not ctx.offline and shutil.which("uv"):
         lint = sh(["uv", "run", "--quiet", "--no-project", "--with", "pyflakes",
-                   "python", "-m", "pyflakes", str(scripts)], ctx.repo)
+                   "python", "-m", "pyflakes", str(package)], ctx.repo)
         findings = [line for line in lint.stdout.split("\n") if line.strip()]
         if findings:
             problems.extend(findings[:3])
-        note = "pyflakes clean"
+        notes.append("pyflakes clean")
+    else:
+        notes.append("pyflakes skipped (--offline)")
 
     if problems:
         return fail("; ".join(problems[:3])[:300], problems=problems)
-    return ok("%d entry script(s) share one header; %s" % (len(ENTRY_SCRIPTS), note))
+    return ok("; ".join(notes))
+
+
+def frontmatter_hook() -> Path:
+    """The hook file the gate runs: the source in this checkout when the
+    tooling runs from one, so an edit to it is what gets checked; otherwise
+    the copy the wheel carries beside this module (see pyproject.toml)."""
+    here = Path(__file__).resolve()
+    source = here.parents[2] / ".apm" / "hooks" / HOOK
+    return source if source.is_file() else here.parent / "hooks" / HOOK
 
 
 def gate_frontmatter(ctx: Context) -> Outcome:
@@ -98,9 +85,8 @@ def gate_frontmatter(ctx: Context) -> Outcome:
     Still a subprocess, deliberately: the hook is deployed on its own by APM
     and runs under plain python3, so it stays stdlib and is not imported here.
     """
-    got = sh([sys.executable,
-              str(workspace.script(".apm", "hooks", "validate-customization-frontmatter.py")),
-              "--repo", str(ctx.repo), "--all"], ctx.repo)
+    got = sh([sys.executable, str(frontmatter_hook()), "--repo", str(ctx.repo), "--all"],
+             ctx.repo)
     lines = [line.strip() for line in (got.stdout + got.stderr).split("\n") if line.strip()]
     if got.returncode == 0:
         return ok(lines[-1].replace("[customization-frontmatter] ", "") if lines else "")
@@ -208,7 +194,7 @@ def gate_pack(ctx: Context) -> Outcome:
 
 
 GATES = [
-    Gate("scripts", "the release tooling lints and shares one header", gate_scripts),
+    Gate("tooling", "the release tooling is locked and lints clean", gate_tooling),
     Gate("frontmatter", "customization frontmatter conventions", gate_frontmatter),
     Gate("commits", "conventional commits since --since", gate_commits,
          needs=(Need("git-range", "skip"),)),
@@ -241,5 +227,5 @@ def main(repo: Path = workspace.REPO_OPTION,
     raise typer.Exit(runner.run(ctx))
 
 
-if __name__ == "__main__":
+def cli() -> None:
     typer.run(main)

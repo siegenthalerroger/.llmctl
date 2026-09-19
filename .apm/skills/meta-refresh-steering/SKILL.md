@@ -35,8 +35,8 @@ Phase 3 stays here. A subagent reports what a page says; deciding whether that i
 ## Phase 1 — the sources already cited
 
 ```bash
-uv run scripts/check_updates.py --repo . --specs --include "meta-steering"
-uv run scripts/check_updates.py --repo . --specs --include "meta-harness"
+uv run llmctl-check-updates --repo . --specs --include "meta-steering"
+uv run llmctl-check-updates --repo . --specs --include "meta-harness"
 ```
 
 Each row is one `authoritativeSpec` URL. `update_available` means the page changed since the local file last did.
@@ -73,7 +73,7 @@ A vendor's house style is not automatically this repository's convention. Where 
 - Editing the guidance is what makes every file it governs due for review. Say so at the end, and hand off:
 
 ```bash
-uv run scripts/check_steering.py --repo .   # what is now behind
+uv run llmctl-check-steering --repo .   # what is now behind
 ```
 
 Then `meta-review-steering` decides which of those actually need a change.

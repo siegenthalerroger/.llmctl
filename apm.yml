@@ -15,23 +15,23 @@ dependencies:
 
 scripts:
   # Every gate, over this workspace alone. The pre-PR check, and what CI runs.
-  # Add `--since <ref>` by calling the script directly to lint a commit range;
+  # Add `--since <ref>` by calling the command directly to lint a commit range;
   # without it that one gate is skipped, not failed.
-  check: "uv run scripts/check.py --repo ."
+  check: "uv run llmctl-check --repo ."
   # Move the pinned upstreams and show the diff of everything that moved.
   # Commits nothing: the reading is the point. See the meta-update-repo skill.
-  update: "uv run scripts/update.py --repo ."
+  update: "uv run llmctl-update --repo ."
   # The other half of updating: the files adapted from an upstream, and the
   # specifications cited. Read-only. `--specs` switches to the latter.
-  check-updates: "uv run scripts/check_updates.py --repo ."
+  check-updates: "uv run llmctl-check-updates --repo ."
   # Which steering files were last touched before the guidance that governs
   # them moved. Read-only, and a reading order rather than a verdict: see the
   # meta-review-steering skill for what a `behind` row is worth.
-  check-steering: "uv run scripts/check_steering.py --repo ."
+  check-steering: "uv run llmctl-check-steering --repo ."
   # What each package's next version would be, and why. Reads tags and commits.
-  versions: "uv run scripts/versions.py --repo ."
+  versions: "uv run llmctl-versions --repo ."
   # What a release would publish, and its notes. The real release runs in CI,
   # on a push to main; this is the preview, and it writes nothing.
-  release: "uv run scripts/release.py --repo . --marketplace ../.llmctl-marketplace --dry-run"
+  release: "uv run llmctl-release --repo . --marketplace ../.llmctl-marketplace --dry-run"
   # Regenerate the whole marketplace tree from this workspace, in place.
-  pack-marketplace: "uv run scripts/pack_marketplace.py --repo . --marketplace ../.llmctl-marketplace --all"
+  pack-marketplace: "uv run llmctl-pack-marketplace --repo . --marketplace ../.llmctl-marketplace --all"

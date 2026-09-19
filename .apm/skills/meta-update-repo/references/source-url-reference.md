@@ -47,7 +47,7 @@ metadata:
 | `partly-derived` | Some sections genuinely derive from upstream | **yes** |
 | `largely-derived` | Most of the local file derives from upstream, some near-verbatim | **yes** |
 
-`license` is the SPDX id of the **upstream**, not of the local file — `NONE` where the upstream has no LICENSE file. It is required wherever `fidelity` implies an obligation; `scripts/check_licenses.py` in the repo root reads it to decide what the local file may be licensed under, and fails the build when the two cannot be reconciled.
+`license` is the SPDX id of the **upstream**, not of the local file — `NONE` where the upstream has no LICENSE file. It is required wherever `fidelity` implies an obligation; `llmctl-check-licenses` reads it to decide what the local file may be licensed under, and fails the build when the two cannot be reconciled.
 
 All three are emitted on the result row (including `--json`), so a merge review can be dismissed without opening the upstream diff: if the upstream change touches nothing on the `took` list, there is nothing to merge.
 

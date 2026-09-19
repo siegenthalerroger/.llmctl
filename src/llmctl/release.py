@@ -1,16 +1,3 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.11"
-# dependencies = [
-#   "ruamel.yaml==0.19.1",
-#   "typer==0.27.2",
-#   "rich==15.0.0",
-#   "httpx==0.28.1",
-#   "python-frontmatter==1.3.0",
-# ]
-# [tool.uv]
-# exclude-newer = "2026-09-18T00:00:00Z"
-# ///
 """Publish each package at the calendar version its commits earn it.
 
 A release writes nothing to the workspace: the version is stamped into a scratch
@@ -31,13 +18,13 @@ from pathlib import Path
 
 import typer
 
-import commits as commitlib
-import github as githublib
-import pack_marketplace
-import release_notes
-import versions as versionlib
-import workspace
-from workspace import Log, Package, WorkspaceError, git
+from . import commits as commitlib
+from . import github as githublib
+from . import pack_marketplace
+from . import release_notes
+from . import versions as versionlib
+from . import workspace
+from .workspace import Log, Package, WorkspaceError, git
 
 
 def refuse_dirty(marketplace: Path, allowed: bool, show: int = 12) -> None:
@@ -245,5 +232,5 @@ def release(ws: Path, marketplace: Path, only: Sequence[str], force: bool,
     print("\nReleased and pushed %d package(s)." % len(plans))
 
 
-if __name__ == "__main__":
+def cli() -> None:
     typer.run(main)
