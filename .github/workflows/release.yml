@@ -20,9 +20,13 @@ on:
         default: ""
 
 # Annotated tags and the GitHub Releases beside them are the only writes this
-# workflow makes here, and both need `contents: write`.
+# workflow makes here, and both need `contents: write`. The release notes then
+# read each commit's pull request for its `## Release notes` section, which is a
+# separate scope -- without it every lookup 403s and the notes silently lose the
+# prose half.
 permissions:
   contents: write
+  pull-requests: read
 
 # Never two releases at once: both derive versions from tags the other is in
 # the middle of creating.
