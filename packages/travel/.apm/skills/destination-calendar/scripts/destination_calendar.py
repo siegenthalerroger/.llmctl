@@ -4,6 +4,7 @@
   python destination_calendar.py report GB 2026-06-20 2026-07-10
   python destination_calendar.py holidays CH 2026-07-28 2026-08-04
   python destination_calendar.py school DE 2026-04-01 2026-04-20 --subdivision DE-BY
+  python destination_calendar.py sources
   python destination_calendar.py selftest
 
 `report` is the one to run: it merges both sources into one dated table and
@@ -45,9 +46,24 @@ import urllib.request
 from dataclasses import dataclass
 from datetime import date, timedelta
 
-NAGER = "https://nagerholidays.com/api/v3"
+# Nager serves the same v3 API from two hosts. The first is what the project's
+# README documents today; the second is the long-standing one still in wide use.
+# Both are tried, because a CDN in front of either can refuse a request that the
+# other answers, and a refused host must not look like a country with no holidays.
+NAGER_HOSTS = (
+    "https://nagerholidays.com/api/v3",
+    "https://date.nager.at/api/v3",
+)
 OPENHOLIDAYS = "https://openholidaysapi.org"
 TIMEOUT = 20
+
+# Identify honestly. The default urllib agent string is blocked by CDNs on sight,
+# which is the likeliest reason a keyless public API returns 403; the fix is to
+# say who is calling, not to impersonate a browser.
+USER_AGENT = "llmctl-destination-calendar/1.0 (+https://github.com/siegenthalerroger/.llmctl)"
+
+# The host that last answered, so a run does not re-pay for a dead one.
+_preferred_host = ""
 
 # Weekday -> the working day that gets taken off to bridge to the weekend.
 # Tuesday holidays pull Monday, Thursday holidays push Friday. Wednesday
@@ -85,7 +101,9 @@ class Event:
 
 def fetch_json(url: str) -> object:
     """GET a URL and parse JSON, turning every failure into SourceError."""
-    request = urllib.request.Request(url, headers={"Accept": "application/json"})
+    request = urllib.request.Request(
+        url, headers={"Accept": "application/json", "User-Agent": USER_AGENT}
+    )
     try:
         with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
             payload = response.read()
@@ -99,16 +117,68 @@ def fetch_json(url: str) -> object:
         raise SourceError(f"{url} -> not JSON: {exc}") from exc
 
 
+def host_order() -> tuple:
+    """Nager hosts to try, the one that last answered first."""
+    if _preferred_host in NAGER_HOSTS:
+        return (_preferred_host,) + tuple(h for h in NAGER_HOSTS if h != _preferred_host)
+    return NAGER_HOSTS
+
+
+def nager_fetch(path: str, fetch=fetch_json) -> object:
+    """GET `path` from the first Nager host that answers.
+
+    Raises a SourceError naming *every* host tried and what each returned. One
+    host and one status is not enough to act on: the whole point of a fallback
+    is knowing whether the service is down or just one edge of it.
+    """
+    global _preferred_host
+    attempts = []
+    for host in host_order():
+        try:
+            payload = fetch(f"{host}/{path}")
+        except SourceError as exc:
+            attempts.append(str(exc))
+            continue
+        _preferred_host = host
+        return payload
+    _preferred_host = ""
+    raise SourceError("no Nager host answered -- " + "; ".join(attempts))
+
+
 def nager_public(country: str, start: date, end: date) -> list:
     """Public holidays from Nager.Date, one call per year the window touches."""
     events = []
     for year in range(start.year, end.year + 1):
-        rows = fetch_json(f"{NAGER}/publicholidays/{year}/{country}")
+        rows = nager_fetch(f"publicholidays/{year}/{country}")
         if not isinstance(rows, list):
             raise SourceError(f"Nager.Date returned {type(rows).__name__}, expected a list")
         for row in rows:
             events.extend(parse_nager_row(row))
     return [event for event in events if event.overlaps(start, end)]
+
+
+def probe(fetch=fetch_json) -> list:
+    """Which sources answer right now, as (label, url, status) rows."""
+    year = date.today().year
+    checks = [(f"Nager.Date  {host}", f"{host}/publicholidays/{year}/CH") for host in NAGER_HOSTS]
+    checks.append(
+        (
+            f"OpenHolidays  {OPENHOLIDAYS}",
+            f"{OPENHOLIDAYS}/PublicHolidays?countryIsoCode=CH&languageIsoCode=EN"
+            f"&validFrom={year}-01-01&validTo={year}-01-31",
+        )
+    )
+    rows = []
+    for label, url in checks:
+        try:
+            payload = fetch(url)
+        except SourceError as exc:
+            detail = str(exc)
+            rows.append((label, "unreachable", detail.split(" -> ", 1)[-1]))
+            continue
+        count = len(payload) if isinstance(payload, list) else "?"
+        rows.append((label, "ok", f"{count} row(s)"))
+    return rows
 
 
 def parse_nager_row(row: dict) -> list:
@@ -119,7 +189,9 @@ def parse_nager_row(row: dict) -> list:
         return []
     types = row.get("types") or []
     kind = PUBLIC if "Public" in types or "Bank" in types else OBSERVANCE
-    counties = row.get("counties") or []
+    # Upstream is renaming `counties` to `subdivisionCodes`; accept both so the
+    # rename does not silently turn every regional holiday into a nationwide one.
+    counties = row.get("subdivisionCodes") or row.get("counties") or []
     scope = "nationwide" if row.get("global", True) else ", ".join(counties) or "regional"
     name = row.get("localName") or row.get("name") or "unnamed"
     english = row.get("name")
@@ -327,6 +399,53 @@ def selftest() -> int:
         "DE-BY",
     )
 
+    # The subdivisionCodes rename must not read as nationwide.
+    renamed = parse_nager_row(
+        {"date": "2026-08-01", "localName": "Kantonsfeiertag", "name": "Cantonal Day",
+         "types": ["Public"], "global": False, "subdivisionCodes": ["CH-ZH"]}
+    )
+    check("subdivisionCodes scope", renamed[0].scope, "CH-ZH")
+
+    # Host fallback: the second host answers when the first refuses, and the
+    # winner is remembered so the next call does not re-pay for the dead one.
+    global _preferred_host
+    _preferred_host = ""
+    tried = []
+
+    def only_second(url):
+        tried.append(url)
+        if url.startswith(NAGER_HOSTS[0]):
+            raise SourceError(f"{url} -> HTTP 403")
+        return [{"date": "2026-01-01", "localName": "x", "name": "x", "types": ["Public"], "global": True}]
+
+    payload = nager_fetch("publicholidays/2026/CH", fetch=only_second)
+    check("fallback returns data", isinstance(payload, list), True)
+    check("fallback tried both", len(tried), 2)
+    check("fallback remembers winner", _preferred_host, NAGER_HOSTS[1])
+    check("preferred host goes first", host_order()[0], NAGER_HOSTS[1])
+
+    # When every host refuses, the error names every one of them.
+    _preferred_host = ""
+
+    def all_refuse(url):
+        raise SourceError(f"{url} -> HTTP 403")
+
+    try:
+        nager_fetch("publicholidays/2026/CH", fetch=all_refuse)
+    except SourceError as exc:
+        message = str(exc)
+        check("error names host 1", NAGER_HOSTS[0] in message, True)
+        check("error names host 2", NAGER_HOSTS[1] in message, True)
+        check("error keeps the status", "403" in message, True)
+    else:
+        failures.append("nager_fetch should have raised when every host refused")
+    check("failure clears preference", _preferred_host, "")
+
+    # The probe reports a refusal as a row rather than raising.
+    rows = probe(fetch=all_refuse)
+    check("probe covers every source", len(rows), len(NAGER_HOSTS) + 1)
+    check("probe marks unreachable", rows[0][1], "unreachable")
+
     # Merge drops the duplicate a two-source lookup always produces.
     day = date(2026, 12, 25)
     a = Event(day, day, PUBLIC, "Christmas Day", "nationwide", "Nager.Date")
@@ -365,11 +484,19 @@ def main(argv=None) -> int:
         child.add_argument("start", help="YYYY-MM-DD")
         child.add_argument("end", help="YYYY-MM-DD")
         child.add_argument("--subdivision", default="", help="e.g. DE-BY, CH-ZH")
+    sub.add_parser("sources")
     sub.add_parser("selftest")
     args = parser.parse_args(argv)
 
     if args.command == "selftest":
         return selftest()
+
+    if args.command == "sources":
+        rows = probe()
+        width = max(len(label) for label, _, _ in rows)
+        for label, status, detail in rows:
+            print(f"{label.ljust(width)}  {status:<12} {detail}")
+        return 0 if any(status == "ok" for _, status, _ in rows) else 2
 
     country = args.country.strip().upper()
     start, end = window(args)
