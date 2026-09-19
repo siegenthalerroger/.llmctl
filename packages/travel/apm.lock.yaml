@@ -1,0 +1,353 @@
+lockfile_version: '1'
+dependencies: []
+deployments:
+- kind: project-relative
+  target: claude
+  value: .claude/commands/plan-trip.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:2a25c49d46165f604c5711a01e7469060e23794c97e4376c5ec9ab600d411ec0
+- kind: project-relative
+  target: claude
+  value: .claude/skills/destination-calendar
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/destination-calendar/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:4229c24350d2e31a4c8ce8b205f4288a1eb19dcc1100fd99de83802e3b00aa80
+- kind: project-relative
+  target: claude
+  value: .claude/skills/destination-calendar/references/event-classes.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:d37e9c2bac7944738a521d223948edd745a605b7f9c75a1d43eed867c92d378b
+- kind: project-relative
+  target: claude
+  value: .claude/skills/destination-calendar/references/search-protocol.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:2fb58bab09c13b6f7b9d425780ffa1fdd8ca6f13ffd1107c8581593300c25dd6
+- kind: project-relative
+  target: claude
+  value: .claude/skills/destination-calendar/references/verdict.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:89140af8d9cd0efecff0edb555153cd2c0f0f1c69a84ea68dd5dc73dff6257ba
+- kind: project-relative
+  target: claude
+  value: .claude/skills/destination-calendar/scripts/destination_calendar.py
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:2528bb743afae2ef13862e205af58da8a5c2910ebbe667f1b2c2f89904e5991a
+- kind: project-relative
+  target: claude
+  value: .claude/skills/itinerary-authoring
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/itinerary-authoring/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:ef4b7b13568d7f086776aef134fd9520e5b573db66af92f1467c9b04ccaea929
+- kind: project-relative
+  target: claude
+  value: .claude/skills/itinerary-authoring/references/day-structure.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:f12f82b60efa4f89824e687e39e723857801071ee639d60bec40fe25e5a042e6
+- kind: project-relative
+  target: claude
+  value: .claude/skills/itinerary-authoring/references/lead-times.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:f3243b4b0bc8fbe8884e790f2881b3af9a84e46da5e013b4d10b46bf4429f783
+- kind: project-relative
+  target: claude
+  value: .claude/skills/travel-entry-requirements
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/travel-entry-requirements/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:0cf943e9472e1ace9f2aa2d6a2cb5d501763b396a0d6d5e7808ef903a6164fab
+- kind: project-relative
+  target: claude
+  value: .claude/skills/travel-entry-requirements/references/official-sources.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:064c1c57e87b80a588e336bd3b8b5974ca9cd1134f46f4d43538f821378737ce
+- kind: project-relative
+  target: claude
+  value: .claude/skills/travel-entry-requirements/scripts/schengen_window.py
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:acb2f0d18dac3e84b9788c9b8ee813ad27dca3e1a63525612bc438e8af296bb3
+- kind: project-relative
+  target: claude
+  value: .claude/skills/trip-planning
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/trip-planning/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:374188daf28f579ddc7adb1cfe32c2bbe4bdb127db785be32b6a55af16dcefe6
+- kind: project-relative
+  target: claude
+  value: .claude/skills/trip-planning/references/booking-authority.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:e4c82c0780d6c7511f8e244a451e4e6f574e193c4d3f71d99d35909bba72db4e
+- kind: project-relative
+  target: claude
+  value: .claude/skills/trip-planning/references/intake.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:8d55e2975f1caac308193dda92b6e162866fe221da979e35be96d385df5402e8
+- kind: project-relative
+  target: claude
+  value: .claude/skills/trip-planning/references/tool-inventory.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:d6a81730da9f161a63782e28f4b3cba395a74a1f8f8425f85774d23ea7d630b8
+- kind: uri
+  target: mcp
+  value: airbnb
+  runtime: claude
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: uri
+  target: mcp
+  value: ferryhopper
+  runtime: claude
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: uri
+  target: mcp
+  value: fli
+  runtime: claude
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: uri
+  target: mcp
+  value: hotelrate
+  runtime: claude
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: uri
+  target: mcp
+  value: liteapi
+  runtime: claude
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: uri
+  target: mcp
+  value: skiplagged
+  runtime: claude
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: uri
+  target: mcp
+  value: trivago
+  runtime: claude
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+mcp_servers:
+- airbnb
+- ferryhopper
+- fli
+- hotelrate
+- liteapi
+- skiplagged
+- trivago
+mcp_configs:
+  airbnb:
+    name: airbnb
+    transport: stdio
+    args:
+    - -y
+    - '@openbnb/mcp-server-airbnb@0.3.0'
+    - --ignore-robots-txt
+    registry: false
+    command: npx
+  ferryhopper:
+    name: ferryhopper
+    transport: http
+    registry: false
+    url: https://mcp.ferryhopper.com/mcp
+  fli:
+    name: fli
+    transport: stdio
+    args:
+    - --from
+    - flights[mcp]==0.9.0
+    - fli-mcp
+    registry: false
+    command: uvx
+  hotelrate:
+    name: hotelrate
+    transport: stdio
+    args:
+    - --with
+    - mcp[cli]<2
+    - --from
+    - git+https://github.com/seanbabalala/hotelrate-crawl@b60205201f002d649ef741fcfe1f6130123289e6
+    - hotelrate-mcp
+    registry: false
+    command: uvx
+  liteapi:
+    name: liteapi
+    transport: http
+    registry: false
+    headers:
+      Authorization: Bearer ${LITEAPI_API_KEY}
+    url: https://mcp.liteapi.travel/api/mcp
+  skiplagged:
+    name: skiplagged
+    transport: http
+    registry: false
+    url: https://mcp.skiplagged.com/mcp
+  trivago:
+    name: trivago
+    transport: http
+    registry: false
+    url: https://mcp.trivago.com/mcp
+mcp_target_servers:
+  claude:
+  - airbnb
+  - ferryhopper
+  - fli
+  - hotelrate
+  - liteapi
+  - skiplagged
+  - trivago
+local_deployed_files:
+- .claude/commands/plan-trip.md
+- .claude/skills/destination-calendar
+- .claude/skills/destination-calendar/SKILL.md
+- .claude/skills/destination-calendar/references/event-classes.md
+- .claude/skills/destination-calendar/references/search-protocol.md
+- .claude/skills/destination-calendar/references/verdict.md
+- .claude/skills/destination-calendar/scripts/destination_calendar.py
+- .claude/skills/itinerary-authoring
+- .claude/skills/itinerary-authoring/SKILL.md
+- .claude/skills/itinerary-authoring/references/day-structure.md
+- .claude/skills/itinerary-authoring/references/lead-times.md
+- .claude/skills/travel-entry-requirements
+- .claude/skills/travel-entry-requirements/SKILL.md
+- .claude/skills/travel-entry-requirements/references/official-sources.md
+- .claude/skills/travel-entry-requirements/scripts/schengen_window.py
+- .claude/skills/trip-planning
+- .claude/skills/trip-planning/SKILL.md
+- .claude/skills/trip-planning/references/booking-authority.md
+- .claude/skills/trip-planning/references/intake.md
+- .claude/skills/trip-planning/references/tool-inventory.md
+local_deployed_file_hashes:
+  .claude/commands/plan-trip.md: sha256:2a25c49d46165f604c5711a01e7469060e23794c97e4376c5ec9ab600d411ec0
+  .claude/skills/destination-calendar/SKILL.md: sha256:4229c24350d2e31a4c8ce8b205f4288a1eb19dcc1100fd99de83802e3b00aa80
+  .claude/skills/destination-calendar/references/event-classes.md: sha256:d37e9c2bac7944738a521d223948edd745a605b7f9c75a1d43eed867c92d378b
+  .claude/skills/destination-calendar/references/search-protocol.md: sha256:2fb58bab09c13b6f7b9d425780ffa1fdd8ca6f13ffd1107c8581593300c25dd6
+  .claude/skills/destination-calendar/references/verdict.md: sha256:89140af8d9cd0efecff0edb555153cd2c0f0f1c69a84ea68dd5dc73dff6257ba
+  .claude/skills/destination-calendar/scripts/destination_calendar.py: sha256:2528bb743afae2ef13862e205af58da8a5c2910ebbe667f1b2c2f89904e5991a
+  .claude/skills/itinerary-authoring/SKILL.md: sha256:ef4b7b13568d7f086776aef134fd9520e5b573db66af92f1467c9b04ccaea929
+  .claude/skills/itinerary-authoring/references/day-structure.md: sha256:f12f82b60efa4f89824e687e39e723857801071ee639d60bec40fe25e5a042e6
+  .claude/skills/itinerary-authoring/references/lead-times.md: sha256:f3243b4b0bc8fbe8884e790f2881b3af9a84e46da5e013b4d10b46bf4429f783
+  .claude/skills/travel-entry-requirements/SKILL.md: sha256:0cf943e9472e1ace9f2aa2d6a2cb5d501763b396a0d6d5e7808ef903a6164fab
+  .claude/skills/travel-entry-requirements/references/official-sources.md: sha256:064c1c57e87b80a588e336bd3b8b5974ca9cd1134f46f4d43538f821378737ce
+  .claude/skills/travel-entry-requirements/scripts/schengen_window.py: sha256:acb2f0d18dac3e84b9788c9b8ee813ad27dca3e1a63525612bc438e8af296bb3
+  .claude/skills/trip-planning/SKILL.md: sha256:374188daf28f579ddc7adb1cfe32c2bbe4bdb127db785be32b6a55af16dcefe6
+  .claude/skills/trip-planning/references/booking-authority.md: sha256:e4c82c0780d6c7511f8e244a451e4e6f574e193c4d3f71d99d35909bba72db4e
+  .claude/skills/trip-planning/references/intake.md: sha256:8d55e2975f1caac308193dda92b6e162866fe221da979e35be96d385df5402e8
+  .claude/skills/trip-planning/references/tool-inventory.md: sha256:d6a81730da9f161a63782e28f4b3cba395a74a1f8f8425f85774d23ea7d630b8
