@@ -110,7 +110,7 @@ See also [terraform-skill's `references/code-intelligence-lsp.md`](https://githu
 
 Two validation layers exist as of 2026-08-02, and neither covers this workstream:
 
-- [.apm/hooks/validate-customization-frontmatter.py](.apm/hooks/validate-customization-frontmatter.py), a Claude Code `PostToolUse` hook — it fires only on files edited in a Claude session, so drift in untouched files, edits made from other harnesses, and APM version skew all go unnoticed until a deploy misbehaves (cf. **3c**, **3d**).
+- [check_frontmatter.py](src/llmctl/check_frontmatter.py), wired as a Claude Code `PostToolUse` hook — in that mode it fires only on files edited in a Claude session, so drift in untouched files, edits made from other harnesses, and APM version skew all go unnoticed until a deploy misbehaves (cf. **3c**, **3d**).
 - [check.py](src/llmctl/check.py) — frontmatter, the commit convention, licences, lockfiles against their pins, and a full scratch pack. Repo-wide and run in CI on every pull request, but it covers provenance, licensing and the release path rather than the semantic conventions below.
 Two distinct failure classes are worth checking separately:
 
@@ -134,7 +134,7 @@ Two caveats from that repo: `devDependencies` entries are reported as orphaned b
 
 ### Tasks
 
-- [x] **4a — Run the frontmatter validator over the whole tree in CI.** **Done 2026-08-19.** [validate-customization-frontmatter.py](.apm/hooks/validate-customization-frontmatter.py) now takes `--all` (or explicit paths) alongside its stdin hook mode — one implementation, two entry points, and the batch mode exits 1 on errors rather than the hook contract's 2. It runs as check.py's cheapest gate, so it fires on every PR, every push, and any local `apm run check`.
+- [x] **4a — Run the frontmatter validator over the whole tree in CI.** **Done 2026-08-19.** [check_frontmatter.py](src/llmctl/check_frontmatter.py) validates the whole tree alongside its stdin `--hook` mode — one implementation, two entry points, and the batch mode exits 1 on errors rather than the hook contract's 2. It runs as check.py's cheapest gate, so it fires on every PR, every push, and any local `apm run check`.
 - [ ] **4b — Extend validation to metadata this repo relies on but the hook ignores** — `model:` frontmatter on agents and the `tools:`-omission convention from **3d**.
 
   **The provenance half of this task shipped.** [check_licenses.py](src/llmctl/check_licenses.py) now hard-errors on an `adaptedFrom` block that parses to zero URLs and on an object entry with no `url`, and it parses through the shared [provenance.py](src/llmctl/provenance.py) so the validator and the [drift audit](src/llmctl/check_updates.py) cannot disagree about what counts as tracked — they run the same parse, since the audit was rewritten from PowerShell into Python. It also requires an upstream `license` wherever `fidelity` copies expression. Two lint-grade checks from the original list remain unimplemented, both warnings rather than errors:

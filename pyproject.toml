@@ -26,6 +26,7 @@ dependencies = [
 # pieces the pack and the release run, kept callable on their own.
 [project.scripts]
 llmctl-check = "llmctl.check:cli"
+llmctl-check-frontmatter = "llmctl.check_frontmatter:cli"
 llmctl-update = "llmctl.update:cli"
 llmctl-check-updates = "llmctl.check_updates:cli"
 llmctl-check-steering = "llmctl.check_steering:cli"
@@ -36,18 +37,8 @@ llmctl-check-licenses = "llmctl.check_licenses:cli"
 llmctl-gen-notices = "llmctl.gen_notices:cli"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/llmctl"]
-
-# The edit-time hook is deployed by APM from .apm/hooks and runs under plain
-# python3, so it stays there and stays stdlib. The frontmatter gate runs the
-# same file over a whole workspace, so a wheel carries a copy for a workspace
-# that installs the tooling from git; a checkout runs the source.
-[tool.hatch.build.targets.wheel.force-include]
-".apm/hooks/validate-customization-frontmatter.py" = "llmctl/hooks/validate-customization-frontmatter.py"
+requires = ["uv_build"]
+build-backend = "uv_build"
 
 [tool.uv]
 # Reproducible resolution without re-locking on every run: nothing newer than
