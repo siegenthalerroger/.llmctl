@@ -1383,7 +1383,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:1d083b1d5abd104ff0d3a7f543c0ef8f0541ac86f7d3ae67100a07c3071c12f7
+  content_hash: sha256:666dc6c6e9380fb9ec074caa0d0203dcdef8802ad7757d37e82b7f401ac5f882
 - kind: project-relative
   target: claude
   value: .claude/agents/plan.md
@@ -2004,7 +2004,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:15415ab33a5e18c0a41fcda4702fbea2cea756f018f6d7cbb3d53df9a3e25e52
+  content_hash: sha256:b14189e0a4c6e145b90d8fcfcf4dc0b9e534ae819b3dca294ff17905ab7aedc4
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-update-repo/references/safety-review.md
@@ -2409,7 +2409,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:d545cc0f3e76cf5cccb882f1e30d842d74f1deab3e3dafda3c872bb557848136
+  content_hash: sha256:fb537a4d0cd72691d3ae1a1a0813fd1622153fb120a94c05684b927af0a7640b
 - kind: project-relative
   target: codex
   value: .codex/agents/plan.toml
@@ -2499,7 +2499,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:15415ab33a5e18c0a41fcda4702fbea2cea756f018f6d7cbb3d53df9a3e25e52
+  content_hash: sha256:b14189e0a4c6e145b90d8fcfcf4dc0b9e534ae819b3dca294ff17905ab7aedc4
 - kind: project-relative
   target: legacy
   value: .agents/skills/meta-update-repo/references/safety-review.md
@@ -2609,14 +2609,14 @@ local_deployed_file_hashes:
   .agents/skills/meta-refresh-steering/SKILL.md: sha256:58c64618aaa33b8caec0759b0d3e2ab93e5446876bb89143c3ebe84a1beb6548
   .agents/skills/meta-review-steering/SKILL.md: sha256:fd0dcb7be069a2f5e6e589427d0e4d64223c511d4cff62c4ed83ee990f83e735
   .agents/skills/meta-update-models/SKILL.md: sha256:9bcea364875f3647fdbb8bc0af4ba9453fe63c0d0ec8b380bad96e2f44277160
-  .agents/skills/meta-update-repo/SKILL.md: sha256:15415ab33a5e18c0a41fcda4702fbea2cea756f018f6d7cbb3d53df9a3e25e52
+  .agents/skills/meta-update-repo/SKILL.md: sha256:b14189e0a4c6e145b90d8fcfcf4dc0b9e534ae819b3dca294ff17905ab7aedc4
   .agents/skills/meta-update-repo/references/safety-review.md: sha256:602fd5b3e71618243d174240924a0cbcac81065914b3e682ac9dfa5522030dca
   .agents/skills/meta-update-repo/references/source-url-reference.md: sha256:e4afb77f918c0011d3e28fe6f3c3077a528dd2a64b5bd665308c0518178f3af7
-  .claude/agents/meta-updater.md: sha256:1d083b1d5abd104ff0d3a7f543c0ef8f0541ac86f7d3ae67100a07c3071c12f7
+  .claude/agents/meta-updater.md: sha256:666dc6c6e9380fb9ec074caa0d0203dcdef8802ad7757d37e82b7f401ac5f882
   .claude/skills/meta-refresh-steering/SKILL.md: sha256:58c64618aaa33b8caec0759b0d3e2ab93e5446876bb89143c3ebe84a1beb6548
   .claude/skills/meta-review-steering/SKILL.md: sha256:fd0dcb7be069a2f5e6e589427d0e4d64223c511d4cff62c4ed83ee990f83e735
   .claude/skills/meta-update-models/SKILL.md: sha256:9bcea364875f3647fdbb8bc0af4ba9453fe63c0d0ec8b380bad96e2f44277160
-  .claude/skills/meta-update-repo/SKILL.md: sha256:15415ab33a5e18c0a41fcda4702fbea2cea756f018f6d7cbb3d53df9a3e25e52
+  .claude/skills/meta-update-repo/SKILL.md: sha256:b14189e0a4c6e145b90d8fcfcf4dc0b9e534ae819b3dca294ff17905ab7aedc4
   .claude/skills/meta-update-repo/references/safety-review.md: sha256:602fd5b3e71618243d174240924a0cbcac81065914b3e682ac9dfa5522030dca
   .claude/skills/meta-update-repo/references/source-url-reference.md: sha256:e4afb77f918c0011d3e28fe6f3c3077a528dd2a64b5bd665308c0518178f3af7
-  .codex/agents/meta-updater.toml: sha256:d545cc0f3e76cf5cccb882f1e30d842d74f1deab3e3dafda3c872bb557848136
+  .codex/agents/meta-updater.toml: sha256:fb537a4d0cd72691d3ae1a1a0813fd1622153fb120a94c05684b927af0a7640b

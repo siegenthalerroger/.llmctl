@@ -31,7 +31,7 @@ Four independent procedures. Each is owned by a skill: load that skill and follo
 
 | # | Ask it when | Skill | Covers |
 | --- | --- | --- | --- |
-| 1 | an upstream may have moved | `meta-update-repo` | pinned dependencies and their lockfiles, adapted files, cited specifications, upstream licences |
+| 1 | an upstream may have moved | `meta-update-repo` | pinned dependencies and their lockfiles, the Python the tooling itself pins, adapted files, cited specifications, upstream licences |
 | 2 | a new model shipped | `meta-update-models` | `model:` and `effort:` in files declaring a `metadata.modelProfile` |
 | 3 | the harnesses have moved on | `meta-refresh-steering` | `meta-steering` and `meta-harness` themselves, against what the vendors now document |
 | 4 | the guidance changed, or it has been a while | `meta-review-steering` | every steering file, against the guidance that governs it |
@@ -57,7 +57,7 @@ Confirm a GitHub token is available (`gh auth status`, or `GITHUB_TOKEN` / `GH_T
 
 Whichever ran, say what was left alone as well as what moved:
 
-1. Per package: which pins moved and to what, the verdict of each safety review, which adaptations and specifications were flagged, what was not updated and why.
+1. Which pins moved and to what, per package and for the tooling, the verdict of each safety review, which adaptations and specifications were flagged, what was not updated and why.
 2. A table of file → old `model:`/`effort:` → new, with the reason for each.
 3. Per guidance skill: which cited pages moved, which sources were added, what was adopted as fact, what was judged technique and declined.
 4. Three groups: changed, closed with the reason none of the gap applied, and kept with the divergence that stands.
