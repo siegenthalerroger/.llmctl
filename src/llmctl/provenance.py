@@ -70,6 +70,14 @@ PERMITTED_OUTBOUND = {
     # under Acknowledgements, because attribution is a courtesy we keep.
     "Unlicense": ("MIT", "CC-BY-SA-4.0"),
     "CC0-1.0": ("MIT", "CC-BY-SA-4.0"),
+    # CC-BY-NC-4.0 permits copying with attribution but forbids commercial use,
+    # which neither repo default can absorb: CC-BY-SA-4.0's ShareAlike requires
+    # the adaptation be licensed CC-BY-SA, which permits commercial use, and MIT
+    # cannot carry an NC restriction either. Listed with no permitted outbound,
+    # so a source under it is usable only at a fidelity that attaches nothing --
+    # take the shape, never the prose -- and anything above `structural-echo`
+    # fails the gate rather than silently relicensing.
+    "CC-BY-NC-4.0": (),
     # W3C-20150513 permits copying and porting with the full notice carried, so
     # in isolation it would sit with the permissive licences above. It is listed
     # with no permitted outbound deliberately, to enforce re-evaluation of LICENSE.md
