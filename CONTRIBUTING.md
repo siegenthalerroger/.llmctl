@@ -231,13 +231,13 @@ Authoritative sources are maintained in the `meta-update-models` skill frontmatt
 
 ## Upstream Update Tooling
 
-Three kinds of upstream feed this repository. `apm run update` handles the first; `apm run check-updates` audits the other two. The `meta-update-repo` skill is the procedure around them.
+Four kinds of upstream feed this repository: content the packages consume, the third-party Python the tooling runs on, and the two kinds of upstream a file only cites. The `meta-update-repo` skill is the procedure around all four.
 
 **Four procedures, no pipeline.** Updating is not one command, because the four things that go out of date go out of date on their own schedules. The `meta-updater` agent routes a request to one of them and asks which when the request does not say — it never runs all four because the ask was vague.
 
 | Procedure | Moves | Run it when |
 | --- | --- | --- |
-| `meta-update-repo` | pins and lockfiles, adapted files, cited specs, upstream licences | an upstream may have moved |
+| `meta-update-repo` | pins and lockfiles, the tooling's Python, adapted files, cited specs, upstream licences | an upstream may have moved |
 | `meta-update-models` | `model:` / `effort:` where a `metadata.modelProfile` is declared | a new model shipped |
 | `meta-refresh-steering` | `meta-steering` and `meta-harness` themselves | the harnesses have moved on |
 | `meta-review-steering` | every steering file, against the guidance over it | the guidance changed, or it has been a while |
@@ -247,12 +247,15 @@ The last two are a pair: refreshing the guidance is what makes the files it gove
 | Input | Declared in | Command |
 | --- | --- | --- |
 | APM dependencies | `dependencies.apm`, resolved in `packages/*/apm.lock.yaml` | `apm run update` |
+| Tooling dependencies | `[project.dependencies]` in `pyproject.toml`, resolved in `uv.lock` | `uv lock --upgrade` |
 | Adapted content | `metadata.provenance.adaptedFrom` | `apm run check-updates` |
 | Specifications | `metadata.provenance.authoritativeSpec` | the same, with `--specs` |
 
 `apm run update` moves each package's pins as far as they go, installs, proves the lockfile followed, scans what was materialised with `apm audit`, and prints the upstream's own diff for everything that moved, filtered to the path this repository consumes. It commits nothing.
 
 **Every bump is read before it is committed.** A pinned dependency is content an agent loads as instructions, and some of it ships scripts and hooks that run locally; `apm approve` gates *execution*, not content. The [safety-review reference](.apm/skills/meta-update-repo/references/safety-review.md) says what to look for. It is a reading, not a scan — a table of strings to grep for was built and dropped for flagging a vendor's own install one-liner while missing anything phrased differently.
+
+**The tooling's own pins need both locks raised.** `[project.dependencies]` is exact and `[tool.uv] exclude-newer` caps what the resolver sees, so `uv lock --upgrade` alone reports no change however much has been released. The skill's phase B raises the cutoff, relaxes the pins, re-resolves, and pins back to what `uv.lock` landed on — exact, because a workspace installing the tooling from git resolves against that table rather than the lockfile.
 
 **Two upstreams `apm update` cannot move on its own.** It resolves a full-SHA pin only to the newest *annotated* semver tag, so an upstream publishing none — `blader/humanizer` and `rshade/agent-skills` today — needs the HEAD bump that `update.py` applies for exactly that case. Where a tag does exist, APM rewrites the pin and appends it as a comment (`#<sha> # v1.2.3`), which is what a future Renovate `apm` manager would read.
 

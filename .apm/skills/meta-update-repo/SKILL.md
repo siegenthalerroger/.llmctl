@@ -1,7 +1,7 @@
 ---
 name: "meta-update-repo"
-description: "Refreshes this repository's upstream inputs — the pinned APM dependencies and their lockfiles, the files adapted from an upstream via metadata.provenance.adaptedFrom, and the specification URLs under authoritativeSpec — by running the repository's own update and audit commands and reading the diff of everything that moved before any of it is committed. ALWAYS use when asked to update dependencies, bump a pin, sync upstream, refresh a lockfile, or check adapted files for drift. Do not run apm update directly, edit a #sha by hand, or merge an upstream change without this procedure and its safety review. Keywords: apm update, apm outdated, lockfile, pin bump, upstream sync, dependency update, adaptedFrom, authoritativeSpec, drift audit, safety review."
-compatibility: "Repo-local: needs `apm`, `uv`, `git` and a GitHub token, and drives this repository's `apm run update`, `check-updates` and `check` commands, which are not bundled with the skill. If they cannot be run, reproduce each step with equivalent repository or MCP tools and report the fallback used."
+description: "Refreshes this repository's upstream inputs — the pinned APM dependencies and their lockfiles, the third-party Python its own tooling pins, the files adapted from an upstream via metadata.provenance.adaptedFrom, and the specification URLs under authoritativeSpec — by running the repository's own update and audit commands and reading the diff of everything that moved before any of it is committed. ALWAYS use when asked to update dependencies, bump a pin, sync upstream, refresh a lockfile, raise a Python version pin, or check adapted files for drift. Do not run apm update or uv lock --upgrade directly, edit a #sha by hand, or merge an upstream change without this procedure and its safety review. Keywords: apm update, apm outdated, lockfile, pin bump, upstream sync, dependency update, uv lock, pyproject, exclude-newer, adaptedFrom, authoritativeSpec, drift audit, safety review."
+compatibility: "Repo-local: needs `apm`, `uv`, `git` and a GitHub token, and drives this repository's `apm run update`, `check-updates` and `check` commands plus `uv lock`, none of which are bundled with the skill. If they cannot be run, reproduce each step with equivalent repository or MCP tools and report the fallback used."
 ---
 
 # meta-update-repo
@@ -10,11 +10,12 @@ Bring this repository's third-party inputs up to date, deliberately, with a read
 
 ## Scope
 
-Three kinds of upstream, audited separately because they fail differently:
+Four kinds of upstream, audited separately because they fail differently:
 
 | Input | Declared in | Command |
 | --- | --- | --- |
 | APM dependencies | `dependencies.apm` in `packages/*/apm.yml`, resolved in `packages/*/apm.lock.yaml` | `apm run update` |
+| Tooling dependencies | `[project.dependencies]` in `pyproject.toml`, resolved in `uv.lock` | `uv lock --upgrade` |
 | Adapted content | `metadata.provenance.adaptedFrom` in a primitive's frontmatter | `apm run check-updates` |
 | Specifications | `metadata.provenance.authoritativeSpec` in a primitive's frontmatter | the same, with `--specs` |
 
@@ -53,7 +54,42 @@ Reject one with `git checkout -- packages/<dir>`, and say why.
 
 The run exits non-zero and names it. Known cause on APM 0.31: a package pinning several subpaths of one repository at the same commit fails with "Expected exactly one apm.yml entry for `<sha>`, found N" and APM writes nothing. `packages/design` is in that state today. Report it; do not work around it by hand-editing the pins, because a hand-moved pin skips the tag `apm update` would have chosen.
 
-## Phase B — adapted content
+## Phase B — the tooling's own dependencies
+
+The release tooling is a uv project, so it pins third-party Python the way a package pins APM content: exact versions in [pyproject.toml](../../../pyproject.toml), resolved with hashes in `uv.lock`, under a `[tool.uv] exclude-newer` cutoff that bounds what the resolver may even see.
+
+**`uv lock --upgrade` on its own reports "No lockfile changes detected" no matter what has been released, and that is not an answer.** The `==` pins and the cutoff each hold it independently, so both have to move:
+
+```bash
+# in pyproject.toml: raise exclude-newer to today, and relax each `==` to `>=`
+uv lock --upgrade      # names the cutoff it ignored, then re-resolves
+git diff uv.lock       # what moved, including transitive packages nothing pins
+```
+
+Read what moved before keeping it. These are not content an agent reads — they are code that runs wherever a gate or a release runs, which includes CI with a token in the environment, so the question is supply chain rather than instruction: read each project's own release notes for the range, treat a maintainer or build-system change as the thing to look at, and check anything surprising against the source. `uv.lock` records a hash per artefact; keep it that way.
+
+Then pin back — `==` at exactly what `uv.lock` resolved, so a consumer installing from git gets this resolution and not a newer one — and re-lock:
+
+```bash
+uv lock && uv run llmctl-check --repo .   # the `tooling` gate holds the lockfile to pyproject.toml
+```
+
+Keep it as one commit, both files together, since either alone fails that gate:
+
+```bash
+git add pyproject.toml uv.lock
+git commit -m "build(tooling): bump <package> to <version>"
+```
+
+A `uv pip list --outdated` run reports the project itself as outdated against an unrelated `llmctl` on PyPI. It is a name collision, not a finding.
+
+### When the Python guidance moves
+
+`packages/python` carries the rules this tooling is written to: `python-standards` and `python-scripts` locally, `modern-python` pinned upstream. When phase A moves that pin, or either local skill changes, the code is what the change governs — re-read what moved and check `src/llmctl/` and `pyproject.toml` against it: a build-backend or dependency-group convention, a typing or error-handling rule, a project-layout rule, a linter or type-checker the repository does not yet run. Report the outcome either way; "nothing to change" is a result, and an unrecorded one gets re-derived next time.
+
+This is the question `meta-review-steering` asks of steering files, asked of the code instead. Neither skill covers the other's files.
+
+## Phase C — adapted content
 
 ```bash
 apm run check-updates                                                   # broad
@@ -77,7 +113,7 @@ For a stub or empty local file, fetch the full upstream content: commit summarie
 
 **After any merge, re-check `fidelity` and `license` in the same edit.** Taking more across than last time raises the fidelity, and a raised fidelity can attach terms the local file's licence cannot carry. Never leave it to a follow-up.
 
-## Phase C — specifications
+## Phase D — specifications
 
 ```bash
 uv run llmctl-check-updates --repo . --specs
@@ -85,13 +121,13 @@ uv run llmctl-check-updates --repo . --specs
 
 A GitHub source is dated from its commits; anything else is probed over HTTP. `update_available` means the page changed since the local file last did — read it and check the claims the local file makes about it, a field name, a limit, a schema. Record the outcome either way. Edit only when asked.
 
-## Phase D — verify
+## Phase E — verify
 
 ```bash
 apm run check
 ```
 
-Then report, per package: which pins moved and to what, the verdict of each safety review, which adaptations and specifications were flagged, and what was deliberately left alone and why.
+Then report: which pins moved and to what, per package and for the tooling, the verdict of each safety review, which adaptations and specifications were flagged, what the Python guidance asked of the code if it moved, and what was deliberately left alone and why.
 
 ## Guidelines
 
@@ -106,6 +142,6 @@ Then report, per package: which pins moved and to what, the verdict of each safe
 
 ## Notes
 
-- `authoritativeSpec` declares which specification a file conforms to, not where content came from, so it is not in the phase B scan. It is not inert: `llmctl-check-licenses` reads it too, treating a bare URL as a citation that reproduces nothing.
+- `authoritativeSpec` declares which specification a file conforms to, not where content came from, so it is not in the phase C scan. It is not inert: `llmctl-check-licenses` reads it too, treating a bare URL as a citation that reproduces nothing.
 - Provenance forms — a URL string, an array of URLs, or an array of objects carrying `url` plus `license` / `fidelity` / `took` — are described in [references/source-url-reference.md](references/source-url-reference.md).
 - Another workspace runs these commands from this repository's git, the same way it runs the rest: `uvx --from git+https://github.com/siegenthalerroger/.llmctl@main llmctl-update --repo .`.
