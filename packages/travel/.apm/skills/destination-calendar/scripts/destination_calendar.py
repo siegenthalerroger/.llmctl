@@ -29,7 +29,13 @@ weekend, a trade fair and a rail strike are what actually wreck a booking
 window, and no keyless API ranks them. That half is the skill's search
 protocol; this half is the half a machine can be trusted with.
 
-Exits 2 when a source fails, so a silent skip is impossible -- an empty table
+When every Nager host refuses, `report` falls back to OpenHolidays for public
+holidays too, and says so in the output: most windows asked about here are
+European, and a partial answer beats none. Outside Europe that fallback knows
+nothing, and its silence is reported as UNKNOWN rather than printed as an empty
+table.
+
+Exits 2 when no source answers, so a silent skip is impossible -- an empty table
 because the network was down must never read as a clean window.
 
 Python 3.9+. Runs on the standard library alone.
@@ -56,6 +62,15 @@ NAGER_HOSTS = (
 )
 OPENHOLIDAYS = "https://openholidaysapi.org"
 TIMEOUT = 20
+
+# v4 exists, answers, and its spec reads fine from here:
+# nagerholidays.com/openapi/community-v4.json, served at
+# /api/v4/Holidays/{countryCode}/{year} -- note country before year, the
+# reverse of v3. Staying on v3 is now a decision rather than a gap: v4 renames
+# `global` to `nationalHoliday`, `counties` to `subdivisionCodes` and `types`
+# to `holidayTypes`, and drops `localName` altogether. Losing the endonym would
+# cost every row its local name -- "Bundesfeier" becomes "Swiss National Day"
+# -- for no coverage gained. v3 is supported to 2027-01-31.
 
 # Identify honestly. The default urllib agent string is blocked by CDNs on sight,
 # which is the likeliest reason a keyless public API returns 403; the fix is to
@@ -258,6 +273,47 @@ def openholidays_scope(row: dict) -> str:
     return ", ".join(code for code in codes if code) or "regional"
 
 
+def public_holidays(
+    country: str,
+    start: date,
+    end: date,
+    subdivision: str = "",
+    worldwide=nager_public,
+    european=openholidays,
+):
+    """Public holidays from the worldwide source, or Europe's when it refuses.
+
+    Nager is the only keyless source covering the whole world, so when every
+    host of it refuses there is no equal to swap in -- OpenHolidays knows
+    Europe and nothing else. Standing it in is still worth doing, because it is
+    already being called for school holidays two lines away and most windows
+    asked about here are European. But the result is then a smaller claim than
+    the caller made, and has to be labelled as one.
+
+    Returns (events, degraded). Raises SourceError when neither answered and --
+    the case that matters -- when the Europe-only fallback answered with
+    nothing. An empty list from a source that has never heard of Thailand is
+    not evidence that Thailand has no holidays, and rendering it as an empty
+    table would be exactly the silent clear window this script exists to
+    prevent.
+    """
+    try:
+        return worldwide(country, start, end), False
+    except SourceError as global_failure:
+        try:
+            events = european("PublicHolidays", country, start, end, subdivision)
+        except SourceError as europe_failure:
+            raise SourceError(
+                f"{global_failure}; the Europe-only fallback also failed: {europe_failure}"
+            ) from global_failure
+        if not events:
+            raise SourceError(
+                f"{global_failure}; the Europe-only fallback returned no public holidays "
+                f"for {country}, which is not evidence that it has none"
+            ) from global_failure
+        return events, True
+
+
 # --- Analysis --------------------------------------------------------------
 
 
@@ -280,6 +336,13 @@ def bridge_note(event: Event) -> str:
     if weekday in (0, 4):
         return "three-day weekend"
     return "falls on the weekend; look for a substitute day"
+
+
+DEGRADED = (
+    "COVERAGE REDUCED: no worldwide holiday host answered. Public holidays "
+    "below come from the Europe-only fallback; for anywhere outside Europe "
+    "this is UNKNOWN, not a clear window."
+)
 
 
 def sort_key(event: Event):
@@ -446,6 +509,48 @@ def selftest() -> int:
     check("probe covers every source", len(rows), len(NAGER_HOSTS) + 1)
     check("probe marks unreachable", rows[0][1], "unreachable")
 
+    # The fallback contract, exercised offline against stub sources. The rule
+    # that a Europe-only silence is never a clear window is checked here rather
+    # than trusted to be read correctly off the page.
+    when = date(2026, 5, 14)
+    global_rows = [Event(when, when, PUBLIC, "Ascension", "nationwide", "Nager.Date")]
+    europe_rows = [Event(when, when, PUBLIC, "Ascension", "nationwide", "OpenHolidays")]
+
+    def answers(rows):
+        return lambda *args, **kwargs: rows
+
+    def refuses(message):
+        def boom(*args, **kwargs):
+            raise SourceError(message)
+
+        return boom
+
+    def fallback(global_source, europe_source):
+        """-> ("ok", events, degraded) | ("error", message)."""
+        try:
+            return ("ok",) + public_holidays(
+                "CH", when, when, worldwide=global_source, european=europe_source
+            )
+        except SourceError as exc:
+            return ("error", str(exc))
+
+    check(
+        "worldwide source wins",
+        fallback(answers(global_rows), refuses("unused")),
+        ("ok", global_rows, False),
+    )
+    check(
+        "europe stands in",
+        fallback(refuses("all hosts refused"), answers(europe_rows)),
+        ("ok", europe_rows, True),
+    )
+    both = fallback(refuses("nager down"), refuses("openholidays down"))
+    check("neither source is an error", both[0], "error")
+    check("the error names both", "nager down" in both[1] and "openholidays down" in both[1], True)
+    silent = fallback(refuses("nager down"), answers([]))
+    check("empty europe is not a clear window", silent[0], "error")
+    check("and it says why", "not evidence that it has none" in silent[1], True)
+
     # Merge drops the duplicate a two-source lookup always produces.
     day = date(2026, 12, 25)
     a = Event(day, day, PUBLIC, "Christmas Day", "nationwide", "Nager.Date")
@@ -501,8 +606,11 @@ def main(argv=None) -> int:
     country = args.country.strip().upper()
     start, end = window(args)
 
+    degraded = False
     try:
         if args.command == "holidays":
+            # Deliberately unmixed: the worldwide source alone, which is what
+            # makes this the subcommand to reach for when working out what broke.
             events = nager_public(country, start, end)
         elif args.command == "school":
             events = openholidays("SchoolHolidays", country, start, end, args.subdivision)
@@ -512,13 +620,17 @@ def main(argv=None) -> int:
                 school = openholidays("SchoolHolidays", country, start, end, args.subdivision)
             except SourceError as exc:
                 print(f"note: school holidays unavailable for {country} ({exc})", file=sys.stderr)
-            events = merge(nager_public(country, start, end), school)
+            public, degraded = public_holidays(country, start, end, args.subdivision)
+            events = merge(public, school)
     except SourceError as exc:
         print(f"source failed: {exc}", file=sys.stderr)
         print("Treat this as UNKNOWN, not as a clear window.", file=sys.stderr)
         return 2
 
     print(f"{country} {start} .. {end}")
+    if degraded:
+        print(DEGRADED)
+        print(DEGRADED, file=sys.stderr)
     print(render(events, start, end))
     print()
     print(summarise(events))
