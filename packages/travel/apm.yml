@@ -17,17 +17,28 @@ dependencies:
     #
     # Hotel metasearch. Compares across OTAs instead of selling one inventory,
     # which is what a fare-comparison site is for; there is no Kayak MCP server.
+    # Tools: trivago-accommodation-search, trivago-accommodation-radius-search,
+    # trivago-destination-price-trends. Search only; no booking path.
     - name: trivago
       registry: false
       transport: http
       url: https://mcp.trivago.com/mcp
     # Flights, including hidden-city itineraries no mainstream OTA will surface.
+    # It also carries hotels and cars, which the name does not suggest and which
+    # overlap trivago and hotelrate below. Tools: sk_flights_search,
+    # sk_destinations_anywhere, sk_flex_departure_calendar,
+    # sk_flex_return_calendar, sk_hotels_search, sk_cars_search,
+    # sk_hotel_details, sk_faq_search, sk_resolve_location, sk_resolve_iata.
     - name: skiplagged
       registry: false
       transport: http
       url: https://mcp.skiplagged.com/mcp
     # Ferries. Nothing else here covers them, and for the Med and the Aegean the
-    # ferry timetable is what the itinerary has to be built around.
+    # ferry timetable is what the itinerary has to be built around. Tools:
+    # get_ports, get_direct_connections_for_ports, search_trips,
+    # search_trips_v2, trip_details, get_disruptions -- the last one matters,
+    # because a cancelled crossing is what breaks an island itinerary. It
+    # describes itself as creating bookings but exposes no tool that does.
     - name: ferryhopper
       registry: false
       transport: http
@@ -36,6 +47,12 @@ dependencies:
     # countries with live availability, pricing and an actual booking path, on a
     # free sandbox key. The only server here that can complete a hotel booking
     # rather than hand off a link.
+    #
+    # Weigh that against its size before keeping it: it publishes ~88 tools,
+    # more than everything else in this package combined, and they reach well
+    # past hotels into flights, experiences, vouchers, loyalty and revenue
+    # analytics. Most of that is supplier back-office surface no traveller
+    # needs, and it is all loaded whenever this package is.
     #
     # Packed marketplace bundles drop `headers`, so this authenticates only
     # under `apm install`, never via the plugin path. See CONTRIBUTING.
