@@ -9,94 +9,40 @@ includes: auto
 
 dependencies:
   apm: []
+  # Travel search servers, scoped here rather than the global baseline so this
+  # tool surface only loads in travel contexts. A server that cannot start or
+  # has no credentials degrades to web search as defined by trip-planning skill.
   mcp:
-    # Travel search servers, scoped here rather than the global baseline so this
-    # tool surface only loads in travel contexts. A server that cannot start or
-    # has no credentials degrades to web search -- the trip-planning skill says
-    # so out loud rather than pretending it searched.
-    #
-    # Hotel metasearch. Compares across OTAs instead of selling one inventory,
-    # which is what a fare-comparison site is for; there is no Kayak MCP server.
-    # Tools: trivago-accommodation-search, trivago-accommodation-radius-search,
-    # trivago-destination-price-trends. Search only; no booking path.
-    - name: trivago
-      registry: false
-      transport: http
-      url: https://mcp.trivago.com/mcp
-    # Flights, including hidden-city itineraries no mainstream OTA will surface.
-    # It also carries hotels and cars, which the name does not suggest and which
-    # overlap trivago and hotelrate below. Tools: sk_flights_search,
-    # sk_destinations_anywhere, sk_flex_departure_calendar,
-    # sk_flex_return_calendar, sk_hotels_search, sk_cars_search,
-    # sk_hotel_details, sk_faq_search, sk_resolve_location, sk_resolve_iata.
-    - name: skiplagged
-      registry: false
-      transport: http
-      url: https://mcp.skiplagged.com/mcp
-    # Ferries. Nothing else here covers them, and for the Med and the Aegean the
-    # ferry timetable is what the itinerary has to be built around. Tools:
-    # get_ports, get_direct_connections_for_ports, search_trips,
-    # search_trips_v2, trip_details, get_disruptions -- the last one matters,
-    # because a cancelled crossing is what breaks an island itinerary. It
-    # describes itself as creating bookings but exposes no tool that does.
-    - name: ferryhopper
-      registry: false
-      transport: http
-      url: https://mcp.ferryhopper.com/mcp
-    # liteapi-travel/mcp-server (first-party) -- 3M+ properties over 190+
-    # countries with live availability, pricing and an actual booking path, on a
-    # free sandbox key. The only server here that can complete a hotel booking
-    # rather than hand off a link.
-    #
-    # Weigh that against its size before keeping it: it publishes ~88 tools,
-    # more than everything else in this package combined, and they reach well
-    # past hotels into flights, experiences, vouchers, loyalty and revenue
-    # analytics. Most of that is supplier back-office surface no traveller
-    # needs, and it is all loaded whenever this package is.
-    #
-    # Packed marketplace bundles drop `headers`, so this authenticates only
-    # under `apm install`, never via the plugin path. See CONTRIBUTING.
-    - name: liteapi
-      registry: false
-      transport: http
-      url: https://mcp.liteapi.travel/api/mcp
-      headers:
-        Authorization: "Bearer ${LITEAPI_API_KEY}"
-    # punitarani/fli (MIT) -- the only credible Google Flights route. Reads
-    # Google's own flight endpoint rather than scraping the page, so it is fast
-    # and keyless, and carries the two costs that come with that: it is outside
-    # Google's terms of use, and it breaks whenever that endpoint moves. The
-    # `[mcp]` extra is required -- without it the entry point exits telling you
-    # to install it. Tools: search_flights, search_dates, find_airports.
+    # The only credible Google Flights route.
     - name: fli
       registry: false
       transport: stdio
       command: uvx
       args: ["--from", "flights[mcp]==0.9.0", "fli-mcp"]
-    # openbnb-org/mcp-server-airbnb (MIT) -- short-let inventory, which no other
-    # server here carries. `--ignore-robots-txt` is stated rather than buried:
-    # the search paths are disallowed to this user agent, so without the flag
-    # every call returns the robots error instead of results. Geocoding goes to
-    # Nominatim and Photon; nothing else leaves the machine.
+    # Flights, including hidden-city itineraries no mainstream OTA will surface.
+    # Also carries hotels and cars.
+    - name: skiplagged
+      registry: false
+      transport: http
+      url: https://mcp.skiplagged.com/mcp
+    # Ferries. Nothing else here covers them.
+    - name: ferryhopper
+      registry: false
+      transport: http
+      url: https://mcp.ferryhopper.com/mcp
+    # Hotel metasearch. Search only; no booking path.
+    - name: trivago
+      registry: false
+      transport: http
+      url: https://mcp.trivago.com/mcp
+    # AirBnB Search. Geocoding goes to Nominatim and Photon.
     - name: airbnb
       registry: false
       transport: stdio
       command: npx
       args: ["-y", "@openbnb/mcp-server-airbnb@0.3.0", "--ignore-robots-txt"]
-    # seanbabalala/hotelrate-crawl (MIT) -- rate parity across Trip.com,
-    # Booking.com, Agoda and Google Hotels, where the same room routinely
-    # differs by 20-40%. Four read-only tools; no booking path.
-    #
-    # Two constraints, both load-bearing. It declares `mcp[cli]>=1.20.0`, which
-    # now resolves to the 2.x SDK where FastMCP was renamed, so it dies on
-    # import without `mcp[cli]<2`. And it is not on PyPI, so the pin is a commit
-    # rather than a version -- that commit is what was read before this entry
-    # was added.
-    #
-    # Live mode drives Playwright against a dedicated browser profile you log in
-    # once per platform (`playwright_user_data_dir*`), never your own profile;
-    # unset, it stays in demo mode. Firecrawl is optional and defaults to
-    # localhost.
+    # Rate parity check across Trip.com, Booking.com, Agoda and Google Hotels.
+    # Four read-only tools; no booking path.
     - name: hotelrate
       registry: false
       transport: stdio

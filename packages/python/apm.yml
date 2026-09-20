@@ -9,15 +9,8 @@ includes: auto
 
 dependencies:
   apm:
-    # trailofbits/skills (CC-BY-SA-4.0) — the tooling half of Python work, and
-    # complementary to the two local skills: `modern-python` sets a project up
-    # (uv commands, pyproject sections, ruff/ty config, prek, security scanners,
-    # migration off pip/Poetry/black/mypy), while `python-standards` governs how
-    # the source reads and `python-scripts` governs the single-file form.
-    #
-    # Taken as the skill alone, not the plugin: the plugin ships a SessionStart
-    # hook that intercepts bare `python`/`pip` and rewrites them to uv. That is a
-    # harness-level mandate this package deliberately does not make — the local
-    # rule is PEP 723 inline metadata, with the runner left to the project.
+    # trailofbits/skills (CC-BY-SA-4.0) — the tooling half of Python work:
+    # `modern-python` (this) sets a project up while `python-standards` (local)
+    # governs how the source reads and `python-scripts` governs the single-file form.
     - trailofbits/skills/plugins/modern-python/skills/modern-python#123037ec8aed26f0d86327cc39137ee5043e5deb
   mcp: []

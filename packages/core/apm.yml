@@ -18,11 +18,9 @@ dependencies:
     # blader/humanizer (MIT) — prose de-slopping for README/CONTRIBUTING/PRD
     # text: 33 numbered patterns from Wikipedia's "Signs of AI writing".
     - blader/humanizer#523374dee72d67c7b2b5f858ea0094ffda49c3ac
+
+  # Universal dev MCPs, kept in the global baseline.
   mcp:
-    # Universal dev MCPs, kept in the global baseline. Domain doc MCPs
-    # (opentofu-registry, aws-knowledge-mcp, microsoft.docs.mcp) live in
-    # packages/ops so they only load in ops/infra projects.
-    #
     # shuymn/gh-mcp `gh` CLI extension: wraps the official github-mcp-server binary and reuses your `gh` login — no PAT needed.
     # Optional env: GITHUB_TOOLSETS, GITHUB_READ_ONLY, GITHUB_DYNAMIC_TOOLSETS.
     - name: github
