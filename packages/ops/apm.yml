@@ -12,9 +12,10 @@ dependencies:
     # antonbabenko/terraform-skill (Apache-2.0) — the operational half of
     # TF work: Complementary to the local `tf-standards` skill.
     - antonbabenko/terraform-skill/skills/terraform-skill#0a3a4a66e99001347d36a41e10260a825be3ab62
+
+  # Cloud / IaC documentation MCPs (read only) — scoped here rather than the
+  # global baseline so their tool surface only loads in ops/infra projects.
   mcp:
-    # Cloud / IaC documentation MCPs (read only) — scoped here rather than the
-    # global baseline so their tool surface only loads in ops/infra projects.
     - name: opentofu-registry
       registry: false
       transport: streamable-http
