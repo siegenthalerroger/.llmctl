@@ -219,15 +219,6 @@ deployments:
   content_hash: null
 - kind: uri
   target: mcp
-  value: liteapi
-  runtime: claude
-  scope: project
-  owners:
-  - .
-  active_owner: .
-  content_hash: null
-- kind: uri
-  target: mcp
   value: skiplagged
   runtime: claude
   scope: project
@@ -249,7 +240,6 @@ mcp_servers:
 - ferryhopper
 - fli
 - hotelrate
-- liteapi
 - skiplagged
 - trivago
 mcp_configs:
@@ -287,13 +277,6 @@ mcp_configs:
     - hotelrate-mcp
     registry: false
     command: uvx
-  liteapi:
-    name: liteapi
-    transport: http
-    registry: false
-    headers:
-      Authorization: Bearer ${LITEAPI_API_KEY}
-    url: https://mcp.liteapi.travel/api/mcp
   skiplagged:
     name: skiplagged
     transport: http
@@ -310,7 +293,6 @@ mcp_target_servers:
   - ferryhopper
   - fli
   - hotelrate
-  - liteapi
   - skiplagged
   - trivago
 local_deployed_files:
