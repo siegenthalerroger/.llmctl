@@ -92,8 +92,15 @@ open and close on fixed schedules.
 
 ## 7. Deliverable
 
-A single document the traveller can carry: the plan, the tracker, confirmation
+One deliverable the traveller can carry: the plan, the tracker, confirmation
 references, emergency contacts, and what to re-check before departure.
+[deliverable.md](references/deliverable.md) sets its shape — read it before
+building. Each verdict-bearing section leads with a one-line conclusion,
+including unknown when evidence is missing, and keeps its supporting facts
+visible directly beneath. Options use comparable cards, the wording is plain,
+and the tracker is a checklist. Use the traveller's requested format; publish
+a web page only within their sharing authority, keeping private details out
+of public pages.
 
 The re-check list matters. Strikes, entry rules and opening hours all move
 between planning and travelling.
