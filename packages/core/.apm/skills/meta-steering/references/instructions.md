@@ -1,6 +1,6 @@
 # Instruction Files Guidelines
 
-**Contents:** [What Are Instruction Files?](#what-are-instruction-files) · [Selection Guide](#selection-guide) · [Cross-Tool Compatibility (Copilot + Claude Code)](#cross-tool-compatibility-copilot--claude-code) · [Loading Skills via Instructions](#loading-skills-via-instructions) · [File Structure and Naming](#file-structure-and-naming) · [Frontmatter Requirements](#frontmatter-requirements) · [Bootstrapping a Repository That Has No Instructions](#bootstrapping-a-repository-that-has-no-instructions) · [Authority and Conflict Boundaries](#authority-and-conflict-boundaries) · [Writing Effective Instructions](#writing-effective-instructions) · [Good vs Bad Examples](#good-vs-bad-examples) · [Model and Client Considerations](#model-and-client-considerations) · [Anti-Patterns to Avoid](#anti-patterns-to-avoid) · [Testing and Validation](#testing-and-validation) · [Quality Assurance Checklist](#quality-assurance-checklist) · [Additional Resources](#additional-resources)
+**Contents:** [What Are Instruction Files?](#what-are-instruction-files) · [Selection Guide](#selection-guide) · [Cross-Tool Compatibility (Copilot + Claude Code)](#cross-tool-compatibility-copilot--claude-code) · [Loading Skills via Instructions](#loading-skills-via-instructions) · [File Structure and Naming](#file-structure-and-naming) · [Frontmatter Requirements](#frontmatter-requirements) · [Bootstrapping a Repository That Has No Instructions](#bootstrapping-a-repository-that-has-no-instructions) · [Authority and Conflict Boundaries](#authority-and-conflict-boundaries) · [Writing Effective Instructions](#writing-effective-instructions) · [Good vs Bad Examples](#good-vs-bad-examples) · [Anti-Patterns to Avoid](#anti-patterns-to-avoid) · [Quality Assurance Checklist](#quality-assurance-checklist) · [Additional Resources](#additional-resources)
 
 Instructions for creating effective and maintainable instruction files that define coding standards, conventions, and behavioral rules for AI assistants.
 
@@ -15,20 +15,13 @@ Instructions for creating effective and maintainable instruction files that defi
 
 ## What Are Instruction Files?
 
-Instruction files contain rules and guidelines that shape AI assistant behavior across your codebase. They capture:
+Instruction files contain rules that shape assistant behavior across a codebase: coding and project conventions linters cannot catch, behavioral rules, and domain knowledge that must be present whenever matching work is in scope.
 
-- **Coding standards**: Style guides, naming conventions, patterns
-- **Project conventions**: Architecture decisions, file organization, best practices
-- **Behavioral rules**: How to approach tasks, what to avoid, quality standards
-- **Domain knowledge**: Framework-specific patterns, library usage, business logic
-
-Key characteristics:
-- **Path targeting**: Use `applyTo` for Copilot-style glob scoping and `paths` for Claude-style path scoping when targeting both clients
-- **Description-based discovery**: Copilot applies `.instructions.md` files by semantically matching `description` against the current task — independent of and in addition to `applyTo`. Write WHAT the rules cover, then WHEN they apply, front-loaded with the trigger terms a user would say, so the file activates even without a path match
-- **Hierarchical specificity**: Personal > Repository > Organization
-- **Non-obvious rules**: Focus on conventions linters don't catch
-- **Include reasoning**: Explain WHY rules exist for better edge case handling
-- **Conflict avoidance**: Prefer non-overlapping scopes; do not rely on multiple matching instruction files merging predictably
+- **Path targeting**: `applyTo` for Copilot, `paths` for Claude Code; under APM `applyTo` generates both (see below)
+- **Description-based loading is VS Code-only**: VS Code uses `description` for on-demand discovery. Neither GitHub's repository instructions nor the Copilot CLI document description-based activation, so write `applyTo` for every scoped file
+- **Precedence (GitHub)**: personal > repository > organization
+- **Include reasoning**: explain WHY a rule exists so edge cases resolve correctly
+- **Conflict avoidance**: prefer non-overlapping scopes; do not rely on multiple matching files merging predictably
 
 ## Selection Guide
 
@@ -36,31 +29,25 @@ The complete seven-way table — skill, instruction, prompt, agent, hook, MCP se
 
 ## Cross-Tool Compatibility (Copilot + Claude Code)
 
-Instruction files can often share the same markdown body across clients, but path activation fields differ.
+The markdown body is shared; activation fields differ. Per-target validity and survival are owned by [the runtime matrix](./frontmatter-deploy.md#the-matrix).
 
-- **Shared fields**: `name`, `description`, markdown body, and provenance metadata
-- **Copilot path scoping**: `applyTo`
-- **Claude Code path scoping**: `paths`
-- **Always-on instructions**: May use client-specific locations or formats instead of path-scoped frontmatter
-
-If an instruction must work in both clients, include both `applyTo` and `paths` with equivalent scope. Do not assume one field substitutes for the other.
-
-**Second activation channel**: path scoping is not the only trigger. Copilot also loads `.instructions.md` files whose `description` semantically matches the current task, even outside `applyTo`. Treat `description` as a routing contract, not documentation — the same directive shape used for skill descriptions applies here (see [the router, section 3](../SKILL.md#3-description-craft--all-four-types)).
+- **Write both `applyTo` and `paths` with equivalent scope.** Outside APM neither substitutes for the other. Under APM, `applyTo` is the source of both: APM generates Claude's `paths` from `applyTo` alone, overwrites any authored `paths`, and drops every other key. An instruction with `paths` but no `applyTo` deploys with **no frontmatter and becomes always-on** in Claude Code. Keep `paths` anyway: it is the valid key for Claude Code's native `.claude/rules/` and for VS Code's reading of that directory.
+- **`applyTo` syntax**: one string, comma-separated for several globs (`"**/*.ts, **/*.tsx"`). GitHub and the CLI document the comma form; VS Code documents a single glob. Do not write a YAML list. `paths` accepts a list or a comma-separated string.
+- **Claude Code loads a path-scoped rule lazily**, "when Claude reads files matching the pattern". `applyTo: "**"` therefore means "after the first file read", not always-on. The only unconditional Claude rule APM produces is one without `applyTo`, which VS Code and the CLI then do not auto-apply; put always-on Copilot content in `.github/copilot-instructions.md` or `AGENTS.md`.
+- **`excludeAgent`** (`code-review` / `cloud-agent`) is documented by GitHub and on the CLI page; both values exclude non-CLI agents.
+- **Codex**: instructions are not installed. `apm compile` folds them into `AGENTS.md`, which has no frontmatter; scoping degrades to a "Files matching" heading and directory placement.
+- **Duplicate discovery**: VS Code reads both `.github/instructions/` and `.claude/rules/`; Claude Code and the CLI also read `AGENTS.md`. Expect the same rule to arrive twice in a dual deploy.
 
 ## Loading Skills via Instructions
 
-Conditionally loading skills from instructions is a strong pattern when a file class repeatedly needs a reusable capability.
-
-**Why?**
-Skills are modular, testable, and reusable. Instructions remain the right home for stable conventions that should be present whenever the relevant work is in scope. Use both when appropriate.
-
-**Example Pattern:**
+Loading skills from instructions is a strong pattern when a file class repeatedly needs a reusable capability. Skills stay modular and testable; the instruction only guarantees they load.
 
 ```markdown
 ---
 name: "Load React Skills"
-description: "Forces loading of React-specific skills for .tsx files"
+description: "Loads the React component and testing skills before any .tsx edit. Applies when creating, refactoring or testing React components."
 applyTo: "**/*.tsx"
+paths: ["**/*.tsx"]
 ---
 
 # React Development
@@ -72,33 +59,18 @@ When working with these files, ALWAYS use the following skills as your primary r
 
 ## File Structure and Naming
 
-**Directory locations**:
-```
-.github/
-  copilot-instructions.md     # Always-on repository instructions
-  instructions/                # Conditional instruction files
-    *.instructions.md
-
-~/.llmctl/
-  instructions/                # Personal instructions
-    *.instructions.md
-```
-
-**Naming convention**:
-- Use kebab-case with `.instructions.md` extension
-- Descriptive names that indicate scope: `python-style.instructions.md`, `api-testing.instructions.md`
-- Avoid generic names like `rules.instructions.md` or `guidelines.instructions.md`
+- **Source location in this repository**: `packages/<package>/.apm/instructions/*.instructions.md`. APM deploys to `.github/instructions/` and `.claude/rules/`.
+- **Native locations**: repository `.github/copilot-instructions.md` (always-on) and `.github/instructions/*.instructions.md`; personal `~/.copilot/instructions/` (Copilot) and `~/.claude/rules/` (Claude Code).
+- **Naming**: kebab-case with the `.instructions.md` extension, named for the scope (`python-style.instructions.md`), never generic (`rules.instructions.md`).
 
 ## Frontmatter Requirements
 
-Path-scoped instruction files should include YAML frontmatter with the following fields. Always-on repository instructions may use the target client's documented format instead.
-
-### Required Fields
+Path-scoped instruction files carry YAML frontmatter. Always-on repository instructions may use the target client's documented format instead.
 
 ```yaml
 ---
 name: "Python Style Guide"
-description: "Coding standards and style conventions for Python files"
+description: "Python typing, error-handling and module-layout conventions. Applies when writing, reviewing or refactoring .py files."
 # Copilot
 applyTo: "**/*.py"
 # Claude Code
@@ -108,51 +80,33 @@ paths: ["**/*.py"]
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `name` | Yes | Display name for the instruction set |
-| `description` | Yes | Routing contract, not documentation: state WHAT the rules cover, then WHEN they apply, front-loaded with the exact trigger terms a user would say — Copilot matches this text semantically against the task even without a path match |
-| `applyTo` | Conditional | Copilot glob pattern(s) for path-based activation when supported and needed |
-| `paths` | Conditional | Claude Code path pattern array for path-based activation when supported and needed |
+| `name` | Yes (repo convention) | Display name. VS Code defaults it to the filename |
+| `description` | Yes (repo convention) | WHAT the rules cover, then WHEN they apply, front-loaded with the terms a user would say. VS Code uses it for on-demand discovery; elsewhere it is metadata |
+| `applyTo` | Conditional | Copilot glob string for path-based activation; APM's source for Claude `paths` |
+| `paths` | Conditional | Claude Code glob list, aligned with `applyTo` |
 | `license` | Conditional | SPDX id of **this** file. Omit to take the repo default for its path (`*.md` is CC-BY-SA-4.0); declare it only where an upstream obligation the default cannot satisfy forces another licence |
 
-For cross-file provenance consistency, instruction frontmatter may also include:
-
-- `metadata.provenance.adaptedFrom` (optional): a URL string or array when the whole file is adapted/synthesised from upstream; an array of objects carrying `url` plus `license` / `fidelity` / `took` when the adaptation should be scoped. Keep the three separate — `fidelity` is the obligation level, `license` the upstream's SPDX id, and `took` only what was taken. See the [skill-frontmatter.md](./skill-frontmatter.md#provenance-metadata-recommended)
-
-Use the same `metadata.provenance` convention for prompt, instruction, skill, and agent files.
+Provenance (`metadata.provenance`) follows the convention owned by [the router, section 4](../SKILL.md#4-frontmatter-shared-by-all-four-types).
 
 ### Path Scoping Patterns
 
-Use the client's documented path-scoping field for path-based activation: `applyTo` in Copilot, `paths` in Claude Code. For dual-compatible files, keep both fields aligned.
-
-**Examples**:
 ```yaml
-# All Python files
-applyTo: "**/*.py"
-paths: ["**/*.py"]
-
 # Specific directory
 applyTo: "src/components/**"
 paths: ["src/components/**"]
 
-# Multiple patterns (JSON array)
-applyTo: ["**/*.ts", "**/*.tsx"]
+# Several patterns: one comma-separated string for applyTo, a list for paths
+applyTo: "**/*.ts, **/*.tsx"
 paths: ["**/*.ts", "**/*.tsx"]
 
-# All files (always active)
-applyTo: "**"
-paths: ["**"]
-
-# Specific file types in specific folders
+# Brace expansion for extensions in one folder
 applyTo: "tests/**/*.test.{js,ts}"
 paths: ["tests/**/*.test.{js,ts}"]
 ```
 
-**Best practices**:
-- Be as specific as possible to avoid unnecessary context loading
-- Use `**` for recursive directory matching
-- Use `{ext1,ext2}` for multiple extensions
-- Keep `applyTo` and `paths` semantically aligned when both are present
-- Test patterns match intended files
+- Be as specific as possible; every match loads the file's full body
+- Keep `applyTo` and `paths` semantically aligned
+- Test each pattern against the files it must and must not match
 
 ### Scoping by Directory
 
@@ -166,147 +120,71 @@ Glob scoping (`applyTo` / `paths`) is one axis. The other is **file placement**:
 
 ## Bootstrapping a Repository That Has No Instructions
 
-Writing a repository's first instruction file is a different job from editing an existing one, and it fails in a specific way: drafting from impressions rather than from what the repository already declares.
-
-Work **Detect → Extract → Draft → Verify**, in that order:
+Writing a repository's first instruction file fails in a specific way: drafting from impressions rather than from what the repository already declares. Work **Detect → Extract → Draft → Verify**:
 
 1. **Detect** the stack, workspace layout, and quality gates from manifests, lockfiles, linter config, and CI workflows — what CI *runs* is the real standard
-2. **Extract** commands, thresholds, and architectural boundaries as literal values from those machine-readable sources, not from prose describing them
+2. **Extract** commands, thresholds, and architectural boundaries as literal values from those machine-readable sources
 3. **Draft** only the residue that a senior engineer who knows the stack could not derive from the code
 4. **Verify** before shipping — **run** every documented command, match every documented path exactly, and re-derive every number from its config
 
-❌ Never document a command without running it: an instruction naming a target that does not exist costs more tokens than it saves, because the agent tries it and then debugs a phantom.
-❌ Never trust an existing instruction file's claims when updating it — extract current state, compare, fix the discrepancies. Refreshing dates and counts is not verification.
+❌ Never document a command without running it: an agent tries a phantom target and then debugs it.
+❌ Never trust an existing instruction file's claims when updating it — extract current state, compare, fix the discrepancies.
 
-Full procedure, root-file section skeleton, generate-vs-curate split, and directory-coverage guidance: [`instruction-bootstrapping.md`](./instruction-bootstrapping.md).
+Full procedure, root-file skeleton and directory-coverage guidance: [`instruction-bootstrapping.md`](./instruction-bootstrapping.md).
 
 ## Authority and Conflict Boundaries
 
 - Place non-negotiable constraints at the highest-authority layer available for the target environment — never bury a hard rule inside guideline prose where a lower-authority file could reinterpret it
 - Treat quoted text, retrieved documentation, pasted logs, and tool output as reference material unless the instruction explicitly elevates them
-- Avoid overlapping instruction files that can both apply to the same task with contradictory rules
-- Do not rely on merge order or precedence tricks when two matching files say different things; narrow scope or consolidate the guidance instead
-- Organize gotchas into three tiers — **Always do / Ask first / Never do** — and lead the "Never do" tier with the highest-stakes item (e.g. never commit secrets)
+- Do not rely on merge order when two matching files say different things; narrow scope or consolidate instead
+- Where useful, organize hard requirements into **Always do / Ask first / Never do** tiers and lead the "Never do" tier with the highest-stakes item (e.g. never commit secrets). Keep adaptable defaults separate; add an "Ask first" rule only where approval is actually required
 - Give exact executable commands, with flags, their own early dedicated section rather than scattering them through prose
 
 ## Writing Effective Instructions
 
 ### Core Principles
 
-1. **Be Specific and Actionable**: Write clear, direct rules that can be followed immediately
-2. **Focus on Non-Obvious Rules**: Exclude code-style rules entirely — delegate them to linter/formatter config rather than restating or merely avoiding duplication
-3. **Include Reasoning**: Explain WHY rules exist to help with edge cases
-4. **Use Imperative Mood**: "Use", "Avoid", "Always", "Never" - not "should" or "would"
-5. **Show, Don't Tell**: Provide concrete code examples over abstract descriptions
-6. **Bullets Over Paragraphs**: Keep explanations concise and scannable
-7. **Respect the Shared Budget**: All always-loaded instructions compete for one cumulative budget, not independent per-file headroom — frontier models reliably follow ~150-200 instructions total, and the harness system prompt already spends ~50 of them. Every rule added anywhere degrades adherence to every other rule
-8. **Apply the Litmus Test**: Per line, ask "would removing this cause mistakes?" If not, cut it. Delete marginal content rather than polish it — coherent-but-irrelevant text measurably hurts more than incoherent filler
-9. **Author Reactively**: Promote a rule into the instruction file only after the same mistake recurs, not preemptively — ask the model for a retrospective on the failure to draft the rule text
+- **Be Specific and Actionable**: clear, direct rules that can be followed immediately
+- **Focus on Non-Obvious Rules**: exclude code-style rules entirely — delegate them to linter/formatter config
+- **Include Reasoning**: explain WHY rules exist to help with edge cases
+- **Use Imperative Mood**: state hard requirements unambiguously; label preferences and defaults, including when they may be adapted
+- **Show, Don't Tell**: a short ✅/❌ code pair beats an abstract description when the rule is subtle
+- **Respect the Shared Budget**: all always-loaded instructions compete for one cumulative budget — frontier models reliably follow ~150-200 instructions total, and the harness system prompt already spends ~50 of them. Every rule added anywhere degrades adherence to every other rule
+- **Apply the Litmus Test**: per line, ask "would removing this cause mistakes?" If not, cut it. Delete marginal content rather than polish it
+- **Author Reactively**: diagnose recurring observed mistakes and correct or consolidate existing guidance before adding a gotcha. Document established requirements and evidenced serious hazards without waiting for repeat failures; do not append a rule after every wrong result
+
+Model-generation effects (literal scoping, the consistency pass) apply to every type; see [the router, section 5](../SKILL.md#5-anti-patterns-across-all-four-types).
 
 ### Context-File Injection Facts
 
-- An always-on root context file arrives in the conversation the way a user turn does, once the system prompt is already in place — it does not become part of that prompt. Expect it to influence behaviour, not to guarantee it, and reach for a hook whenever something has to happen every single time (see the `meta-harness` skill)
-- Anthropic targets under 200 lines for root memory files; keep always-loaded root files far leaner in practice (<60 lines) by moving procedures and domain facts into on-demand skills or path-scoped instructions instead
-- Codex: root instruction docs are capped at 32 KiB with proximity-based concatenation — files closer to the working directory take precedence over ancestor files
-- HTML comments are stripped before injection — use them for zero-token maintainer notes that the model never sees
+- Claude Code delivers `CLAUDE.md` "as a user message after the system prompt, not as part of the system prompt itself". Expect it to influence behaviour, not to guarantee it, and reach for a hook whenever something has to happen every single time (see the `meta-harness` skill)
+- Anthropic targets under 200 lines per `CLAUDE.md`; keep always-loaded root files far leaner in practice (<60 lines) by moving procedures and domain facts into on-demand skills or path-scoped instructions
+- Codex: root instruction docs are capped at 32 KiB (`project_doc_max_bytes`); files closer to the working directory override ancestor files
+- Claude Code strips block-level HTML comments from `CLAUDE.md` before injection — use them there for zero-token maintainer notes. Other harnesses do not document this
 
 ### Instruction Structure
 
-Use markdown structure as a semantic signal, not just formatting: sections group related but non-sequential rules, bullets mark parallel/independent items, and numbered lists mean a strict required sequence. Don't mix numbered steps with unordered bullets for the same set of items.
-
-Organize instructions into logical sections:
-
-```markdown
-# Category Name
-
-## Naming Conventions
-- Use PascalCase for class names
-- Use camelCase for function names
-- Use SCREAMING_SNAKE_CASE for constants
-
-## File Organization
-- One component per file
-- Co-locate tests with source files
-- Group by feature, not by type
-
-## Error Handling
-- Always validate user input before database queries (prevents SQL injection)
-- Use specific exception types instead of generic Exception
-- Log errors with contextual information
-```
-
-### Including Code Examples
-
-✅ **GOOD** - Concrete examples with reasoning:
-````markdown
-## Database Queries
-
-Use parameterized queries to prevent SQL injection:
-
-✅ **GOOD**:
-```python
-cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
-```
-
-❌ **BAD**:
-```python
-cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")
-```
-
-**Reasoning**: Parameterized queries prevent SQL injection by separating SQL code from data.
-````
-
-❌ **BAD** - Vague guidance without examples:
-```markdown
-Write secure database queries.
-```
+Use markdown structure as a semantic signal: sections group related rules and bullets mark independent items. Use numbered steps only when order matters.
 
 ## Good vs Bad Examples
 
-### Instruction Content
-
-✅ **GOOD** - Specific, actionable, with reasoning:
+✅ **GOOD** - Specific, scoped, with reasoning:
 ````markdown
 ---
 name: "React Component Standards"
-description: "Component structure and prop handling conventions"
+description: "Component structure and prop-handling conventions. Applies when creating or refactoring components under src/components."
 applyTo: "src/components/**/*.{tsx,jsx}"
+paths: ["src/components/**/*.{tsx,jsx}"]
 ---
 
 # React Component Standards
 
-## Component Structure
-- Use functional components with hooks (class components are deprecated in our codebase)
-- Define prop interfaces before the component declaration
-- Export components as default, types as named exports
-
-## Prop Handling
-- Always destructure props in function signature for clarity
-- Provide default values for optional props using parameter defaults
-- Use TypeScript interfaces, not `type` keyword, for props (consistency with codebase)
-
-## Example
-
-```tsx
-interface UserCardProps {
-  name: string;
-  email?: string;
-  onUpdate?: () => void;
-}
-
-export default function UserCard({
-  name,
-  email = 'no-email@example.com',
-  onUpdate
-}: UserCardProps) {
-  return <div>...</div>;
-}
-
-export type { UserCardProps };
-```
+- Use functional components with hooks (class components are deprecated in this codebase)
+- Declare prop interfaces, not `type` aliases, before the component (matches the generated API types)
+- Export the component as default and its props type as a named export (the barrel files rely on it)
 ````
 
-❌ **BAD** - Generic, no examples, no reasoning:
+❌ **BAD** - Generic, unscoped, no reasoning:
 ```markdown
 ---
 name: "Component Rules"
@@ -316,152 +194,54 @@ applyTo: "**"
 Write good components. Follow best practices. Keep them clean.
 ```
 
-### Specificity Hierarchy
-
-✅ **GOOD** - Properly scoped with clear hierarchy:
-```markdown
-# Personal preference (override repository rules)
-applyTo: "**/*.py"
-# In ~/.llmctl/instructions/python-personal.instructions.md
-
-# Repository standard (override organization rules)
-applyTo: "src/**/*.py"
-# In .github/instructions/python-style.instructions.md
-
-# Organization baseline
-applyTo: "**/*.py"
-# In organization-level settings
-```
-
-❌ **BAD** - Conflicts without clear precedence:
-```markdown
-# Multiple conflicting rules at same level
-applyTo: "**/*.py"
-# Results in unpredictable behavior
-```
-
-## Model and Client Considerations
-
-Most gains come from clearer rules, examples, and rationale rather than model-specific prose.
-
-- Prefer explicit conventions and concrete examples over "think step by step" style guidance
-- Add model-specific notes only when you validated them against the target client and model set
-- Re-test instructions when model versions or client behavior changes
-- Newer, more literal-following models do not silently generalize a rule from one example to the whole class and do not infer unrequested work — state the general rule and the scope explicitly rather than relying on a single example
-- Contradictory or vague phrasing is MORE damaging on newer models, not less — run a consistency pass before shipping instead of treating it as polish
-
 ## Anti-Patterns to Avoid
 
-❌ **Don't:**
-- Write code-style rules at all (e.g., "Use 2 spaces for indentation") — delegate to linter/formatter config, don't just avoid duplicating it
-- Write vague rules like "write clean code" or "follow best practices"
-- Use `applyTo: "**"` for file-specific rules (too broad)
-- Create walls of text without structure or examples
-- Write in second person ("you should") - use imperative mood
-- Include rules without explaining WHY they exist
-- Make instructions too long (split into multiple files by topic)
-- Create circular or conflicting rules
-- Use time-sensitive information without clear expiration
-- Add rules that are obvious or self-evident
-- Use soft-permission phrasing ("prefer X, but Y if simpler", "unless Y makes more sense")
-
-✅ **Do:**
-- Focus on non-obvious patterns and conventions
-- Provide concrete, actionable guidance
-- Use specific `applyTo` patterns for targeted rules
-- Structure content with headers and bullets
-- Use imperative mood: "Use", "Avoid", "Always"
-- Explain reasoning behind each rule
-- Keep files focused on single topic/domain
-- Test rules don't conflict across hierarchy levels
-- Update or mark deprecated rules clearly
-- Show both good and bad examples
-- Use binary, unconditional constraints instead of soft-permission phrasing
-
-## Testing and Validation
-
-**Before finalizing instructions**:
-
-1. **Verify Pattern Matching**:
-   - Test `applyTo` patterns match intended files
-   - Check for unintended file matches
-   - Verify patterns work cross-platform
-
-2. **Check for Conflicts**:
-   - Review hierarchy: personal > repository > organization
-   - Ensure rules don't contradict each other
-   - Test with files at hierarchy boundaries
-  - Test any semantically similar instruction files to ensure they do not overlap unpredictably
-
-3. **Validate Rules**:
-   - Apply to real code and verify AI follows them
-   - Test edge cases and ambiguous scenarios
-   - Check if reasoning is clear and helpful
-  - Test that `description` text is specific enough for semantic discovery where the client supports it
-
-4. **Test Across Models**:
-   - Verify instructions work with target AI models
-   - Check if examples are understood correctly
-   - Validate reasoning helps with edge cases
-
-**Common Issues**:
-- Rules too vague → Add concrete examples
-- Rules conflicting → Narrow scope or consolidate the guidance; do not rely on implicit merge order
-- Rules ignored → Make them more specific and actionable
-- Pattern not matching → Test glob pattern syntax
-- Description not discovered → Add clearer what/when/trigger terms
-- Over-specification → Trust model intelligence for obvious cases
+- Code-style rules of any kind (e.g. "Use 2 spaces for indentation") — delegate to linter/formatter config
+- Vague rules like "write clean code" or "follow best practices"
+- `applyTo: "**"` for file-specific rules, or as a substitute for always-on loading in Claude Code
+- A YAML list in `applyTo`, or `paths` without `applyTo` on an APM-deployed file
+- Rules without their reason, or rules that are obvious or self-evident
+- Circular or conflicting rules across files or hierarchy levels
+- Time-sensitive information without clear expiration
+- A hard requirement weakened by a subjective escape hatch such as "if simpler"
+- One file covering several unrelated topics; split by topic instead
 
 ## Quality Assurance Checklist
 
 **Frontmatter**:
-- [ ] `name` is descriptive and clear
-- [ ] `description` states WHAT then WHEN, front-loaded with trigger terms — written as a routing contract for semantic discovery, not documentation
-- [ ] `applyTo` pattern is specific and tested if path-based matching is intended
+- [ ] `name` is descriptive
+- [ ] `description` states WHAT then WHEN, front-loaded with trigger terms
+- [ ] `applyTo` (comma-separated string) and `paths` (list) are present, aligned and tested when path-based matching is intended
+- [ ] Anything that must be present before the first file read is not relying on `applyTo: "**"` in Claude Code
 - [ ] Optional fields (`license`, `metadata.provenance`) included if applicable
 
 **Content**:
-- [ ] Rules are specific and actionable
-- [ ] Focus on non-obvious conventions; code-style rules excluded entirely (delegated to linter/formatter config)
-- [ ] Every line passes the litmus test: removing it would cause mistakes
+- [ ] Every line passes the litmus test; no code-style rules
 - [ ] Reasoning is provided for each rule
-- [ ] Imperative mood used consistently, with binary constraints (no soft-permission phrasing)
-- [ ] Gotchas organized into Always / Ask first / Never tiers where applicable
-- [ ] Structured with headers and bullets
-- [ ] Code examples included for complex rules
-- [ ] File's size respects the shared always-loaded instruction budget, not just its own line count
-
-**Examples**:
-- [ ] Both good (✅) and bad (❌) examples shown
-- [ ] Examples are realistic and practical
-- [ ] Edge cases are demonstrated
-- [ ] Reasoning connects examples to rules
-
-**Quality**:
-- [ ] No conflicts with other instruction files
-- [ ] No code-style rules present (delegated to linter/formatter config, not merely non-duplicated)
-- [ ] File is focused on single topic/domain
-- [ ] Length is reasonable (split if >500 lines)
-- [ ] Cross-platform compatible (no OS-specific paths)
-- [ ] Overlap with semantically similar instruction files reviewed intentionally
+- [ ] Hard requirements are unambiguous; preferences and defaults name the conditions for adapting them
+- [ ] Always / Ask first / Never tiers are used only where applicable
+- [ ] Code examples included where the rule is subtle
+- [ ] The file's size respects the shared always-loaded budget, not just its own line count
 
 **Testing**:
-- [ ] `applyTo` pattern matches intended files when present
-- [ ] Rules applied to real code successfully
-- [ ] AI assistant follows instructions correctly
-- [ ] Edge cases handled appropriately
-- [ ] Conflicting-context case handled appropriately
-- [ ] No unintended side effects
+- [ ] Patterns match the intended files and nothing else, cross-platform
+- [ ] No overlap or conflict with other instruction files, including semantically similar ones
+- [ ] Applied to real code, one edge case and one conflicting-context case; the assistant follows the rules
+
+**Common issues**: rules ignored → make them specific and actionable; rules conflicting → narrow scope or consolidate; pattern not matching → test the glob; description not discovered (VS Code) → add clearer what/when/trigger terms.
 
 ## Additional Resources
 
 - [`instruction-bootstrapping.md`](./instruction-bootstrapping.md) — producing a repository's first root and scoped context files
+- [frontmatter-deploy.md](./frontmatter-deploy.md) — per-target validity and APM survival for every type
 - [agents.md convention](https://agents.md/)
 - [netresearch/agent-rules-skill](https://github.com/netresearch/agent-rules-skill) — script-driven AGENTS.md generator; source for the bootstrap procedure above
 - [Custom Instructions Documentation](https://code.visualstudio.com/docs/agent-customization/custom-instructions)
 - [Memory and Root Context Files](https://code.claude.com/docs/en/memory)
 - [Awesome Copilot Instructions Collection](https://github.com/github/awesome-copilot/tree/main/instructions)
 - [Repository Instructions](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/add-custom-instructions/add-repository-instructions)
+- [Copilot CLI custom instructions](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions)
+- [Codex AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md)
 - [APM Instructions and Agents](https://microsoft.github.io/apm/producer/author-primitives/instructions-and-agents/)
 - [Prompt Engineering](https://developers.openai.com/api/docs/guides/prompt-engineering)
 - [Writing a Good CLAUDE.md (HumanLayer)](https://www.humanlayer.dev/blog/writing-a-good-claude-md)

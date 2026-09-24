@@ -4,35 +4,40 @@ Not all the following sections will always be required. It is better to start wi
 
 **Example Sections:**
 
-| Section                     | Purpose                                         |
-| --------------------------- | ----------------------------------------------- |
-| `# Title`                   | Brief overview of what this skill enables       |
-| `## Prerequisites`          | Required tools, dependencies, environment setup |
-| `## Guidelines`             | Best practices and rules for using this skill   |
-| `## Step-by-Step Workflows` | Numbered steps for common tasks                 |
-| `## Validation Checklist`   | Checklist of required properties of output      |
-| `## Troubleshooting`        | Common issues and solutions table               |
-| `## References`             | Links to bundled docs or external resources     |
+| Section | Purpose |
+| --- | --- |
+| `# Title` | One sentence stating what the skill enables; be specific about the domain |
+| `## Prerequisites` | Only tools, services or configuration that cannot be assumed, with exact install commands |
+| `## Guidelines` | Best practices and rules for using this skill |
+| `## Step-by-Step Workflows` | Numbered steps where order or dependencies matter. Describe what to accomplish at each stage rather than hardcoded paths; move workflows over ~5 steps into `references/` |
+| `## Gotchas` | Proactive warnings about non-obvious behavior: bold the key constraint, then explain why. Include whenever the skill has non-obvious behavior |
+| `## Validation Checklist` | Checklist of required properties of output |
+| `## Troubleshooting` | Reactive fixes as a symptom → solution table |
+| `## References` | Links to bundled docs, external documentation or related skills |
+
+Never add a `## When to Use` section: the body loads only after activation, so trigger text belongs in `description`.
 
 ## Organizational Patterns
 
-1. **Workflow-Based** (best for multi-step processes)
+- **Workflow-Based** (best for processes with ordering or dependencies)
    - Structure: `## Overview → ## Workflow Decision Tree → ## Step 1 → ## Step 2...`
    - Example: PDF form filling with analyze → map → validate → fill → verify
 
-2. **Task-Based** (best for tool collections)
+- **Task-Based** (best for tool collections)
    - Structure: `## Overview → ## Quick Start → ## Task Category 1 → ## Task Category 2...`
    - Example: PDF skill with "Merge PDFs", "Split PDFs", "Extract Text"
 
-3. **Reference/Guidelines** (best for standards or specifications)
+- **Reference/Guidelines** (best for standards or specifications)
    - Structure: `## Overview → ## Guidelines → ## Specifications → ## Usage...`
    - Example: Brand styling with "Colors", "Typography", "Features"
 
-4. **Capabilities-Based** (best for integrated systems)
+- **Capabilities-Based** (best for integrated systems)
    - Structure: `## Overview → ## Core Capabilities → ### 1. Feature → ### 2. Feature...`
    - Example: Product Management with numbered capability list
 
 Patterns can be mixed. Most skills combine patterns (e.g., start task-based, add workflow for complex operations).
+
+Use decision criteria for open-ended work. When numbered steps and progress checklists earn their place is in [Workflow Requirements](./skills.md#workflow-requirements).
 
 ## Body Content Quality
 
@@ -42,7 +47,7 @@ Coherent-but-irrelevant content measurably hurts more than incoherent filler —
 
 ### Author Reactively
 
-Don't pre-empt every conceivable mistake. Promote a rule into the skill only after the same mistake recurs — ask the agent for a short retrospective on what went wrong, then encode that specific lesson as a gotcha.
+Don't pre-empt every conceivable mistake or append a gotcha after every wrong result. Diagnose observed failures, then correct, clarify or consolidate existing guidance before adding a rule. Recurring mistakes can justify a durable gotcha; established requirements and evidenced serious hazards should be documented without waiting for recurrence.
 
 ### Curate Examples, Don't Enumerate
 
@@ -50,7 +55,7 @@ Prefer a few diverse canonical examples over exhaustive edge-case prose — one 
 
 ### Make Verification Visible
 
-Convert silent checks into steps that emit a visible output artifact (a file, a printed diff, a checked-off list item) — an unemitted, skipped verification step is otherwise undetectable. For sensitive or side-effectful workflows, add a final self-evaluation/completeness gate before finalizing, not just per-step checks.
+Record verification results in existing tool output, a diff or a concise summary so completion can be checked. A separate artifact or checklist is useful only when the task needs it. For sensitive or side-effectful workflows, include a final completeness check before finalizing.
 
 ### Scripts Execute, They Don't Load
 

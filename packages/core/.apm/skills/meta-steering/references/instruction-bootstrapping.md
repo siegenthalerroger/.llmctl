@@ -57,7 +57,7 @@ Common lines that always fail the test:
 
 Before shipping:
 
-- **Run every documented command.** Not `grep` for the target — run it (or at minimum `make -n <target>` / `npm run <script> --dry-run`)
+- **Run every documented command.** Not `grep` for the target — run it (or at minimum `make -n <target>`; for an npm script, read its body in `package.json`, because `npm run` ignores `--dry-run` and executes the script)
 - **Match every documented path exactly.** `AjaxController.php` documented as `CowriterAjaxController.php` sends the agent hunting for a file that does not exist. Existence is not enough; the string must match
 - **Re-derive every number** from its config file rather than from memory or from an older version of the file
 - **Delete documentation for anything that no longer exists**, rather than leaving it as harmless clutter
@@ -110,8 +110,9 @@ Scoped files load on demand, so they can afford detail that the root cannot. Pus
 
 ## Multi-Harness Output
 
-One authored body, several filenames. Keep a single source of truth and link the rest:
+One authored body. Keep a single `AGENTS.md` as the source of truth; do not create copies under other filenames:
 
-- Symlink or generate `CLAUDE.md`, `GEMINI.md`, and `.github/copilot-instructions.md` from the canonical `AGENTS.md` rather than maintaining parallel copies
+- Claude Code (v2.1.277+) and Copilot CLI both read `AGENTS.md` directly. Claude reads it only when no `CLAUDE.md` exists in the working directory or above, so a copied `CLAUDE.md` silently replaces it
+- Add a `CLAUDE.md` containing `@AGENTS.md` only when Claude-specific additions are needed, or when a Claude Code session cannot read `AGENTS.md` (older versions, or the built-in `agents-md` plugin disabled). Put the additions below the import
 - Where a harness needs its own frontmatter or location, generate that wrapper — do not fork the body
 - Divergent copies drift within weeks, and the drift is silent

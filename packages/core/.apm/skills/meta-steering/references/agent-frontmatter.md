@@ -1,40 +1,23 @@
 # Agent Frontmatter Reference
 
-**Contents:** [Required Fields](#required-fields) · [Optional Fields](#optional-fields) · [Claude Code-Specific Fields](#claude-code-specific-fields) · [Minimal Frontmatter Example](#minimal-frontmatter-example) · [Complete Frontmatter Example](#complete-frontmatter-example) · [Validation Rules](#validation-rules) · [Common Mistakes](#common-mistakes) · [Further Reading](#further-reading)
+**Contents:** [Required Fields](#required-fields) · [Optional Fields](#optional-fields) · [Claude Code-Specific Fields](#claude-code-specific-fields) · [Codex Fields](#codex-fields) · [Minimal Frontmatter Example](#minimal-frontmatter-example) · [Complete Frontmatter Example](#complete-frontmatter-example) · [Validation Rules](#validation-rules) · [Further Reading](#further-reading)
 
-This document provides guidance on common frontmatter properties for custom agent files. Available properties may vary by platform and version - consult your platform's official documentation for the complete, up-to-date reference.
+Field-by-field reference for `*.agent.md` frontmatter. Which runtime honours each field, and what APM delivers, is in [frontmatter-deploy.md](./frontmatter-deploy.md#the-matrix); the cross-runtime rules are in [agent-guide.md](./agent-guide.md#cross-tool-compatibility-copilot--claude-code). Verify against the vendor page before relying on a field this page marks as runtime-specific.
 
 ## Required Fields
 
 ### `description`
 
-**Type:** String
-**Required:** Yes (conditionally - see `infer` field)
-**Length:** ~50-150 characters house target (awesome-copilot convention); some platforms cap higher (e.g. M365 agent descriptions ≤1000 chars) — short and discriminating beats long and generic.
+**Type:** String. **Required:** everywhere, including when `infer: false`.
 
-Write `description` as a matching signal keyed to the words a user would say, not a capability summary. Prefer directive phrasing with an explicit negative constraint over passive "Use when…" — state WHAT the agent does, name concrete triggers, and say what it does NOT cover when a sibling agent overlaps:
-- Third person, active voice, present tense — the text is injected into the system prompt verbatim
-- Front-load the differentiating verb/scope in the first clause (the entry may be truncated)
-- Add negative space against overlapping siblings ("does not fix issues — hand off to X")
-- Keep keywords as coverage inside the trigger clause, not as stuffing — keyword density is not the lever; a discriminating name and directive shape are
-- Avoid XML tags or reserved words (`anthropic`, `claude`, `openai`, `copilot`)
-
-**Example:**
-```yaml
-description: "Scans code for OWASP vulnerabilities (SQL injection, XSS, auth flaws) before merges and deployments. ALWAYS invoke before approving a PR touching auth, input validation, or dependencies. Does not fix issues — hand off to security-fixer for remediation."
-```
+Routing text, not a capability summary. Shape and length: [agent-guide.md, Description length](./agent-guide.md#description-length).
 
 ### `name`
 
-**Type:** String
-**Required:** Yes
+**Type:** String. **Required:** by Claude Code; optional on Copilot CLI, VS Code and cloud (defaults to the filename).
 
-The display name for the agent shown in the UI. Should be:
-- Clear and descriptive
-- Title case (e.g., "Test Automation Specialist")
-- Distinct from other agents
+Claude Code uses `name` as the agent's **unique identifier** (hooks receive it as `agent_type`, and a name containing `:` is not loaded). Copilot runtimes show it as the display name. Keep it unique, stable and free of `:`; handoffs, `agents:` lists and delegation prompts refer to it.
 
-**Example:**
 ```yaml
 name: "Security Audit Agent"
 ```
@@ -43,369 +26,229 @@ name: "Security Audit Agent"
 
 ### `tools`
 
-**Type:** Array of strings
-**Required:** No (defaults to all tools)
+**Type:** Array of strings. **Required:** No (all tools when omitted).
 
-Specifies which tools the agent can access. Available tools vary by platform and installed extensions/MCP servers.
-
-> **Dual-deployed files: omit `tools:`.** A Copilot-style `tools:` array makes Claude Code **refuse to spawn** the agent — Claude parses it as a strict allowlist against real tool/MCP names, Copilot vocabulary resolves to nothing, and it errors instead of inheriting. Restrict Claude Code via `disallowedTools:` (denylist) instead. The `tools:` examples below are Copilot-only-file usage. See the [the meta-steering router, section 4](../SKILL.md#4-frontmatter-shared-by-all-four-types).
-
-**Common patterns:**
-- Specific tools: Array of tool names (e.g., `['read', 'edit', 'search']`)
-- All tools: `'*'` or omit the field entirely
-- No tools: `[]`
-- MCP server tools: Use wildcards (e.g., `'github/*'`) or specific tool names
-
-**Best Practice:** Follow the principle of least privilege - only enable tools necessary for the agent's purpose. See [TOOLS.md](./agent-tools.md) for detailed guidance.
-
-**Example:**
-```yaml
-# Read-only code reviewer
-tools: ['read', 'search']
-
-# Full implementation agent
-tools: ['read', 'search', 'edit', 'execute', 'agent']
-
-# MCP server tools
-tools: ['read', 'edit', 'github/*']
-```
+**Dual-deployed files:** follow [agent-guide.md, Tools field](./agent-guide.md#tools-field) — omit it unless every entry is a Copilot-aliased Claude tool name. Vocabulary and patterns for Copilot-only files: [agent-tools.md](./agent-tools.md).
 
 ### `model` and `effort`
 
-**Type:** `model` — String. `effort` — String. **Required:** No.
+**Type:** String. **Required:** No.
 
-The two harnesses use **disjoint** `model:` formats, so no single string satisfies both:
-- **Claude Code** (primary harness): a single alias (`sonnet`/`opus`/`haiku`/`fable`), a full model ID, or `inherit` (default). Pair with `effort:` (`low`/`medium`/`high`/`xhigh`/`max`) to control reasoning depth.
-- **Copilot:** provider-suffixed display strings, single or an ordered array (first available wins), e.g. `"Claude Sonnet 4.6 (copilot)"`.
+- **Claude Code** (primary harness): `model` is a single alias (`sonnet`/`opus`/`haiku`/`fable`), a full model ID, or `inherit` (default). `effort` is `low`/`medium`/`high`/`xhigh`/`max`.
+- **Copilot CLI:** `model` is a string; `models` is a priority list that overrides it; `reasoningEffort` sets effort; `modelPolicy: required` refuses dispatch instead of falling back to the session model. Session Auto overrides per-agent selection ([CLI reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference)).
+- **VS Code compatibility:** `model` is a display-name string or ordered array. Do not transfer this array syntax to Claude Code or Copilot CLI.
 
-This repo writes the **active** `model:` and `effort:` as single Claude Code values, resolved deterministically from `metadata.modelProfile` by the `meta-update-models` skill. The Copilot/multi-provider ranking is preserved as a **non-functional comment** below the active fields — no harness reads it. Copilot does not recognize the alias and is expected to fall back to its default model.
+This repo writes the **active** `model:` and `effort:` as single Claude Code values, resolved from `metadata.modelProfile` by the `meta-update-models` skill, which owns the maps. The multi-provider ranking is a **non-functional comment** below them:
 
-**Example (repo convention):**
 ```yaml
 # Claude Code fields
-model: sonnet
-effort: high
+model: sonnet          # from modelProfile (meta-update-models)
+effort: high           # from modelProfile (meta-update-models)
 # Multi-provider candidates — NON-FUNCTIONAL, for reference only.
 # Regenerated by meta-update-models from metadata.modelProfile:
-#   - Claude Sonnet 4.6 (unify-chat-provider)
-#   - GPT-5.4 (copilot)
+#   - Example Claude Model (unify-chat-provider)
+#   - Example Copilot Model (copilot)
 ```
 
-See the **Model Profile Convention** in `CONTRIBUTING.md` for the cost→alias and profile→effort maps.
+### `include-custom-instructions`
+
+**Type:** Boolean. **Required:** No (default `false`). **Copilot CLI.**
+
+When the agent runs as a subagent, include the repository's instruction files (`copilot-instructions.md`, `AGENTS.md`, `CLAUDE.md`). Set `true` on every agent whose work depends on repository conventions. Case 2 on Claude Code, which loads CLAUDE.md into subagents by default.
 
 ### `target`
 
-**Type:** String
-**Required:** No
+**Type:** String. **Required:** No. **VS Code / cloud compatibility.**
 
-Specifies the environment where this agent is available. Used to control agent visibility across different contexts.
-
-**Common Values:**
-- `"vscode"` - Only available in VS Code
-- `"cli"` - Only available in command-line interfaces
-- `"web"` - Only available in web interfaces
-
-**Example:**
-```yaml
-target: "vscode"
-```
+`"vscode"` or `"github-copilot"`; unset means both. The Copilot CLI field table does not document it, so do not use it to select CLI behaviour.
 
 ### `user-invocable`
 
-**Type:** Boolean
-**Required:** No
+**Type:** Boolean. **Required:** No (default `true`). **VS Code / cloud compatibility.**
 
-Controls whether users can manually invoke the agent from the client UI or command surface where supported.
-
-**Example:**
-```yaml
-user-invocable: true
-```
+Whether the agent appears in the agent picker for manual selection.
 
 ### `disable-model-invocation`
 
-**Type:** Boolean
-**Required:** No
+**Type:** Boolean. **Required:** No (default `false`). **VS Code / cloud compatibility.**
 
-Blocks the model from autonomously/automatically invoking the agent. Independent of `user-invocable` — the two are separate axes, not one flag: an agent can be automation-only (`user-invocable: false`, `disable-model-invocation: false`), UI-only (`user-invocable: true`, `disable-model-invocation: true`), both, or neither.
+VS Code: prevents the agent from being invoked as a subagent by other agents. Cloud: the agent "must be manually selected". Independent of `user-invocable`:
 
-**Example:**
-```yaml
-disable-model-invocation: true  # orchestration-only agent, never auto-selected
-```
+| `user-invocable` | `disable-model-invocation` | Result |
+|---|---|---|
+| `true` | `false` | Picker and delegation (default) |
+| `false` | `false` | Delegation only — executors, Explore |
+| `true` | `true` | Picker only — a user-selected planner |
+
+Never set it on an agent that other agents must delegate to. Claude Code has no subagent equivalent; state manual-only intent in the description.
 
 ### `infer`
 
-**Type:** Boolean
-**Required:** No (defaults to `true`)
+**Type:** Boolean. **Required:** No (default `true`). **Copilot CLI.**
 
-Controls whether the agent can be automatically suggested/inferred based on context, or if it must be manually selected by the user.
+Whether the main agent may auto-delegate to this agent. The cloud reference calls it retired and VS Code calls it deprecated in favour of the two fields above; the CLI still documents it. Set `infer: false` together with `disable-model-invocation: true` for a manual-only agent.
 
-- `true` (default): Agent can be auto-suggested based on workspace context and task
-- `false`: Agent must be explicitly selected by user (useful for specialized workflows)
+### `agents`
 
-**Note:** This field is legacy or deprecated in some clients. Avoid adding it to new files unless the target platform still documents it.
+**Type:** Array of strings. **Required:** No. **VS Code.**
 
-**Example:**
-```yaml
-infer: false  # Must be manually invoked
-```
+Which subagents this agent may call (`*` for all, `[]` for none). The names must match the targets' `name` fields.
 
 ### `handoffs`
 
-**Type:** Array of objects
-**Required:** No
+**Type:** Array of objects. **Required:** No. **VS Code only; cloud ignores it.**
 
-VS Code-specific. Defines a suggested, user-approved transition to another agent — the user reviews a pre-filled prompt and sends (or edits) it; this is not silent auto-delegation. Each handoff object contains configuration for transitioning to another agent.
+Suggested, user-approved transitions. Each entry has `label`, `agent`, optional `prompt`, `send` and `model`. Full schema: [agent-handoff.md](./agent-handoff.md#handoff-properties).
 
-See [HANDOFF.md](./agent-handoff.md) for complete documentation.
-
-**Example:**
 ```yaml
 handoffs:
-  - name: "implementer"
-    description: "Hand off to implementation agent"
-    agent: "code-implementer"
+  - label: "Fix Findings"
+    agent: "security-fixer"
+    prompt: "Fix the vulnerabilities listed above."
 ```
 
 ### `license`
 
-**Type:** String
-**Required:** No
-
-Specifies the license under which the agent definition is distributed (e.g., MIT, Apache-2.0, GPL-3.0).
-
-**Example:**
-```yaml
-license: "MIT"
-```
+Not an agent key on any target. The repository default for `*.md` (CC-BY-SA-4.0) applies; declare a top-level `license` only where an upstream obligation the default cannot satisfy forces another, which this repository's `licences` gate (`llmctl-check-licenses`) enforces. See the [router, section 4](../SKILL.md#4-frontmatter-shared-by-all-four-types).
 
 ### `metadata`
 
-**Type:** Object
-**Required:** No
+**Type:** Object. **Required:** No.
 
-Additional metadata about the agent. Can contain any custom key-value pairs. Common uses:
-- `author`: Agent creator
-- `version`: Agent version number
-- `provenance`: Provenance tracking (see below)
-- `tags`: Additional categorization tags
+This repository's private conventions. Copilot cloud accepts `metadata` for annotation; other runtimes ignore it.
 
-**Provenance** is grouped under `metadata.provenance`:
-- `provenance.adaptedFrom` (string, array of URLs, or array of objects): where content taken from an upstream came from — a borrowed idea up to a near-verbatim carry-over. String and array forms mean the **whole file** derives from those upstreams; the object form scopes the adaptation and records the terms it arrives under, via `url` / `license` / `fidelity` / `took`
-- `provenance.authoritativeSpec` (array): authoritative specifications defining the file format. A bare URL string means **cited only, nothing reproduced** — no obligation. Use the object form for an entry whose wording or tables were reproduced locally
+- `metadata.provenance` — the shared provenance convention; see the [router, section 4](../SKILL.md#4-frontmatter-shared-by-all-four-types).
+- `metadata.modelProfile` — below.
 
 #### `metadata.modelProfile`
 
-Declarative capability profile used by the `meta-update-models` skill to resolve the ordered `model:` array at run-time by consulting authoritative provider documentation. Use it only in customization files that support the top-level `model` frontmatter field.
-
-**Schema:**
+Declarative capability profile read by the `meta-update-models` skill to resolve the active `model:` and `effort:` and to refresh the non-functional candidate comment. Harnesses do not read it. Use it only in files that support a top-level `model` field.
 
 | Field | Allowed values | Semantics |
 |---|---|---|
-| `specialisation` | `NONE` \| `CODE` \| `REASONING` \| `LONG-CONTEXT` | `CODE` prefers Codex-family/code-optimised models; `REASONING` prefers models with extended thinking/chain-of-thought capabilities; `LONG-CONTEXT` prefers models with the largest context windows (≥200K tokens); `NONE` accepts general-purpose models |
-| `cost` | `FREE` \| `LOW` \| `MEDIUM` \| `HIGH` | Abstract cost tier mapped to each provider's pricing metric by the skill. `FREE`=truly zero incremental usage, `LOW`=light usage burn, `MEDIUM`=standard included usage, `HIGH`=premium or high-burn usage. |
-| `latency` | `LOW` \| `MEDIUM` \| `HIGH` | `LOW` selects fastest/smallest models; used as tie-breaker |
-| `minDate` | ISO 8601 date string | Exclude models retired before this date |
+| `specialisation` | `NONE` \| `CODE` \| `REASONING` \| `LONG-CONTEXT` | `CODE` prefers code-optimised models; `REASONING` prefers models labelled for extended reasoning; `LONG-CONTEXT` prefers context windows ≥200K tokens; `NONE` accepts general-purpose models |
+| `cost` | `FREE` \| `LOW` \| `MEDIUM` \| `HIGH` | Abstract cost tier; `FREE` means truly zero incremental usage, not subscription-included |
+| `latency` | `LOW` \| `MEDIUM` \| `HIGH` | `LOW` selects fastest/smallest models; tie-breaker |
+| `minDate` | ISO 8601 date string | Exclude models trained before this date |
 
-The `meta-update-models` skill fetches **all supported providers in parallel** and combines the results into one ordered `model:` array. The harness chooses the first available entry, so qualifying free models are placed first; after that free-first prefix, the skill reserves Claude Code, OpenAI-backed models available through Codex, and GitHub Copilot coverage in that order. Subscription-included Claude Code and OpenAI Codex models are not automatically `FREE`. No `provider` field is needed in the profile.
-
-**Example:**
+The resolution maps and ranking rules live only in `meta-update-models`.
 
 ```yaml
 metadata:
   modelProfile:
     specialisation: CODE
-    cost: FREE
+    cost: LOW
     latency: LOW
     minDate: "2025-01-01"
 ```
 
-**Example (single source):**
-```yaml
-metadata:
-  provenance:
-    adaptedFrom: "https://github.com/example/agents/blob/main/security.agent.md"
-```
-
-**Example (synthesised from multiple sources):**
-```yaml
-metadata:
-  provenance:
-    adaptedFrom:
-      - "https://github.com/org-a/skills/blob/main/skills/security/SKILL.md"
-      - "https://github.com/org-b/copilot-rules/blob/main/instructions/owasp.instructions.md"
-  tags: ["security", "compliance"]
-```
-
-**Example (scoped adaptation — only part of the upstream was taken):**
-```yaml
-metadata:
-  provenance:
-    adaptedFrom:
-      - url: "https://github.com/org-a/skills/blob/main/skills/security/SKILL.md"
-        license: MIT
-        fidelity: inspiration-only
-        took: "The threat-model checklist and severity tiers."
-```
-
-`fidelity` is the obligation level — `inspiration-only` / `structural-echo` / `partly-derived` / `largely-derived`, absent meaning whole-file derivation. The first two mean only ideas or structure were taken, so no upstream terms attach; the last two mean expression was copied, so they do.
-
-`license` is the SPDX id of the **upstream**, not of this file. It is required wherever `fidelity` implies an obligation, because it decides what this file may be licensed under — `scripts/check_licenses.py` rejects a file whose own licence cannot satisfy it. Record `NONE` for an upstream with no LICENSE file: that grants no rights at all, and is only safe at `inspiration-only`.
-
-`took` records what was taken and nothing else, so the drift audit can dismiss an upstream change without opening the diff: if the change touches nothing on the list, there is nothing to merge. Never add what was *not* taken — upstream can grow indefinitely, so that list rots without any local change to trigger a refresh.
-
-**Example (authoritative spec for dual-tool compatibility):**
-```yaml
-metadata:
-  provenance:
-    authoritativeSpec:
-      - "https://code.claude.com/docs/en/sub-agents"
-      - "https://code.visualstudio.com/docs/agent-customization/custom-agents"
-```
-
-For consistency across customization types, use the same provenance keys in prompt, instruction, skill, and agent files.
-
 ## Claude Code-Specific Fields
 
-These fields are recognized by Claude Code only. Copilot safely ignores them. Include them alongside Copilot fields for dual-tool compatibility.
+Case 2 on Copilot and Codex: author them, and restate any restriction they carry in the body.
 
 ### `disallowedTools`
 
-**Type:** Comma-separated string
-**Required:** No
+**Type:** Comma-separated string or list. Tools removed from the inherited pool; the dual-deployed way to restrict Claude Code. Resolution order and the spawn allowlist: [agent-guide.md, Tools field](./agent-guide.md#tools-field).
 
-Tools to deny from the inherited set. Use when Claude Code inherits all tools (because Copilot's `tools` array is not parseable by Claude) and you want to restrict specific Claude tools.
-
-**Resolution order:** Claude Code applies `disallowedTools` first, then resolves `tools` (if present) against the remainder — restrict structurally with this field rather than asking the agent in prose to avoid a tool it still holds.
-
-**Sub-agent spawn allowlist:** to restrict which sub-agents an orchestrator may spawn, use `Agent(worker, researcher)` syntax inside `tools` rather than describing the allowed set in prose.
-
-**Example:**
 ```yaml
-disallowedTools: Edit, Write  # read-only agent
+disallowedTools: Edit, Write, NotebookEdit  # read-only agent
 ```
 
 ### `permissionMode`
 
-**Type:** String
-**Required:** No
-
-Controls how the subagent handles permission prompts. Values include `default`, `acceptEdits`, `auto`, `dontAsk`, `bypassPermissions`, `plan`, `manual` — verify the current set against the [sub-agents docs](https://code.claude.com/docs/en/sub-agents).
+**Type:** String. `default`, `acceptEdits`, `auto`, `dontAsk`, `bypassPermissions`, `plan`; `manual` is an alias for `default` ([sub-agents docs](https://code.claude.com/docs/en/sub-agents)).
 
 ### `skills`
 
-**Type:** Array of strings
-**Required:** No
-
-Claude Code skills to preload into the subagent's context at startup — this loads the full skill CONTENT into context immediately, not just the description. **Do not list `Skill` in `tools` to grant skill access; use this `skills` field instead.** Listing `Skill` in `tools` only grants the ability to invoke a skill on demand — a different mechanism. A subagent can still invoke unlisted project/user/plugin skills via the Skill tool.
+**Type:** Array of strings. Injects the full content of each listed skill into the subagent's context at startup. It "controls which skills are preloaded, not which skills the subagent can access": without it, the subagent can still invoke skills through the Skill tool. A skill with `disable-model-invocation: true` cannot be preloaded.
 
 ### `memory`
 
-**Type:** String
-**Required:** No
-
-Where the agent's memory is stored, and therefore how far it travels: `user`, `project`, or `local`. What it records survives past the end of a session.
+**Type:** String. Persistent memory scope: `user`, `project` or `local`. The main conversation's auto memory is never loaded into a subagent.
 
 ### `hooks`
 
-**Type:** Object
-**Required:** No
-
-Lifecycle hooks scoped to the subagent (e.g., `PreToolUse`, `PostToolUse`, `Stop`).
-
-> VS Code also supports an agent-scoped `hooks:` field (Preview) with a different schema — guardrails travel with the agent file instead of living only in global settings. See the `meta-harness` skill and verify against current docs.
+**Type:** Object. Lifecycle hooks scoped to the subagent. VS Code has an agent-scoped `hooks:` field (Local, Preview) with a different schema. See the `meta-harness` skill.
 
 ### `mcpServers`
 
-**Type:** Object
-**Required:** No
-
-MCP servers available to the subagent. Each entry is a server name or inline definition.
+**Type:** Object. MCP servers available to the subagent, by name or inline definition.
 
 ### Other Claude Code fields
 
-- `effort` (string): Reasoning depth — `low` / `medium` / `high` / `xhigh` / `max`. Resolved from `metadata.modelProfile` (see the [`model` and `effort`](#model-and-effort) section above)
-- `maxTurns` (number): Maximum agentic turns before stopping
-- `background` (boolean): Always run as a background task
-- `isolation` (`worktree`): Run in a temporary git worktree
-- `color`, `initialPrompt`, and others exist — consult the [sub-agents docs](https://code.claude.com/docs/en/sub-agents) for the complete, current list
+- `maxTurns` (number): maximum agentic turns before stopping
+- `background` (boolean): keep the subagent in the background; background subagents get a reduced built-in tool set
+- `omitClaudeMd` (boolean): launch without user, project and local CLAUDE.md files
+- `isolation` (`worktree`): run in a temporary git worktree
+- `color`, `initialPrompt`, `experimental` — see the [sub-agents docs](https://code.claude.com/docs/en/sub-agents)
+
+## Codex Fields
+
+APM compiles an agent to TOML carrying only `name`, `description` and the body as `developer_instructions`. Codex also accepts `model`, `model_reasoning_effort`, `sandbox_mode` and `mcp_servers` ([Codex subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents)); APM drops them. Author a control the agent depends on (typically `sandbox_mode: read-only`) in source as case 2, with a YAML comment that APM does not deliver it, and restate it in the body.
 
 ## Minimal Frontmatter Example
 
-The absolute minimum required frontmatter:
-
 ```yaml
 ---
-description: "Security auditor for OWASP vulnerability scanning"
 name: "Security Auditor"
+description: "Scans code for OWASP vulnerabilities before merges. ALWAYS invoke before approving a PR touching auth or input validation. Does not fix issues — hand off to security-fixer."
 ---
 ```
 
 ## Complete Frontmatter Example
 
-A comprehensive dual-compatible example with Copilot and Claude Code fields:
+A dual-deployed read-only agent, with every runtime's fields labelled:
 
 ```yaml
 ---
-description: "Security auditor that scans code for vulnerabilities using OWASP guidelines. Use when reviewing authentication, authorization, input validation, or before deployments. Keywords: security, vulnerability, OWASP."
 name: "Security Audit Agent"
+description: "Scans code for OWASP vulnerabilities (injection, XSS, auth flaws) before merges and deployments. ALWAYS invoke before approving a PR touching auth, input validation, or dependencies. Does not fix issues — hand off to security-fixer for remediation."
 # Copilot fields
-target: "vscode"
+include-custom-instructions: true
 handoffs:
-  - name: "remediation"
-    description: "Hand off to fix identified vulnerabilities"
+  - label: "Fix Findings"
     agent: "security-fixer"
+    prompt: "Fix the vulnerabilities listed above."
 # Claude Code fields
 model: sonnet
 effort: high
-disallowedTools: Edit, Write
+disallowedTools: Edit, Write, NotebookEdit
 permissionMode: plan
 # Multi-provider candidates — NON-FUNCTIONAL, for reference only.
 # Regenerated by meta-update-models from metadata.modelProfile:
-#   - Claude Sonnet 4.6 (unify-chat-provider)
-#   - GPT-5.2 (copilot)
-license: "MIT"
+#   - Example Claude Model (unify-chat-provider)
+#   - Example Copilot Model (copilot)
+# Codex fields — APM does not deliver these to Codex today (case 2)
+sandbox_mode: read-only
 metadata:
-  author: "Security Team"
-  version: "2.1.0"
   provenance:
-    adaptedFrom: "https://github.com/example/security-agents"
     authoritativeSpec:
       - "https://code.claude.com/docs/en/sub-agents"
       - "https://code.visualstudio.com/docs/agent-customization/custom-agents"
-  tags: ["security", "owasp", "vulnerability-scanning"]
+  modelProfile:
+    specialisation: REASONING
+    cost: MEDIUM
+    latency: MEDIUM
+    minDate: "2025-01-01"
 ---
 ```
 
+No `tools:`, no `target:`, no `license:`. The body must say "Read-only: never create, edit or delete files", because only Claude receives `disallowedTools` and only Codex would read `sandbox_mode`.
+
 ## Validation Rules
 
-1. **description**: Must be present (unless `infer: false`); ~50-150 chars house target, directive shape with an explicit negative constraint, discriminating vs sibling agents
-2. **name**: Must be present and unique within agent collection
-3. **tools**: If specified, must be valid tool names or patterns
-4. **model**: If specified, must be a supported model identifier
-5. **target**: If specified, must be a valid target environment
-6. **infer**: If specified, must be boolean
-7. **handoffs**: If specified, must follow handoff schema (see HANDOFF.md)
-
-## Common Mistakes
-
-❌ **Don't:**
-- Use XML tags in description (`<anthropic>`, `<claude>`)
-- Make description too vague ("A helpful agent") or keyword-stuffed but passive
-- Grant all tools without justification
-- Forget to specify required `description` and `name`
-- Use soft-permission phrasing ("prefer X, but Y if simpler") instead of binary constraints
-
-✅ **Do:**
-- Write directive descriptions with an explicit negative constraint, discriminating vs sibling agents
-- Match tools to agent responsibilities
-- Use `disable-model-invocation: true` for agents that should not be auto-selected
-- Add metadata for maintainability
+1. **description**: present, single-line, shaped per [agent-guide.md](./agent-guide.md#description-length)
+2. **name**: present, unique, no `:`
+3. **tools**: absent in a dual-deployed file, or only Copilot-aliased Claude tool names
+4. **model** / **effort**: resolved by `meta-update-models` from `metadata.modelProfile`
+5. **target**: `vscode` or `github-copilot` if present
+6. **infer**, **user-invocable**, **disable-model-invocation**: booleans, consistent with the description's invocation claim
+7. **handoffs**: follow the [handoff schema](./agent-handoff.md#handoff-properties)
 
 ## Further Reading
 
-- Check your platform's official documentation for the complete, up-to-date list of available frontmatter properties
-- [TOOLS.md](./agent-tools.md) - Tool configuration patterns and best practices
-- [HANDOFF.md](./agent-handoff.md) - Handoff configuration for multi-agent workflows
-- [SUBAGENT.md](./agent-subagent.md) - Sub-agent orchestration patterns
+- [agent-guide.md](./agent-guide.md) - cross-runtime rules and the `tools:` case 3
+- [agent-tools.md](./agent-tools.md) - tool vocabulary and patterns
+- [agent-handoff.md](./agent-handoff.md) - handoff configuration
+- [agent-subagent.md](./agent-subagent.md) - sub-agent orchestration
+- [frontmatter-deploy.md](./frontmatter-deploy.md) - what APM delivers per target

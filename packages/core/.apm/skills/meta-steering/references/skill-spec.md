@@ -14,26 +14,35 @@ metadata:
 
 > The complete format specification for Agent Skills.
 
-This document defines the Agent Skills format.
-
 ## Directory structure
 
-A skill is a directory containing at minimum a `SKILL.md` file:
+A skill is a directory containing, at minimum, a `SKILL.md` file:
 
 ```
 skill-name/
-└── SKILL.md          # Required
+├── SKILL.md          # Required: metadata + instructions
+├── scripts/          # Optional: executable code
+├── references/       # Optional: documentation
+├── assets/           # Optional: templates, resources
+└── ...               # Any additional files or directories
 ```
-
-<Tip>
-  You can optionally include [additional directories](#optional-directories) such as `scripts/`, `references/`, and `assets/` to support your skill.
-</Tip>
 
 ## SKILL.md format
 
 The `SKILL.md` file must contain YAML frontmatter followed by Markdown content.
 
 ### Frontmatter (required)
+
+| Field           | Required | Constraints                                                                                                       |
+| --------------- | -------- | ----------------------------------------------------------------------------------------------------------------- |
+| `name`          | Yes      | Max 64 characters. Lowercase letters, numbers, and hyphens only. Must not start or end with a hyphen.             |
+| `description`   | Yes      | Max 1024 characters. Non-empty. Describes what the skill does and when to use it.                                 |
+| `license`       | No       | License name or reference to a bundled license file.                                                              |
+| `compatibility` | No       | Max 500 characters. Indicates environment requirements (intended product, system packages, network access, etc.). |
+| `metadata`      | No       | Arbitrary key-value mapping for additional metadata (a map from string keys to string values).                    |
+| `allowed-tools` | No       | Space-separated string of pre-approved tools the skill may use. (Experimental)                                    |
+
+**Minimal example:**
 
 ```yaml
 ---
@@ -42,39 +51,26 @@ description: A description of what this skill does and when to use it.
 ---
 ```
 
-With optional fields:
+**Example with optional fields:**
 
 ```yaml
 ---
 name: pdf-processing
-description: Extract text and tables from PDF files, fill forms, merge documents.
+description: Extract PDF text, fill forms, merge files. Use when handling PDFs.
 license: Apache-2.0
 metadata:
   author: example-org
   version: "1.0"
-  provenance:
-    adaptedFrom: https://github.com/example-upstream/skills/tree/main/pdf-processing
 ---
 ```
-
-> **Note:** `adaptedFrom` is for exceptional cases where APM cannot manage the upstream content. Prefer APM dependencies for content available upstream. See `CONTRIBUTING.md` for the full content strategy.
-
-| Field           | Required | Constraints                                                                                          |
-| --------------- | -------- | ---------------------------------------------------------------------------------------------------- |
-| `name`          | Yes      | Max 64 characters. Lowercase letters, numbers, and hyphens only. Must not start or end with a hyphen. |
-| `description`   | Yes      | Max 1024 characters. Non-empty. Describes what the skill does and when to use it.                    |
-| `license`       | No       | License name or reference to a bundled license file.                                                 |
-| `compatibility` | No       | Max 500 characters. Indicates environment requirements (intended product, system packages, network access, etc.). |
-| `metadata`      | No       | Arbitrary key-value mapping for additional metadata.                                                 |
-| `allowed-tools` | No       | Space-delimited list of pre-approved tools the skill may use. (Experimental)                         |
 
 #### `name` field
 
 The required `name` field:
 
 * Must be 1-64 characters
-* May only contain unicode lowercase alphanumeric characters and hyphens (`a-z` and `-`)
-* Must not start or end with `-`
+* May only contain unicode lowercase alphanumeric characters (`a-z`, `0-9`) and hyphens (`-`)
+* Must not start or end with a hyphen (`-`)
 * Must not contain consecutive hyphens (`--`)
 * Must match the parent directory name
 
@@ -157,9 +153,11 @@ compatibility: Designed for Claude Code (or similar products)
 compatibility: Requires git, docker, jq, and access to the internet
 ```
 
-<Note>
-  Most skills do not need the `compatibility` field.
-</Note>
+```yaml
+compatibility: Requires Python 3.14+ and uv
+```
+
+> **Note:** Most skills do not need the `compatibility` field.
 
 #### `metadata` field
 
@@ -168,7 +166,6 @@ The optional `metadata` field:
 * A map from string keys to string values
 * Clients can use this to store additional properties not defined by the Agent Skills spec
 * We recommend making your key names reasonably unique to avoid accidental conflicts
-* For provenance, we recommend grouping under `metadata.provenance`: `adaptedFrom` (upstream origin; a URL string, an array of URLs, or an array of objects carrying `url` plus `license` / `fidelity` / `took`) and `authoritativeSpec` (format specifications; array of URLs, where a bare URL means cited only, nothing reproduced)
 
 Example:
 
@@ -176,15 +173,13 @@ Example:
 metadata:
   author: example-org
   version: "1.0"
-  provenance:
-    adaptedFrom: https://github.com/example-upstream/skills/tree/main/pdf-processing
 ```
 
 #### `allowed-tools` field
 
 The optional `allowed-tools` field:
 
-* A space-delimited list of tools that are pre-approved to run
+* A space-separated string of tools that are pre-approved to run
 * Experimental. Support for this field may vary between agent implementations
 
 Example:
@@ -206,6 +201,8 @@ Recommended sections:
 Note that the agent will load this entire file once it's decided to activate a skill. Consider splitting longer `SKILL.md` content into referenced files.
 
 ## Optional directories
+
+A skill directory may contain any files and directories beyond the required `SKILL.md`. The conventions below are recommendations for organizing common types of content.
 
 ### scripts/
 
@@ -237,7 +234,7 @@ Contains static resources:
 
 ## Progressive disclosure
 
-Skills should be structured for efficient use of context:
+Agents load skills *progressively*, pulling in more detail only as a task calls for it. Skills should be structured to take advantage of this:
 
 1. **Metadata** (\~100 tokens): The `name` and `description` fields are loaded at startup for all skills
 2. **Instructions** (\< 5000 tokens recommended): The full `SKILL.md` body is loaded when the skill is activated

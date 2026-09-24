@@ -4,9 +4,9 @@
 
 ## Overview
 
-A handoff chains one agent to the next at a point the user controls. It is a VS Code-specific mechanism, and the control point is the whole idea: the agent offers a button, the user reviews the pre-filled prompt, edits it if they want, and only then sends it. Nothing transfers silently. That makes handoffs the right tool for a pipeline whose stages deserve a human check between them, and the wrong tool for delegation the user should not have to think about.
+A handoff chains one agent to the next at a point the user controls. It is a VS Code-specific mechanism (Copilot cloud ignores `handoffs`; Claude Code and Copilot CLI have no equivalent), and the control point is the whole idea: the agent offers a button, the user reviews the pre-filled prompt, edits it if they want, and only then sends it. Nothing transfers silently. That makes handoffs the right tool for a pipeline whose stages deserve a human check between them, and the wrong tool for delegation the user should not have to think about.
 
-**Handoff vs. agent-as-tool:** use a handoff when a specialist should take over the conversation and own the final response. When an orchestrator must synthesize results from specialists instead, use sub-agent orchestration (agent-as-tool) — see [SUBAGENT.md](./agent-subagent.md).
+**Handoff vs. agent-as-tool:** use a handoff when a specialist should take over the conversation and own the final response. When an orchestrator must synthesize results from specialists instead, use sub-agent orchestration (agent-as-tool) — see [agent-subagent.md](./agent-subagent.md).
 
 ## Common Handoff Patterns
 
@@ -20,13 +20,13 @@ The shape that recurs is a stage boundary where the work changes character and a
 
 ## Frontmatter Structure
 
-Define handoffs in the agent file's YAML frontmatter using the `handoffs` field:
+Define handoffs in the agent file's YAML frontmatter using the `handoffs` field. Examples omit `tools:` because agents here are dual-deployed ([agent-guide.md, Tools field](./agent-guide.md#tools-field)):
 
 ```yaml
 ---
 description: 'Brief description of the agent'
 name: 'Agent Name'
-tools: ['search', 'read']
+disallowedTools: Edit, Write, NotebookEdit
 handoffs:
   - label: Start Implementation
     agent: implementation
@@ -41,7 +41,7 @@ handoffs:
 
 ## Handoff Properties
 
-Each handoff in the list must include the following properties:
+Each handoff entry has these properties:
 
 | Property | Type    | Required | Description                                                                        |
 | -------- | ------- | -------- | ---------------------------------------------------------------------------------- |
@@ -49,6 +49,9 @@ Each handoff in the list must include the following properties:
 | `agent`  | string  | Yes      | Which agent to switch to — its name, or its filename minus `.agent.md`             |
 | `prompt` | string  | No       | Text placed in the next agent's input box, ready to edit                           |
 | `send`   | boolean | No       | `true` submits that text without waiting; omitted or `false` leaves it to the user |
+| `model`  | string  | No       | Qualified model name the target runs with, e.g. `"Example Model (copilot)"`     |
+
+VS Code's own built-in agents also use `showContinueOn`, which the VS Code documentation does not list; treat it as source-derived and unsupported for authored agents.
 
 ## Handoff Behavior
 
@@ -127,7 +130,7 @@ Ensure target agents exist before creating handoffs.
 - [ ] Target agent can access necessary context
 - [ ] Handoff chain has logical termination points
 
-**Note**: Handoffs to non-existent agents will be silently ignored.
+**Note**: A handoff whose target does not resolve shows no usable button; see [Handoff Button Not Appearing](#handoff-button-not-appearing).
 
 ### Prompt Content
 
@@ -150,7 +153,7 @@ Here's an example of three agents with handoffs creating a complete workflow:
 ---
 description: 'Generate an implementation plan for new features or refactoring'
 name: 'Planner'
-tools: ['search', 'read']
+disallowedTools: Edit, Write, NotebookEdit
 handoffs:
   - label: Implement Plan
     agent: implementer
@@ -174,7 +177,6 @@ Do not write any code - focus only on planning.
 ---
 description: 'Implement code based on a plan or specification'
 name: 'Implementer'
-tools: ['read', 'edit', 'search', 'execute']
 handoffs:
   - label: Review Implementation
     agent: reviewer
@@ -198,7 +200,7 @@ Implement the solution completely and thoroughly.
 ---
 description: 'Review code for quality, security, and best practices'
 name: 'Reviewer'
-tools: ['read', 'search']
+disallowedTools: Edit, Write, NotebookEdit
 handoffs:
   - label: Back to Planning
     agent: planner
@@ -246,10 +248,10 @@ handoffs:
     prompt: 'Deploy the approved implementation.'
   - label: If Issues Found - Revise
     agent: implementer
-    prompt: 'Address the issues found in review: ${reviewFeedback}'
+    prompt: 'Address the issues found in the review above.'
   - label: Major Issues - Replan
     agent: planner
-    prompt: 'Significant issues require replanning: ${reviewFeedback}'
+    prompt: 'Replan to address the major issues found in the review above.'
 ```
 
 ### Parallel Workflows
@@ -324,5 +326,5 @@ handoffs:
 
 ## References
 
-- [Creating Custom Agents](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/create-custom-agents)
-- [Custom Agents Configuration](https://docs.github.com/en/copilot/reference/custom-agents-configuration)
+- [VS Code custom agents — handoffs](https://code.visualstudio.com/docs/agent-customization/custom-agents)
+- [GitHub custom agents configuration](https://docs.github.com/en/copilot/reference/custom-agents-configuration) — states that `handoffs` is not supported for Copilot cloud agent
