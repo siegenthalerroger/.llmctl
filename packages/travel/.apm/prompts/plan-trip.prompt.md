@@ -7,7 +7,7 @@ argument-hint: "where, when, who with, and anything already decided"
 skills: ['trip-planning']
 ---
 
-Plan a trip from this brief: `${input:brief:where, when, who with, and anything already decided}`
+Plan a trip from the brief supplied with this command: `${input:brief:where, when, who with, and anything already decided}`
 
 Load the [trip-planning skill](../skills/trip-planning/SKILL.md) and follow its
 phases. The order is load-bearing — in particular, the timing check in phase 2
