@@ -7,9 +7,10 @@ gate runs. The hook only ever sees files edited in a session, so drift in
 untouched files, edits made from another harness, and rules added after a file
 was written are the batch pass's to catch.
 
-Exit codes differ by mode, because the hook's contract is not the CI one:
-`--hook` exits 2 on errors, so the harness feeds stderr back to the agent to
-self-correct; every other mode exits 1, like the rest of the gates.
+Output differs by mode, because the hook's contract is not the CI one:
+`--hook` always exits 0 and reports problems as PostToolUse JSON on stdout, in
+the dialect the event arrived in, so the harness feeds them back to the agent
+to self-correct; every other mode exits 1 on errors, like the rest of the gates.
 
 The authoring rationale behind each rule belongs to the meta-steering skill,
 which owns all four of the file kinds validated here.
@@ -268,41 +269,89 @@ def display_path(path: str, root: Path) -> str:
     return str(path) if rel.startswith("..") else rel
 
 
+# Codex reports an edit as an `apply_patch` call whose input is the patch text,
+# not a path; the file names are on its `*** Add File:` / `*** Update File:` /
+# `*** Move to:` lines. A deleted file has nothing left to validate.
+PATCH_PATH = re.compile(r"^\*\*\* (?:Add File|Update File|Move to): (.+?)\s*$", re.MULTILINE)
+
+
+def edited_paths(event: dict) -> tuple[list[str], bool]:
+    """The files a PostToolUse event edited, and whether it came in the Copilot
+    CLI's native shape. Claude Code, Codex and VS Code send `tool_input`; the
+    CLI's camelCase events send `toolArgs`, a JSON string."""
+    native_cli = "toolArgs" in event
+    args = event.get("toolArgs") if native_cli else event.get("tool_input")
+    if isinstance(args, str):
+        try:
+            args = json.loads(args)
+        except ValueError:
+            args = {"command": args}
+    if not isinstance(args, dict):
+        return [], native_cli
+
+    # file_path: Claude Code; path: Copilot CLI; filePath: VS Code edit tools.
+    path = args.get("file_path") or args.get("path") or args.get("filePath")
+    if isinstance(path, str) and path:
+        paths = [path]
+    else:
+        patch = args.get("command") or args.get("input") or args.get("patch")
+        if isinstance(patch, list):  # an argv form: ["apply_patch", "<patch>"]
+            patch = "\n".join(str(part) for part in patch)
+        paths = PATCH_PATH.findall(patch) if isinstance(patch, str) else []
+
+    cwd = Path(event["cwd"]) if event.get("cwd") else Path.cwd()
+    return [str(cwd / p) for p in paths], native_cli
+
+
+def hook_output(errors: list[str], warnings: list[str], native_cli: bool) -> dict:
+    """The PostToolUse answer, in the dialect the event arrived in.
+
+    Claude Code, Codex and VS Code take `decision: "block"` with a `reason`,
+    which reaches the model after the tool already ran; the Copilot CLI's
+    `postToolUse` ignores that and reads only a top-level `additionalContext`.
+    Every harness parses stdout only on exit 0, so the hook always exits 0."""
+    header = "[customization-frontmatter]"
+    lines = [f"{header} frontmatter errors that must be fixed (see the meta-steering skill):"]
+    lines += [f"  - {e}" for e in errors]
+    lines += [f"{header} warning: {w}" for w in warnings]
+    message = "\n".join(lines if errors else lines[1:])
+    if native_cli:
+        return {"additionalContext": message}
+    if errors:
+        return {"decision": "block", "reason": message}
+    return {"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": message}}
+
+
 def run_hook(root: Path) -> int:
-    """Validate the one file a PostToolUse event names. Returns an exit code."""
+    """Validate the files a PostToolUse event edited, answering as JSON on stdout.
+    Returns an exit code, which is always 0: a hook's feedback travels in its
+    output, and a malformed event is not the author's mistake to report."""
     try:
         event = json.load(sys.stdin)
     except Exception:
         return 0
-
-    tool_input = event.get("tool_input") or {}
-    path = tool_input.get("file_path") or tool_input.get("path")
-    kind = kind_of(path) if path else None
-    if not path or not kind:
+    if not isinstance(event, dict):
         return 0
 
-    try:
-        text = Path(path).read_text(encoding="utf-8")
-    except OSError:
-        return 0
+    paths, native_cli = edited_paths(event)
+    errors: list[str] = []
+    warnings: list[str] = []
+    for path in paths:
+        kind = kind_of(path)
+        if not kind:
+            continue
+        try:
+            text = Path(path).read_text(encoding="utf-8")
+        except OSError:
+            continue
+        file_errors, file_warnings = validate(path, kind, text)
+        rel = display_path(path, root)
+        errors += [f"{rel}: {e}" for e in file_errors]
+        warnings += [f"{rel}: {w}" for w in file_warnings]
 
-    errors, warnings = validate(path, kind, text)
-    rel = display_path(path, root)
-
-    for warning in warnings:
-        print(f"[customization-frontmatter] warning: {rel}: {warning}", file=sys.stderr)
-    if not errors:
-        return 0
-
-    print(
-        f"[customization-frontmatter] {rel} has frontmatter errors that must be fixed "
-        "(see the meta-steering skill):",
-        file=sys.stderr,
-    )
-    for error in errors:
-        print(f"  - {error}", file=sys.stderr)
-    # The PostToolUse contract: 2 is what feeds stderr back to the agent.
-    return 2
+    if errors or warnings:
+        print(json.dumps(hook_output(errors, warnings, native_cli)))
+    return 0
 
 
 def main(
@@ -313,7 +362,8 @@ def main(
     hook: bool = typer.Option(
         False,
         "--hook",
-        help="Read a PostToolUse event on stdin and validate the file it names. Exits 2 on errors.",
+        help="Read a PostToolUse event on stdin, validate the files it edited, "
+        "and report problems as hook JSON on stdout. Always exits 0.",
     ),
     json_out: bool = typer.Option(False, "--json", help="Machine-readable output on stdout."),
 ) -> None:
