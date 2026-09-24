@@ -2,9 +2,12 @@
 name: "reflect"
 description: "Reflects on the current conversation and folds the learnings back into the steering files that produced them, tracing a file to its real source when it arrived from a plugin marketplace rather than this repo. ALWAYS invoke when asked to self-improve, capture a lesson, or stop a mistake from recurring after a conversation went wrong. Do not edit steering files ad hoc and never write a fix into an installed copy — route every improvement through this prompt to the source the copy was packed from."
 agent: agent
+argument-hint: "optional: the mistake or lesson to capture"
 ---
 
-Reflect on this conversation. Abstract and generalize the learnings by recognising where additional guidance was required and where mistakes were made.
+Reflect on this conversation. Abstract and generalize the learnings by recognising where additional guidance was required and where mistakes were made. If a mistake or lesson was supplied with this command, start from it; otherwise review the whole conversation.
+
+This runs with file read and edit tools and, for a new or rewritten file, a subagent. Edit source files in this repository directly; confirm with the user before anything outward-facing, such as an upstream issue or pull request. Without edit tools, output each proposed change as a diff instead.
 
 **Every fix lands in a source file, never in an installed copy.** An installed copy is overwritten by the next install or update, so a lesson written into one disappears with no error and no trace — and the mistake returns. Establish where a file actually comes from (Steps 2–3) before editing it.
 
@@ -37,7 +40,7 @@ Reflect on this conversation. Abstract and generalize the learnings by recognisi
    - **Someone else's** — raise it upstream (issue or pull request), and record the workaround locally so the lesson is not lost while you wait.
    - **Shadow it** — when upstream is unresponsive or the change is specific to how you use it, adapt the file into `.llmctl` and record `metadata.provenance.adaptedFrom` with the upstream `license` and a `fidelity` that matches how much you took.
 
-5. **Make the change.** Load `meta.instructions.md` and the `meta-*` skill for the file type you are editing if the meta package is installed; both carry the structure and description rules this repo enforces. Use a subagent to create or substantially rewrite a file, and edit directly when the insertion point is known. Generalize — do not record what should have been done this one time.
+5. **Make the change.** Load [meta.instructions.md](../instructions/meta.instructions.md) and the skill that owns the file type you are editing — [meta-steering](../skills/meta-steering/SKILL.md) for skills, agents, instructions and prompts, [meta-harness](../skills/meta-harness/SKILL.md) for hooks, MCP servers and plugins; both carry the structure and description rules this repo enforces. Use a subagent to create or substantially rewrite a file, and edit directly when the insertion point is known. Generalize — do not record what should have been done this one time.
 
 ## Output
 
