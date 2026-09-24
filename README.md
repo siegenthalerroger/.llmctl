@@ -98,7 +98,7 @@ Work on the packages from a checkout. Read [AGENTS.md](AGENTS.md) and [CONTRIBUT
 ```bash
 git clone https://github.com/siegenthalerroger/.llmctl.git ~/.llmctl
 cd ~/.llmctl
-apm install --target claude
+apm install --target claude   # or another --target for a different assistant
 
 # Try a local package before releasing it
 apm install ~/.llmctl/packages/core --target claude
@@ -107,18 +107,16 @@ apm install ~/.llmctl/packages/core --target claude
 uv run llmctl-check --repo . --since origin/main
 ```
 
-The tooling is a small Python project — [pyproject.toml](pyproject.toml), one module per command under `src/llmctl/`, one `llmctl-<command>` console script each — and [uv](https://docs.astral.sh/uv/) runs it from this checkout with nothing installed first: `uv run` syncs the locked environment on the way. It is formatted and linted with [ruff](https://docs.astral.sh/ruff/) and type-checked with [ty](https://docs.astral.sh/ty/), both pinned in the `dev` group and run by the `tooling` gate, so `uv run ruff format src/`, `uv run ruff check src/` and `uv run ty check src/` are what a change has to leave clean. The `scripts:` block in [apm.yml](apm.yml) lists the commands in the order you would run them: `check`, `update`, `check-updates`, `check-steering`, `versions`, `release`, `pack-marketplace`. Each entry is a whole command — `apm run` passes nothing through — so a flag that is not written into the entry means calling the command directly.
+The tooling is a small Python project — [pyproject.toml](pyproject.toml), one module per command under `src/llmctl/`, one `llmctl-<command>` console script each — and [uv](https://docs.astral.sh/uv/) runs it from this checkout with nothing installed first: `uv run` syncs the locked environment on the way. It is formatted and linted with [ruff](https://docs.astral.sh/ruff/) and type-checked with [ty](https://docs.astral.sh/ty/), both pinned in the `dev` group and run by the `tooling` gate, so `uv run ruff format src/`, `uv run ruff check src/` and `uv run ty check src/` are what a change has to leave clean. The `scripts:` block in [apm.yml](apm.yml) lists the commands in the order you would run them: `check`, `update`, `check-updates`, `check-steering`, `versions`, `release`, `pack-marketplace`. Each entry is a whole command — `apm run` passes nothing through — so a flag that is not written into the entry means calling the command directly. Edit files under `packages/<name>/.apm/`; installed copies and marketplace bundles are replaced by later installs or releases.
 
 ### Updating what this repo consumes
 
 ```bash
-apm run update          # move the pinned upstreams and print every diff that moved
-apm run check-updates   # the files adapted from an upstream, and the specs they cite
+apm run update          # move the pinned upstreams and print every diff that moved; commits nothing
+apm run check-updates   # the files adapted from an upstream (add --specs, called directly, for cited specs)
 ```
 
-`apm run update` commits nothing: it moves each package's pins as far as they go, proves the lockfile followed, scans what it materialised, and prints the upstream's own diff for each moved pin so it can be read before anything is kept. The `meta-update-repo` skill is the procedure around it, and its safety-review reference says what to look for.
-
-Use another `--target` if you work with a different assistant. Edit files under `packages/<name>/.apm/`; installed copies and marketplace bundles are replaced by later installs or releases.
+Both are steps in a procedure rather than the whole of it — the reading of every diff is the point. The [`meta-updater`](.apm/agents/meta-updater.agent.md) agent routes to the procedure that owns the request; for dependencies that is the [`meta-update-repo`](.apm/skills/meta-update-repo/SKILL.md) skill.
 
 ### Regenerating the marketplace
 
@@ -183,50 +181,10 @@ See the [VS Code agent customization docs](https://code.visualstudio.com/docs/ag
 | **Skills** (`*/SKILL.md`)              | Supported       | Supported                               |
 | **Instructions** (`*.instructions.md`) | Supported       | Deployed as **rules** (APM converts)    |
 | **Prompts** (`*.prompt.md`)            | Supported       | Deployed as **commands** (APM converts) |
-| **Hooks** (`*.hook.json`)              | Preview         | Supported (30+ lifecycle events)        |
+| **Hooks** (`*.hook.json`)              | Supported       | Supported                               |
 | **MCP Servers** (`apm.yml`)            | Supported       | Supported                               |
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for adaptations required for cross-tool compatibility and repository conventions, and [Continuous Integration](CONTRIBUTING.md#continuous-integration) for what runs on a pull request.
-
-### Agents (Custom Agents)
-
-At a top-level these agents are normally provided by your tool of choice. However it can be useful to have specific personas as sub-agents, especially when parallel execution should be possible.
-
-Any custom agent files must end in `*.agent.md`.
-
-### Skills
-
-Skills are a generalised form of Instructions that are dynamically loaded based on the name and description. Prefer skills to instructions whenever possible, as they are an open standard and support improved progressive loading capabilities.
-
-Skills follow the [Agent Skills](https://agentskills.io/) standard. A skill is encapsulated in a folder and at a minimum will have a `SKILL.md` file.
-
-### Instructions
-
-Instructions are kept intentionally light, as their main purpose is code-base specific rules and not generic guidelines. Instructions should always be explicitly loaded, either by a relevant `applyTo` pattern or being referenced from a prompt. Instructions cover what Claude would want in a `CLAUDE.md` or `AGENTS.md`, while enabling optionality in their inclusion based on file patterns (or nested referential inclusion).
-
-> [!TIP]
-> **Instructions & Skills combined**
->
-> Instructions are really useful in VSCode, as the `applyTo` frontmatter, allows us to force the loading of specific files depending on the referenced file-types/-paths. Other harnesses may support similar functionality either as part of the instructions or as a frontmatter field of skills themselves.
->
-> We can utilise this, by having instructions strongly suggest the loading of a skill when a certain `applyTo` pattern applies. This reinforces the models own decision making and ensures the correct skills are chosen at the correct time.
-
-Any instruction files must end in `*.instructions.md`.
-
-### Prompts
-
-Prevent repeating yourself by making a slash-command available to you. Anything that seems to produce better output can be put here tbh.
-
-Any prompt files must end in `*.prompt.md`.
-
-### Hooks
-
-Lifecycle hooks run deterministic pre/post actions around agent events (file writes, command execution, session start). VS Code Copilot hooks are in preview; Claude Code supports 30+ hook events. Definitions use the `*.hook.json` convention and are deployed by APM into each target's native location. See the [meta-harness skill](packages/core/.apm/skills/meta-harness/SKILL.md) and the [`*.hook.json` convention](CONTRIBUTING.md#hooks-hookjson).
-
-
-### MCP Servers
-
-MCP (Model Context Protocol) servers add external capabilities — API access, doc/registry search, browser automation — to an agent. Declare each server once in the `apm.yml` of the package whose work needs it — universal dev servers in [`packages/core/apm.yml`](packages/core/apm.yml), domain servers in their domain package (cloud/IaC doc servers in [`packages/ops/apm.yml`](packages/ops/apm.yml)) — under `dependencies.mcp`; APM translates it to each tool's native config (`.vscode/mcp.json` → `servers`, `.mcp.json`/`~/.claude.json` → `mcpServers`, Codex TOML). Authoring guidance lives in the [meta-harness skill](packages/core/.apm/skills/meta-harness/SKILL.md); use the [`/setup-mcp` prompt](packages/core/.apm/prompts/setup-mcp.prompt.md) to generate an `apm.yml` block from existing definitions.
+How to author each type, and which frontmatter survives the deploy to each harness, is in the [`meta-steering`](packages/core/.apm/skills/meta-steering/SKILL.md) skill (skills, agents, instructions, prompts) and the [`meta-harness`](packages/core/.apm/skills/meta-harness/SKILL.md) skill (hooks, MCP servers, plugins). See [CONTRIBUTING.md](CONTRIBUTING.md) for repository conventions, and [Continuous Integration](CONTRIBUTING.md#continuous-integration) for what runs on a pull request.
 
 ## Tool Guides
 

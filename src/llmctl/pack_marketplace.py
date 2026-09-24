@@ -400,8 +400,10 @@ def install_reproducibly(export: Path, name: str) -> None:
     frozen install only verifies that every dependency in apm.yml *appears* in
     the lockfile, keyed by repo and subpath -- never at which commit -- so a pin
     moved without a lockfile refresh passes it and packs the old code. And it
-    still cannot restore a manifestless repo-root package (blader/humanizer)
-    from a cold cache: verified against APM 0.28.0 and again on 0.31.0.
+    still cannot restore packages/core from a cold cache: the error names the
+    manifestless repo-root package blader/humanizer, and on 0.31.0 it appears
+    only while the package declares MCP servers (TODO 4l has the evidence and
+    what is still unestablished). Seen on APM 0.28.0 and again on 0.31.0.
 
     What makes the build reproducible is this: every pin is a full commit SHA,
     so a plain install cannot resolve anything new, and the lockfile's resolved

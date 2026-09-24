@@ -26,7 +26,7 @@
 - **The marketplace repository holds nothing that is authored there.** Its `README.md`, `LICENSE`, `.gitignore` and `apm.yml` all have a source in this workspace — `README.marketplace.md`, `LICENSE.marketplace`, `.gitignore.marketplace`, `apm.marketplace.yml` — and [`llmctl-pack-marketplace`](src/llmctl/pack_marketplace.py) writes them out beside the bundles it packs, filling in each catalogue entry's `source` and `version`. Anything else it finds in that tree is **deleted**, so "everything there is generated" is enforced rather than asserted. Edit the sources here and regenerate; never edit the marketplace.
 - **A release publishes; it does not commit here.** [`llmctl-release`](src/llmctl/release.py) (or `apm run release`, which previews) derives each package's calendar version, packs from a scratch export of `HEAD`, commits and pushes the marketplace, and records the version as an annotated `<name>@<version>` tag plus the GitHub release beside it. Both roots are explicit flags with no defaults — `--repo` for the workspace being released and `--marketplace` for the repo it publishes into — because a derived marketplace path would silently publish into the wrong repo; [apm.yml](apm.yml) supplies them. **Packages version independently** (`per_package`); see [Releasing](#releasing).
 - **Content that cannot be public lives in a separate workspace, never in `packages/` here.** This repo and its marketplace are public. A private package gets its own private source repo and its own private marketplace, laid out identically but holding none of this tooling — it runs this repo's commands from git and shares nothing else. `LICENSES/` and `dependency-licenses.yml` are read from the workspace being released, so a private repo carries its own copies rather than resolving against this one. See [Releasing another workspace](#releasing-another-workspace).
-- **The plugin path is reduced-fidelity; `apm install` remains the full deploy.** Treat **skills** and **commands** (prompts) as the only primitives you can rely on reaching a marketplace consumer. APM 0.26 does pack `agents/`, `instructions/`, and `.mcp.json` into the bundle, but whether a given host loads them is version-dependent and unverified — and packed MCP entries lose their `headers` (so an API-keyed server will not authenticate). Use `apm install` where those primitives matter. The marketplace also does not reach claude.ai Chat or hosted ChatGPT.
+- **The plugin path is reduced-fidelity; `apm install` remains the full deploy.** What a marketplace consumer actually receives, per primitive, is in [meta-harness](packages/core/.apm/skills/meta-harness/SKILL.md#6-this-repositorys-conventions).
 
 ## Content Strategy: APM-First
 
@@ -34,13 +34,13 @@ APM is the primary mechanism for consuming upstream content. Prefer declaring up
 
 | Category | When to use | Provenance field | Storage / update |
 |---|---:|---|---|
-| APM dependency (default) | Upstream package available as APM | none required (declare in `apm.yml`) | Installed to `apm_modules/` (git-ignored). Update with `apm install -g` |
+| APM dependency (default) | Upstream package available as APM | none required (declare in `apm.yml`) | Installed to `apm_modules/` (git-ignored). Added and bumped through `meta-update-repo` |
 | Adapted / synthesised (local) | Any local copy of upstream material, from a light borrowing to a near-verbatim carry-over — only if APM cannot manage it | `metadata.provenance.adaptedFrom` | Tracked by `meta-update-repo` for drift detection; file lives in repo |
 
 ### APM dependency (default)
 
 - Default for any content available from an APM-compatible upstream source.
-- To add: declare the package in `apm.yml` and run `apm install -g`.
+- To add one, follow the `meta-update-repo` skill's new-dependency phase: it pins a full SHA, writes the package's `apm.lock.yaml`, reads the whole upstream content before it is kept, and records its licence. `apm install -g` is not the way in: it writes `~/.apm/`, never the package's lockfile.
 - Installed into `apm_modules/` (git-ignored). No `metadata.provenance` tracking is required for pure APM dependencies.
 - Do NOT vendor upstream content by copying files into this repository.
 
@@ -53,220 +53,38 @@ APM is the primary mechanism for consuming upstream content. Prefer declaring up
 
 Local-only skills (not available upstream) remain directly in this repository.
 
-## Cross-Tool Compatibility
+## Authoring Customization Files
 
-### Agents (`*.agent.md`)
+The authoring rules live in two skills, and nowhere else. Load the one that owns the file before editing it:
 
-Both VS Code Copilot and Claude Code use markdown files with YAML frontmatter for agent definitions. Each tool safely ignores frontmatter fields it doesn't recognize, so a single file can work for both.
+- [`meta-steering`](packages/core/.apm/skills/meta-steering/SKILL.md): skills, agents, instructions, prompts. It covers frontmatter per harness, which keys survive APM's deploy to each target ([frontmatter-deploy.md](packages/core/.apm/skills/meta-steering/references/frontmatter-deploy.md)), description shape and budgets, and provenance fields.
+- [`meta-harness`](packages/core/.apm/skills/meta-harness/SKILL.md): hooks, MCP servers, plugin bundles.
 
-- **Shared fields:** `name`, `description`, and the markdown body (system prompt) are fully compatible.
-- **Tools:** Copilot and Claude Code have different tool ecosystems. **Omit `tools:`; scope Claude Code via the Claude-only `disallowedTools` denylist.** A Copilot `tools:` array does **not** fall back to inherit-all on Claude Code — Claude parses it as a strict allowlist and refuses to spawn the agent when no entry resolves. APM copies agent frontmatter verbatim to every target, so a shared file cannot carry a Copilot allowlist. See the [meta-steering router](packages/core/.apm/skills/meta-steering/SKILL.md#4-frontmatter-shared-by-all-four-types).
-- **Model:** the active `model:` is a single Claude Code value (alias / full ID / `inherit`) resolved from `metadata.modelProfile`, alongside a Claude-Code `effort:` value; the multi-provider ranking lives in a non-functional comment. Copilot does not recognize the alias and is expected to fall back to its default model.
-- **Extra fields:** Each tool safely ignores the other's unique fields.
-
-See [agents.md](packages/core/.apm/skills/meta-steering/references/agents.md) for full cross-tool compatibility documentation.
-
-### Skills (`*/SKILL.md`)
-
-Both tools support skill discovery from user-level directories. The [Agent Skills](https://agentskills.io/) standard (`SKILL.md` + folder structure) is shared — no format changes are needed.
-
-- **Discovery:** Copilot uses `chat.agentSkillsLocations` in VS Code settings. Claude Code discovers skills from `~/.claude/skills/`.
-- **Frontmatter:** Both tools read `name` and `description` for discovery. Unknown fields are ignored.
-- **References:** Relative paths to reference files (e.g., `references/*.md`) work in both tools since the folder structure is preserved via symlink.
-- **Descriptions:** follow the directive, naming-first shape defined in the [meta-steering skill](packages/core/.apm/skills/meta-steering/SKILL.md). Four distinct char budgets govern different surfaces (1024 per-field / 1536 combined discovery / 15k Claude Code total / 8k Codex aggregate) — see that skill rather than duplicating the detail here.
-
-### Instructions (`*.instructions.md`)
-
-Copilot calls these "Instructions" and Claude Code calls them "Rules" — both auto-load behavioral guidelines when matching file patterns are referenced. Each tool uses a different frontmatter key for path-scoping, but both safely ignore unknown keys, so a single file works for both.
-
-- **Shared fields:** `name`, `description`, and the markdown body are fully compatible.
-- **Path-scoping:** Copilot uses `applyTo` (string or array); Claude Code uses `paths` (array of strings). Include both in the frontmatter with `# Copilot` / `# Claude Code` comments.
-- **Discovery:** Copilot uses `chat.instructionsFilesLocations` in VS Code settings. Claude Code discovers rules from `~/.claude/rules/`.
-
-### Prompts (`*.prompt.md`)
-
-VSCode Prompts map to Claude Code Commands (`.claude/commands/`) — both create user-invocable slash commands. Commands are superseded by Skills in Claude Code; this mapping is for basic compatibility only.
+This file keeps only what is specific to working in this repository.
 
 ### Hooks (`*.hook.json`)
 
-Standalone hook definition files use the `*.hook.json` extension — a repository naming convention analogous to `*.agent.md` / `*.prompt.md` / `*.instructions.md`. It is a strict subset of `*.json`, so it does not change how any harness discovers hooks:
+Hook authoring, including the `*.hook.json` naming convention, is in [meta-harness](packages/core/.apm/skills/meta-harness/references/hooks.md). Two repository facts stay here:
 
-- **VS Code Copilot** loads all `*.json` in a configured hook folder (`chat.hookFilesLocations`, and the `.github/hooks/*.json` default), so `*.hook.json` is discovered normally.
-- **Claude Code** reads hooks from `settings.json`, not by scanning a `hooks/` directory, so the source filename is irrelevant to it.
-- **APM** discovers hook primitives by glob (not a fixed filename) and rewrites them into each target's native location on deploy.
-
-The fixed names `hooks.json` / `hooks/hooks.json` apply only inside **plugin** bundles, not to standalone hook files.
-
-**Author one canonical hook, let APM transform it.** Write hooks in APM's canonical (Claude-Code-style) schema — a top-level `hooks` object keyed by lifecycle event, each entry carrying a `matcher` and a `hooks` array of `{ "type": "command", ... }`:
-
-```json
-{ "hooks": { "PostToolUse": [ { "matcher": "Edit|Write", "hooks": [ { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/.apm/hooks/<script>\"", "timeout": 15 } ] } ] } }
-```
-
-APM is target-aware and reconciles event names, matchers, and paths per harness on deploy, so do **not** hand-maintain per-target variants. Use the portable `${CLAUDE_PLUGIN_ROOT}` root token (recognized by Claude and by Claude-compatible VS Code plugins) rather than a harness-specific token like `${workspaceFolder}`. APM hook support is still maturing — verify the deployed result with `apm install -g` before relying on it.
-
-**Do not commit machine-generated hook wiring.** APM deploys hooks into each target's native location — `.claude/settings.json` and `.claude/apm-hooks.json` at project scope, `~/.claude/settings.json` at user scope, and the `.codex/` and `.agents/` equivalents. All of it is output, so `.claude/`, `.codex/` and `.agents/` are git-ignored in full and a clone gets its own by running `apm install`. The consequence worth knowing: this repository's own frontmatter hook is not wired until that first install, because the file it is wired into does not arrive with the checkout.
-
-APM cannot yet deploy into the `settings.local.json` variant, so there is no committed `settings.json` to hold shared project settings alongside the generated wiring. If you ever need one, [TODO 3a](TODO.md) tracks the upstream issue.
+- **Do not commit machine-generated hook wiring.** APM deploys hooks into each target's native location — `.claude/settings.json` and `.claude/apm-hooks.json` at project scope, `~/.claude/settings.json` at user scope, and the `.codex/` and `.agents/` equivalents. All of it is output, so `.claude/`, `.codex/` and `.agents/` are git-ignored in full and a clone gets its own by running `apm install`. The consequence: this repository's own frontmatter hook is not wired until that first install.
+- APM cannot yet deploy into the `settings.local.json` variant, so there is no committed `settings.json` to hold shared project settings alongside the generated wiring. [TODO 3a](TODO.md) tracks the upstream issue.
 
 ## Repository Frontmatter Provenance Convention
 
-This repository defines a local provenance convention for customization files (`*.agent.md`, `*.prompt.md`, `*.instructions.md`, `*/SKILL.md`).
+`metadata.provenance.adaptedFrom` and `metadata.provenance.authoritativeSpec` are a convention of this repository, not a universal standard. They are defined once, in two halves:
 
-Provenance fields are grouped under `metadata.provenance` in YAML frontmatter:
+- **What to write** (the three forms, what `fidelity`, `license` and `took` mean, and how to keep `took` from rotting): [meta-steering's provenance section](packages/core/.apm/skills/meta-steering/references/skill-frontmatter.md#provenance-metadata-recommended).
+- **How the tooling reads it** (which files are audited, both audit modes, supported URL forms, every status, how an entry silently drops out of the audit): [source-url-reference.md](.apm/skills/meta-update-repo/references/source-url-reference.md).
 
-```yaml
-metadata:
-  provenance:
-    adaptedFrom:                                               # string, or array — synthesised from
-      - "https://github.com/org-a/repo/blob/main/skill.md"
-      - url: "https://github.com/org-b/repo/blob/main/skill.md"   # scoped adaptation
-        license: MIT                                              # SPDX id of the upstream
-        fidelity: inspiration-only                                # obligation level
-        took: "The severity-tiering concept."
-    authoritativeSpec:                                          # array — format specifications
-      - "https://code.visualstudio.com/docs/copilot/customization/custom-agents"
-      - "https://code.claude.com/docs/en/sub-agents"
-```
-
-- `metadata.provenance.adaptedFrom` (string, array of URLs, or array of objects): where local content was adapted/synthesised from. Tracked by the update script for content drift, which recommends a merge review against upstream.
-- `metadata.provenance.authoritativeSpec` (array): authoritative specifications that define the file format, frontmatter schema, or behavioral contract. Not tracked for content drift. A bare URL string means **cited only, nothing reproduced**, and carries no obligation; if a reference file reproduces a spec's wording or tables, switch that entry to the object form so the licence is recorded. Vendor documentation sites generally grant no reuse rights at all, so there the fix is rewriting, not attribution.
-
-#### Scoping an adaptation with `fidelity` and `took`
-
-A bare URL means **the whole file** derives from that upstream. Prefer the object form, which scopes the adaptation and records the terms it arrives under, so a drift review can be closed without opening the upstream diff: if the upstream change touches nothing on the list, there is nothing to merge.
-
-`fidelity` is the obligation level:
-
-| Value | Meaning | Upstream terms attach? |
-| --- | --- | --- |
-| `inspiration-only` | an idea or approach, no expression | no |
-| `structural-echo` | the shape or section skeleton | no |
-| `partly-derived` | some passages carried over | **yes** |
-| `largely-derived` | most of the file, up to a near-verbatim copy | **yes** |
-
-Absent means whole-file derivation, treated as `largely-derived`.
-
-`license` is the SPDX id of the **upstream**, not of this file — `NONE` when the upstream has no LICENSE file, which grants no rights at all and is only safe at `inspiration-only`. It is required wherever `fidelity` implies an obligation, because it decides what the local file may be licensed under. [`llmctl-check-licenses`](src/llmctl/check_licenses.py) enforces this; see [Licensing](#licensing) below.
-
-`took` then records **what was taken**, and nothing else. Three rules keep it from rotting:
-
-- **Never record what was *not* taken** (or what is original locally). That is an open set — upstream can add sections indefinitely, so the list is wrong the moment upstream grows, and no local change ever triggers a refresh. What *was* taken is bounded by the local file, so it only goes stale when someone is already editing that file.
-- **Never record measurements** (line-overlap percentages, sizes, counts). Both sides move; `fidelity` carries the same signal durably. Keep numbers in the commit or the TODO item that motivated them.
-- **Never overload it.** `took` records what was taken — nothing else. Licensing belongs in the sibling `license:` field, and the obligation level in `fidelity:`. The one exception: a short note on why the URL is *not* a line-for-line comparison base (upstream moved or restructured the adapted path) belongs, because it changes how the next reviewer reads the diff.
-
-Full rules and parser behaviour: [source-url-reference.md](.apm/skills/meta-update-repo/references/source-url-reference.md).
-
-This is a **repository convention**, not a universal standard.
-
-> **APM-first rule:** If upstream content is available as an APM package, consume it as a dependency in `apm.yml` rather than copying it locally. Use `adaptedFrom` only for content that cannot be APM-managed.
-
-### Portable vs. private frontmatter in SKILL.md
-
-The [agentskills.io](https://agentskills.io/) spec recognizes only `name`, `description`, and optionally `license` as top-level frontmatter. Everything under `metadata.*` (e.g., `metadata.provenance`, `metadata.modelProfile`) is a **private convention** of this repository — other tools and consumers safely ignore it.
+[`llmctl-check-licenses`](src/llmctl/check_licenses.py) enforces the licence half; see [Licensing](#licensing).
 
 ## Model Profile Convention (`metadata.modelProfile`)
 
-Customization files may declare a `metadata.modelProfile` block to describe the model capabilities required, instead of hardcoding model selections — but only when that file type supports the top-level `model` frontmatter field. The `meta-update-models` skill reads this profile and produces two things: (1) the **active** Claude Code fields `model:` (a single alias) and `effort:`, mapped deterministically from the profile; and (2) a **non-functional** commented multi-provider candidate list, regenerated by fetching the authoritative provider catalogues at run-time. Claude Code is the primary harness, so the active fields target it; the comment preserves cross-harness intent for reference.
-
-```yaml
-metadata:
-  modelProfile:
-    specialisation: NONE   # NONE | CODE | REASONING | LONG-CONTEXT
-    cost: MEDIUM           # FREE | LOW | MEDIUM | HIGH
-    latency: LOW           # LOW | MEDIUM | HIGH
-    minDate: "2025-01-01"  # ISO date — exclude models retired before this date
-```
-
-### Field reference
-
-| Field | Type | Allowed values | Semantics |
-|---|---|---|---|
-| `specialisation` | string | `NONE`, `CODE`, `REASONING`, `LONG-CONTEXT` | `CODE` prefers Codex-family and code-optimised models; `REASONING` prefers models with extended thinking/chain-of-thought capabilities; `LONG-CONTEXT` prefers models with the largest context windows and capability to retrieve from its entirety; `NONE` accepts general-purpose models |
-| `cost` | string | `FREE`, `LOW`, `MEDIUM`, `HIGH` | Abstract cost tier: `FREE` = truly zero incremental usage, `LOW` = light usage burn, `MEDIUM` = standard included usage, `HIGH` = premium or high-burn usage. Mapped to provider-specific pricing by the `meta-update-models` skill. |
-| `latency` | string | `LOW`, `MEDIUM`, `HIGH` | `LOW` prefers the fastest/smallest models; tie-breaks within a cost band |
-| `minDate` | string | ISO 8601 date | Ensure models have intrinsic knowledge of everything up to this date; excludes models trained before this date |
-
-### Active fields (Claude Code) — deterministic
-
-The **functional** output is two single-value Claude Code fields, mapped directly from the profile (no fetch):
-
-**`model:` alias from `cost`**
-
-| `cost` | `model:` alias |
-|--------|----------------|
-| `HIGH` | `opus` |
-| `MEDIUM` | `sonnet` |
-| `LOW` | `haiku` |
-| `FREE` | `haiku` |
-
-Aliases auto-track the current model generation. Use `inherit` only when an agent must deliberately follow the session model.
-
-**`effort:` from `specialisation` + `latency`**
-
-| profile signal | `effort:` |
-|---|---|
-| `specialisation: REASONING` | `high` (→ `xhigh` when `cost: HIGH`) |
-| `latency: HIGH` | `high` |
-| `latency: MEDIUM` | `medium` |
-| `latency: LOW` | `low` |
-
-`specialisation: REASONING` overrides the latency row. `effort` is a Claude-Code-only field; values `low | medium | high | xhigh | max`.
-
-### Candidate list (non-functional comment)
-
-The `meta-update-models` skill also fetches **all supported providers in parallel** and combines the results into one ranked list, written as a **YAML comment block** below the active fields — never an active array, since no harness reads it. Cost bands are abstract — the skill maps them to each provider's pricing or entitlement model at run-time.
-
-The skill enforces these merge rules for the comment list:
-
-- The array is ordered, and the harness chooses the first available entry.
-- For `FREE` profiles, put qualifying free models first. In practice, this means free KiloCode models and GitHub Copilot models with premium multiplier `0`, but only when they pass the same task-fit and specialisation filters as every other candidate. Subscription-included models are **not** automatically free.
-- For `LOW`, `MEDIUM`, and `HIGH` profiles, do **not** put free models first by default. Treat free options as optional fallbacks that must be explicitly validated as competitive with the paid candidates for the task.
-- After the free-first prefix, reserve provider coverage in this order: **Claude Code**, **OpenAI-backed models available through Codex**, then **GitHub Copilot**.
-- Always include at least one **Claude Code-backed** model, one **OpenAI-backed model available through Codex**, and one **GitHub Copilot** model when that provider still has a candidate after cost-band filtering.
-- KiloCode is optional and free-only: include it only when a free KiloCode model is genuinely strong enough for the task, and never spend KiloCode credits.
-- Interpret `cost` as a ceiling, not as an instruction to maximize cheapness. Within the allowed band, specialization and task fit outrank small cost differences.
-- Use the exact accepted model display strings in `model:` arrays. Preserve casing and provider-specific spellings, and do not normalize names across providers. For example, `GPT-5.4 mini (copilot)` and `GPT-5.4 Mini (unify-chat-provider)` are distinct valid strings.
-
-Authoritative sources are maintained in the `meta-update-models` skill frontmatter (`metadata.provenance.authoritativeSpec`) and currently cover GitHub Copilot, Claude Code, OpenAI Codex, and KiloCode.
-
-> **Note:** The active `model:` value is a single alias (or full ID / `inherit`) read by Claude Code — the primary harness. VS Code Copilot's `model:` expects provider-suffixed display strings, so the alias is not a valid Copilot model; Copilot is the secondary harness here and is expected to fall back to its default model. The multi-provider ranking is kept only as a **non-functional comment** — no harness reads it. `metadata.modelProfile` is a local repository convention, ignored by all tools.
+A file whose type supports the top-level `model` frontmatter field may declare a `metadata.modelProfile` instead of hard-coding a model. The `meta-update-models` skill ([SKILL.md](.apm/skills/meta-update-models/SKILL.md)) turns it into the active Claude Code `model:` and `effort:` plus a non-functional multi-provider comment, and owns the field meanings and maps — change them there. The schema table for authors is in [agent-frontmatter.md](packages/core/.apm/skills/meta-steering/references/agent-frontmatter.md).
 
 ## Upstream Update Tooling
 
-Four kinds of upstream feed this repository: content the packages consume, the third-party Python the tooling runs on, and the two kinds of upstream a file only cites. The `meta-update-repo` skill is the procedure around all four.
-
-**Four procedures, no pipeline.** Updating is not one command, because the four things that go out of date go out of date on their own schedules. The `meta-updater` agent routes a request to one of them and asks which when the request does not say — it never runs all four because the ask was vague.
-
-| Procedure | Moves | Run it when |
-| --- | --- | --- |
-| `meta-update-repo` | pins and lockfiles, the tooling's Python, adapted files, cited specs, upstream licences | an upstream may have moved |
-| `meta-update-models` | `model:` / `effort:` where a `metadata.modelProfile` is declared | a new model shipped |
-| `meta-refresh-steering` | `meta-steering` and `meta-harness` themselves | the harnesses have moved on |
-| `meta-review-steering` | every steering file, against the guidance over it | the guidance changed, or it has been a while |
-
-The last two are a pair: refreshing the guidance is what makes the files it governs due for review. `apm run check-steering` says which those are, by asking git which guidance commits landed after each file was last touched. That is a reading order and not a verdict — a cosmetic commit to the guidance marks everything it governs behind, and editing a file for an unrelated reason clears its flag with nobody having re-read it, so `current` means *not measurable* rather than *verified*.
-
-| Input | Declared in | Command |
-| --- | --- | --- |
-| APM dependencies | `dependencies.apm`, resolved in `packages/*/apm.lock.yaml` | `apm run update` |
-| Tooling dependencies | `[project.dependencies]` and `[dependency-groups] dev` in `pyproject.toml`, resolved in `uv.lock` | `uv lock --upgrade` |
-| Adapted content | `metadata.provenance.adaptedFrom` | `apm run check-updates` |
-| Specifications | `metadata.provenance.authoritativeSpec` | the same, with `--specs` |
-
-`apm run update` moves each package's pins as far as they go, installs, proves the lockfile followed, scans what was materialised with `apm audit`, and prints the upstream's own diff for everything that moved, filtered to the path this repository consumes. It commits nothing.
-
-**Every bump is read before it is committed.** A pinned dependency is content an agent loads as instructions, and some of it ships scripts and hooks that run locally; `apm approve` gates *execution*, not content. The [safety-review reference](.apm/skills/meta-update-repo/references/safety-review.md) says what to look for. It is a reading, not a scan — a table of strings to grep for was built and dropped for flagging a vendor's own install one-liner while missing anything phrased differently.
-
-**The tooling's own pins need both locks raised.** `[project.dependencies]` is exact and `[tool.uv] exclude-newer` caps what the resolver sees, so `uv lock --upgrade` alone reports no change however much has been released. The skill's phase B raises the cutoff, relaxes the pins, re-resolves, and pins back to what `uv.lock` landed on — exact, because a workspace installing the tooling from git resolves against that table rather than the lockfile.
-
-**Two upstreams `apm update` cannot move on its own.** It resolves a full-SHA pin only to the newest *annotated* semver tag, so an upstream publishing none — `blader/humanizer` and `rshade/agent-skills` today — needs the HEAD bump that `update.py` applies for exactly that case. Where a tag does exist, APM rewrites the pin and appends it as a comment (`#<sha> # v1.2.3`), which is what a future Renovate `apm` manager would read.
-
-**And one it refuses outright.** A package pinning several subpaths of one repository at the same commit fails on APM 0.31 with "Expected exactly one apm.yml entry for `<sha>`, found N", and APM writes nothing. `packages/design` is in that state. The update reports it and exits non-zero rather than hand-editing around it; a hand-moved pin would skip the tag `apm update` would have chosen.
-
-A merge that pulls across more text than before raises the entry's `fidelity`, and a raised fidelity can attach upstream terms the local file's licence cannot carry. Update `fidelity` and `license` in the same edit as the merge, then run the gates.
-
-The audit parses provenance through the same [provenance.py](src/llmctl/provenance.py) as the licence gate, so the two cannot disagree about what is tracked. GitHub authentication uses `gh auth token` by default; for CI or non-`gh` environments supply a fine-grained token with `Contents: Read-only` via `GITHUB_TOKEN`/`GH_TOKEN`, or `--github-token`.
+Four maintenance procedures, run separately and never as a pipeline — dependencies, pins, the APM CLI and adapted files; model selections; the authoring guidance; the steering files against it. The [`meta-updater`](.apm/agents/meta-updater.agent.md) agent routes a request to the one that owns it; each command and its caveats live in that procedure's skill.
 
 ## Licensing
 
@@ -296,11 +114,11 @@ Commits are **conventional**:
 ```
 
 - `type` — `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`. Append `!` before the colon for a breaking change (`refactor(core)!: …`).
-- `scope` — the package the change lands in: `core`, `design`, `meta`, `ops`, `product`, `travel`, `workflow`. For anything outside `packages/`, use the area instead: `tooling`, `docs`, `ci`.
+- `scope` — optional. For a change under `packages/`, the package directory: `core`, `design`, `ops`, `product`, `python`, `travel`, `workflow`. Outside it, the area the paths belong to: `tooling` (`src/`, `pyproject.toml`, `uv.lock`), `ci` (`.github/`), `meta` (the root `.apm/`), `docs` (a root `*.md`), `repo` (root config — `apm.yml`, `apm.lock.yaml`, `.gitignore`, `dependency-licenses.yml` — plus `LICENSE*`, `LICENSES/` and the `*.marketplace.*` sources). The mapping is [commits.py](src/llmctl/commits.py)'s `AREAS`.
 
 **The type sizes nothing.** Versions are calendar-derived, so `feat` and `fix` no longer mean "minor" and "patch"; they decide which heading a commit lands under in the generated release notes, and nothing else. That is worth keeping, so the convention is now *enforced* rather than merely read: the `commits` gate refuses a subject outside the type list, and refuses a scope that names nothing the commit touched.
 
-**Which package a commit releases is decided by the paths it touched, not by the scope.** Paths are what actually changed and cannot be mistyped. A scope is optional; when present it has to be one of the packages under `packages/` the commit touched, or an area outside it — `tooling`, `ci`, `meta`, `docs`, `repo`.
+**Which package a commit releases is decided by the paths it touched, not by the scope.** Paths are what actually changed and cannot be mistyped. A scope is optional; when present it has to name a package or an area from the list above that the commit actually touched.
 
 The gate lints a range, not all of history: CI passes the pull request's base (and its title), and a run with no range reports the gate skipped rather than inventing one. Locally: `uv run llmctl-check --repo . --since origin/main`.
 
@@ -358,11 +176,11 @@ git push origin --tags
 
 Every package commits `apm.lock.yaml`, and it is the record of which upstream commit each pinned dependency resolved to. Packing installs from it and refuses to continue if installing moves any of those commits, so a bundle cannot ship something nobody reviewed.
 
-**`apm install --frozen` is not what enforces that**, and this is the one place that fact is written down. A frozen install checks that every dependency in `apm.yml` *appears* in the lockfile, keyed by repository and subpath, never at which commit — so a pin moved without a lockfile refresh passes it. It also cannot restore *any* dependency from a cold cache once the package declares an MCP server — isolated on 0.31.0 to the `dependencies.mcp` block alone, so it hits `core` and `ops` and nothing else ([TODO 4l](TODO.md)). That is why packing installs normally and compares the resolved commits before and after, and why the workflows' deploy step is not frozen either. The `lockfiles` gate compares manifest against lockfile directly, offline, and refuses any pin that is not a full commit SHA. `apm audit --ci` checks the same thing where a package is already installed, and the pack gate runs it over each scratch export.
+**`apm install --frozen` is not what enforces that**, and this is the one place that fact is written down. A frozen install checks that every dependency in `apm.yml` *appears* in the lockfile, keyed by repository and subpath, never at which commit — so a pin moved without a lockfile refresh passes it. It also fails to restore `packages/core` from a cold cache: on 0.31.0 the error names the manifestless repo-root dependency `blader/humanizer`, and it appears only while the package declares a non-empty `dependencies.mcp` — the same dependencies with `mcp: []` restore frozen. Which of the two conditions APM actually trips on, and whether `ops`, which also declares MCP servers, is affected, has not been established ([TODO 4l](TODO.md)). That is why packing installs normally and compares the resolved commits before and after, and why the workflows' deploy step is not frozen either. The `lockfiles` gate compares manifest against lockfile directly, offline, and refuses any pin that is not a full commit SHA. `apm audit --ci` checks the same thing where a package is already installed, and the pack gate runs it over each scratch export.
 
 New lockfiles carry no `generated_at`, so two independent runs produce the same bytes. Deleting that line from an older one is permanent; APM does not add it back.
 
-A lockfile moves only through `apm run update`, and always in the same commit as the `apm.yml` pin it belongs to. Never hand-edit one.
+A lockfile moves only through the `meta-update-repo` skill — `apm run update` for a bump, its new-dependency phase for an addition — and always in the same commit as the `apm.yml` pin it belongs to. Never hand-edit one.
 
 ### Releasing another workspace
 
@@ -395,7 +213,7 @@ Both workflows here, and the private workspace's two, are thin: the shared steps
 
 The private workspace holds none of this code. Its workflows pass the actions a `tooling` requirement — `git+https://github.com/siegenthalerroger/.llmctl@main` — which they hand to `uvx --from`, exactly as its `apm.yml` does locally. No checkout, no secret and no pinned ref: the default branch is what runs, there as here.
 
-**One APM version, pinned in one place.** What a bundle contains depends on the packer that made it, so the gates have to pass on the version that will pack it: the pin is the `apm-version` default in [.github/actions/setup](.github/actions/setup/action.yml), and every workflow in both workspaces inherits it. Moving it is a commit, and the gates on that commit are the proof — not a scheduled run against whatever was newest that morning.
+**One APM version, pinned in one place.** What a bundle contains depends on the packer that made it, so the gates have to pass on the version that will pack it: the pin is the `apm-version` default in [.github/actions/setup](.github/actions/setup/action.yml), and every workflow in both workspaces inherits it. Moving it is a commit, and the gates on that commit are the proof — not a scheduled run against whatever was newest that morning. The `meta-update-repo` skill's APM CLI phase is the procedure: release notes, gates, the frontmatter deploy probe, and every recorded workaround re-tested.
 
 **The marketplace repositories have no CI at all.** There is nothing left there to check: every file in them is regenerated from this repository on every release, and anything else is deleted.
 
