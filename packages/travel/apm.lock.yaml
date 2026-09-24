@@ -9,7 +9,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:2a25c49d46165f604c5711a01e7469060e23794c97e4376c5ec9ab600d411ec0
+  content_hash: sha256:eb293bc63b6b90fd4417e1223a71f92a47f2674c605f2aeac3f89c58c65dad12
 - kind: project-relative
   target: claude
   value: .claude/skills/destination-calendar
@@ -317,7 +317,7 @@ local_deployed_files:
 - .claude/skills/trip-planning/references/intake.md
 - .claude/skills/trip-planning/references/tool-inventory.md
 local_deployed_file_hashes:
-  .claude/commands/plan-trip.md: sha256:2a25c49d46165f604c5711a01e7469060e23794c97e4376c5ec9ab600d411ec0
+  .claude/commands/plan-trip.md: sha256:eb293bc63b6b90fd4417e1223a71f92a47f2674c605f2aeac3f89c58c65dad12
   .claude/skills/destination-calendar/SKILL.md: sha256:1436edb9399f1f5f7bbe557bfdf6f52daff660d37b8b042040c08ea0d2d51f21
   .claude/skills/destination-calendar/references/event-classes.md: sha256:d37e9c2bac7944738a521d223948edd745a605b7f9c75a1d43eed867c92d378b
   .claude/skills/destination-calendar/references/search-protocol.md: sha256:fc89ab6472c584c99fce479d0fc7e8739591816286d5593dc6e17c629e282fad
