@@ -1,103 +1,80 @@
 # Source URL Reference
 
-`check_updates.py` auto-discovers tracked files from frontmatter and reads one key:
+How `llmctl-check-updates` ([check_updates.py](../../../../src/llmctl/check_updates.py)) finds, parses and judges provenance URLs. What to *write* in a provenance block — the forms to choose, what `fidelity`, `license` and `took` mean, how to cite a book — is authoring guidance owned by [meta-steering's provenance section](../../../../packages/core/.apm/skills/meta-steering/references/skill-frontmatter.md#provenance-metadata-recommended). This file covers only what the tooling does with it.
 
-- `metadata.provenance.adaptedFrom` — URL string, array of URLs, or array of objects
+## Two modes, one parse
 
-### Single-source adapted
+| Mode | Key read | Command |
+| --- | --- | --- |
+| adapted content (default) | `metadata.provenance.adaptedFrom` | `uv run llmctl-check-updates --repo .` |
+| specifications | `metadata.provenance.authoritativeSpec` | the same, with `--specs` |
 
-```yaml
-metadata:
-  provenance:
-    adaptedFrom: "https://github.com/owner/repo/blob/main/path/to/file.md"
-```
+Both modes parse through [provenance.py](../../../../src/llmctl/provenance.py), the same parse the `licences` gate uses.
 
-### Multi-source adapted (synthesised)
+- **Files read:** only `SKILL.md`, `*.agent.md`, `*.instructions.md` and `*.prompt.md` under `packages/` and `.apm/`. A `references/*.md` page is never audited, even if it has frontmatter. `apm_modules/`, the deploy mirrors (`.claude/`, `.agents/`, `.codex/`, `.github/`), `build/` and `LICENSES/` are skipped.
+- **Scoping:** `--include PATTERN` keeps matching paths and `--exclude PATTERN` (repeatable) drops them. A pattern with no `*`, `?` or `[` is a substring match; one with a wildcard is a whole-path, case-sensitive glob where `*` spans `/`. Every `llmctl-*` command that filters paths uses this matcher.
+- **Output:** the text report prints status, file, source, reason and recommendation. `took`, `license` and `fidelity` are **only in `--json`**, so a review that scopes by `took` needs `--json`.
+- **Exit code:** 1 only when no source matched the filters. Every per-URL failure is a row, never an exit code.
 
-```yaml
-metadata:
-  provenance:
-    adaptedFrom:
-      - "https://github.com/owner-a/repo-a/blob/main/skill.md"
-      - "https://github.com/owner-b/repo-b/blob/main/skill.md"
-```
+## Accepted forms
 
-Each URL in the array is checked independently. The script emits one result row per upstream URL.
-
-### Scoped adaptation (`url` + `license` + `fidelity` + `took`)
-
-Use the object form when only part of the upstream landed locally, or when the upstream's licence has to be recorded. The string and array forms above mean **the whole file** derives from that upstream; the object form narrows it and states the terms it arrives under.
+Both keys accept the same three forms, and they may be mixed within one array:
 
 ```yaml
 metadata:
   provenance:
-    adaptedFrom:
-      - url: "https://github.com/owner/repo/blob/main/path/to/file.md"
+    adaptedFrom: "https://github.com/owner/repo/blob/main/path/to/file.md"   # one URL
+    authoritativeSpec:
+      - "https://example.com/spec"                                             # array of URLs
+      - url: "https://github.com/owner/repo/blob/main/path/to/file.md"         # object form
         license: MIT
-        fidelity: inspiration-only
+        fidelity: partly-derived
         took: "The X contract and the Y ordering rule."
 ```
 
-`fidelity` is the obligation level. The first two values mean no upstream terms attach, because ideas and structure are not protected expression; the last two mean they do.
+Parser facts:
 
-| Value | Meaning | Terms attach? |
+- An array produces one row per URL. Every URL is compared against the same local commit date, so one file can show `update_available` for one upstream and `up_to_date` for another.
+- `license`, `fidelity` and `took` are read as YAML scalars. Block scalars (`|`, `>`) parse; a multi-line `took` arrives with its newlines intact.
+- An absent `fidelity` defaults to `largely-derived` under `adaptedFrom` and to `inspiration-only` under `authoritativeSpec`. That default decides whether the `licences` gate requires a `license`.
+- An object entry with no `url`, or a key that yields no entries, is dropped from the audit **without a row**. The `licences` gate reports both as errors ("parses to nothing"), so run `uv run llmctl-check --repo . --only licences` after editing a provenance block. That is the only place the drop shows.
+
+## GitHub URLs
+
+Either key, any mode, when the host is `github.com`:
+
+| URL | Read as |
+| --- | --- |
+| `https://github.com/{owner}/{repo}` | the default branch, whole repository |
+| `https://github.com/{owner}/{repo}/blob/{ref}/{path}` | one file at `ref` |
+| `https://github.com/{owner}/{repo}/tree/{ref}/{path}` | one directory at `ref` |
+
+Anything else on `github.com` is a `fetch_failed` row ("Unsupported GitHub URL structure").
+
+1. The local file's last commit date comes from `git log`. With none, the row is `missing_local_commit` unless `--allow-no-local-commit` is passed. With that flag, it is `update_available` with a bootstrap recommendation.
+2. `contents/{path}` is probed at `ref`. A 404 is `source_missing`. Without this probe, a deleted path would still report a date: the date of the commit that deleted it.
+3. The newest upstream commit touching `path` at `ref` is compared with the local date. The row is `update_available` only when upstream is newer. `--change-details` adds up to `--max-change-commits` of those commits.
+
+**A `{ref}` that is a commit SHA never moves.** The newest commit at an immutable ref is fixed, so such a row reports `up_to_date` forever. Treat a SHA-pinned permalink as frozen by construction. Re-pin it deliberately when the thing it describes moves on.
+
+## Other hosts
+
+- **`adaptedFrom` mode:** always `not_trackable`. A book, a paper or a vendor page has no revision history to compare.
+- **`--specs` mode:** probed over HTTP with `HEAD`, falling back to `GET` on 405/501.
+  - Status ≥ 400 is `source_missing`. A site that refuses scripted clients (403, 429) lands here too. Open the URL in a browser before re-pointing it.
+  - A network error is `fetch_failed`.
+  - No `Last-Modified` header, an unparsable one, or a local file with no commit is `not_trackable`. Many vendor docs sites send no such header, so for them `not_trackable` says nothing about whether the page changed.
+  - Otherwise `Last-Modified` is compared with the local commit date.
+
+## Statuses
+
+| Status | Meaning | Counted as |
 | --- | --- | --- |
-| `inspiration-only` | A concept or framing was reused; effectively no text | no |
-| `structural-echo` | Section skeleton or headings, not content | no |
-| `partly-derived` | Some sections genuinely derive from upstream | **yes** |
-| `largely-derived` | Most of the local file derives from upstream, some near-verbatim | **yes** |
+| `up_to_date` | upstream is not newer than the local file's last commit | up to date |
+| `update_available` | upstream is newer; or a bootstrap under `--allow-no-local-commit` | update available |
+| `source_missing` | the GitHub path is gone, or the page answers ≥ 400 | source missing |
+| `not_trackable` | no revision date exists to compare | not trackable, excluded from failures |
+| `fetch_failed` | the request failed: bad URL shape, rate limit, network, API error | failed |
+| `missing_local_commit` | the local file has never been committed | failed |
 
-`license` is the SPDX id of the **upstream**, not of the local file — `NONE` where the upstream has no LICENSE file. It is required wherever `fidelity` implies an obligation; `llmctl-check-licenses` reads it to decide what the local file may be licensed under, and fails the build when the two cannot be reconciled.
-
-All three are emitted on the result row (including `--json`), so a merge review can be dismissed without opening the upstream diff: if the upstream change touches nothing on the `took` list, there is nothing to merge.
-
-**State only what was taken — never what was not.** "Not taken" is an open set: upstream can add sections indefinitely, so that half is wrong the moment upstream grows and no local change ever triggers a refresh. What *was* taken is a closed set bounded by the local file, so it only goes stale when the local file changes — which is exactly when someone is already editing it.
-
-Rules:
-
-- `took` is **single-line** — block scalars (`|`, `>`) are not parsed and their content is lost. The same applies to `license` and `fidelity`
-- `took` is optional; its absence, and an absent `fidelity`, both mean the whole file derives from that upstream (`largely-derived`)
-- Forms may be mixed within one array (a plain URL string alongside object entries)
-- An object entry **must** carry `url`. An entry with only `took` is skipped, and if no other entry supplies a URL the file drops out of the audit entirely — silently, with no error and no row in the output. Check that a provenance block still yields at least one URL after editing it; a file that stops being tracked looks identical to one that has nothing to track
-
-### Keeping `took` minimal
-
-**Test: could this list ever let you close a merge review unread?** If no, use the plain string form.
-
-- **Wholly derived or near-verbatim files** — if almost any upstream change would matter, there is nothing to dismiss. Give the entry `fidelity: largely-derived` and omit `took`; that already says "this whole file derives from that upstream", which is shorter and more accurate. Listing what was taken there misreads a copy as a selective adaptation
-- **Never write a "Not taken" or "Original locally" half** — see above; both are open sets that rot silently
-- **Never record point-in-time measurements** (line-overlap percentages, file sizes, line counts). Both sides move, so the number is wrong by the next release and no process refreshes it. `fidelity` carries the same signal durably; put any measurement in the commit message that motivated the change
-- **Do not overload the field.** `took` records *what was taken*. The upstream's licence goes in `license`, the obligation level in `fidelity`, and follow-up work wherever the project tracks work — putting any of it here turns the one place a reader looks for scope into something they have to skim
-- A short note on **why the URL is not a line-for-line comparison base** (upstream moved or restructured the adapted path) does belong — it changes how the next reviewer reads the diff
-
-## Supported URL Formats
-
-Currently supported host: `github.com`
-
-- Repository root:
-  - `https://github.com/{owner}/{repo}`
-- File URL:
-  - `https://github.com/{owner}/{repo}/blob/{ref}/{path}`
-- Directory URL:
-  - `https://github.com/{owner}/{repo}/tree/{ref}/{path}`
-
-### Sources with no revision history
-
-A provenance source is not always a repository. A book, a paper or a vendor documentation page is a legitimate `adaptedFrom` entry — it is where the material came from — but there is no commit date to compare against, so drift detection cannot say anything about it.
-
-Those entries are reported as **`not_trackable`**, counted separately in the summary, and excluded from `failedCount`. They are not a problem to fix; the status records that the audit deliberately has no opinion. Do not "resolve" one by deleting the entry — that drops the attribution the entry exists to carry.
-
-Give a book a resolver URL rather than a bookshop or publisher link, so it stays valid: `https://openlibrary.org/isbn/{isbn}` for an ISBN, `https://doi.org/{doi}` where a DOI exists. Cite the specific edition — an ISBN identifies one, and page-level claims do not survive an edition change.
-
-## Comparison Rule
-
-For each tracked local file and each upstream URL:
-
-1. If the host has no revision history, record `not_trackable` and stop.
-2. Read local file last git commit date.
-3. Query upstream latest commit date for the referenced ref/path.
-4. Recommend update only when `upstreamDate > localDate`.
-
-For multi-source files, every upstream is compared against the same local commit date. A file may show `update_available` for some upstreams and `up_to_date` for others.
-
-This removes the need for a local tracking manifest.
+An unauthenticated run hits GitHub's rate limit quickly, and the result looks like `fetch_failed` rows on URLs that are fine. The report prints `Auth: unauthenticated` and a tip when that is the case.

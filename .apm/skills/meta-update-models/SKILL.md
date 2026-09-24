@@ -42,16 +42,15 @@ Use the current on-disk file contents as the only source of truth. Read every ta
 
 ## Schema Documentation Locations
 
-The `modelProfile` schema (especially the `specialisation` enum) and the resolution maps are documented in **multiple files**. When adding or changing allowed values or map rows, update **all** of these in a single pass:
+This skill owns the `modelProfile` semantics and the resolution maps. Two authoring pages describe the schema for authors and must agree with it; when adding or changing allowed values, field meanings or map rows, update **all** of these in a single pass:
 
 | File | What to update |
 |---|---|
-| `CONTRIBUTING.md` | Field reference table, YAML example, cost→alias and profile→effort maps |
-| `skills/meta-update-models/SKILL.md` | Step 1 profile example, Part A maps, Part B filter rules |
-| `skills/meta-steering/references/agents.md` | Model field section + Claude-Code field list |
-| `skills/meta-steering/references/agent-frontmatter.md` | `metadata.modelProfile` schema table + `model`/`effort` field docs |
+| `.apm/skills/meta-update-models/SKILL.md` | Step 1 profile example, Part A maps, Part B filter rules |
+| `packages/core/.apm/skills/meta-steering/references/agent-guide.md` | Model field section (defers to this skill) |
+| `packages/core/.apm/skills/meta-steering/references/agent-frontmatter.md` | `metadata.modelProfile` schema table + `model`/`effort` field docs |
 
-Use `grep -r "specialisation" .` (or equivalent) before starting to catch any other locations.
+`CONTRIBUTING.md` only points here; it restates nothing. Before starting, catch any other location with `grep -rn "specialisation" --include='*.md' packages .apm CONTRIBUTING.md` — the deploy mirrors and `apm_modules/` are copies, not locations.
 
 ## Process
 
@@ -115,7 +114,7 @@ Fetch the model catalogue from **every supported provider** concurrently. The UR
 | **OpenAI Codex** | Current OpenAI model names/families available through Codex, including non-Codex models, plus availability or entitlement notes, usage/cost notes, preview status, and model-role guidance |
 | **KiloCode** | `id`, `name`, `isFree`, context length, pricing fields, release status, and training date/knowledge cutoff fields when present |
 
-> To add a new provider: fetch its model docs, add the URL to `metadata.provenance.authoritativeSpec` in this file, update `CONTRIBUTING.md`, and add its entitlement/cost-band mapping to Step B2.
+> To add a new provider: fetch its model docs, add the URL to `metadata.provenance.authoritativeSpec` in this file, and add its entitlement/cost-band mapping to Step B2.
 
 ### Step B2 — Map cost bands to provider metrics
 
@@ -247,10 +246,10 @@ effort: low
 
 To update all supported customization files:
 
-1. List all relevant customization files (`*.agent.md`, `SKILL.md`, `*.prompt.md`, `*.instructions.md`)
+1. List all relevant customization files (`*.agent.md`, `SKILL.md`, `*.prompt.md`, `*.instructions.md`) under `packages/` and `.apm/`, skipping `apm_modules/` and the deploy mirrors (`.claude/`, `.agents/`, `.codex/`, `.github/`). A `modelProfile` inside a fenced example in a reference page is documentation, not a target
 2. Keep only files that both contain `metadata.modelProfile` and support the top-level `model` frontmatter field; capture each file's current `model:`/`effort:` and candidate comment from disk
 3. For each target file, run Steps 1, A1–A2, B1–B5, C
-4. Re-read or diff every changed file before preparing the final response
+4. Re-read or diff every changed file, then run `uv run llmctl-check --repo . --only frontmatter`, before preparing the final response
 5. Report a summary table: file → old (model/effort) → new (model/effort) → candidate-list delta
 
 ## Constraints
@@ -261,6 +260,7 @@ To update all supported customization files:
 - Never claim a file was "updated" until the edit has been applied and verified on disk
 - If a target file changes after the initial read, re-read it before editing
 - If the docs are unreachable, still write the deterministic active fields; report the error and leave the candidate comment unchanged
+- Commit nothing without confirmation. A commit's scope is the one package it touches, or `meta` for the root `.apm/`; a bulk update across packages is one commit per package
 
 ## Provider-Specific Considerations
 
