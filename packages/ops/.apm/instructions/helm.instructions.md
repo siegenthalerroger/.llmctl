@@ -1,6 +1,6 @@
 ---
 name: "Load Helm Skills"
-description: "Forces loading of Helm standards and patterns for chart files"
+description: "Loads the Helm chart, template and values skills before any edit. Applies when creating, editing or reviewing Chart.yaml, values.yaml, _helpers.tpl or chart templates."
 # Copilot
 applyTo: "**/Chart.yaml, **/*.tpl, **/values.yaml, **/templates/**/*.yaml"
 # Claude Code

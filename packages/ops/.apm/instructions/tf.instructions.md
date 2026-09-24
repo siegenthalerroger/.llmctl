@@ -1,6 +1,6 @@
 ---
 name: "Load TF Standards"
-description: "Forces loading of TF standards and patterns for .tf and .tofu files"
+description: "Loads the Terraform/OpenTofu standards skill before any edit, plus the operational skill for state, plan/apply and provider-upgrade work. Applies when writing, editing or reviewing .tf or .tofu files."
 # Copilot
 applyTo: "**/*.tofu, **/*.tf"
 # Claude Code
