@@ -40,6 +40,7 @@ GOVERNED: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         "skill",
         (
             f"{STEERING}/SKILL.md",
+            f"{STEERING}/references/frontmatter-deploy.md",
             f"{STEERING}/references/skills.md",
             f"{STEERING}/references/skill-body.md",
             f"{STEERING}/references/skill-frontmatter.md",
@@ -52,7 +53,8 @@ GOVERNED: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         "agent",
         (
             f"{STEERING}/SKILL.md",
-            f"{STEERING}/references/agents.md",
+            f"{STEERING}/references/frontmatter-deploy.md",
+            f"{STEERING}/references/agent-guide.md",
             f"{STEERING}/references/agent-frontmatter.md",
             f"{STEERING}/references/agent-handoff.md",
             f"{STEERING}/references/agent-patterns.md",
@@ -65,6 +67,7 @@ GOVERNED: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         "instructions",
         (
             f"{STEERING}/SKILL.md",
+            f"{STEERING}/references/frontmatter-deploy.md",
             f"{STEERING}/references/instructions.md",
             f"{STEERING}/references/instruction-bootstrapping.md",
         ),
@@ -74,6 +77,7 @@ GOVERNED: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         "prompt",
         (
             f"{STEERING}/SKILL.md",
+            f"{STEERING}/references/frontmatter-deploy.md",
             f"{STEERING}/references/prompts.md",
         ),
     ),
@@ -172,7 +176,7 @@ def governed_files(repo: Path) -> list[tuple[Path, str, tuple[str, ...]]]:
     return found
 
 
-def review(repo: Path, include: str = "") -> list[Row]:
+def review(repo: Path, include: str = "", exclude: Sequence[str] = ()) -> list[Row]:
     """Every governed file, most-behind first, then by path."""
     rows = []
     guidance_stamps: dict[tuple[str, ...], Stamp] = {}
@@ -181,7 +185,7 @@ def review(repo: Path, include: str = "") -> list[Row]:
         # The guidance cannot be measured against itself.
         if any(rel == g or rel.startswith(g.rsplit("/", 1)[0] + "/") for g in guidance):
             continue
-        if include and include not in rel:
+        if not workspace.included(rel, include, exclude):
             continue
         if guidance not in guidance_stamps:
             guidance_stamps[guidance] = newest(repo, guidance)
@@ -218,14 +222,13 @@ def report(rows: Sequence[Row], out=sys.stdout) -> None:
 
 def main(
     repo: Path = workspace.REPO_OPTION,
-    include: str = typer.Option(
-        "", "--include", metavar="TEXT", help="Only paths containing this text."
-    ),
+    include: str = workspace.INCLUDE_OPTION,
+    exclude: list[str] = workspace.EXCLUDE_OPTION,
     json_out: bool = typer.Option(False, "--json", help="Machine-readable output on stdout."),
 ) -> None:
     """Show which steering files predate the guidance that governs them."""
     try:
-        rows = review(repo.resolve(), include)
+        rows = review(repo.resolve(), include, exclude)
     except WorkspaceError as exc:
         raise workspace.die(exc) from None
 

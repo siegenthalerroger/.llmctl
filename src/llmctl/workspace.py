@@ -8,10 +8,11 @@ See CONTRIBUTING.md#releasing-another-workspace.
 
 from __future__ import annotations
 
+import fnmatch
 import re
 import subprocess
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,8 @@ import typer
 from ruamel.yaml import YAML
 
 __all__ = [
+    "EXCLUDE_OPTION",
+    "INCLUDE_OPTION",
     "INSTALL_OUTPUT",
     "MARKETPLACE_OPTION",
     "REPO_OPTION",
@@ -31,8 +34,10 @@ __all__ = [
     "dirty",
     "fetch_tags",
     "git",
+    "included",
     "label",
     "locked_of",
+    "matches",
     "packages",
     "pins_of",
     "read_lock",
@@ -74,6 +79,44 @@ MARKETPLACE_OPTION = typer.Option(
     show_default=False,
     help="Marketplace repo to publish into.",
 )
+INCLUDE_OPTION = typer.Option(
+    "",
+    "--include",
+    metavar="PATTERN",
+    help="Only workspace-relative paths matching this glob (`*` spans `/`, "
+    "case-sensitive). A pattern without `*`, `?` or `[` matches anywhere in the path.",
+)
+
+
+EXCLUDE_OPTION = typer.Option(
+    [],
+    "--exclude",
+    metavar="PATTERN",
+    help="Drop workspace-relative paths matching this pattern, with the same rules as "
+    "--include. Repeatable; applied after --include.",
+)
+
+
+def matches(rel: str, pattern: str) -> bool:
+    """The one matcher behind `--include` and `--exclude`.
+
+    A bare word is a substring match, so `core` and `meta-steering/SKILL.md` work as
+    written; anything with a wildcard is a whole-path glob.
+    """
+    if not any(c in pattern for c in "*?["):
+        pattern = f"*{pattern}*"
+    return fnmatch.fnmatchcase(rel, pattern)
+
+
+def included(rel: str, pattern: str, exclude: Sequence[str] = ()) -> bool:
+    """Whether a workspace-relative path passes `--include` and survives every `--exclude`.
+
+    Every command filters the same way. An empty include keeps everything.
+    """
+    if pattern and not matches(rel, pattern):
+        return False
+    return not any(matches(rel, drop) for drop in exclude if drop)
+
 
 # What `apm install` writes into a package beside the lockfile. Git-ignored,
 # never exported, never committed -- one list, so the .gitignore, the worktree

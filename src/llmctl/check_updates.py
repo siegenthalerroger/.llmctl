@@ -12,7 +12,6 @@ not discard the other twenty-seven answers.
 
 from __future__ import annotations
 
-import fnmatch
 import json
 import os
 import sys
@@ -373,12 +372,8 @@ def main(
     specs: bool = typer.Option(
         False, "--specs", help="Audit authoritativeSpec sources instead of adaptedFrom."
     ),
-    include: str = typer.Option(
-        "",
-        "--include",
-        metavar="GLOB",
-        help="Only files matching this workspace-relative glob. `*` spans `/`; case-sensitive.",
-    ),
+    include: str = workspace.INCLUDE_OPTION,
+    exclude: list[str] = workspace.EXCLUDE_OPTION,
     json_out: bool = typer.Option(False, "--json", help="Machine-readable output."),
     change_details: bool = typer.Option(
         False, "--change-details", help="Also collect the upstream commits behind a change."
@@ -402,14 +397,13 @@ def main(
 
     kind = "authoritativeSpec" if specs else "adaptedFrom"
     items = tracked_entries(root, kind)
-    if include:
-        items = [i for i in items if fnmatch.fnmatchcase(i["file"], include)]
+    items = [i for i in items if workspace.included(i["file"], include, exclude)]
     if not items:
-        sys.stderr.write(
-            "no {} sources found{}.\n".format(
-                kind, f" for --include '{include}'" if include else ""
-            )
+        scope = "".join(
+            [f" for --include '{include}'" if include else ""]
+            + [f" after --exclude '{drop}'" for drop in exclude]
         )
+        sys.stderr.write(f"no {kind} sources found{scope}.\n")
         raise typer.Exit(1)
 
     options = Options(change_details, max_change_commits, allow_no_local_commit)
@@ -421,6 +415,7 @@ def main(
         "repo": str(root),
         "mode": kind,
         "include": include,
+        "exclude": list(exclude),
         "auth": "token" if token else "unauthenticated",
         "summary": summarize(results),
         "results": results,
