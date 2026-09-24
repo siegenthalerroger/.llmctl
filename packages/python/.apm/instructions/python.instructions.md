@@ -1,6 +1,6 @@
 ---
 name: "Load Python Skills"
-description: "Forces loading of Python authoring standards and script discipline for .py files and Python project manifests"
+description: "Loads the Python standards and script skills before any edit, plus the tooling skill for pyproject and uv work. Applies when writing, editing or reviewing .py or .pyi files, standalone scripts, or pyproject.toml."
 # Copilot
 applyTo: "**/*.py, **/*.pyi, **/pyproject.toml"
 # Claude Code
