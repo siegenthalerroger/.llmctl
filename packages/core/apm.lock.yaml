@@ -74,7 +74,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:345db9eb50f6ace54f4a85d6e688990e1c1a6c8422502823741b84f2e31b52d4
+  content_hash: sha256:040a6f8aacf9b4cf5378a07cbe0add6d810d2ebdf15d549f62c0ca276077c0a3
 - kind: project-relative
   target: claude
   value: .claude/agents/executor-focused.md
@@ -83,7 +83,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:52752be2fed08d4b22651e876d619a9205e1e92d7400a31bd9a5213104c7296c
+  content_hash: sha256:65f71a7eb594c2205554f383798a2344e69d6803a20c0d1e8fc7521b108ffbee
 - kind: project-relative
   target: claude
   value: .claude/agents/explore.md
@@ -92,7 +92,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:1ac152b9e9073b54c5953dbc95d943edd8b7f7a2747688994d738bba4b18a763
+  content_hash: sha256:d3b387a5158c1e52f9ddc22e9335ef54ab17f42c83ff502ad23ae71f158519db
 - kind: project-relative
   target: claude
   value: .claude/agents/plan.md
@@ -101,7 +101,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:313309059dc65b59db8e0379c5142d771a5ef064862182d29b6be5d249e9b92a
+  content_hash: sha256:b82e78e1ff6baa28714615934c3a738b1363b882cd706bcf185261fa130a5154
 - kind: project-relative
   target: claude
   value: .claude/agents/researcher-advanced.md
@@ -110,7 +110,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:02572d991b440f64fd96ed561931cce8fdfce0539ebd4e0a5a9b9a9c8d411059
+  content_hash: sha256:f15191d37b2da1fe17a30b7a6df6c15f57d7fa4c33cb9e90c4d00a1cb581ed6f
 - kind: project-relative
   target: claude
   value: .claude/commands/reflect.md
@@ -119,7 +119,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:7f8bc82dbba7e9971899f81dd32d7fd7f830fb4fab0a1a8acdb767e4336657dc
+  content_hash: sha256:bb48e74956a9ef8108767507e3739ecdf85c8206e0298e86c1286e7b88f2faef
 - kind: project-relative
   target: claude
   value: .claude/commands/setup-mcp.md
@@ -128,7 +128,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:edc73044d6d053a3967bf5b64231682774621eade264451b874d176f82daa626
+  content_hash: sha256:4bbfc82e63a77518edb62428a4a3e83df42309840295067fe228a78b7aae6c6b
 - kind: project-relative
   target: claude
   value: .claude/rules/documentation.md
@@ -146,7 +146,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:823a3ca150528e5d3de7c65423d090411a06da6a0088ad38b1d9055e47739d48
+  content_hash: sha256:c4247fa31fd2710c87394648d6d5a43e1f06b8a28b9b1fc9d875a48d9f15e50b
 - kind: project-relative
   target: claude
   value: .claude/rules/troubleshooting.md
@@ -644,6 +644,8 @@ mcp_configs:
     headers:
       CONTEXT7_API_KEY: ${CONTEXT7_API_KEY}
     url: https://mcp.context7.com/mcp
+    env_http_headers:
+      CONTEXT7_API_KEY: CONTEXT7_API_KEY
   github:
     name: github
     transport: stdio
@@ -702,15 +704,15 @@ local_deployed_files:
 - .claude/skills/troubleshooting
 - .claude/skills/troubleshooting/SKILL.md
 local_deployed_file_hashes:
-  .claude/agents/executor-broad.md: sha256:345db9eb50f6ace54f4a85d6e688990e1c1a6c8422502823741b84f2e31b52d4
-  .claude/agents/executor-focused.md: sha256:52752be2fed08d4b22651e876d619a9205e1e92d7400a31bd9a5213104c7296c
-  .claude/agents/explore.md: sha256:1ac152b9e9073b54c5953dbc95d943edd8b7f7a2747688994d738bba4b18a763
-  .claude/agents/plan.md: sha256:313309059dc65b59db8e0379c5142d771a5ef064862182d29b6be5d249e9b92a
-  .claude/agents/researcher-advanced.md: sha256:02572d991b440f64fd96ed561931cce8fdfce0539ebd4e0a5a9b9a9c8d411059
-  .claude/commands/reflect.md: sha256:7f8bc82dbba7e9971899f81dd32d7fd7f830fb4fab0a1a8acdb767e4336657dc
-  .claude/commands/setup-mcp.md: sha256:edc73044d6d053a3967bf5b64231682774621eade264451b874d176f82daa626
+  .claude/agents/executor-broad.md: sha256:040a6f8aacf9b4cf5378a07cbe0add6d810d2ebdf15d549f62c0ca276077c0a3
+  .claude/agents/executor-focused.md: sha256:65f71a7eb594c2205554f383798a2344e69d6803a20c0d1e8fc7521b108ffbee
+  .claude/agents/explore.md: sha256:d3b387a5158c1e52f9ddc22e9335ef54ab17f42c83ff502ad23ae71f158519db
+  .claude/agents/plan.md: sha256:b82e78e1ff6baa28714615934c3a738b1363b882cd706bcf185261fa130a5154
+  .claude/agents/researcher-advanced.md: sha256:f15191d37b2da1fe17a30b7a6df6c15f57d7fa4c33cb9e90c4d00a1cb581ed6f
+  .claude/commands/reflect.md: sha256:bb48e74956a9ef8108767507e3739ecdf85c8206e0298e86c1286e7b88f2faef
+  .claude/commands/setup-mcp.md: sha256:4bbfc82e63a77518edb62428a4a3e83df42309840295067fe228a78b7aae6c6b
   .claude/rules/documentation.md: sha256:9b4327e7861d91f02908bea4f0ffd184a31e7a2a7e5ac3957d8bed5acd096e71
-  .claude/rules/meta.md: sha256:823a3ca150528e5d3de7c65423d090411a06da6a0088ad38b1d9055e47739d48
+  .claude/rules/meta.md: sha256:c4247fa31fd2710c87394648d6d5a43e1f06b8a28b9b1fc9d875a48d9f15e50b
   .claude/rules/troubleshooting.md: sha256:80e338947e0ad26a22173a9051b1db8c738810bbeb1d226e21de096dda2ef83a
   .claude/skills/authoring-mermaid-diagrams/SKILL.md: sha256:8c06960ada423d8148121b5a4beb078c33a0c96264aeb5fd4fd76433a3fa16e3
   .claude/skills/authoring-mermaid-diagrams/references/diagram-types.md: sha256:f7a3162cc76934bf88129c6a0c8b0483587e4c72cc0977e2b0bc4119499cf3d6
