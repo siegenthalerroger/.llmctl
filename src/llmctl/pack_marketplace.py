@@ -22,6 +22,8 @@ from __future__ import annotations
 import io
 import json
 import os
+import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -257,6 +259,9 @@ def write_codex_manifest(bundle_dir: Path, category: str) -> None:
     if (bundle_dir / ".mcp.json").is_file():
         manifest["mcpServers"] = "./.mcp.json"
         capabilities.append("MCP")
+    if "hooks" in base:
+        manifest["hooks"] = base["hooks"]
+        capabilities.append("Hooks")
 
     author = base.get("author") or {}
     manifest["interface"] = {
@@ -275,6 +280,113 @@ def write_codex_manifest(bundle_dir: Path, category: str) -> None:
     with Path(target / "plugin.json").open("w", encoding="utf-8") as handle:
         json.dump(manifest, handle, indent=2)
         handle.write("\n")
+
+
+_PLUGIN_ROOTS = ("${CLAUDE_PLUGIN_ROOT}", "${PLUGIN_ROOT}")
+_PLUGIN_SOURCE_ROOTS = tuple(
+    f"{root}{quote}/.apm" for root in _PLUGIN_ROOTS for quote in ("", '"', "'")
+)
+_HOOK_COMMAND_FIELDS = frozenset({"command", "bash", "powershell", "windows", "linux", "osx"})
+
+
+def _plugin_hook_argument(argument: str, bundle_dir: Path) -> str:
+    """Map one standalone plugin-root path, refusing ambiguous shell expressions."""
+    quote = '"' if argument.startswith('"') and argument.endswith('"') else ""
+    value = argument[1:-1] if quote else argument
+    root = next((prefix for prefix in _PLUGIN_ROOTS if value.startswith(prefix)), None)
+    if root is None:
+        raise PackError(f"Unsupported plugin-root hook argument: {argument!r}; use a quoted path")
+    relative = value[len(root) :]
+    if not relative:
+        return argument
+    # Spaces inside a quoted path are safe; dynamic shell expressions cannot
+    # be resolved or validated against the packed files at build time.
+    if (
+        not relative.startswith("/")
+        or re.search(r"[$`'\"\\;&|<>()*?\[\]{}\r\n]", relative)
+        or (not quote and any(character.isspace() for character in relative))
+    ):
+        raise PackError(f"Unsupported plugin-root hook path: {argument!r}")
+    parts = relative[1:].split("/")
+    if any(part in {"", ".", ".."} for part in parts):
+        raise PackError(f"Hook path must stay inside its plugin: {argument!r}")
+    if parts[0] == ".apm":
+        if parts[1:2] != ["skills"] or not parts[2:]:
+            raise PackError(
+                f"Unsupported APM hook source path: {argument!r}; only .apm/skills is mapped"
+            )
+        parts = parts[1:]
+    path = bundle_dir.joinpath(*parts)
+    if not path.resolve().is_relative_to(bundle_dir.resolve()) or not path.exists():
+        raise PackError(f"Plugin hook path is missing or escapes the bundle: {'/'.join(parts)}")
+    return f"{quote}{root}/{'/'.join(parts)}{quote}"
+
+
+def _plugin_hook_command(command: str, bundle_dir: Path) -> str:
+    """Preserve command bytes except recognized, complete plugin-root arguments."""
+    if not any(root in command for root in _PLUGIN_SOURCE_ROOTS):
+        return command
+    lexer = shlex.shlex(command, posix=False)
+    lexer.whitespace_split = True
+    lexer.commenters = ""
+    cursor = 0
+    pieces = []
+    try:
+        for argument in lexer:
+            start = command.index(argument, cursor)
+            end = start + len(argument)
+            replacement = argument
+            if any(root in command[start : end + len("/.apm")] for root in _PLUGIN_SOURCE_ROOTS):
+                if (start and not command[start - 1].isspace()) or (
+                    end < len(command) and not command[end].isspace()
+                ):
+                    raise PackError(
+                        f"Unsupported concatenated plugin-root hook argument: {argument!r}"
+                    )
+                replacement = _plugin_hook_argument(argument, bundle_dir)
+            pieces.extend((command[cursor:start], replacement))
+            cursor = end
+    except ValueError as exc:
+        raise PackError(f"Cannot parse plugin-root hook command: {exc}") from exc
+    return "".join((*pieces, command[cursor:]))
+
+
+def _normalize_hook_entries(entries: object, bundle_dir: Path) -> None:
+    if not isinstance(entries, list):
+        raise PackError("Plugin hook event and handler entries must be arrays")
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise PackError("Plugin hook entries must be objects")
+        for key in _HOOK_COMMAND_FIELDS & entry.keys():
+            if not isinstance(entry[key], str):
+                raise PackError(f"Plugin hook {key} must be a string")
+            entry[key] = _plugin_hook_command(entry[key], bundle_dir)
+        if "hooks" in entry:
+            _normalize_hook_entries(entry["hooks"], bundle_dir)
+
+
+def normalize_plugin_hooks(bundle_dir: Path) -> None:
+    """Make APM's merged hooks discoverable and resolve their packed skill paths."""
+    hooks_path = bundle_dir / "hooks.json"
+    if not hooks_path.is_file():
+        return
+    manifest_path = bundle_dir / ".claude-plugin" / "plugin.json"
+    try:
+        hooks = json.loads(hooks_path.read_text(encoding="utf-8"))
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise PackError(f"Cannot read packed plugin hooks in {bundle_dir}: {exc}") from exc
+    if not isinstance(hooks, dict) or not isinstance(hooks.get("hooks"), dict):
+        raise PackError(f"{hooks_path}: expected a hooks object keyed by lifecycle event")
+    if not isinstance(manifest, dict):
+        raise PackError(f"{manifest_path}: expected a plugin manifest object")
+    if manifest.get("hooks", "./hooks.json") not in ("./hooks.json", "hooks.json"):
+        raise PackError(f"{manifest_path}: explicit hooks conflict with APM's merged hooks.json")
+    for entries in hooks["hooks"].values():
+        _normalize_hook_entries(entries, bundle_dir)
+    manifest["hooks"] = "./hooks.json"
+    hooks_path.write_text(json.dumps(hooks, indent=2) + "\n", encoding="utf-8")
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
 def strip_vendor_cruft(bundle_dir: Path) -> list[str]:
@@ -507,6 +619,7 @@ class Packer:
             self.log(f"       stripped {len(dropped)} vendored path(s): {paths}")
         if not relocate_manifest(bundle_dir):
             raise PackError(f"{package.name}: packed bundle has no plugin.json")
+        normalize_plugin_hooks(bundle_dir)
         write_codex_manifest(bundle_dir, category)
         carried = add_licenses(
             self.ws,

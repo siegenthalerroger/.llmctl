@@ -37,7 +37,7 @@ def sh(args: list[str], cwd: Path | str) -> subprocess.CompletedProcess:
 
 
 def gate_tooling(ctx: Context) -> Outcome:
-    """The tooling's own lint: locked, formatted, linted and type-checked.
+    """The tooling's own checks: locked, formatted, linted, typed and tested.
 
     Only a checkout of the project can answer any of that: ruff and ty read
     their configuration out of pyproject.toml, and `uv.lock` only exists beside
@@ -73,6 +73,11 @@ def gate_tooling(ctx: Context) -> Outcome:
             "ruff check",
         ),
         (["run", "--locked", "--quiet", "ty", "check", "src/"], "ty clean", "ty check"),
+        (
+            ["run", "--locked", "--quiet", "python", "-m", "unittest", "discover", "-s", "tests"],
+            "regression tests pass",
+            "regression tests",
+        ),
     ):
         result = sh(["uv", *args], project)
         if result.returncode == 0:
@@ -234,7 +239,11 @@ def gate_pack(ctx: Context) -> Outcome:
 
 
 GATES = [
-    Gate("tooling", "the release tooling is locked, formatted, linted and typed", gate_tooling),
+    Gate(
+        "tooling",
+        "the release tooling is locked, formatted, linted, typed and tested",
+        gate_tooling,
+    ),
     Gate("frontmatter", "customization frontmatter conventions", gate_frontmatter),
     Gate(
         "commits",
