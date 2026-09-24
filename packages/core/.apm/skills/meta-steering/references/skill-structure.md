@@ -5,7 +5,7 @@ Directory layout for a skill's bundled resources, and the rule for choosing betw
 ## Example Directory Tree
 
 ```
-.github/skills/my-skill/
+.agents/skills/my-skill/
 ├── SKILL.md              # Required: Main instructions
 ├── scripts/              # Optional: Executable automation
 │   ├── helper.py         # Python script

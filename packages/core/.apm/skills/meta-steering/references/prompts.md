@@ -54,59 +54,69 @@ For longer prompts, order sections by priority so truncation or skimming loses t
 
 ## Frontmatter Fields
 
+**Copilot authoring baseline: CLI.** New Copilot workflows use skills. The CLI reads prompts only through the `claude` target's `.claude/commands/` output; VS Code-only fields below are compatibility documentation, not fields to add for new CLI behavior. Keep existing fields valid on another deployed target. Per-target validity and survival: [runtime matrix](./frontmatter-deploy.md#the-matrix).
+
 Every prompt file carries YAML frontmatter with the following fields:
 
 ### Required/Recommended Fields
 
-| Field           | Required    | Description                                                                                 |
-| --------------- | ----------- | ------------------------------------------------------------------------------------------- |
-| `description`   | Recommended | Populates the slash-command menu entry: naming-first, action-oriented, single sentence starting with a verb — same discovery craft as skill descriptions (see [the router, section 3](../SKILL.md#3-description-craft--all-four-types)), even though prompts compete with fewer siblings |
-| `name`          | Optional    | The name shown after typing `/` in chat — a discriminating name is the cheapest routing lever; defaults to filename if not specified |
-| `agent`         | Recommended | The agent to use: `ask`, `edit`, `agent`, or a custom agent name. Defaults to current agent |
-| `model`         | Optional    | The language model to use. Defaults to the currently selected model                         |
-| `tools`         | Optional    | List of tool/tool set names available for this prompt                                       |
-| `argument-hint` | Optional    | Hint text shown in chat input to guide user interaction                                     |
-| `metadata.provenance.adaptedFrom` | Optional | Where local content was adapted from: a URL string, an array of URLs, or an array of objects carrying `url` plus `license` / `fidelity` / `took`. String and array forms mean the **whole file** derives from that upstream |
+| Field           | Required    | Valid on | Description |
+| --------------- | ----------- | -------- | ----------- |
+| `description`   | Recommended | VS Code, Claude | Populates the slash-command menu entry: naming-first, action-oriented, single sentence starting with a verb. Same discovery craft as skill descriptions (see [the router, section 3](../SKILL.md#3-description-craft--all-four-types)), even though prompts compete with fewer siblings |
+| `name`          | Optional    | VS Code | The name shown after typing `/` in chat. A discriminating name is the cheapest routing lever. Defaults to the filename. Claude commands take their name from the filename and do not accept this key |
+| `agent`         | Optional (VS Code Local compatibility) | VS Code | The agent to use: `ask`, `agent`, `plan`, or a custom agent name. Defaults to the current agent. Claude also has an `agent` key, but it names the subagent type for `context: fork`, a different meaning |
+| `model`         | Optional    | VS Code, Claude | The language model to use. Defaults to the currently selected model |
+| `tools`         | Optional    | VS Code | List of tool/tool set names available for this prompt; restricts availability. Claude's `allowed-tools` only pre-approves listed tools and restricts nothing; Claude's restriction is `disallowed-tools`, which APM drops |
+| `argument-hint` | Optional    | VS Code, Claude, Copilot CLI | Hint text shown in chat input to guide user interaction |
+| `input`         | Optional    | APM only (deployer input) | Names for Claude `arguments`. APM rewrites `${input:name}` to `$name` only for names listed here; see [Input and Context Handling](#input-and-context-handling) |
+| `metadata.provenance` | Optional | repo convention | Provenance; convention owned by [the router, section 4](../SKILL.md#4-frontmatter-shared-by-all-four-types) |
+
+Claude Code commands accept the skill frontmatter schema except `name` and `paths`; which keys survive APM is in the matrix.
+
+**No harness has a `skills:` key on a prompt.** Bind a skill by linking it by relative path in the body and telling the reader to load it first.
 
 ### Guidelines
 
 - Use consistent quoting (single quotes recommended) and keep one field per line for readability and version control clarity
-- If `tools` are specified and the current agent is `ask` or `edit`, the default agent becomes `agent`
+- If `tools` are specified, the default agent becomes `agent` (VS Code)
 - Be explicit about `agent` when tool requirements or side effects matter; do not rely on implicit escalation
 - Preserve any additional metadata (`language`, `tags`, `visibility`, etc.) required by your organization
-- For provenance tracking, use `metadata.provenance` fields (`adaptedFrom`, `authoritativeSpec`); use the same convention for prompts, instructions, skills, and agents. Where an entry's `fidelity` is `partly-derived` or `largely-derived`, its `license` is required — `scripts/check_licenses.py` rejects the file otherwise. See the [skill-frontmatter.md](./skill-frontmatter.md#provenance-metadata-recommended)
 
 ## Cross-Tool Compatibility (Copilot + Claude Code)
 
-Prompt files can serve both GitHub Copilot (as "Prompts") and Claude Code (as "Commands"). Both create user-invocable slash commands. Each tool ignores frontmatter fields it does not recognize, so a single file works for both.
+Prompt files serve GitHub Copilot in VS Code (as "Prompts") and Claude Code (as "Commands"). Both expose them as user-invocable slash commands. Codex still supports [deprecated custom prompts](https://learn.chatgpt.com/docs/custom-prompts) in its local `~/.codex/prompts/` directory, with `description` and `argument-hint` frontmatter. APM does not deploy prompts to Codex. Keep the native valid fields distinct from that deployment gap; use a skill for workflows this repository must distribute to Codex through APM.
+
+Whether a key works is decided by harness spec, deployer and author intent; [frontmatter-deploy.md](./frontmatter-deploy.md) owns the model, the matrix and APM's command allowlist. For prompts:
+
+- **Author every key valid on a deployed target, even where APM drops it.** `name`, `agent` and `tools` are dropped for Claude commands but valid for VS Code: keep them.
+- **Restate each stripped key's behavioral intent in the body**: the tools the task needs, when to confirm, and the skill to load first. Prose does not enforce tool permissions or invocation controls; see [graceful degradation](./frontmatter-deploy.md#degrade-gracefully).
 
 > [!NOTE]
 > Commands are superseded by Skills in Claude Code, however we retain the separation of concerns with prompts being for reusable quick-use inputs.
 
 ## File Naming and Placement
 
-- Use kebab-case filenames ending with `.prompt.md` and store them under `.github/prompts/` unless your workspace standard specifies another directory.
+- Use kebab-case filenames ending with `.prompt.md`. In this repository the source lives in `packages/<package>/.apm/prompts/`; APM deploys it to `.github/prompts/` and `.claude/commands/`. Outside APM, VS Code's workspace default is `.github/prompts/`.
 - Provide a short filename that communicates the action (for example, `generate-readme.prompt.md` rather than `prompt1.prompt.md`).
 
 ## Input and Context Handling
 
 ### Variable Substitution
 
-Use `${input:variableName[:placeholder]}` for required values:
+VS Code accepts `${input:name}` and `${input:name:placeholder}`. Claude commands receive only what APM rewrites (see [the deployer caveats](./frontmatter-deploy.md#deployer-caveats)):
 
-```markdown
-${input:componentName:Button}
-${input:framework:React}
-```
+| Body form | VS Code | Claude command after APM |
+|---|---|---|
+| `${input:name}` with `input: [name]` in frontmatter | Prompts for `name` | `$name`, bound to **one** positional token |
+| `${input:name:placeholder}` | Prompts, with placeholder | Literal text, never rewritten |
+| `${input:name}` without `input:` | Prompts for `name` | Literal text |
+
+- **Several short values** (an id, a framework name): declare `input: [a, b]`, write `${input:a}`, and set `argument-hint` for the placeholder text.
+- **One free-text value** (a brief, pasted config): do not declare `input`, because `$name` would capture only the first word. Write the body so it still reads correctly when the variable arrives literally, e.g. "Plan a trip from the brief supplied with this command: `${input:brief}`", and put the hint in `argument-hint`.
 
 ### Contextual Variables
 
-Available context variables:
-- `${selection}` - Currently selected text in the editor
-- `${file}` - Current file path
-- `${workspaceFolder}` - Root workspace directory
-- `${fileBasename}` - Current file name without path
-- `${fileBasenameNoExtension}` - File name without extension
+`${selection}`, `${file}`, `${workspaceFolder}` and similar variables are VS Code-only and reach Claude as literal text. State a fallback in the body ("the selected text, or the file the user names") rather than relying on the variable.
 
 **Best practices**:
 - Explain when users must supply values
@@ -124,13 +134,13 @@ Available context variables:
 
 ## Instruction Tone and Style
 
-- Write in direct, imperative sentences targeted at Copilot (for example, “Analyze”, “Generate”, “Summarize”).
+- Write in direct, imperative sentences addressed to the agent (for example, “Analyze”, “Generate”, “Summarize”).
 - Keep sentences short and unambiguous.
 - Avoid idioms, humor, or culturally specific references; favor neutral, inclusive language.
 
 ## Model-Generation Effects
 
-Literal scoping, the consistency pass, binary constraints over soft-permission phrasing, and positive-example preference apply to every steering file type. See [the router, section 5](../SKILL.md#5-anti-patterns-across-all-four-types).
+Literal scoping, the consistency pass, explicit hard requirements, and positive-example preference apply to every steering file type. Label defaults separately and give decision criteria for adapting them. See [the router, section 5](../SKILL.md#5-anti-patterns-across-all-four-types).
 
 ## Anti-Patterns to Avoid
 
@@ -147,7 +157,7 @@ Literal scoping, the consistency pass, binary constraints over soft-permission p
 - Include time-sensitive information without clear expiration
 - Use Windows-style paths or system-specific references
 - Leave clarification or agentic loops open-ended ("ask if unclear", "be thorough") — bound them with concrete counts, ceilings, and stop criteria
-- Use soft-permission phrasing ("prefer X, but Y if simpler", "unless Y makes more sense")
+- Blur a hard requirement with an undefined exception such as "unless easier"
 
 ✅ **Do:**
 - Write action-oriented descriptions (starts with verb)
@@ -160,18 +170,20 @@ Literal scoping, the consistency pass, binary constraints over soft-permission p
 - Test with one representative case and one missing-context or conflicting-context case
 - Use portable, cross-platform references
 - Bound clarification, loops, and output length with concrete numbers and explicit stop criteria
-- Use binary constraints instead of soft-permission phrasing
+- State hard requirements unambiguously; label preferences as defaults and state when they may change
 
 ## Quality Assurance Checklist
 
 **Frontmatter**:
 - [ ] Description is naming-first, action-oriented, and specific (populates the slash-command menu)
-- [ ] Agent selection matches task complexity (`ask`, `edit`, `agent`, or custom)
+- [ ] If `agent` is set (VS Code), it matches task complexity (`ask`, `agent`, `plan`, or custom)
+- [ ] Every key stripped on some target (see [frontmatter-deploy.md](./frontmatter-deploy.md)) is kept, and its intent is restated in the body
+- [ ] No `skills:` key; any skill the prompt depends on is linked by relative path in the body
 - [ ] argument-hint provides clear guidance for user input
 - [ ] If `name` is omitted, the filename is descriptive and kebab-case; if `name` is present, it is descriptive in the slash-command UI
 
 **Content**:
-- [ ] Instructions use imperative mood consistently, with binary constraints (no soft-permission phrasing)
+- [ ] Instructions distinguish hard requirements from defaults and give decision criteria for permitted adaptations
 - [ ] Structure uses markdown headers and/or XML tags
 - [ ] Output format is explicitly defined, including a fixed-slot structure (Goal/Context/Constraints/Done-when) for larger prompts
 - [ ] Completion criterion ("Done when...") and failure behavior are explicit, not just output shape
@@ -179,7 +191,7 @@ Literal scoping, the consistency pass, binary constraints over soft-permission p
 - [ ] Prompt text is internally consistent — no contradictory instructions
 
 **Variables and Context**:
-- [ ] All `${input:*}` variables have placeholders or defaults
+- [ ] Every `${input:*}` variable follows the Variable Substitution table: names used as Claude arguments are declared in `input:` and placeholder-free; free text is not declared
 - [ ] Context variables (`${selection}`, etc.) have fallback behavior
 - [ ] Mandatory context missing scenarios are documented
 - [ ] Variable names are descriptive and clear
@@ -198,7 +210,8 @@ Literal scoping, the consistency pass, binary constraints over soft-permission p
 
 - [Prompt File Format (VS Code)](https://code.visualstudio.com/docs/agent-customization/prompt-files#_prompt-file-format)
 - [Slash Commands (Claude Code)](https://code.claude.com/docs/en/slash-commands)
-- [APM Prompts](https://microsoft.github.io/apm/producer/author-primitives/prompts/) — the frontmatter keys APM preserves, and the per-target command output
+- [APM Prompts](https://microsoft.github.io/apm/producer/author-primitives/prompts/): the frontmatter keys APM preserves, and the per-target command output
+- [frontmatter-deploy.md](./frontmatter-deploy.md): per-target validity and APM survival for every type
 - [Prompt Engineering](https://developers.openai.com/api/docs/guides/prompt-engineering)
 - [Reasoning Best Practices](https://developers.openai.com/api/docs/guides/reasoning-best-practices)
 - [Awesome Copilot prompt-file authoring guide](https://github.com/github/awesome-copilot/blob/main/instructions/prompt.instructions.md)

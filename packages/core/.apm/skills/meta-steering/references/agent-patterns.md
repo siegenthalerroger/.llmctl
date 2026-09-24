@@ -1,45 +1,18 @@
 # Common Agent Patterns
 
-Before adding a new persona below, apply the default-to-one-agent gate in [agents.md](./agents.md#default-to-one-agent) — add a specialist only when it improves capability isolation, policy isolation, prompt clarity, or trace legibility.
+Before adding a persona below, apply the [default-to-one-agent gate](./agent-guide.md#default-to-one-agent): add a specialist only when it improves capability isolation, policy isolation, prompt clarity or trace legibility.
 
-## Personas
+Tool postures are for dual-deployed files ([agent-guide.md, Tools field](./agent-guide.md#tools-field)): no `tools:`, restriction via `disallowedTools:`, and the same restriction restated in the body. Copilot-only equivalents are in [agent-tools.md](./agent-tools.md#tool-selection-patterns).
 
-### Testing Specialist
+| Persona | Purpose | Tool posture | Body anti-drift line |
+|---|---|---|---|
+| Explorer | Answer codebase questions fast | `disallowedTools: Edit, Write, NotebookEdit` | "Read-only: never create, edit or delete files." |
+| Implementation planner | Produce a plan others execute | `disallowedTools: Edit, Write, NotebookEdit` | "Never implement; return the plan." |
+| Code reviewer | Report findings on a diff | `disallowedTools: Edit, Write, NotebookEdit` | "Do not fix; report with file references." |
+| Security auditor | Find vulnerabilities, check OWASP | Read-only denylist; web allowed | "Report findings; hand remediation to the fixer." |
+| Researcher | Multi-source research report | Read-only denylist; web and MCP docs allowed | "Never edit project files." |
+| Refactoring specialist | Improve structure without behaviour change | Edit allowed; deny `Bash` unless tests must run | "No behaviour changes; run the tests you are given." |
+| Testing specialist | Add tests for a change | Edit and execution allowed | "Do not modify production code; report bugs instead." |
+| Executor | Implement a well-specified plan | All tools | "Follow the plan; note deviations; do not re-plan." |
 
-**Purpose**: Focus on test coverage and quality
-
-**Tools**: All tools (for comprehensive test creation)
-
-**Approach**: Analyze, identify gaps, write tests, avoid production code changes
-
-### Implementation Planner
-
-**Purpose**: Create detailed technical plans and specifications
-
-**Tools**: Limited to `['read', 'search', 'edit']`
-
-**Approach**: Analyze requirements, create documentation, avoid implementation
-
-### Code Reviewer
-
-**Purpose**: Review code quality and provide feedback
-
-**Tools**: `['read', 'search']` only
-
-**Approach**: Analyze, suggest improvements, no direct modifications
-
-### Refactoring Specialist
-
-**Purpose**: Improve code structure and maintainability
-
-**Tools**: `['read', 'search', 'edit']`
-
-**Approach**: Analyze patterns, propose refactorings, implement safely
-
-### Security Auditor
-
-**Purpose**: Identify security issues and vulnerabilities
-
-**Tools**: `['read', 'search', 'web']`
-
-**Approach**: Scan code, check against OWASP, report findings
+See this repository's agents under `packages/core/.apm/agents/` for worked examples of the explorer, planner, researcher and executor rows.

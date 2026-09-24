@@ -23,26 +23,40 @@ metadata:
     authoritativeSpec:
       # Skills — SKILL.md
       - "https://agentskills.io/"
+      - "https://agentskills.io/specification"
       - "https://code.claude.com/docs/en/skills"
       - "https://code.visualstudio.com/docs/agent-customization/agent-skills"
+      - "https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills"
+      - "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference"
       - "https://learn.chatgpt.com/docs/build-skills"
       - "https://microsoft.github.io/apm/producer/author-primitives/skills/"
       # Agents — *.agent.md
       - "https://code.claude.com/docs/en/sub-agents"
       - "https://code.claude.com/docs/en/agent-sdk/subagents"
+      - "https://code.claude.com/docs/en/errors"
       - "https://code.visualstudio.com/docs/agent-customization/custom-agents"
       - "https://docs.github.com/en/copilot/reference/custom-agents-configuration"
+      - "https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/create-custom-agents-for-cli"
+      - "https://learn.chatgpt.com/docs/agent-configuration/subagents"
       - "https://developers.openai.com/api/docs/guides/agents/orchestration"
       # Instructions — *.instructions.md, AGENTS.md, CLAUDE.md
       - "https://agents.md/"
       - "https://code.claude.com/docs/en/memory"
       - "https://code.visualstudio.com/docs/agent-customization/custom-instructions"
       - "https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/add-custom-instructions/add-repository-instructions"
+      - "https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions"
       - "https://microsoft.github.io/apm/producer/author-primitives/instructions-and-agents/"
       # Prompts — *.prompt.md (deployed as slash commands)
       - "https://code.claude.com/docs/en/slash-commands"
       - "https://code.visualstudio.com/docs/agent-customization/prompt-files"
+      - "https://learn.chatgpt.com/docs/custom-prompts"
       - "https://microsoft.github.io/apm/producer/author-primitives/prompts/"
+      # Deploy translation — what APM keeps, drops or reshapes per target
+      - "https://microsoft.github.io/apm/reference/targets-matrix/"
+      - "https://microsoft.github.io/apm/concepts/primitives-and-targets/"
+      - "https://github.com/microsoft/apm/blob/8fd10ac5eafee7ca77d41cc34ba139d812fdacd5/src/apm_cli/integration/command_integrator.py"
+      - "https://github.com/microsoft/apm/blob/8fd10ac5eafee7ca77d41cc34ba139d812fdacd5/src/apm_cli/integration/agent_integrator.py"
+      - "https://github.com/microsoft/apm/blob/8fd10ac5eafee7ca77d41cc34ba139d812fdacd5/src/apm_cli/integration/instruction_integrator.py"
 ---
 
 # Authoring Steering Files
@@ -65,7 +79,7 @@ Answer this before opening a file. Getting it wrong costs more than any amount o
 
 **When two rows match.** The four steering types overlap by design; three tiebreaks resolve almost every case.
 
-- **Skill vs agent** — does the work need its own context window, or a tool policy the caller must not hold? Only then an agent. Default to one agent and make each new one clear the gate in [agents.md](./references/agents.md#default-to-one-agent).
+- **Skill vs agent** — does the work need its own context window, or a tool policy the caller must not hold? Only then an agent. Default to one agent and make each new one clear the gate in [agent-guide.md](./references/agent-guide.md#default-to-one-agent).
 - **Skill vs prompt** — who decides it runs? Model-triggered by relevance is a skill; user-triggered by name with arguments is a prompt.
 - **Skill vs instruction** — is it a capability or a convention? Capabilities are skills. Instructions earn their place for durable conventions and for `applyTo`-driven skill loading — not as a home for procedures.
 
@@ -78,9 +92,10 @@ Read the row for the file being authored. Load the depth files only when the fir
 | Authoring | Read first | Then, for depth |
 |---|---|---|
 | `SKILL.md` | [skills.md](./references/skills.md) | [skill-frontmatter.md](./references/skill-frontmatter.md), [skill-body.md](./references/skill-body.md), [skill-structure.md](./references/skill-structure.md), [skill-spec.md](./references/skill-spec.md) |
-| `*.agent.md` | [agents.md](./references/agents.md) | [agent-frontmatter.md](./references/agent-frontmatter.md), [agent-tools.md](./references/agent-tools.md), [agent-subagent.md](./references/agent-subagent.md), [agent-handoff.md](./references/agent-handoff.md), [agent-patterns.md](./references/agent-patterns.md) |
+| `*.agent.md` | [agent-guide.md](./references/agent-guide.md) | [agent-frontmatter.md](./references/agent-frontmatter.md), [agent-tools.md](./references/agent-tools.md), [agent-subagent.md](./references/agent-subagent.md), [agent-handoff.md](./references/agent-handoff.md), [agent-patterns.md](./references/agent-patterns.md) |
 | `*.instructions.md`, `AGENTS.md`, `CLAUDE.md` | [instructions.md](./references/instructions.md) | [instruction-bootstrapping.md](./references/instruction-bootstrapping.md) — writing a repository's *first* context files |
 | `*.prompt.md` | [prompts.md](./references/prompts.md) | — |
+| Any frontmatter key meant for more than one target, or a dropped-keys warning from `apm install` | [frontmatter-deploy.md](./references/frontmatter-deploy.md) | — |
 
 ## 3) Description craft — all four types
 
@@ -96,63 +111,57 @@ Read the row for the file being authored. Load the depth files only when the fir
 3. **Front-load** the differentiating verb and scope — the entry may be truncated and must still match on its first part.
 4. **Keywords are coverage, not density.** List the concrete words a user would say inside the trigger clause; do not pad with synonyms.
 5. **State sibling negative space.** Where two files overlap, say what each does NOT cover — overlapping descriptions make the model invoke every match or hesitate to invoke any.
-6. Third person, active voice, present tense. Spell out acronyms. No XML tags, no reserved words (`anthropic`, `claude`, `copilot`, `openai`) in `name` or `description`.
+6. Third person, active voice, present tense. Spell out acronyms. No XML tags in `name` or `description`. No reserved words in `name`: Anthropic reserves `anthropic` and `claude`; this repository adds `copilot` and `openai`.
 7. **Single-line YAML.** A multi-line or block-scalar `description` is spec-valid but silently registers as invisible to some loaders.
 
-Per-type shading: agent descriptions run shorter (~50-150 chars) and are keyed against sibling *agents*; instruction descriptions are a routing contract too — Copilot matches them semantically against the task even with no `applyTo` hit; prompt descriptions populate the slash-command menu, so lead with a verb.
+Per-type shading: agent descriptions are keyed against sibling *agents* and have their own length target ([agent-guide.md](./references/agent-guide.md#description-length)); VS Code instruction descriptions also support semantic discovery, while the Copilot CLI contract uses `applyTo` file matches; prompt descriptions populate the slash-command menu, so lead with a verb.
 
 ### Context budget — four distinct surfaces
 
-| Budget | Surface | Failure past the limit |
-|---|---|---|
-| 1024 chars | Per-skill `description` (agentskills.io spec limit) | Field is invalid |
-| 1536 chars | Claude Code: combined `description` + `when_to_use` in the discovery listing | Overflow is truncated |
-| 8000 chars | Codex: aggregate skills-preamble across **all** installed skills | Later skills get cut |
-| ~15,000 chars | Claude Code: **total** name+description budget for the injected skills list | Skills past the cutoff are **invisible**, not down-ranked |
+**Use the "Design to" column as a conservative repository target.** Per-field spec limits are requirements; aggregate targets are planning estimates, not a guarantee that every consumer will list every installed skill.
 
-The last row dominates: past the total budget, excess skills are never considered. Pruning an unused skill helps more than trimming one description. `SLASH_COMMAND_TOOL_CHAR_BUDGET` raises the ceiling, but an author cannot assume a consumer raised it.
+| Surface | Harness rule | Design to | Failure past the limit |
+|---|---|---|---|
+| One skill's `description` | agentskills.io spec: 1-1024 chars | **1024 chars** | Field is invalid |
+| One skill's `description` + `when_to_use` | Claude Code: `skillListingMaxDescChars`, default 1536 chars | **1536 chars** | Cut at the cap in the listing |
+| Codex: all installed skills together | 2% of the context window, or 8,000 chars when the window is unknown; names, descriptions and paths count | **8,000 chars**, including paths | Descriptions shortened first, then skills left out of the initial list with a warning |
+| Claude Code: all installed skills together | `skillListingBudgetFraction`, default 1% of the context window | **2,000 tokens, roughly 8,000 chars** (1% of a 200K window) | Every name stays; descriptions of the least-used skills are dropped first, which removes their trigger words |
+
+- **Why 200K:** current Claude models run with a 1M window, but Claude Code holds them at 200K when 1M is disabled (`CLAUDE_CODE_DISABLE_1M_CONTEXT`) or unavailable on the plan. At 1M the budget is 10,000 tokens. The char figure assumes about 4 chars per token and is an estimate.
+- **The aggregate budget is shared**, including skills from other packages. About 8,000 chars is a conservative house target; Claude's token estimate and Codex's unknown-window fallback are different accounting rules.
+- **Overflow differs by harness.** Claude retains names while reducing the least-used descriptions. Codex shortens descriptions and may omit entire skills; its documentation does not establish least-invoked ordering. Keep bundles focused and front-load descriptions, then inspect the actual discovery list and warnings on the target.
+- Claude consumers can raise the ceilings (`skillListingBudgetFraction`, `SLASH_COMMAND_TOOL_CHAR_BUDGET`, `skillListingMaxDescChars`) or demote entries to `"name-only"` via `skillOverrides`. These are not portable Codex settings, and an author cannot assume consumers changed them.
 
 Always-loaded instructions have their own shared budget: frontier models reliably follow ~150-200 instructions total and the harness system prompt already spends ~50. Every rule added anywhere degrades adherence to every other rule.
 
 ## 4) Frontmatter shared by all four types
 
-**Provenance** — the identical convention for skills, agents, instructions and prompts:
+**Provenance** — one convention for skills, agents, instructions and prompts: `metadata.provenance.adaptedFrom` records where content came from (with `license`, `fidelity` and `took`), and `metadata.provenance.authoritativeSpec` lists the specs that define the format. The rules, including how `fidelity` decides what `license` a file may carry, are in [skill-frontmatter.md](./references/skill-frontmatter.md#provenance-metadata-recommended). If the upstream is available as an APM package, consume it via `apm.yml` instead of copying it in.
 
-- `metadata.provenance.adaptedFrom` — a URL string, an array of URLs, or an array of objects carrying `url` plus `license` (the upstream's SPDX id), `fidelity` (`inspiration-only` / `structural-echo` / `partly-derived` / `largely-derived`) and `took` (only what was taken, never what was not). String and array forms mean the **whole file** derives from that upstream.
-- `metadata.provenance.authoritativeSpec` — URLs of specs defining the format. A bare URL means cited only, nothing reproduced.
-- `fidelity` decides whether upstream terms attach, and therefore what `license` the file may carry. Where `fidelity` copies expression, `license` is **required** — `scripts/check_licenses.py` rejects the file otherwise.
-- `license` — omit to take the repo default for the path (`*.md` is CC-BY-SA-4.0); declare it only where an upstream obligation the default cannot satisfy forces another.
+Keys under `metadata.*` are this repository's conventions, except `metadata.short-description`, which Codex reads. The agentskills.io spec types `metadata` as a string-to-string map, so nested `metadata.provenance` is not spec-shaped.
 
-> **APM-first:** if the upstream is available as an APM package, consume it via `apm.yml` instead of copying it in. Use `adaptedFrom` only for content APM cannot manage.
+**Author against the harness specs, not against the deployer.** APM filters or reshapes frontmatter per target before the harness reads it, so classify every key per target: case 1 **honoured** (author it), case 2 **ignored or stripped** (author it anyway and restate its intent in the body; a dropped-keys warning is not a licence to delete) or case 3 **destructive** (omit it only with an observed failure recorded and a tracker linked). A key valid on no target is not a key; put the intent in the body. The type × target matrix, the Copilot CLI authoring baseline and APM's caveats are in [frontmatter-deploy.md](./references/frontmatter-deploy.md).
 
-Only `name`, `description` and `license` are portable spec fields. Everything under `metadata.*` is a private convention of this repository — other tools ignore it.
-
-**Cross-harness field parity** — one file serves both Copilot and Claude Code, because each ignores the other's unknown keys:
-
-| Concern | Copilot | Claude Code |
-|---|---|---|
-| Path scoping (instructions) | `applyTo` (string or array) | `paths` (array) — include both, kept aligned |
-| Agent tool policy | `tools:` allowlist | `disallowedTools:` denylist |
-| Agent model | provider-suffixed display strings | single alias / full ID / `inherit`, plus `effort` |
-
-**Omit `tools:` in any dual-deployed agent.** Claude Code parses it as a strict allowlist against real tool names, Copilot vocabulary resolves to nothing, and Claude refuses to spawn the agent ("would be spawned with zero tools"). Scope Claude with `disallowedTools:` and accept that Copilot inherits all tools — APM copies agent frontmatter verbatim to every target, so one file cannot carry both. Tracked at microsoft/apm [#2108](https://github.com/microsoft/apm/issues/2108).
+- **`tools:` on a dual-deployed agent** is the one case 3 on record. Omit it unless every entry is a Claude Code tool name that Copilot documents as an alias (`Read`, `Edit`, `Grep`, `Bash`, …); MCP tool names diverge between the two. Scope Claude with `disallowedTools:` instead. See [agent-guide.md](./references/agent-guide.md#tools-field).
+- **`applyTo` is load-bearing** on a scoped instruction: APM builds Claude's `paths` from `applyTo` alone. Write both, kept aligned.
 
 ## 5) Anti-patterns across all four types
 
-- **Soft-permission phrasing** — "prefer X, but Y if simpler", "unless Y makes more sense". Grep for "but … if" and "unless … makes more sense"; replace with binary rules.
+- **Blurred requirements and defaults** — state hard boundaries unambiguously, without subjective escape hatches. Label preferences and defaults, and give concrete criteria for adapting them; "prefer" and "unless" are useful when that discretion is intended.
 - **Skipping the consistency pass** — newer, more literal-following models are MORE damaged by contradictory instructions, not less. A lower-priority clause that conflicts with a higher one degrades adherence to both.
 - **"When to use" sections in the body** — the body loads only after activation. All trigger text belongs in `description`.
 - **Second person** ("you should") — use imperative mood.
 - **Time-sensitive content** without an escape hatch, and **Windows-style paths** — always forward slashes.
 - **Restating a tool's schema** — duplicated prose interferes with autonomous tool selection.
 - **Polishing marginal content** — delete it. Coherent-but-irrelevant text measurably hurts more than incoherent filler.
-- **Authoring preemptively** — promote a rule only after the same mistake has recurred.
+- **Accumulating speculative rules** — recurring observed mistakes justify durable gotchas; first correct or consolidate existing guidance. Document established requirements and evidenced serious hazards without waiting for repeat failures, but do not append a rule after every wrong result.
 
 **Model-generation effects** (current reasoning models): scope literally and in absolute terms ("EXACTLY and ONLY the files listed above") — models do not silently generalize a rule from one example to a whole class, nor infer unrequested work. Prefer positive output-style examples over "don't do X" lists in body prose; reserve negative constraints for the `description` field and hard guardrails.
 
 ## References
 
-- [skills.md](./references/skills.md) · [agents.md](./references/agents.md) · [instructions.md](./references/instructions.md) · [prompts.md](./references/prompts.md) — the per-type guides; section 2 routes to the depth files behind each
+- [skills.md](./references/skills.md) · [agent-guide.md](./references/agent-guide.md) · [instructions.md](./references/instructions.md) · [prompts.md](./references/prompts.md) — the per-type guides; section 2 routes to the depth files behind each
+- [frontmatter-deploy.md](./references/frontmatter-deploy.md): which keys each harness accepts and which survive APM, per type and target
 - [`meta-harness`](../meta-harness/SKILL.md) — hooks, MCP servers, plugin bundles
 - **Skills** — [Agent Skills spec](https://agentskills.io/) · [Claude Code](https://code.claude.com/docs/en/skills) · [VS Code](https://code.visualstudio.com/docs/agent-customization/agent-skills) · [Codex](https://learn.chatgpt.com/docs/build-skills) · [APM](https://microsoft.github.io/apm/producer/author-primitives/skills/)
 - **Agents** — [Claude Code subagents](https://code.claude.com/docs/en/sub-agents) · [VS Code custom agents](https://code.visualstudio.com/docs/agent-customization/custom-agents) · [Copilot config reference](https://docs.github.com/en/copilot/reference/custom-agents-configuration) · [APM](https://microsoft.github.io/apm/producer/author-primitives/instructions-and-agents/)
