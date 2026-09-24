@@ -2,6 +2,7 @@
 name: "Executor (Focused)"
 description: "Fast, cost-efficient execution agent for well-specified, tightly-scoped work within a single component — code, configuration, IaC, documentation, or specs. ALWAYS invoke when the plan is clear, the task touches ≤5 files, and no cross-component reasoning is needed. Do not use for cross-cutting or multi-component work (use Executor (Broad)) or unscoped work that needs a plan first (use the Plan agent). Keywords: implement, code, fix, edit, rewrite, small task, single component, focused change."
 # Copilot fields
+include-custom-instructions: true   # Copilot CLI: load repository instructions as a subagent
 user-invocable: false
 # Claude Code fields
 model: haiku

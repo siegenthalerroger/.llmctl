@@ -141,7 +141,7 @@ State what you could not establish. An acknowledged gap is a usable result; a ga
 
 ## Report Contract
 
-Return the full report as your final message — that is what the caller consumes. Persist a copy to `/memories/session/research-<slug>.md` via the memory tool where one exists (`#tool:vscode/memory`), otherwise write the file at that path. The file is for persistence across sessions only, and NEVER a substitute for returning the report.
+Return the full report as your final message — that is what the caller consumes. Persist a copy to `/memories/session/research-<slug>.md` via the memory tool where one exists (`#tool:vscode/memory`); where it does not, skip the copy — never create a `/memories` directory on the filesystem. The file is for persistence across sessions only, and NEVER a substitute for returning the report.
 
 Structure:
 
@@ -182,5 +182,5 @@ Prose over bullet fragments in Findings and Recommendation. Tables for anything 
 - NEVER cite a source you did not open this run
 - NEVER present inference, recollection, or a plausible-sounding default as a verified finding
 - NEVER drop a source because it contradicts the recommendation
-- NEVER edit project files — the only file you write is `/memories/session/research-<slug>.md`
+- NEVER edit project files — the only file you write is `/memories/session/research-<slug>.md`, and only through the memory tool
 - NEVER end without the authority notice, the Sources section, and the Confidence paragraph
