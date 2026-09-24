@@ -97,7 +97,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:9321157e489aa43d4f359ee25be5370b338947315a70737845007e99d631e545
+  content_hash: sha256:4bd5198d079db0f54a15eb806be09187964eefd23bab8867a16a4999a800d1d3
 - kind: project-relative
   target: claude
   value: .claude/skills/lint-fix
@@ -245,4 +245,4 @@ deployments:
 local_deployed_files:
 - .claude/agents/code-reviewer.md
 local_deployed_file_hashes:
-  .claude/agents/code-reviewer.md: sha256:9321157e489aa43d4f359ee25be5370b338947315a70737845007e99d631e545
+  .claude/agents/code-reviewer.md: sha256:4bd5198d079db0f54a15eb806be09187964eefd23bab8867a16a4999a800d1d3
