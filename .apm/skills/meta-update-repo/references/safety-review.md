@@ -1,13 +1,12 @@
 # Safety review of an upstream diff
 
-What to read for when a pin moves, before the bump is committed. The input is what `apm run update` prints: the upstream's own diff between the committed pin and the new one, filtered to the path this repository consumes.
+What to read for when a pin moves, before the bump is committed, and over the whole content when a dependency is first added. The input for a bump is what `apm run update` prints: the upstream's own diff between the committed pin and the new one, filtered to the path this repository consumes. That filter hides the scope-creep row below, so list every file the bump touched as well: `gh api repos/<owner>/<repo>/compare/<before>...<after> --jq '.files[].filename'`.
 
 **This is a reading, not a scan.** A table of strings to grep for was built and dropped: matching "ignore previous instructions", `~/.ssh` and `curl … | sh` produced confident findings on ordinary documentation — a vendor's own install one-liner, a published placeholder key — while missing anything phrased differently. The two failures compound, because the noise trains you to skim exactly the diff the check existed to make you read. Read the diff.
 
 ## What to look for
 
 These rows are reasoned from what an APM dependency can do once it is deployed, not taken from a published threat model; finding one to check them against is [TODO 4k](../../../../TODO.md).
-
 
 | Look for | Why it matters | Verdict |
 | --- | --- | --- |
@@ -16,7 +15,7 @@ These rows are reasoned from what an APM dependency can do once it is deployed, 
 | New or changed executable surface: `hooks/`, `scripts/`, `*.hook.json`, `plugin.json`, an `apm.yml` inside the dependency, MCP server entries | `apm approve` gates *execution*, not content. A hook added upstream runs where the package is deployed | **Block** until read line by line and understood |
 | Obfuscated or encoded payloads: base64 blobs, escaped unicode, zero-width or bidirectional characters, unusually long single lines | There is no legitimate reason for steering content to be unreadable. `apm audit --file` catches the invisible-character cases; the rest is eyes | **Block** |
 | Network calls or install one-liners the skill did not make before | A documented `brew install` in a prerequisites section is ordinary. The same command newly added to a procedure the agent follows is not | **Flag**, and decide from context |
-| Scope creep: files changed outside the subpath this repository pins | We consume one skill from a multi-skill repository. A bump that moves unrelated paths is noise, but a bump that newly reaches *into* our path from elsewhere is worth understanding | **Flag** |
+| Scope creep: files changed outside the subpath this repository pins, from the `gh api … compare` listing rather than the filtered diff | We consume one skill from a multi-skill repository. A bump that moves unrelated paths is noise, but a bump that newly reaches *into* our path from elsewhere is worth understanding | **Flag** |
 | `LICENSE`, `NOTICE` or `COPYING` changed | The terms we redistribute under may have moved. Update `dependency-licenses.yml`, re-run the licences gate, and check whether any local `fidelity` still fits | **Flag**, and fix before committing |
 | Prose, examples, formatting, typo fixes, new sections that teach rather than instruct | This is what an upstream update normally is | **Fine** |
 
