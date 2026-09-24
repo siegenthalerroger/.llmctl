@@ -1,6 +1,6 @@
 ---
 name: "Troubleshooting Behavior"
-description: "Forces loading of troubleshooting workflow skill"
+description: "Loads the troubleshooting skill before any diagnosis. Applies when a command fails, hangs or behaves unexpectedly, a tool misbehaves, or a root cause is needed before changing configuration."
 # Copilot
 applyTo: "**"
 # Claude Code
