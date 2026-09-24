@@ -1,6 +1,6 @@
 ---
 name: "Technical Documentation Instructions"
-description: "Instructions for writing succinct technical documentation"
+description: "Technical-documentation conventions: link to authoritative sources instead of restating them, document patterns rather than volatile lists, and update every referring document when a doc changes scope. Applies when writing, restructuring or reviewing any Markdown file."
 # Copilot
 applyTo: "**/*.md"
 # Claude Code
