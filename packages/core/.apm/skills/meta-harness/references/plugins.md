@@ -1,6 +1,6 @@
 # Plugin Authoring and Packaging Guidelines
 
-**Contents:** [When to Use Plugins](#when-to-use-plugins) · [Cross-Tool Compatibility](#cross-tool-compatibility) · [Plugin Manifest Schema (`plugin.json`)](#plugin-manifest-schema-pluginjson) · [Component Types](#component-types) · [Distribution Models](#distribution-models) · [Local Development Workflow](#local-development-workflow) · [APM Integration](#apm-integration) · [Quality Checklist](#quality-checklist) · [Anti-Patterns](#anti-patterns) · [Reference Links](#reference-links)
+**Contents:** [When to Use Plugins](#when-to-use-plugins) · [Cross-Tool Compatibility](#cross-tool-compatibility) · [Plugin Manifest Schema (`plugin.json`)](#plugin-manifest-schema-pluginjson) · [Component Types](#component-types) · [Distribution Models](#distribution-models) · [Local Development Workflow](#local-development-workflow) · [Quality Checklist](#quality-checklist) · [Anti-Patterns](#anti-patterns) · [Reference Links](#reference-links)
 
 Read this when packaging and distributing multiple customizations together, not when authoring a single skill, agent, or hook in isolation.
 
@@ -21,80 +21,53 @@ Reach for a plugin when at least one of these is true:
 
 > Keep plugin scope cohesive: one clear domain or problem per plugin, never a kitchen-sink bundle.
 
-Bundling many skills also has a discovery cost: every bundled skill's `description` competes in the consumer's shared skill-discovery budget (Claude Code totals ~15,000 chars across all loaded skills; skills past that cutoff become invisible, not down-ranked — see [the `meta-steering` router, section 3](../../meta-steering/SKILL.md#3-description-craft--all-four-types)). Keep bundles cohesive **and** descriptions short. `SLASH_COMMAND_TOOL_CHAR_BUDGET` exists as consumer-side relief, but a plugin author cannot rely on the consumer having raised it.
+Every bundled skill spends the consumer's shared discovery budget — design the installed listing to about 8,000 chars and front-load descriptions ([meta-steering's budget table](../../meta-steering/SKILL.md#context-budget--four-distinct-surfaces)).
 
 ## Cross-Tool Compatibility
 
 | Platform | Manifest | Components supported | Installation |
 | --- | --- | --- | --- |
-| Claude Code | `plugin.json` (typically `.claude-plugin/plugin.json`) | skills, agents, hooks, MCP servers, LSP, monitors | `--plugin-dir` / `--plugin-url` for local testing, or marketplace install |
-| VS Code Copilot | `plugin.json` | skills, agents, hooks, MCP servers | Workspace or user-level plugin install via Agent Plugins UI / source install |
-| APM | `apm.yml` source, `apm pack` emits plugin-format bundle (`plugin.json`) | skills, agents, hooks, MCP servers, prompts (packaging primitive set) | `apm pack` to produce bundle, `apm install` to consume |
+| Claude Code | `plugin.json` (typically `.claude-plugin/plugin.json`) | skills, commands, agents, hooks, MCP servers, LSP, monitors (output styles, themes experimental) | `--plugin-dir` / `--plugin-url` for local testing, or marketplace install |
+| Codex / ChatGPT | Portable root `plugin.json` with `extensions.com.openai`; `.codex-plugin/plugin.json` remains compatible | skills, MCP, hooks, with runtime-specific support | Native plugin discovery/install surfaces; shared ChatGPT/Codex directory |
+| Copilot CLI | Agent Plugins 1.0 root `plugin.json` | portable skills/MCP; Copilot agents, commands, rules, hooks and LSP via vendor extensions | Native CLI plugin install/discovery |
+| VS Code Copilot | Agent Plugins 1.0 root `plugin.json`; Claude and legacy formats remain supported | portable skills/MCP; Copilot agents/hooks and other additions under `com.github.copilot/` and `extensions.com.github.copilot` | Agent Plugins UI / source install |
+| APM | `apm.yml` source; `apm pack` defaults to `claude-plugin`, or `--format agent-plugin` | Claude bundle has Claude component layout; Agent Plugins 1.0 output carries only skills and MCP | `apm pack` produces a distributable. Consuming an Agent Plugins v1 package via `apm install` registers it only for the `copilot` target; since APM 0.31 the install exits 1 when that exclusion leaves nothing deployed |
 
-Claude-format `plugin.json` content is largely portable to VS Code for overlapping component types. Keep Claude-only components (for example LSP/monitors) isolated or optional when targeting both platforms.
+The portable Agent Plugins 1.0 contract and each vendor's extensions are distinct from Claude-format compatibility. Keep runtime-specific components explicit. Supporting a format does not establish that every runtime executes every bundled component.
 
 ## Plugin Manifest Schema (`plugin.json`)
 
-Treat this section as a structural map. Do not hardcode full schema copies in local docs.
+Treat this section as a structural map. Do not hardcode full schema copies in local docs; field definitions are in the [Reference Links](#reference-links).
 
-Core identity fields:
+### Portable Agent Plugins 1.0 and Vendor Extensions
 
-- `name` (required): plugin identifier and namespace anchor.
-- `version` (recommended): semantic version for release and update control.
-- `description` (recommended): concise intent and scope.
+Use the [canonical manifest schema](https://agent-plugins.org/plugin-authors/manifest) for root `plugin.json`, with `$schema: "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"`. Portable component discovery uses fixed `skills/` and `mcp.json` locations; do not copy Claude's component path fields into the portable manifest and assume equivalent behavior.
 
-Common component path/config fields:
+When hand-authoring Copilot content, use the [Copilot CLI plugin contract](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference) as the baseline. Its additions live under `com.github.copilot/` (`agents/`, `commands/`, `rules/`, `hooks/hooks.json`, `lsp.json`), with manifest metadata in `extensions.com.github.copilot`. VS Code supports this format alongside Claude and legacy compatibility formats; verify [VS Code's runtime support](https://code.visualstudio.com/docs/agent-customization/agent-plugins) independently. OpenAI's portable manifest additions live under `extensions.com.openai`; Codex also accepts the compatibility `.codex-plugin/plugin.json` format ([OpenAI's plugin guide](https://developers.openai.com/plugins/build/plugins)). This is current authoring guidance, not a request to migrate existing repository bundles.
 
-- `skills`: path(s) to skill directories.
-- `agents`: path(s) to agent files/directories.
-- `hooks`: hook config path or object, depending on format.
-- `mcpServers`: MCP config path or object.
+### Claude-Compatible Manifests
 
-Other commonly encountered metadata:
+- Identity: `name` (required, the namespace anchor), `version`, `description`; optional `author`, `license`, `homepage`, `repository`, `keywords`. Marketplace-facing metadata can live in the marketplace entry instead.
+- Component fields: `skills`, `agents`, `hooks`, `mcpServers` — paths, or (for `hooks`) an inline object or an array of paths. A custom `agents` list **replaces** the default `agents/` scan; list `./agents/` explicitly to keep it.
 
-- `author`, `license`, `homepage`, `repository`, `keywords`.
-- Marketplace-facing metadata can appear in marketplace descriptors rather than only plugin manifest.
+### Root tokens and runtime variables
 
-Variable substitution and runtime roots:
+| Token | Format | Resolves to |
+|---|---|---|
+| `${CLAUDE_PLUGIN_ROOT}` | Claude (also expanded by VS Code for Claude/Copilot formats) | Plugin install directory |
+| `${CLAUDE_PLUGIN_DATA}` | Claude | Persistent per-plugin data directory that survives updates |
+| `${CLAUDE_PROJECT_DIR}` | Claude | Project root |
+| `${PLUGIN_ROOT}` / `${PLUGIN_DATA}` | Agent Plugins 1.0 (VS Code also accepts `${PLUGIN_ROOT}` in Claude/Copilot formats) | Plugin root / data directory |
 
-- `${CLAUDE_PLUGIN_ROOT}`: Claude-format plugin root token used by Claude and recognized by VS Code in Claude-compatible plugins.
-- `${PLUGIN_ROOT}`: OpenPlugin-style root token where supported.
-- Runtime env vars may also be injected (for example `CLAUDE_PLUGIN_ROOT`) for hooks/MCP server processes.
-
-> Prefer plugin root tokens over absolute paths. Plugin install locations differ by platform, scope, and marketplace source.
-
-For full field definitions and constraints, see the platform references:
-
-- [Claude plugins reference](https://code.claude.com/docs/en/plugins-reference)
-- [VS Code agent plugins](https://code.visualstudio.com/docs/agent-customization/agent-plugins)
+Claude exports its three as environment variables to hook, MCP and LSP processes. Prefer root tokens over absolute paths; install locations differ by platform, scope, and marketplace source.
 
 ## Component Types
 
-### Skills directory plugins
-
-- Package skills under `skills/<skill-name>/SKILL.md`.
-- Use plugin namespacing behavior where required by runtime.
-- Include scripts/resources next to the skill when needed.
-
-### Agent bundles
-
-- Package one or more `*.agent.md` files under `agents/`.
-- Keep agent tool policies explicit in each agent file.
-
-### Hook definitions
-
-- Include hook configuration plus referenced scripts.
-- Respect each runtime's supported hook event set and precedence behavior.
-
-### MCP server declarations
-
-- Bundle `.mcp.json` or inline `mcpServers` definitions in manifest.
-- Use plugin root variables for command paths, cwd, and config paths.
-
-### LSP and monitor components
-
-- LSP and background monitor plugin components are Claude Code plugin features.
-- Treat them as Claude-specific extensions when building cross-tool plugins.
+- **Skills:** `skills/<skill-name>/SKILL.md`, with scripts/resources beside the skill.
+- **Agents:** `agents/` in Claude-compatible bundles; the vendor extension layout in portable bundles. Claude ignores `hooks`, `mcpServers`, `permissionMode` and `initialPrompt` on a plugin agent.
+- **Hooks:** hook configuration plus the scripts it references; respect each runtime's event set.
+- **MCP servers:** portable Agent Plugins use `mcp.json`; Claude-compatible bundles use `.mcp.json` or manifest `mcpServers`. Choose the declaration for the actual format.
+- **LSP and monitors:** Claude Code plugin features; treat them as Claude-specific in cross-tool plugins.
 
 ## Distribution Models
 
@@ -107,24 +80,26 @@ For full field definitions and constraints, see the platform references:
 ### Marketplace distribution
 
 - Publish via marketplace indexes (`marketplace.json`) and versioned entries.
-- Common source types include a relative path (same-repo, resolved from the marketplace root), `github`, `url`, `git-subdir`, and `npm`.
-- Use pinned versions/refs and dependency constraints for reproducibility.
+- Claude source types: a relative path (same repo, resolved from the marketplace root), `github`, `url`, `git-subdir`, `npm`, and in recent versions `archive` and `command` ([plugin sources](https://code.claude.com/docs/en/plugin-marketplaces)).
+- Use pinned versions/refs (`ref`, `sha`) and dependency constraints for reproducibility.
 
 ### APM packaging
 
-- `apm pack` produces a plugin-format distributable bundle (`plugin.json` + component directories + lock/integrity metadata), consumed with `apm install`.
+- `apm pack` defaults to a Claude-format bundle (`--format claude-plugin`). `apm pack --format agent-plugin` emits Agent Plugins 1.0 — root `plugin.json`, `skills/` and `mcp.json` only — and rejects primitives it cannot represent. This is an APM packaging limit, not a limit on native vendor extensions; inspect the [current pack contract](https://microsoft.github.io/apm/producer/pack-a-bundle/) before choosing the format.
 - `apm pack` ALSO generates the marketplace index from a `marketplace:` block in `apm.yml` — emitting `.claude-plugin/marketplace.json` (Claude) and, when `outputs` includes `codex`, `.agents/plugins/marketplace.json`. The marketplace is NOT authored/hosted out-of-band; APM builds it. `apm marketplace init` scaffolds the block, `apm marketplace check` validates entries resolve, and `claude plugin validate .` checks the emitted manifest.
+- Use APM over direct `plugin.json` authoring when you need repeatable builds, dependency handling and integrity metadata; direct authoring suits quick local iteration.
 
-### Consumer reach and fidelity (verified against Claude Code 2.1.205 / claude.ai Cowork)
+### Consumer reach and fidelity
 
-A Claude plugin marketplace reaches **Claude Code CLI, the Claude Desktop app, and claude.ai's Cowork surface** — *"Plugins are available in Cowork and Code. They aren't used in Chat."* It does NOT reach claude.ai **Chat** (use uploaded/org-provisioned Custom Skills there) or **hosted ChatGPT** (a separate Custom-GPT/Actions ecosystem).
+Claude Code plugin facts last checked against 2.1.273; the Cowork behavior below was verified against 2.1.205 and not re-checked since. A Claude plugin marketplace reaches **Claude Code CLI, the Claude Desktop app, and claude.ai's Cowork surface** — *"Plugins are available in Cowork and Code. They aren't used in Chat."* It does not reach claude.ai **Chat** (use uploaded/org-provisioned Custom Skills there). OpenAI now has a native plugin ecosystem with a shared ChatGPT/Codex directory; a Claude marketplace alone does not establish publication there. Follow [OpenAI's build and distribution contract](https://developers.openai.com/plugins/build/plugins), and verify each component's availability in the consuming surface.
 
 - **Cowork "Add marketplace"** takes a **Git repository** (`owner/repo` or an `https://…` git URL; GitLab/Bitbucket public too) — NOT a GitHub Pages / static `marketplace.json` URL (that is Claude Code CLI-only), and its UI exposes **no branch field** (tracks the default branch; pin versions at the plugin-source level instead).
-- **A plugin install is reduced-fidelity vs. `apm install`.** It carries **skills** (`skills` field accepts a directory) and **commands** (`commands` field; APM renames `*.prompt.md` → `*.prompt`). It does NOT carry **instructions** (no plugin component — `apm pack` copies them in but Claude ignores them) or **MCP servers** (`apm pack` drops them). **Agents** load only from a default `agents/` directory at the plugin root — the `agents` field itself does not load them; point a real `agents/` dir (or symlink) at them, or ship agents via `apm install`. Use `apm install` for full-fidelity deploys (instructions + MCP + agents).
+- **A marketplace added by direct `marketplace.json` URL cannot use relative-path sources** — Claude Code downloads only that file, so relative paths do not resolve. Use `github`, `url`, `npm` or `archive` sources for URL-based distribution.
+- **The default APM Claude bundle has reduced fidelity vs. `apm install`.** It carries **skills** (`skills` field accepts a directory) and **commands** (`commands` field; APM writes each `*.prompt.md` to `commands/` as `*.md`). It does NOT carry **instructions** (no plugin component — `apm pack` copies them in but Claude ignores them). **MCP servers** from `apm.yml` `dependencies.mcp` are not packed in this format; only a project-root `.mcp.json` is, with credentials stripped. **Agents** load from the plugin's `agents/` directory or the `agents` field, subject to the ignored fields listed under [Component Types](#component-types). Use `apm install` where native deployment is needed, and verify that the installed APM version preserves the required behavior. These caveats do not describe every native plugin format.
 
 ### Private/managed marketplaces
 
-- Use strict/allowlist policies to limit approved marketplace sources.
+- Limit approved sources with managed settings (Claude: `strictKnownMarketplaces` allowlist, `blockedMarketplaces`).
 - Validate manifests and enforce provenance before rollout.
 - Prefer internal review gates for plugins with hooks/MCP executables.
 
@@ -132,7 +107,7 @@ A Claude plugin marketplace reaches **Claude Code CLI, the Claude Desktop app, a
 
 ## Local Development Workflow
 
-### Minimal plugin structure
+### Minimal Claude-Compatible Plugin Structure
 
 ```text
 my-plugin/
@@ -142,12 +117,12 @@ my-plugin/
     my-skill/
       SKILL.md
   agents/
-    helper.agent.md
+    helper.md
   hooks/
     hooks.json
   .mcp.json
   scripts/
-    run-check.sh
+    run-check.py
 ```
 
 ### Suggested workflow
@@ -155,80 +130,42 @@ my-plugin/
 1. Start with the smallest vertical slice (manifest + one skill).
 2. Load locally (`--plugin-dir` or equivalent install-from-source flow).
 3. Verify component discovery (skills, agents, hooks, MCP servers).
-4. Run reload cycle after edits (`/reload-plugins` or host equivalent).
+4. After edits, run `/reload-plugins` for hooks, MCP and LSP; **restart the session** after skill, agent or monitor changes, which it does not reload.
 5. Validate behavior with representative tasks and failure cases.
 6. Package only after local validation passes.
 
 ### Debugging plugin load issues
 
-- Validate manifest path and required fields first.
+- Validate manifest path and required fields first (`claude plugin validate .`).
 - Confirm every configured component path exists and is relative.
 - Check for format mismatches (`.claude-plugin/plugin.json` vs root `plugin.json`).
-- Use platform diagnostics/doctor commands for plugin errors.
 - Verify hook/MCP scripts have executable permissions where required.
-
-### Runtime environment variables
-
-Commonly relevant runtime variables include:
-
-- `CLAUDE_PLUGIN_ROOT` / `${CLAUDE_PLUGIN_ROOT}` for Claude-format plugin paths.
-- `${PLUGIN_ROOT}` for formats that define it.
-
-Always check current platform docs for exact availability and expansion rules.
-
-## APM Integration
-
-APM is a producer/consumer packaging workflow that can emit plugin-format bundles.
-
-How `apm.yml` relates to `plugin.json`:
-
-- `apm.yml` is the authoring manifest used by APM workflows.
-- `apm pack` can synthesize or include plugin identity metadata in emitted bundle output.
-- Core fields typically map cleanly (`name`, `version`, `description`, plus metadata fields).
-
-Using `apm pack`:
-
-- Build distributable plugin bundle artifacts from source primitives.
-- Use dry-run/preview style checks before publishing.
-- Ship archives or directories depending on consumer workflow.
-
-Package types and when they matter:
-
-- Skill package: focused single-skill distribution.
-- Hook package: hook-only distribution.
-- Plugin collection (`plugin.json`): multi-component plugin layout.
-- APM package (`.apm/`) and skill collection layouts are useful producer forms but may install differently by target.
-
-When to use APM vs direct `plugin.json` authoring:
-
-- Use direct plugin authoring for quick local plugin iteration.
-- Use APM when you need repeatable bundle builds, dependency handling, integrity metadata, and marketplace publishing workflows.
 
 ## Quality Checklist
 
 - Manifest contains required identity fields and valid naming.
-- Component paths are valid, relative, and exist.
+- Component paths are valid, relative, and exist; root tokens used instead of absolute or user-home paths.
 - Plugin is tested locally before any distribution step.
-- No absolute paths or user-home hardcoding in configs/scripts.
-- Variable substitution is used for portable paths.
 - Versioning follows semver and is bumped for publishable changes.
-- Description clearly states scope, behavior, and intended usage.
 - Hooks/MCP components were reviewed as executable trust boundaries.
 - Bundle does not flood the consumer's skill-discovery budget.
 
 ## Anti-Patterns
 
 - Bundling unrelated domains in one plugin instead of focused packages.
-- Hardcoding absolute paths instead of `${PLUGIN_ROOT}` or `${CLAUDE_PLUGIN_ROOT}`.
 - Shipping content changes without a version bump.
 - Duplicating components that should be shared via APM dependencies.
 - Overloading plugin docs with copied full schemas that quickly drift from upstream.
 
 ## Reference Links
 
+- [Copilot CLI plugin reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference)
 - [Claude plugins guide](https://code.claude.com/docs/en/plugins)
 - [Claude plugins reference](https://code.claude.com/docs/en/plugins-reference)
 - [Claude plugin marketplaces](https://code.claude.com/docs/en/plugin-marketplaces)
 - [VS Code agent plugins](https://code.visualstudio.com/docs/agent-customization/agent-plugins)
+- [Agent Plugins manifest](https://agent-plugins.org/plugin-authors/manifest)
+- [Codex plugins](https://learn.chatgpt.com/docs/build-plugins)
+- [OpenAI plugins](https://developers.openai.com/plugins/build/plugins)
 - [APM pack a bundle](https://microsoft.github.io/apm/producer/pack-a-bundle/)
 - [APM package types](https://microsoft.github.io/apm/reference/package-types/)

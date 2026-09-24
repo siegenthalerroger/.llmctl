@@ -12,7 +12,7 @@ For exhaustive per-tool schemas and the full config matrix, see [mcp-configurati
 - VS Code Copilot: [MCP servers](https://code.visualstudio.com/docs/agent-customization/mcp-servers)
 - Claude Code: [MCP](https://code.claude.com/docs/en/mcp)
 - OpenAI Codex CLI: [MCP](https://learn.chatgpt.com/docs/extend/mcp)
-- APM: [MCP servers guide](https://microsoft.github.io/apm/guides/mcp-servers/), [MCP as a primitive](https://microsoft.github.io/apm/producer/author-primitives/mcp-as-primitive/)
+- APM: [MCP servers guide](https://microsoft.github.io/apm/consumer/install-mcp-servers/), [MCP as a primitive](https://microsoft.github.io/apm/producer/author-primitives/mcp-as-primitive/)
 
 ## When to Use MCP
 
@@ -24,7 +24,7 @@ MCP servers add external capability; hooks add determinism; instructions and ski
 
 ### Curating Servers and Tools
 
-Exposed tool count is not free — it directly degrades selection accuracy (a mid-size model that fails at 46 available tools passes at 19). Curate deliberately:
+Exposed tool count is not free: irrelevant tools degrade selection even when they fit in context. In [Paramanayakam et al., *Less is More* (arXiv:2411.15399), §I](https://arxiv.org/abs/2411.15399), Llama3.1-8b-q4_K_M picks the wrong tool for a GeoEngine query when given all 46 tools and completes it when given 19. That is one small-model example, not a threshold. Curate deliberately:
 
 - Add servers sparingly; disable unused tools where the harness allows it; prefer deferred/on-demand tool loading over always-on exposure when the harness supports it.
 - Tool **names** carry heavy routing weight — prefer servers whose tools are purpose-revealing and namespaced (`service_resource_verb`) over generic or cryptic names.
@@ -33,7 +33,7 @@ Exposed tool count is not free — it directly degrades selection accuracy (a mi
 
 ## APM-First Rule
 
-This repo deploys via APM. **Declare each MCP server once in [`apm.yml`](../../../../../../packages/core/apm.yml) under `dependencies.mcp` and let APM translate it into every target's native config on deploy.** Do not hand-maintain per-target files (`.vscode/mcp.json`, `.mcp.json`, `.codex/config.toml`) — those are machine-generated output, not source.
+This repo deploys via APM. **Declare each MCP server once in the owning package's `apm.yml` (universal servers: [`packages/core/apm.yml`](https://github.com/siegenthalerroger/.llmctl/blob/main/packages/core/apm.yml)) under `dependencies.mcp` and let APM translate it into every target's native config on deploy.** Do not hand-maintain per-target files (`.vscode/mcp.json`, `.mcp.json`, `.codex/config.toml`) — those are machine-generated output, not source.
 
 ```yaml
 # apm.yml
@@ -54,7 +54,7 @@ dependencies:
 APM resolves the target chain from `--target` → `targets:` in `apm.yml` → filesystem auto-detection, then writes each harness's file with the correct root key and format (see [Cross-Tool Config Surface](#cross-tool-config-surface)).
 
 > [!WARNING]
-> APM MCP support is still maturing, and user/global-scope (`apm install -g`) behavior varies by version. Treat MCP wiring as **authored-pending-verification** — run `apm install -g` and inspect the generated per-target files before relying on it (same posture this repo takes for hooks).
+> APM MCP support is still maturing, and behavior varies by version, target and scope. Treat MCP wiring as **authored-pending-verification** — install at the scope the package is meant for (`apm install -g` for global packages such as core, project scope otherwise) and inspect the generated per-target files before relying on it (same posture this repo takes for hooks).
 
 ## Transports
 
@@ -64,23 +64,17 @@ Pick the transport from how the server runs, not from the tool:
 |---|---|---|
 | `stdio` | A local process the harness launches (npx/uvx/jbang/binary) | `command`, `args` (+ optional `env`) |
 | `http` / `streamable-http` | A remote HTTP MCP endpoint | `url` (+ optional `headers`) |
-| `sse` | A remote Server-Sent-Events endpoint (URL typically ends `/sse`) | `url` (+ optional `headers`) |
+| `sse` | Legacy Server-Sent-Events endpoint only (URL typically ends `/sse`) | `url` (+ optional `headers`) |
 
-In native VS Code / Claude `mcp.json` the equivalent discriminator is the `type` field (`stdio` | `http` | `sse`). APM infers transport from `command` (→ stdio) or `url` (→ http) unless `transport`/`type` is set explicitly.
+`sse` is deprecated: Claude Code documents it as deprecated in favour of HTTP, Codex does not support it, and APM 0.31 skips an SSE server for the Codex target with a warning. Use `http` whenever the server offers it.
+
+In native VS Code / Claude `mcp.json` the equivalent discriminator is the `type` field. In `apm.yml`, `transport` is required on a self-defined (`registry: false`) server — APM rejects the entry without it (`type` is accepted as a legacy alias); APM infers it only for the `apm install --mcp` CLI flags.
 
 ## Cross-Tool Config Surface
 
-One concept, four destinations. APM normalizes the key and format differences below — they matter only when reading generated output or configuring a tool by hand.
+One concept, several destinations. APM normalizes the key and format differences — they matter only when reading generated output or configuring a tool by hand. The file-by-file matrix and native examples are in [mcp-configuration.md](./mcp-configuration.md#config-matrix).
 
-| Tool | File | Format | Root key |
-|---|---|---|---|
-| APM (source) | `apm.yml` | YAML | `dependencies.mcp` |
-| VS Code Copilot | `.vscode/mcp.json` | JSON | `servers` |
-| Claude Code | `.mcp.json` (project) / `~/.claude.json` (user) | JSON | `mcpServers` |
-| Copilot CLI | `~/.copilot/mcp-config.json` | JSON | `mcpServers` |
-| OpenAI Codex CLI | `.codex/config.toml` / `~/.codex/config.toml` | TOML | `[mcp_servers.<name>]` |
-
-The load-bearing trap: **VS Code uses `servers`; everyone else uses `mcpServers`.** See [mcp-configuration.md](./mcp-configuration.md) for full per-tool examples.
+The load-bearing trap: **the root key follows the file, not the harness.** `.vscode/mcp.json` uses `servers`; `.mcp.json` (which VS Code also reads), `~/.claude.json` and the Copilot files use `mcpServers`; Codex uses TOML tables.
 
 ## Secrets and Environment Variables
 
@@ -88,10 +82,7 @@ The load-bearing trap: **VS Code uses `servers`; everyone else uses `mcpServers`
 > Never commit a plaintext API key, token, or password. The only acceptable form in a tracked file is a placeholder.
 
 - **Author** secrets in `apm.yml` as the `${VAR}` placeholder in `headers`/`env` (APM's grammar). Never put a real value in a tracked file.
-- **APM resolves the value at `apm install` time** — it prompts for any `${VAR}` it can't read from the environment and writes the resolved value into each generated per-target config. No `.env` file is maintained in this repo.
-- **Resolution differs per tool — APM bridges it on deploy, so verify the generated files** (it either bakes the value in at `apm install` time, or passes the placeholder through):
-  - *Claude Code* expands `${VAR}` and `${VAR:-default}` in `command`/`args`/`env`/`url`/`headers`, read from Claude's own process environment at launch. A required var that is unset with no default makes Claude **fail to parse** the config.
-  - *VS Code* uses `${input:ID}` (with an `inputs` array, `password: true`) or `${env:VAR}`. Bare `${VAR}` is **not** VS Code's native secret form.
+- **APM does not resolve uniformly, and does not always bridge the gap.** Depending on the target it keeps the placeholder, bakes in the literal value, or (Codex remote headers) writes a placeholder the harness never expands. Inspect every generated file; the per-target behaviour is in [mcp-configuration.md](./mcp-configuration.md#secrets).
 - If a key was ever committed or pasted in plaintext, treat it as compromised: rotate it and revoke the old one.
 
 ```yaml
@@ -100,7 +91,7 @@ The load-bearing trap: **VS Code uses `servers`; everyone else uses `mcpServers`
   transport: http
   url: https://mcp.context7.com/mcp
   headers:
-    CONTEXT7_API_KEY: "${CONTEXT7_API_KEY}"   # APM prompts for the value on install; never hard-code it
+    CONTEXT7_API_KEY: "${CONTEXT7_API_KEY}"   # placeholder only; never hard-code the value
 ```
 
 ## Quality Checklist
@@ -109,10 +100,11 @@ The load-bearing trap: **VS Code uses `servers`; everyone else uses `mcpServers`
 - Adding this server doesn't push total exposed tool count past what the model can discriminate; unused tools are disabled where the harness allows it.
 - Declared once in `apm.yml`; no hand-edited per-target files committed.
 - Transport matches how the server runs (`command` → stdio, `url` → http/sse).
-- Every secret is a `${VAR}` placeholder that APM resolves on install; no real value in a tracked file.
+- Every secret is a `${VAR}` placeholder; no real value in a tracked file, and the generated file for each target checked for what APM actually wrote.
+- Self-defined server declares `transport`; `http` rather than `sse` when the server offers both.
 - Remote `url` and stdio `command`/`args` verified to start and respond.
-- `name` is stable and matches any `tools:` references in agents (e.g. `context7/*`).
-- Deploy verified with `apm install -g`; generated files use the right root key per tool.
+- `name` is stable and matches how agent prose refers to the server (agents here declare no `tools:` arrays).
+- Deploy verified at the intended scope; generated files use the right root key per file.
 
 ## Anti-Patterns
 
@@ -120,6 +112,6 @@ The load-bearing trap: **VS Code uses `servers`; everyone else uses `mcpServers`
 - Hand-maintaining `.vscode/mcp.json` / `.mcp.json` instead of `apm.yml` (drift and double source of truth).
 - Adding a server "just in case" with no agent or task that uses it.
 - Adding a server that pushes total exposed tool count past what the model can discriminate, or restating its tool schemas in steering prose instead of letting the schema/annotations speak.
-- Using `servers` for Claude/Codex or `mcpServers` for VS Code (wrong root key → silently ignored).
+- Using the wrong root key for the file — `mcpServers` in `.vscode/mcp.json`, or `servers` in `.mcp.json` (silently ignored).
 - Pinning `@latest` for a server whose behavior you depend on, then being surprised by a breaking change.
 - Relying on `${input:...}` for servers that must work in Claude Code or Codex (not portable).
