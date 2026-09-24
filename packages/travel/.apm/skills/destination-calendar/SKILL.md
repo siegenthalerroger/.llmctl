@@ -43,42 +43,23 @@ Read the output as follows.
 
 ## 2. Work the event classes — in a subagent
 
-The script's last line is a reminder that it found no events. That search is
-the other half of the job, and it does not belong in the main thread.
+The script's last line is a reminder that it found no events. That search is the other half of the job, and it does not belong in the main thread.
 
-It crosses five distinct source types — convention centre, venues, tourism
-board, rail operator, news — and what turns up in one redirects the next. That
-is multi-source investigation with sequential discovery, so **delegate it to a
-research subagent**. Where the `complex-research` skill and a researcher agent
-are available, follow them; the `researcher-advanced` agent is built for
-exactly this shape of work. Without them, run the protocol inline and say so.
+It crosses five distinct source types — convention centre, venues, tourism board, rail operator, news — and what turns up in one redirects the next. That is multi-source investigation with sequential discovery, so **delegate it to a research subagent**. Where the `complex-research` skill and a researcher agent are available, follow them; the `researcher-advanced` agent is built for exactly this shape of work. Without them, run the protocol inline and say so.
 
-Brief the subagent with the whole of
-[search-protocol.md](references/search-protocol.md) — it fixes the sources, the
-order and how to date-bound each query — and with
-[event-classes.md](references/event-classes.md), the eight classes that
-actually move prices. Require the findings table back, not prose.
+Brief the subagent with the whole of [search-protocol.md](references/search-protocol.md) — it fixes the sources, the order and how to date-bound each query — and with [event-classes.md](references/event-classes.md), the eight classes that actually move prices. Require the findings table back, not prose.
 
-Then **trust what comes back**. Do not re-fetch a venue calendar the subagent
-already read or re-run its queries to confirm a date; the urge is strongest
-here, where a wrong date is expensive, and it buys nothing. If the findings
-look thin, the brief was thin — send it back with a sharper one.
+Then **trust what comes back**. Do not re-fetch a venue calendar the subagent already read or re-run its queries to confirm a date; the urge is strongest here, where a wrong date is expensive, and it buys nothing. If the findings look thin, the brief was thin — send it back with a sharper one.
 
-The script half stays in the main thread. It is one call and its output is
-small.
+The script half stays in the main thread. It is one call and its output is small.
 
-Do not stop at the first hit. A Pride weekend and a congress can land on the
-same dates, and the combination is what makes a city unbookable.
+Do not stop at the first hit. A Pride weekend and a congress can land on the same dates, and the combination is what makes a city unbookable.
 
-**Several destinations at once?** Checking two or three candidate windows is a
-parallel fan-out, not a sequence — one subagent per destination, dispatched
-together. The `batch-task-execution` skill covers doing that without the
-subagents duplicating each other's work.
+**Several destinations at once?** Checking two or three candidate windows is a parallel fan-out, not a sequence — one subagent per destination, dispatched together. The `batch-task-execution` skill covers doing that without the subagents duplicating each other's work.
 
 ## 3. Reach a verdict
 
-Findings are not a report. Turn them into one of four decisions, using
-[verdict.md](references/verdict.md):
+Findings are not a report. Turn them into one of four decisions, using [verdict.md](references/verdict.md):
 
 | Verdict | Means |
 |---|---|
@@ -99,7 +80,4 @@ State the verdict first, then the evidence.
 
 ## When the destination is a region, not a country
 
-Country codes are the script's input, but holidays are frequently sub-national
-and events always are. Run the country, then narrow: `--subdivision DE-BY` for
-Munich, `CH-ZH` for Zurich. For the event half, the unit is the city and its
-principal venues, never the country.
+Country codes are the script's input, but holidays are frequently sub-national and events always are. Run the country, then narrow: `--subdivision DE-BY` for Munich, `CH-ZH` for Zurich. For the event half, the unit is the city and its principal venues, never the country.
