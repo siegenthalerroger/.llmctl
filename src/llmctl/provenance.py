@@ -149,7 +149,7 @@ class Record:
 def _entries(value: object, kind: str) -> list[Entry]:
     """Normalise one provenance key's value into entries.
 
-    Three forms are accepted, as documented in CONTRIBUTING.md: a URL string, a
+    Three forms are accepted, as documented in source-url-reference.md: a URL string, a
     list of URL strings, or a list of objects carrying `url` plus any of
     `license` / `fidelity` / `took`. Anything else yields an entry with no url,
     which the caller reports as malformed.
