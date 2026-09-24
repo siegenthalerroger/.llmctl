@@ -34,3 +34,10 @@ dependencies:
       url: https://mcp.context7.com/mcp
       headers:
         CONTEXT7_API_KEY: "${CONTEXT7_API_KEY}"
+      # Codex sends `headers` as static text, so the placeholder would go out
+      # literally (microsoft/apm#2984). `env_http_headers` makes Codex read the
+      # key from its environment, and it wins over the static copy. Other
+      # targets receive the key too; Claude Code ignores it.
+      extra:
+        env_http_headers:
+          CONTEXT7_API_KEY: CONTEXT7_API_KEY
