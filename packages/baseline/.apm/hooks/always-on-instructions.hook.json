@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/.apm/hooks/scripts/always-on-instructions.py\" \"${CLAUDE_PLUGIN_ROOT}/.apm/instructions/writing-style.instructions.md\"",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/.apm/hooks/scripts/always-on-instructions.py\" \"${CLAUDE_PLUGIN_ROOT}/.apm/instructions/writing-style.instructions.md\" \"${CLAUDE_PLUGIN_ROOT}/.apm/instructions/working-style.instructions.md\"",
             "timeout": 10
           }
         ]
