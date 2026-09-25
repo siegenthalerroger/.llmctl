@@ -1,8 +1,8 @@
 lockfile_version: '1'
 apm_version: 0.31.0
 dependencies:
-- repo_url: _local/core
-  name: llmctl-core
+- repo_url: _local/baseline
+  name: llmctl-baseline
   version: 0.0.0
   package_type: apm_package
   deployed_files:
@@ -30,7 +30,6 @@ dependencies:
   - .agents/skills/meta-steering/references/agent-patterns.md
   - .agents/skills/meta-steering/references/agent-subagent.md
   - .agents/skills/meta-steering/references/agent-tools.md
-  - .agents/skills/meta-steering/references/agents.md
   - .agents/skills/meta-steering/references/frontmatter-deploy.md
   - .agents/skills/meta-steering/references/instruction-bootstrapping.md
   - .agents/skills/meta-steering/references/instructions.md
@@ -110,19 +109,18 @@ dependencies:
     .agents/skills/authoring-mermaid-diagrams/scripts/check-mermaid.mjs: sha256:1977836c325c132be7658c14f7797ff033064c9ea8680428c726b5fd8e6743ec
     .agents/skills/batch-task-execution/SKILL.md: sha256:cb7348e7113e5ca4ad8f4eca91ff6d36be8838c1269261f614d814f65c2f7369
     .agents/skills/complex-research/SKILL.md: sha256:1fec9ee1d1ee436e835918c7699f863fe386dc6e9ad6b88198c4b9b4eab351ec
-    .agents/skills/meta-harness/SKILL.md: sha256:2d285f87238945812cd5a89787b43501674df3bb31a1c8c44f50148d64eb21d6
-    .agents/skills/meta-harness/references/hooks.md: sha256:1e5dd80633afd9e3ca6151ca033d3f9a94c0ba11300dd841594f0c6ee73f7ed2
-    .agents/skills/meta-harness/references/mcp-configuration.md: sha256:d8021f52214711e0a75de9fa14e663267e07cbc5f081a8717a0d621feb71f10f
-    .agents/skills/meta-harness/references/mcp.md: sha256:c561b5ec705c47e2c78ed0837ebcd98db0714d6ef43f36a837707263484a75dd
-    .agents/skills/meta-harness/references/plugins.md: sha256:51bb76ab8f6f08217578d0b7b9bd0288a24079b2e42cfb00051b239fb84cea2e
-    .agents/skills/meta-steering/SKILL.md: sha256:3b54056ef0da99788de55db623eaa08a47d8ecc867318c67947eb4d6cb4d4784
+    .agents/skills/meta-harness/SKILL.md: sha256:6ec6d4bb52eebb75475cd7794ea2d8b0c09abad683ae9f287a3f81a152aaa08b
+    .agents/skills/meta-harness/references/hooks.md: sha256:01654bbb21d8dd7b81f72767a83b9e8c9cc5b8314430d8d7b90600a9be3cdec5
+    .agents/skills/meta-harness/references/mcp-configuration.md: sha256:78f6d42985a181c553645619658668055818681477ae0bce2fc769e7d5f43bd4
+    .agents/skills/meta-harness/references/mcp.md: sha256:03c5b27def63c758d1686e88993403fa261ddd4f2da8edf2abfa1696928ea9a5
+    .agents/skills/meta-harness/references/plugins.md: sha256:c27debe49dbe2adf320189138804f3069cdceb82d09cae71c4d654e936ec689f
+    .agents/skills/meta-steering/SKILL.md: sha256:7275eb78b614908962a53b6a77e50ee1268c15d35a904ef872fed0b8b3c3084d
     .agents/skills/meta-steering/references/agent-frontmatter.md: sha256:f207995594919f546d28c36c1d845dc28537215e0867f7ae8ad4fe4157f0be54
-    .agents/skills/meta-steering/references/agent-guide.md: sha256:e5b6ca1697af01a23b9cae0e9599b0898de7bed181790ffd28ff44a0adfe3fd6
+    .agents/skills/meta-steering/references/agent-guide.md: sha256:3ea7c085b0fd92a533d0089f5aecd0bfa4c55aeb0c6fb8d026e34f477e74532a
     .agents/skills/meta-steering/references/agent-handoff.md: sha256:ccd3060572901b5e7e40f0371030bd49dfa6381e39bb409729205ccbbdda8fdd
-    .agents/skills/meta-steering/references/agent-patterns.md: sha256:4fe5f758cb56aff338d9ef0ff44d8c448d926dd84a58925185fe09ecf4a23151
+    .agents/skills/meta-steering/references/agent-patterns.md: sha256:f8b017a16d13369e618b2c95c3d8e8a2b8199c8e97dc93ed45039275464ae8fe
     .agents/skills/meta-steering/references/agent-subagent.md: sha256:9c15e9127208c22fbb163c22fbea7fe7e341528c2cebec265de12233c4b7069c
-    .agents/skills/meta-steering/references/agent-tools.md: sha256:ff04f4df753529b752568dfa91ea6adf9976be502da7b17043f08d03b4a6e7c6
-    .agents/skills/meta-steering/references/agents.md: sha256:9f0499d8fabfa9edcf8632eba3b0a6869c5ae3ead78ff8cf6376573aaed5a74f
+    .agents/skills/meta-steering/references/agent-tools.md: sha256:9284582aded44ca29eda2fcd33de575c2e30de20d685af86253de451cdf43274
     .agents/skills/meta-steering/references/frontmatter-deploy.md: sha256:de326f29097a170ee6e84010e7474008bdfc2f29c6ebbbc844d35ce86cf2cffe
     .agents/skills/meta-steering/references/instruction-bootstrapping.md: sha256:53eb7e7b16402ca92b3652f725aa966b5278066c58a2711fb00f7c5afa95a3fc
     .agents/skills/meta-steering/references/instructions.md: sha256:53869eea88662385c4b2963aa3166bbc3d4a59a75d19001b672383ef534dd736
@@ -138,11 +136,11 @@ dependencies:
     .claude/agents/explore.md: sha256:d3b387a5158c1e52f9ddc22e9335ef54ab17f42c83ff502ad23ae71f158519db
     .claude/agents/plan.md: sha256:b82e78e1ff6baa28714615934c3a738b1363b882cd706bcf185261fa130a5154
     .claude/agents/researcher-advanced.md: sha256:f15191d37b2da1fe17a30b7a6df6c15f57d7fa4c33cb9e90c4d00a1cb581ed6f
-    .claude/commands/reflect.md: sha256:886bc583a8900c629666069515b203ed78927c7ab6fe2b94a135a83a87ec78ce
-    .claude/commands/setup-mcp.md: sha256:e1decc9861e8adfac25d2e3509ad097ccdc4afffae24863344030cee4b451b84
+    .claude/commands/reflect.md: sha256:63137c3eba6ef9980c958f91a666691958b4f3ed06900783de6b0b49ab374f21
+    .claude/commands/setup-mcp.md: sha256:d62c8073b21b5774817f235b5e5454646e898c9e04756a40aa5d671ecc17b2b1
     .claude/rules/documentation.md: sha256:9b4327e7861d91f02908bea4f0ffd184a31e7a2a7e5ac3957d8bed5acd096e71
     .claude/rules/meta.md: sha256:c4247fa31fd2710c87394648d6d5a43e1f06b8a28b9b1fc9d875a48d9f15e50b
-    .claude/rules/troubleshooting.md: sha256:04be902091ae23b817847dbbefe6d6faca46cfc6b6de87a08df407dfc4f0cd9b
+    .claude/rules/troubleshooting.md: sha256:4c0edfccd5e2edcbe0f56b8e002cc2d896571e44be3dfff0bcdefc563451c074
     .claude/skills/authoring-mermaid-diagrams/SKILL.md: sha256:8c06960ada423d8148121b5a4beb078c33a0c96264aeb5fd4fd76433a3fa16e3
     .claude/skills/authoring-mermaid-diagrams/references/diagram-types.md: sha256:f7a3162cc76934bf88129c6a0c8b0483587e4c72cc0977e2b0bc4119499cf3d6
     .claude/skills/authoring-mermaid-diagrams/references/styling-and-theming.md: sha256:bbba28e0c07cabf649bb31ea369b84a203270b1db8fb7d3543ad6f41fd673fcc
@@ -150,18 +148,18 @@ dependencies:
     .claude/skills/authoring-mermaid-diagrams/scripts/check-mermaid.mjs: sha256:1977836c325c132be7658c14f7797ff033064c9ea8680428c726b5fd8e6743ec
     .claude/skills/batch-task-execution/SKILL.md: sha256:cb7348e7113e5ca4ad8f4eca91ff6d36be8838c1269261f614d814f65c2f7369
     .claude/skills/complex-research/SKILL.md: sha256:1fec9ee1d1ee436e835918c7699f863fe386dc6e9ad6b88198c4b9b4eab351ec
-    .claude/skills/meta-harness/SKILL.md: sha256:2d285f87238945812cd5a89787b43501674df3bb31a1c8c44f50148d64eb21d6
-    .claude/skills/meta-harness/references/hooks.md: sha256:1e5dd80633afd9e3ca6151ca033d3f9a94c0ba11300dd841594f0c6ee73f7ed2
-    .claude/skills/meta-harness/references/mcp-configuration.md: sha256:d8021f52214711e0a75de9fa14e663267e07cbc5f081a8717a0d621feb71f10f
-    .claude/skills/meta-harness/references/mcp.md: sha256:c561b5ec705c47e2c78ed0837ebcd98db0714d6ef43f36a837707263484a75dd
-    .claude/skills/meta-harness/references/plugins.md: sha256:51bb76ab8f6f08217578d0b7b9bd0288a24079b2e42cfb00051b239fb84cea2e
-    .claude/skills/meta-steering/SKILL.md: sha256:3b54056ef0da99788de55db623eaa08a47d8ecc867318c67947eb4d6cb4d4784
+    .claude/skills/meta-harness/SKILL.md: sha256:6ec6d4bb52eebb75475cd7794ea2d8b0c09abad683ae9f287a3f81a152aaa08b
+    .claude/skills/meta-harness/references/hooks.md: sha256:01654bbb21d8dd7b81f72767a83b9e8c9cc5b8314430d8d7b90600a9be3cdec5
+    .claude/skills/meta-harness/references/mcp-configuration.md: sha256:78f6d42985a181c553645619658668055818681477ae0bce2fc769e7d5f43bd4
+    .claude/skills/meta-harness/references/mcp.md: sha256:03c5b27def63c758d1686e88993403fa261ddd4f2da8edf2abfa1696928ea9a5
+    .claude/skills/meta-harness/references/plugins.md: sha256:c27debe49dbe2adf320189138804f3069cdceb82d09cae71c4d654e936ec689f
+    .claude/skills/meta-steering/SKILL.md: sha256:7275eb78b614908962a53b6a77e50ee1268c15d35a904ef872fed0b8b3c3084d
     .claude/skills/meta-steering/references/agent-frontmatter.md: sha256:f207995594919f546d28c36c1d845dc28537215e0867f7ae8ad4fe4157f0be54
-    .claude/skills/meta-steering/references/agent-guide.md: sha256:e5b6ca1697af01a23b9cae0e9599b0898de7bed181790ffd28ff44a0adfe3fd6
+    .claude/skills/meta-steering/references/agent-guide.md: sha256:3ea7c085b0fd92a533d0089f5aecd0bfa4c55aeb0c6fb8d026e34f477e74532a
     .claude/skills/meta-steering/references/agent-handoff.md: sha256:ccd3060572901b5e7e40f0371030bd49dfa6381e39bb409729205ccbbdda8fdd
-    .claude/skills/meta-steering/references/agent-patterns.md: sha256:4fe5f758cb56aff338d9ef0ff44d8c448d926dd84a58925185fe09ecf4a23151
+    .claude/skills/meta-steering/references/agent-patterns.md: sha256:f8b017a16d13369e618b2c95c3d8e8a2b8199c8e97dc93ed45039275464ae8fe
     .claude/skills/meta-steering/references/agent-subagent.md: sha256:9c15e9127208c22fbb163c22fbea7fe7e341528c2cebec265de12233c4b7069c
-    .claude/skills/meta-steering/references/agent-tools.md: sha256:ff04f4df753529b752568dfa91ea6adf9976be502da7b17043f08d03b4a6e7c6
+    .claude/skills/meta-steering/references/agent-tools.md: sha256:9284582aded44ca29eda2fcd33de575c2e30de20d685af86253de451cdf43274
     .claude/skills/meta-steering/references/frontmatter-deploy.md: sha256:de326f29097a170ee6e84010e7474008bdfc2f29c6ebbbc844d35ce86cf2cffe
     .claude/skills/meta-steering/references/instruction-bootstrapping.md: sha256:53eb7e7b16402ca92b3652f725aa966b5278066c58a2711fb00f7c5afa95a3fc
     .claude/skills/meta-steering/references/instructions.md: sha256:53869eea88662385c4b2963aa3166bbc3d4a59a75d19001b672383ef534dd736
@@ -184,11 +182,11 @@ dependencies:
     .github/agents/researcher-advanced.agent.md: sha256:f15191d37b2da1fe17a30b7a6df6c15f57d7fa4c33cb9e90c4d00a1cb581ed6f
     .github/instructions/documentation.instructions.md: sha256:21b93c796ebe0bc919c372fab05f0f748c68216df914e25e80a3fa0b46b46d1b
     .github/instructions/meta.instructions.md: sha256:8a4ae22cc343af983d69a1c004a2a1d5ac5a75189606ca02afb605c78878211a
-    .github/instructions/troubleshooting.instructions.md: sha256:08e4097383fa131ed14163f4ce3f8c9c490d0af341352a949b7d0ae7b90fc85d
-    .github/prompts/reflect.prompt.md: sha256:6fc8288c5f2f67229732948758497943adb89f1ec2b0133b22c937e5d2494f7a
-    .github/prompts/setup-mcp.prompt.md: sha256:cb6d3477424d6dd2809067e637c4f79b11e5bfd1881afe686c38a8c8b364cf8e
+    .github/instructions/troubleshooting.instructions.md: sha256:17c397e3f81581c47242b6bee8ee2a798c82e805b000285cbd74e4c5b7a604fd
+    .github/prompts/reflect.prompt.md: sha256:ae0c9e73fe338499fff903f2f0450276374ab06294d52e1692d30df45b9dfbe2
+    .github/prompts/setup-mcp.prompt.md: sha256:19ac14c20cbe30d9894874f63d37babae61ff2ba3b0692d6619046b1352aebef
   source: local
-  local_path: ./packages/core
+  local_path: ./packages/baseline
   declared_license: MIT AND CC-BY-SA-4.0
 - repo_url: _local/python
   name: llmctl-python
@@ -257,7 +255,7 @@ dependencies:
   resolved_ref: 523374dee72d67c7b2b5f858ea0094ffda49c3ac
   version: 2.9.1
   depth: 2
-  resolved_by: _local/core
+  resolved_by: _local/baseline
   package_type: hybrid
   deployed_files:
   - .agents/skills/humanizer
@@ -370,7 +368,7 @@ dependencies:
   virtual_path: skills/productivity/grill-me
   is_virtual: true
   depth: 2
-  resolved_by: _local/core
+  resolved_by: _local/baseline
   package_type: claude_skill
   deployed_files:
   - .agents/skills/grill-me
@@ -394,7 +392,7 @@ dependencies:
   virtual_path: skills/productivity/grilling
   is_virtual: true
   depth: 2
-  resolved_by: _local/core
+  resolved_by: _local/baseline
   package_type: claude_skill
   deployed_files:
   - .agents/skills/grilling
@@ -552,13 +550,832 @@ dependencies:
 deployments:
 - kind: project-relative
   target: agent-skills
-  value: .agents/skills/meta-steering/references/agents.md
+  value: .agents/skills/authoring-mermaid-diagrams
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:9f0499d8fabfa9edcf8632eba3b0a6869c5ae3ead78ff8cf6376573aaed5a74f
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/authoring-mermaid-diagrams/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:8c06960ada423d8148121b5a4beb078c33a0c96264aeb5fd4fd76433a3fa16e3
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/authoring-mermaid-diagrams/references/diagram-types.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:f7a3162cc76934bf88129c6a0c8b0483587e4c72cc0977e2b0bc4119499cf3d6
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/authoring-mermaid-diagrams/references/styling-and-theming.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:bbba28e0c07cabf649bb31ea369b84a203270b1db8fb7d3543ad6f41fd673fcc
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/authoring-mermaid-diagrams/references/syntax-recipes.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:1c674f98b2aff669bf6ed1688d0fd7f9f7ef497066717d82f0bec67ddecda9d4
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/authoring-mermaid-diagrams/scripts/check-mermaid.mjs
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:1977836c325c132be7658c14f7797ff033064c9ea8680428c726b5fd8e6743ec
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/batch-task-execution
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/batch-task-execution/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:cb7348e7113e5ca4ad8f4eca91ff6d36be8838c1269261f614d814f65c2f7369
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/complex-research
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/complex-research/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:1fec9ee1d1ee436e835918c7699f863fe386dc6e9ad6b88198c4b9b4eab351ec
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/grill-me
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/productivity/grill-me
+  active_owner: mattpocock/skills/skills/productivity/grill-me
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/grill-me/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/productivity/grill-me
+  active_owner: mattpocock/skills/skills/productivity/grill-me
+  content_hash: sha256:6189dfceb7304a6e5558f75d87e68fa3bc7fcf7ba120e44f21f8a61fe01eba54
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/grill-me/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/productivity/grill-me
+  active_owner: mattpocock/skills/skills/productivity/grill-me
+  content_hash: sha256:c061e39c3e0f9d865fb1b97556d485704af2a8a58f4b8221a8917a5c2074a32b
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/grilling
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/productivity/grilling
+  active_owner: mattpocock/skills/skills/productivity/grilling
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/grilling/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/productivity/grilling
+  active_owner: mattpocock/skills/skills/productivity/grilling
+  content_hash: sha256:44331dda57f461db4fec3f2efb6ddabe7aaaa0a57ae0f88a883bc61aed8a0587
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/grilling/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/productivity/grilling
+  active_owner: mattpocock/skills/skills/productivity/grilling
+  content_hash: sha256:cf29b9a8dbf35a58a908a6ca4f64dcd86c2b2130291eee0a78b9f706b138825b
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/humanizer
+  runtime: null
+  scope: project
+  owners:
+  - blader/humanizer
+  active_owner: blader/humanizer
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/humanizer/.claude-plugin/marketplace.json
+  runtime: null
+  scope: project
+  owners:
+  - blader/humanizer
+  active_owner: blader/humanizer
+  content_hash: sha256:141736822a343ca0b605d7a9298fef4b692a69368215338df76efb876af442e4
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/humanizer/.claude-plugin/plugin.json
+  runtime: null
+  scope: project
+  owners:
+  - blader/humanizer
+  active_owner: blader/humanizer
+  content_hash: sha256:f31bf57f37eabb0d4e2eab4deb4f69bf64cc4db164d4809cc57f8c9502aa4eb8
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/humanizer/.github/workflows/validate.yml
+  runtime: null
+  scope: project
+  owners:
+  - blader/humanizer
+  active_owner: blader/humanizer
+  content_hash: sha256:4ee5852335371388b4a621e2a1e5d0115b3046d214ff2b43377a2422e77a4185
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/humanizer/AGENTS.md
+  runtime: null
+  scope: project
+  owners:
+  - blader/humanizer
+  active_owner: blader/humanizer
+  content_hash: sha256:9394319b85795f13527b6462ac660d8e59ac43dd0e84f2bb2c3a1891e62ad402
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/humanizer/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - blader/humanizer
+  active_owner: blader/humanizer
+  content_hash: sha256:4ac4810254ab36d45419141aeb8e69bf50652cfafe5b2dab947d06d44e5cbf96
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/humanizer/README.md
+  runtime: null
+  scope: project
+  owners:
+  - blader/humanizer
+  active_owner: blader/humanizer
+  content_hash: sha256:cb771a5ac98040b72ea1479f25bedec9e619c85f8b1493c205105a3b714a9d86
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/humanizer/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - blader/humanizer
+  active_owner: blader/humanizer
+  content_hash: sha256:70938f3cce25970e1ded5fdd194b755c03f1e4e4fa76820958ce78f86b677b1a
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/humanizer/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - blader/humanizer
+  active_owner: blader/humanizer
+  content_hash: sha256:7b4289413ca3de49c7efc2798ac230e7ae563a6bd7eadf799ee5b2d75c261d25
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/humanizer/apm.yml
+  runtime: null
+  scope: project
+  owners:
+  - blader/humanizer
+  active_owner: blader/humanizer
+  content_hash: sha256:f64de816c85ea4f480c8156c1296966cc39275de0d2a8f7524e2e95048aa1ed9
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/humanizer/scripts/validate-package.py
+  runtime: null
+  scope: project
+  owners:
+  - blader/humanizer
+  active_owner: blader/humanizer
+  content_hash: sha256:d2c5496ca73a8ce2d3f0cad6681724170d8566bef54d36dfc1e5d3972597b614
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/lint-fix
+  runtime: null
+  scope: project
+  owners:
+  - rshade/agent-skills/skills/lint-fix
+  active_owner: rshade/agent-skills/skills/lint-fix
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/lint-fix/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - rshade/agent-skills/skills/lint-fix
+  active_owner: rshade/agent-skills/skills/lint-fix
+  content_hash: sha256:bd7f86143dbf4ec5eaa27de51633cf67a9e204d0a276bf11f52ef91c2cbd3a44
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/lint-fix/references/fix-protocol.md
+  runtime: null
+  scope: project
+  owners:
+  - rshade/agent-skills/skills/lint-fix
+  active_owner: rshade/agent-skills/skills/lint-fix
+  content_hash: sha256:e8bdaae655da27144c3e8fa3d810908569a0d3659790d279c95d0468e511cea7
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/lint-fix/references/tool-detection.md
+  runtime: null
+  scope: project
+  owners:
+  - rshade/agent-skills/skills/lint-fix
+  active_owner: rshade/agent-skills/skills/lint-fix
+  content_hash: sha256:1b427e480ad48b955c564bca5a5c3ea0f5b923e893f057b1c22a356820beea1a
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-harness
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-harness/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:6ec6d4bb52eebb75475cd7794ea2d8b0c09abad683ae9f287a3f81a152aaa08b
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-harness/references/hooks.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:01654bbb21d8dd7b81f72767a83b9e8c9cc5b8314430d8d7b90600a9be3cdec5
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-harness/references/mcp-configuration.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:78f6d42985a181c553645619658668055818681477ae0bce2fc769e7d5f43bd4
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-harness/references/mcp.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:03c5b27def63c758d1686e88993403fa261ddd4f2da8edf2abfa1696928ea9a5
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-harness/references/plugins.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:c27debe49dbe2adf320189138804f3069cdceb82d09cae71c4d654e936ec689f
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-steering
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-steering/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:7275eb78b614908962a53b6a77e50ee1268c15d35a904ef872fed0b8b3c3084d
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-steering/references/agent-frontmatter.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:f207995594919f546d28c36c1d845dc28537215e0867f7ae8ad4fe4157f0be54
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-steering/references/agent-guide.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:3ea7c085b0fd92a533d0089f5aecd0bfa4c55aeb0c6fb8d026e34f477e74532a
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-steering/references/agent-handoff.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:ccd3060572901b5e7e40f0371030bd49dfa6381e39bb409729205ccbbdda8fdd
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-steering/references/agent-patterns.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:f8b017a16d13369e618b2c95c3d8e8a2b8199c8e97dc93ed45039275464ae8fe
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-steering/references/agent-subagent.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:9c15e9127208c22fbb163c22fbea7fe7e341528c2cebec265de12233c4b7069c
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-steering/references/agent-tools.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:9284582aded44ca29eda2fcd33de575c2e30de20d685af86253de451cdf43274
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-steering/references/frontmatter-deploy.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:de326f29097a170ee6e84010e7474008bdfc2f29c6ebbbc844d35ce86cf2cffe
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-steering/references/instruction-bootstrapping.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:53eb7e7b16402ca92b3652f725aa966b5278066c58a2711fb00f7c5afa95a3fc
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-steering/references/instructions.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:53869eea88662385c4b2963aa3166bbc3d4a59a75d19001b672383ef534dd736
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-steering/references/prompts.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:a8cf56bfc69266094f64e9335db9220f369557e4e1040b9a647f3c24b81f0b68
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-steering/references/skill-body.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:316b166abfd190817c2b1fb5fced7db75cb7aeb96cdc4850442c776f00165858
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-steering/references/skill-frontmatter.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:503b1818229f61957cdfed27466540c4c8d2f14d72879cd1aa152c288d98a76c
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-steering/references/skill-spec.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:ff7b3dabaa6ec371c237212a9d50e0fb5f4c5671cc0613b9b907add3eaedabbe
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-steering/references/skill-structure.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:4e0a28d150e985ec5a26b911c15a8542b8d26a5ea430ae8347a421558b374602
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/meta-steering/references/skills.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:1f7aaeceba9aa926bcf0d63b12f5176fd8285bfdc7702988fe05054b48f1ef96
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/modern-python
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/modern-python/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:ef774b925eb1d1fc12e4f5ddc3f5ad925ecd795315827447228c70cc44c6170c
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/modern-python/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:f56c544187af5bd3c76f1cd082619644090ab7b6d8abe77d4d3115d39dced5c1
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/modern-python/assets/trail-of-bits-mark.svg
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:4bf74c789b38dcf6ad762c136b6832363d27ae19fbaa9a18ec18d66ecce6ca05
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/modern-python/references/dependabot.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:d3678e32472305c0ef136bca99b26c3f75554d63675930e396f26a91a97451ad
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/modern-python/references/migration-checklist.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:58c947e6200a91f350c9adc898af7fc6263fda41d36ae81ffd4dd923b3a1015e
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/modern-python/references/pep723-scripts.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:c348b136613a4fed8f623d6013c0c6413d2c24f2973b2e5f85b80ecc68646045
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/modern-python/references/prek.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:4be1c181c71aab64ba58573242a1c451d576a5c61ceeb400bb5827f4e1f9532a
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/modern-python/references/pyproject.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:aec906835ec687024700d31e5c146baaabc9524129384304857b3aa81809401b
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/modern-python/references/ruff-config.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:8d247862f1beaf76816ed6775f5a0c8dc96d74c7f2b71bbf1aaedc4937373b17
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/modern-python/references/security-setup.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:32d6754a87d5006f923706d10446cc617cb22d36cfc30b55d39bd7f4c61d864c
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/modern-python/references/testing.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:82e36068fbf28a9615d3c96e5d946e304ce8f89ae1ba7475d20934501d55b0d9
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/modern-python/references/uv-commands.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:348cd69e8c780a0c7d54a2fac3c2956c7efe5630229782753da1685416672cdc
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/modern-python/templates/dependabot.yml
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:a85ede8ff9cc3a2f63cb1fba24e65c36a5885ecc95722af15157dc5258f28a12
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/modern-python/templates/pre-commit-config.yaml
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/modern-python/skills/modern-python
+  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
+  content_hash: sha256:18efd067e75cba5fc71705c2f90c548a03c3cded4cd2a7f9b4a1d617e115db0d
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/python-scripts
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/python
+  active_owner: ./packages/python
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/python-scripts/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/python
+  active_owner: ./packages/python
+  content_hash: sha256:0c63444c7940aff87071a9468af78723efeea8c25a65e1ecbe939ede48bb6c43
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/python-scripts/references/inline-metadata.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/python
+  active_owner: ./packages/python
+  content_hash: sha256:30e40489731c4168191e8fad47bab1eb3cf8da17ec349407d0bb786299c60e50
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/python-scripts/references/script-template.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/python
+  active_owner: ./packages/python
+  content_hash: sha256:b54fbe7aeb7f5ac09fd8aee004eadcbc0e02380462cb0aaa78a844c3f8e4dd83
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/python-standards
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/python
+  active_owner: ./packages/python
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/python-standards/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/python
+  active_owner: ./packages/python
+  content_hash: sha256:69f61e9d4f1562e0e93bd232a922f5eef31be1b33c0131924e1457c34c2a69d9
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/python-standards/references/design.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/python
+  active_owner: ./packages/python
+  content_hash: sha256:446921fec49ea8aab4b21872d18553a0ae54af1a3aad0be63cbb6d9d83af394d
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/python-standards/references/runtime.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/python
+  active_owner: ./packages/python
+  content_hash: sha256:399530b0514fa865258bf142254c3788023d1d978fcc01cb50aa815f2eb2d5ee
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/python-standards/references/typing.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/python
+  active_owner: ./packages/python
+  content_hash: sha256:54afffcc8f46579defe200a3a46c550fc66e37683b7df2dcb6d6545109f94871
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/receiving-code-review
+  runtime: null
+  scope: project
+  owners:
+  - obra/superpowers/skills/receiving-code-review
+  active_owner: obra/superpowers/skills/receiving-code-review
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/receiving-code-review/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - obra/superpowers/skills/receiving-code-review
+  active_owner: obra/superpowers/skills/receiving-code-review
+  content_hash: sha256:091df1629510af1b92fc4abd6f96732ebedb4cb2c0f3457e8f2740b0504a2438
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/resolving-merge-conflicts
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/resolving-merge-conflicts
+  active_owner: mattpocock/skills/skills/engineering/resolving-merge-conflicts
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/resolving-merge-conflicts/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/resolving-merge-conflicts
+  active_owner: mattpocock/skills/skills/engineering/resolving-merge-conflicts
+  content_hash: sha256:c7c9ba81362a786aac05d2223123bf1bd2f8a99c3243a72882ede9c68bedfb24
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/resolving-merge-conflicts/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/resolving-merge-conflicts
+  active_owner: mattpocock/skills/skills/engineering/resolving-merge-conflicts
+  content_hash: sha256:a1f4f96838f2ed6282eb28abbbf99029cb8fadce552baf53da90a025b8bffddf
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/tdd
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/tdd
+  active_owner: mattpocock/skills/skills/engineering/tdd
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/tdd/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/tdd
+  active_owner: mattpocock/skills/skills/engineering/tdd
+  content_hash: sha256:5363bb2775679fe9311fbb67947f95359169c6e7f1fac77c0f25e190bca6cf2f
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/tdd/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/tdd
+  active_owner: mattpocock/skills/skills/engineering/tdd
+  content_hash: sha256:ea6f01cf1b8c06a4b0f5b649d74b1b8ce8685e72af1b38d70d877693e092af0b
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/tdd/mocking.md
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/tdd
+  active_owner: mattpocock/skills/skills/engineering/tdd
+  content_hash: sha256:3ceb807fdf4a47d6a93d4d9a891e5ba6d362a6247bd08adc451feebfc17361ef
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/tdd/tests.md
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/tdd
+  active_owner: mattpocock/skills/skills/engineering/tdd
+  content_hash: sha256:859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/troubleshooting
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/troubleshooting/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:82a951e941e97516f2f4d6c08170b0dddaef135205963aa03bc9685ac894300f
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/using-git-worktrees
+  runtime: null
+  scope: project
+  owners:
+  - obra/superpowers/skills/using-git-worktrees
+  active_owner: obra/superpowers/skills/using-git-worktrees
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/using-git-worktrees/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - obra/superpowers/skills/using-git-worktrees
+  active_owner: obra/superpowers/skills/using-git-worktrees
+  content_hash: sha256:8cfb86f121269e8f7f12361e6795c4f6738828340e28964c9229d365666c9edd
 - kind: project-relative
   target: claude
   value: .claude/agents/code-reviewer.md
@@ -574,8 +1391,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:040a6f8aacf9b4cf5378a07cbe0add6d810d2ebdf15d549f62c0ca276077c0a3
 - kind: project-relative
   target: claude
@@ -583,8 +1400,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:65f71a7eb594c2205554f383798a2344e69d6803a20c0d1e8fc7521b108ffbee
 - kind: project-relative
   target: claude
@@ -592,8 +1409,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:d3b387a5158c1e52f9ddc22e9335ef54ab17f42c83ff502ad23ae71f158519db
 - kind: project-relative
   target: claude
@@ -603,15 +1420,15 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:74c32f2bc2bcc60ac6e43c0c75ee5bb9153ca5ad50b0794bec9cd4b6967be3cd
+  content_hash: sha256:dd1197b12039ac3f37ce4c0749ddb5f2c9042c6affe5c8546fc2bfcdfddd60e4
 - kind: project-relative
   target: claude
   value: .claude/agents/plan.md
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:b82e78e1ff6baa28714615934c3a738b1363b882cd706bcf185261fa130a5154
 - kind: project-relative
   target: claude
@@ -619,8 +1436,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:f15191d37b2da1fe17a30b7a6df6c15f57d7fa4c33cb9e90c4d00a1cb581ed6f
 - kind: project-relative
   target: claude
@@ -628,26 +1445,26 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:886bc583a8900c629666069515b203ed78927c7ab6fe2b94a135a83a87ec78ce
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:63137c3eba6ef9980c958f91a666691958b4f3ed06900783de6b0b49ab374f21
 - kind: project-relative
   target: claude
   value: .claude/commands/setup-mcp.md
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:e1decc9861e8adfac25d2e3509ad097ccdc4afffae24863344030cee4b451b84
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:d62c8073b21b5774817f235b5e5454646e898c9e04756a40aa5d671ecc17b2b1
 - kind: project-relative
   target: claude
   value: .claude/rules/documentation.md
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:9b4327e7861d91f02908bea4f0ffd184a31e7a2a7e5ac3957d8bed5acd096e71
 - kind: project-relative
   target: claude
@@ -655,8 +1472,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:c4247fa31fd2710c87394648d6d5a43e1f06b8a28b9b1fc9d875a48d9f15e50b
 - kind: project-relative
   target: claude
@@ -673,17 +1490,17 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:04be902091ae23b817847dbbefe6d6faca46cfc6b6de87a08df407dfc4f0cd9b
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:4c0edfccd5e2edcbe0f56b8e002cc2d896571e44be3dfff0bcdefc563451c074
 - kind: project-relative
   target: claude
   value: .claude/skills/authoring-mermaid-diagrams
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: null
 - kind: project-relative
   target: claude
@@ -691,8 +1508,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:8c06960ada423d8148121b5a4beb078c33a0c96264aeb5fd4fd76433a3fa16e3
 - kind: project-relative
   target: claude
@@ -700,8 +1517,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:f7a3162cc76934bf88129c6a0c8b0483587e4c72cc0977e2b0bc4119499cf3d6
 - kind: project-relative
   target: claude
@@ -709,8 +1526,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:bbba28e0c07cabf649bb31ea369b84a203270b1db8fb7d3543ad6f41fd673fcc
 - kind: project-relative
   target: claude
@@ -718,8 +1535,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:1c674f98b2aff669bf6ed1688d0fd7f9f7ef497066717d82f0bec67ddecda9d4
 - kind: project-relative
   target: claude
@@ -727,8 +1544,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:1977836c325c132be7658c14f7797ff033064c9ea8680428c726b5fd8e6743ec
 - kind: project-relative
   target: claude
@@ -736,8 +1553,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: null
 - kind: project-relative
   target: claude
@@ -745,8 +1562,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:cb7348e7113e5ca4ad8f4eca91ff6d36be8838c1269261f614d814f65c2f7369
 - kind: project-relative
   target: claude
@@ -754,8 +1571,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: null
 - kind: project-relative
   target: claude
@@ -763,8 +1580,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:1fec9ee1d1ee436e835918c7699f863fe386dc6e9ad6b88198c4b9b4eab351ec
 - kind: project-relative
   target: claude
@@ -961,8 +1778,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: null
 - kind: project-relative
   target: claude
@@ -970,45 +1787,45 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:2d285f87238945812cd5a89787b43501674df3bb31a1c8c44f50148d64eb21d6
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:6ec6d4bb52eebb75475cd7794ea2d8b0c09abad683ae9f287a3f81a152aaa08b
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-harness/references/hooks.md
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:1e5dd80633afd9e3ca6151ca033d3f9a94c0ba11300dd841594f0c6ee73f7ed2
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:01654bbb21d8dd7b81f72767a83b9e8c9cc5b8314430d8d7b90600a9be3cdec5
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-harness/references/mcp-configuration.md
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:d8021f52214711e0a75de9fa14e663267e07cbc5f081a8717a0d621feb71f10f
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:78f6d42985a181c553645619658668055818681477ae0bce2fc769e7d5f43bd4
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-harness/references/mcp.md
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:c561b5ec705c47e2c78ed0837ebcd98db0714d6ef43f36a837707263484a75dd
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:03c5b27def63c758d1686e88993403fa261ddd4f2da8edf2abfa1696928ea9a5
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-harness/references/plugins.md
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:51bb76ab8f6f08217578d0b7b9bd0288a24079b2e42cfb00051b239fb84cea2e
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:c27debe49dbe2adf320189138804f3069cdceb82d09cae71c4d654e936ec689f
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-refresh-steering
@@ -1026,7 +1843,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:fca526ea3d2106712b3211915f49ef6e1f869362f86e19b1220512282f550761
+  content_hash: sha256:be72cfcb77d1e25cd91f6806d02708a0dfc97a97c5ee14b1839f13e4c7606217
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-review-steering
@@ -1044,15 +1861,15 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:d820a0b90ed7fce6f83bc2f43c411fc94b257accd3e990eb23f338ef0e34abd5
+  content_hash: sha256:91c71d5f8445d4fdbba67a8c9a8fbdd95c262f7ea8d6f08046b2d9fd8aefb935
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-steering
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: null
 - kind: project-relative
   target: claude
@@ -1060,17 +1877,17 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:3b54056ef0da99788de55db623eaa08a47d8ecc867318c67947eb4d6cb4d4784
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:7275eb78b614908962a53b6a77e50ee1268c15d35a904ef872fed0b8b3c3084d
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-steering/references/agent-frontmatter.md
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:f207995594919f546d28c36c1d845dc28537215e0867f7ae8ad4fe4157f0be54
 - kind: project-relative
   target: claude
@@ -1078,17 +1895,17 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:e5b6ca1697af01a23b9cae0e9599b0898de7bed181790ffd28ff44a0adfe3fd6
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:3ea7c085b0fd92a533d0089f5aecd0bfa4c55aeb0c6fb8d026e34f477e74532a
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-steering/references/agent-handoff.md
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:ccd3060572901b5e7e40f0371030bd49dfa6381e39bb409729205ccbbdda8fdd
 - kind: project-relative
   target: claude
@@ -1096,17 +1913,17 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:4fe5f758cb56aff338d9ef0ff44d8c448d926dd84a58925185fe09ecf4a23151
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:f8b017a16d13369e618b2c95c3d8e8a2b8199c8e97dc93ed45039275464ae8fe
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-steering/references/agent-subagent.md
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:9c15e9127208c22fbb163c22fbea7fe7e341528c2cebec265de12233c4b7069c
 - kind: project-relative
   target: claude
@@ -1114,17 +1931,17 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:ff04f4df753529b752568dfa91ea6adf9976be502da7b17043f08d03b4a6e7c6
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:9284582aded44ca29eda2fcd33de575c2e30de20d685af86253de451cdf43274
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-steering/references/frontmatter-deploy.md
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:de326f29097a170ee6e84010e7474008bdfc2f29c6ebbbc844d35ce86cf2cffe
 - kind: project-relative
   target: claude
@@ -1132,8 +1949,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:53eb7e7b16402ca92b3652f725aa966b5278066c58a2711fb00f7c5afa95a3fc
 - kind: project-relative
   target: claude
@@ -1141,8 +1958,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:53869eea88662385c4b2963aa3166bbc3d4a59a75d19001b672383ef534dd736
 - kind: project-relative
   target: claude
@@ -1150,8 +1967,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:a8cf56bfc69266094f64e9335db9220f369557e4e1040b9a647f3c24b81f0b68
 - kind: project-relative
   target: claude
@@ -1159,8 +1976,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:316b166abfd190817c2b1fb5fced7db75cb7aeb96cdc4850442c776f00165858
 - kind: project-relative
   target: claude
@@ -1168,8 +1985,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:503b1818229f61957cdfed27466540c4c8d2f14d72879cd1aa152c288d98a76c
 - kind: project-relative
   target: claude
@@ -1177,8 +1994,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:ff7b3dabaa6ec371c237212a9d50e0fb5f4c5671cc0613b9b907add3eaedabbe
 - kind: project-relative
   target: claude
@@ -1186,8 +2003,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:4e0a28d150e985ec5a26b911c15a8542b8d26a5ea430ae8347a421558b374602
 - kind: project-relative
   target: claude
@@ -1195,8 +2012,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:1f7aaeceba9aa926bcf0d63b12f5176fd8285bfdc7702988fe05054b48f1ef96
 - kind: project-relative
   target: claude
@@ -1215,7 +2032,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:5b69e2bff6bd60f85d016b7504130970eed7d4831ecfa9511beaee6e65c17b5c
+  content_hash: sha256:fb6ed258daa2e4aa8a778d6af4b943ab4d0ffc0269c01f61111b4fd6a5370b52
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-update-repo
@@ -1233,7 +2050,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:6b9c6f8e3447d8d9aa26ff50c346ddf6bccfb6b530c0f546bab88f56e58601c7
+  content_hash: sha256:0bad58b23d03335e3f14379204e55c91dad16b631000bc66607f75dce53b4ad9
 - kind: project-relative
   target: claude
   value: .claude/skills/meta-update-repo/references/safety-review.md
@@ -1251,7 +2068,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:eca01e9e0c483c38a59676bf3e9b8c585b22132c997083d9dcca1fdd30e46c1b
+  content_hash: sha256:9362c3916235b24d9bb435977ba9358209b995ddeaf7aae4083222738d27241c
 - kind: project-relative
   target: claude
   value: .claude/skills/modern-python
@@ -1564,8 +2381,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: null
 - kind: project-relative
   target: claude
@@ -1573,8 +2390,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:82a951e941e97516f2f4d6c08170b0dddaef135205963aa03bc9685ac894300f
 - kind: project-relative
   target: claude
@@ -1596,834 +2413,6 @@ deployments:
   content_hash: sha256:8cfb86f121269e8f7f12361e6795c4f6738828340e28964c9229d365666c9edd
 - kind: project-relative
   target: codex
-  value: .agents/skills/authoring-mermaid-diagrams
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: null
-- kind: project-relative
-  target: codex
-  value: .agents/skills/authoring-mermaid-diagrams/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:8c06960ada423d8148121b5a4beb078c33a0c96264aeb5fd4fd76433a3fa16e3
-- kind: project-relative
-  target: codex
-  value: .agents/skills/authoring-mermaid-diagrams/references/diagram-types.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:f7a3162cc76934bf88129c6a0c8b0483587e4c72cc0977e2b0bc4119499cf3d6
-- kind: project-relative
-  target: codex
-  value: .agents/skills/authoring-mermaid-diagrams/references/styling-and-theming.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:bbba28e0c07cabf649bb31ea369b84a203270b1db8fb7d3543ad6f41fd673fcc
-- kind: project-relative
-  target: codex
-  value: .agents/skills/authoring-mermaid-diagrams/references/syntax-recipes.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:1c674f98b2aff669bf6ed1688d0fd7f9f7ef497066717d82f0bec67ddecda9d4
-- kind: project-relative
-  target: codex
-  value: .agents/skills/authoring-mermaid-diagrams/scripts/check-mermaid.mjs
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:1977836c325c132be7658c14f7797ff033064c9ea8680428c726b5fd8e6743ec
-- kind: project-relative
-  target: codex
-  value: .agents/skills/batch-task-execution
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: null
-- kind: project-relative
-  target: codex
-  value: .agents/skills/batch-task-execution/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:cb7348e7113e5ca4ad8f4eca91ff6d36be8838c1269261f614d814f65c2f7369
-- kind: project-relative
-  target: codex
-  value: .agents/skills/complex-research
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: null
-- kind: project-relative
-  target: codex
-  value: .agents/skills/complex-research/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:1fec9ee1d1ee436e835918c7699f863fe386dc6e9ad6b88198c4b9b4eab351ec
-- kind: project-relative
-  target: codex
-  value: .agents/skills/grill-me
-  runtime: null
-  scope: project
-  owners:
-  - mattpocock/skills/skills/productivity/grill-me
-  active_owner: mattpocock/skills/skills/productivity/grill-me
-  content_hash: null
-- kind: project-relative
-  target: codex
-  value: .agents/skills/grill-me/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - mattpocock/skills/skills/productivity/grill-me
-  active_owner: mattpocock/skills/skills/productivity/grill-me
-  content_hash: sha256:6189dfceb7304a6e5558f75d87e68fa3bc7fcf7ba120e44f21f8a61fe01eba54
-- kind: project-relative
-  target: codex
-  value: .agents/skills/grill-me/agents/openai.yaml
-  runtime: null
-  scope: project
-  owners:
-  - mattpocock/skills/skills/productivity/grill-me
-  active_owner: mattpocock/skills/skills/productivity/grill-me
-  content_hash: sha256:c061e39c3e0f9d865fb1b97556d485704af2a8a58f4b8221a8917a5c2074a32b
-- kind: project-relative
-  target: codex
-  value: .agents/skills/grilling
-  runtime: null
-  scope: project
-  owners:
-  - mattpocock/skills/skills/productivity/grilling
-  active_owner: mattpocock/skills/skills/productivity/grilling
-  content_hash: null
-- kind: project-relative
-  target: codex
-  value: .agents/skills/grilling/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - mattpocock/skills/skills/productivity/grilling
-  active_owner: mattpocock/skills/skills/productivity/grilling
-  content_hash: sha256:44331dda57f461db4fec3f2efb6ddabe7aaaa0a57ae0f88a883bc61aed8a0587
-- kind: project-relative
-  target: codex
-  value: .agents/skills/grilling/agents/openai.yaml
-  runtime: null
-  scope: project
-  owners:
-  - mattpocock/skills/skills/productivity/grilling
-  active_owner: mattpocock/skills/skills/productivity/grilling
-  content_hash: sha256:cf29b9a8dbf35a58a908a6ca4f64dcd86c2b2130291eee0a78b9f706b138825b
-- kind: project-relative
-  target: codex
-  value: .agents/skills/humanizer
-  runtime: null
-  scope: project
-  owners:
-  - blader/humanizer
-  active_owner: blader/humanizer
-  content_hash: null
-- kind: project-relative
-  target: codex
-  value: .agents/skills/humanizer/.claude-plugin/marketplace.json
-  runtime: null
-  scope: project
-  owners:
-  - blader/humanizer
-  active_owner: blader/humanizer
-  content_hash: sha256:141736822a343ca0b605d7a9298fef4b692a69368215338df76efb876af442e4
-- kind: project-relative
-  target: codex
-  value: .agents/skills/humanizer/.claude-plugin/plugin.json
-  runtime: null
-  scope: project
-  owners:
-  - blader/humanizer
-  active_owner: blader/humanizer
-  content_hash: sha256:f31bf57f37eabb0d4e2eab4deb4f69bf64cc4db164d4809cc57f8c9502aa4eb8
-- kind: project-relative
-  target: codex
-  value: .agents/skills/humanizer/.github/workflows/validate.yml
-  runtime: null
-  scope: project
-  owners:
-  - blader/humanizer
-  active_owner: blader/humanizer
-  content_hash: sha256:4ee5852335371388b4a621e2a1e5d0115b3046d214ff2b43377a2422e77a4185
-- kind: project-relative
-  target: codex
-  value: .agents/skills/humanizer/AGENTS.md
-  runtime: null
-  scope: project
-  owners:
-  - blader/humanizer
-  active_owner: blader/humanizer
-  content_hash: sha256:9394319b85795f13527b6462ac660d8e59ac43dd0e84f2bb2c3a1891e62ad402
-- kind: project-relative
-  target: codex
-  value: .agents/skills/humanizer/LICENSE
-  runtime: null
-  scope: project
-  owners:
-  - blader/humanizer
-  active_owner: blader/humanizer
-  content_hash: sha256:4ac4810254ab36d45419141aeb8e69bf50652cfafe5b2dab947d06d44e5cbf96
-- kind: project-relative
-  target: codex
-  value: .agents/skills/humanizer/README.md
-  runtime: null
-  scope: project
-  owners:
-  - blader/humanizer
-  active_owner: blader/humanizer
-  content_hash: sha256:cb771a5ac98040b72ea1479f25bedec9e619c85f8b1493c205105a3b714a9d86
-- kind: project-relative
-  target: codex
-  value: .agents/skills/humanizer/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - blader/humanizer
-  active_owner: blader/humanizer
-  content_hash: sha256:70938f3cce25970e1ded5fdd194b755c03f1e4e4fa76820958ce78f86b677b1a
-- kind: project-relative
-  target: codex
-  value: .agents/skills/humanizer/agents/openai.yaml
-  runtime: null
-  scope: project
-  owners:
-  - blader/humanizer
-  active_owner: blader/humanizer
-  content_hash: sha256:7b4289413ca3de49c7efc2798ac230e7ae563a6bd7eadf799ee5b2d75c261d25
-- kind: project-relative
-  target: codex
-  value: .agents/skills/humanizer/apm.yml
-  runtime: null
-  scope: project
-  owners:
-  - blader/humanizer
-  active_owner: blader/humanizer
-  content_hash: sha256:f64de816c85ea4f480c8156c1296966cc39275de0d2a8f7524e2e95048aa1ed9
-- kind: project-relative
-  target: codex
-  value: .agents/skills/humanizer/scripts/validate-package.py
-  runtime: null
-  scope: project
-  owners:
-  - blader/humanizer
-  active_owner: blader/humanizer
-  content_hash: sha256:d2c5496ca73a8ce2d3f0cad6681724170d8566bef54d36dfc1e5d3972597b614
-- kind: project-relative
-  target: codex
-  value: .agents/skills/lint-fix
-  runtime: null
-  scope: project
-  owners:
-  - rshade/agent-skills/skills/lint-fix
-  active_owner: rshade/agent-skills/skills/lint-fix
-  content_hash: null
-- kind: project-relative
-  target: codex
-  value: .agents/skills/lint-fix/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - rshade/agent-skills/skills/lint-fix
-  active_owner: rshade/agent-skills/skills/lint-fix
-  content_hash: sha256:bd7f86143dbf4ec5eaa27de51633cf67a9e204d0a276bf11f52ef91c2cbd3a44
-- kind: project-relative
-  target: codex
-  value: .agents/skills/lint-fix/references/fix-protocol.md
-  runtime: null
-  scope: project
-  owners:
-  - rshade/agent-skills/skills/lint-fix
-  active_owner: rshade/agent-skills/skills/lint-fix
-  content_hash: sha256:e8bdaae655da27144c3e8fa3d810908569a0d3659790d279c95d0468e511cea7
-- kind: project-relative
-  target: codex
-  value: .agents/skills/lint-fix/references/tool-detection.md
-  runtime: null
-  scope: project
-  owners:
-  - rshade/agent-skills/skills/lint-fix
-  active_owner: rshade/agent-skills/skills/lint-fix
-  content_hash: sha256:1b427e480ad48b955c564bca5a5c3ea0f5b923e893f057b1c22a356820beea1a
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-harness
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: null
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-harness/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:2d285f87238945812cd5a89787b43501674df3bb31a1c8c44f50148d64eb21d6
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-harness/references/hooks.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:1e5dd80633afd9e3ca6151ca033d3f9a94c0ba11300dd841594f0c6ee73f7ed2
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-harness/references/mcp-configuration.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:d8021f52214711e0a75de9fa14e663267e07cbc5f081a8717a0d621feb71f10f
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-harness/references/mcp.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:c561b5ec705c47e2c78ed0837ebcd98db0714d6ef43f36a837707263484a75dd
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-harness/references/plugins.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:51bb76ab8f6f08217578d0b7b9bd0288a24079b2e42cfb00051b239fb84cea2e
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-steering
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: null
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-steering/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:3b54056ef0da99788de55db623eaa08a47d8ecc867318c67947eb4d6cb4d4784
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-steering/references/agent-frontmatter.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:f207995594919f546d28c36c1d845dc28537215e0867f7ae8ad4fe4157f0be54
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-steering/references/agent-guide.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:e5b6ca1697af01a23b9cae0e9599b0898de7bed181790ffd28ff44a0adfe3fd6
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-steering/references/agent-handoff.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:ccd3060572901b5e7e40f0371030bd49dfa6381e39bb409729205ccbbdda8fdd
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-steering/references/agent-patterns.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:4fe5f758cb56aff338d9ef0ff44d8c448d926dd84a58925185fe09ecf4a23151
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-steering/references/agent-subagent.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:9c15e9127208c22fbb163c22fbea7fe7e341528c2cebec265de12233c4b7069c
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-steering/references/agent-tools.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:ff04f4df753529b752568dfa91ea6adf9976be502da7b17043f08d03b4a6e7c6
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-steering/references/frontmatter-deploy.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:de326f29097a170ee6e84010e7474008bdfc2f29c6ebbbc844d35ce86cf2cffe
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-steering/references/instruction-bootstrapping.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:53eb7e7b16402ca92b3652f725aa966b5278066c58a2711fb00f7c5afa95a3fc
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-steering/references/instructions.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:53869eea88662385c4b2963aa3166bbc3d4a59a75d19001b672383ef534dd736
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-steering/references/prompts.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:a8cf56bfc69266094f64e9335db9220f369557e4e1040b9a647f3c24b81f0b68
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-steering/references/skill-body.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:316b166abfd190817c2b1fb5fced7db75cb7aeb96cdc4850442c776f00165858
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-steering/references/skill-frontmatter.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:503b1818229f61957cdfed27466540c4c8d2f14d72879cd1aa152c288d98a76c
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-steering/references/skill-spec.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:ff7b3dabaa6ec371c237212a9d50e0fb5f4c5671cc0613b9b907add3eaedabbe
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-steering/references/skill-structure.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:4e0a28d150e985ec5a26b911c15a8542b8d26a5ea430ae8347a421558b374602
-- kind: project-relative
-  target: codex
-  value: .agents/skills/meta-steering/references/skills.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:1f7aaeceba9aa926bcf0d63b12f5176fd8285bfdc7702988fe05054b48f1ef96
-- kind: project-relative
-  target: codex
-  value: .agents/skills/modern-python
-  runtime: null
-  scope: project
-  owners:
-  - trailofbits/skills/plugins/modern-python/skills/modern-python
-  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
-  content_hash: null
-- kind: project-relative
-  target: codex
-  value: .agents/skills/modern-python/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - trailofbits/skills/plugins/modern-python/skills/modern-python
-  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
-  content_hash: sha256:ef774b925eb1d1fc12e4f5ddc3f5ad925ecd795315827447228c70cc44c6170c
-- kind: project-relative
-  target: codex
-  value: .agents/skills/modern-python/agents/openai.yaml
-  runtime: null
-  scope: project
-  owners:
-  - trailofbits/skills/plugins/modern-python/skills/modern-python
-  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
-  content_hash: sha256:f56c544187af5bd3c76f1cd082619644090ab7b6d8abe77d4d3115d39dced5c1
-- kind: project-relative
-  target: codex
-  value: .agents/skills/modern-python/assets/trail-of-bits-mark.svg
-  runtime: null
-  scope: project
-  owners:
-  - trailofbits/skills/plugins/modern-python/skills/modern-python
-  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
-  content_hash: sha256:4bf74c789b38dcf6ad762c136b6832363d27ae19fbaa9a18ec18d66ecce6ca05
-- kind: project-relative
-  target: codex
-  value: .agents/skills/modern-python/references/dependabot.md
-  runtime: null
-  scope: project
-  owners:
-  - trailofbits/skills/plugins/modern-python/skills/modern-python
-  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
-  content_hash: sha256:d3678e32472305c0ef136bca99b26c3f75554d63675930e396f26a91a97451ad
-- kind: project-relative
-  target: codex
-  value: .agents/skills/modern-python/references/migration-checklist.md
-  runtime: null
-  scope: project
-  owners:
-  - trailofbits/skills/plugins/modern-python/skills/modern-python
-  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
-  content_hash: sha256:58c947e6200a91f350c9adc898af7fc6263fda41d36ae81ffd4dd923b3a1015e
-- kind: project-relative
-  target: codex
-  value: .agents/skills/modern-python/references/pep723-scripts.md
-  runtime: null
-  scope: project
-  owners:
-  - trailofbits/skills/plugins/modern-python/skills/modern-python
-  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
-  content_hash: sha256:c348b136613a4fed8f623d6013c0c6413d2c24f2973b2e5f85b80ecc68646045
-- kind: project-relative
-  target: codex
-  value: .agents/skills/modern-python/references/prek.md
-  runtime: null
-  scope: project
-  owners:
-  - trailofbits/skills/plugins/modern-python/skills/modern-python
-  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
-  content_hash: sha256:4be1c181c71aab64ba58573242a1c451d576a5c61ceeb400bb5827f4e1f9532a
-- kind: project-relative
-  target: codex
-  value: .agents/skills/modern-python/references/pyproject.md
-  runtime: null
-  scope: project
-  owners:
-  - trailofbits/skills/plugins/modern-python/skills/modern-python
-  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
-  content_hash: sha256:aec906835ec687024700d31e5c146baaabc9524129384304857b3aa81809401b
-- kind: project-relative
-  target: codex
-  value: .agents/skills/modern-python/references/ruff-config.md
-  runtime: null
-  scope: project
-  owners:
-  - trailofbits/skills/plugins/modern-python/skills/modern-python
-  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
-  content_hash: sha256:8d247862f1beaf76816ed6775f5a0c8dc96d74c7f2b71bbf1aaedc4937373b17
-- kind: project-relative
-  target: codex
-  value: .agents/skills/modern-python/references/security-setup.md
-  runtime: null
-  scope: project
-  owners:
-  - trailofbits/skills/plugins/modern-python/skills/modern-python
-  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
-  content_hash: sha256:32d6754a87d5006f923706d10446cc617cb22d36cfc30b55d39bd7f4c61d864c
-- kind: project-relative
-  target: codex
-  value: .agents/skills/modern-python/references/testing.md
-  runtime: null
-  scope: project
-  owners:
-  - trailofbits/skills/plugins/modern-python/skills/modern-python
-  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
-  content_hash: sha256:82e36068fbf28a9615d3c96e5d946e304ce8f89ae1ba7475d20934501d55b0d9
-- kind: project-relative
-  target: codex
-  value: .agents/skills/modern-python/references/uv-commands.md
-  runtime: null
-  scope: project
-  owners:
-  - trailofbits/skills/plugins/modern-python/skills/modern-python
-  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
-  content_hash: sha256:348cd69e8c780a0c7d54a2fac3c2956c7efe5630229782753da1685416672cdc
-- kind: project-relative
-  target: codex
-  value: .agents/skills/modern-python/templates/dependabot.yml
-  runtime: null
-  scope: project
-  owners:
-  - trailofbits/skills/plugins/modern-python/skills/modern-python
-  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
-  content_hash: sha256:a85ede8ff9cc3a2f63cb1fba24e65c36a5885ecc95722af15157dc5258f28a12
-- kind: project-relative
-  target: codex
-  value: .agents/skills/modern-python/templates/pre-commit-config.yaml
-  runtime: null
-  scope: project
-  owners:
-  - trailofbits/skills/plugins/modern-python/skills/modern-python
-  active_owner: trailofbits/skills/plugins/modern-python/skills/modern-python
-  content_hash: sha256:18efd067e75cba5fc71705c2f90c548a03c3cded4cd2a7f9b4a1d617e115db0d
-- kind: project-relative
-  target: codex
-  value: .agents/skills/python-scripts
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/python
-  active_owner: ./packages/python
-  content_hash: null
-- kind: project-relative
-  target: codex
-  value: .agents/skills/python-scripts/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/python
-  active_owner: ./packages/python
-  content_hash: sha256:0c63444c7940aff87071a9468af78723efeea8c25a65e1ecbe939ede48bb6c43
-- kind: project-relative
-  target: codex
-  value: .agents/skills/python-scripts/references/inline-metadata.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/python
-  active_owner: ./packages/python
-  content_hash: sha256:30e40489731c4168191e8fad47bab1eb3cf8da17ec349407d0bb786299c60e50
-- kind: project-relative
-  target: codex
-  value: .agents/skills/python-scripts/references/script-template.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/python
-  active_owner: ./packages/python
-  content_hash: sha256:b54fbe7aeb7f5ac09fd8aee004eadcbc0e02380462cb0aaa78a844c3f8e4dd83
-- kind: project-relative
-  target: codex
-  value: .agents/skills/python-standards
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/python
-  active_owner: ./packages/python
-  content_hash: null
-- kind: project-relative
-  target: codex
-  value: .agents/skills/python-standards/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/python
-  active_owner: ./packages/python
-  content_hash: sha256:69f61e9d4f1562e0e93bd232a922f5eef31be1b33c0131924e1457c34c2a69d9
-- kind: project-relative
-  target: codex
-  value: .agents/skills/python-standards/references/design.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/python
-  active_owner: ./packages/python
-  content_hash: sha256:446921fec49ea8aab4b21872d18553a0ae54af1a3aad0be63cbb6d9d83af394d
-- kind: project-relative
-  target: codex
-  value: .agents/skills/python-standards/references/runtime.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/python
-  active_owner: ./packages/python
-  content_hash: sha256:399530b0514fa865258bf142254c3788023d1d978fcc01cb50aa815f2eb2d5ee
-- kind: project-relative
-  target: codex
-  value: .agents/skills/python-standards/references/typing.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/python
-  active_owner: ./packages/python
-  content_hash: sha256:54afffcc8f46579defe200a3a46c550fc66e37683b7df2dcb6d6545109f94871
-- kind: project-relative
-  target: codex
-  value: .agents/skills/receiving-code-review
-  runtime: null
-  scope: project
-  owners:
-  - obra/superpowers/skills/receiving-code-review
-  active_owner: obra/superpowers/skills/receiving-code-review
-  content_hash: null
-- kind: project-relative
-  target: codex
-  value: .agents/skills/receiving-code-review/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - obra/superpowers/skills/receiving-code-review
-  active_owner: obra/superpowers/skills/receiving-code-review
-  content_hash: sha256:091df1629510af1b92fc4abd6f96732ebedb4cb2c0f3457e8f2740b0504a2438
-- kind: project-relative
-  target: codex
-  value: .agents/skills/resolving-merge-conflicts
-  runtime: null
-  scope: project
-  owners:
-  - mattpocock/skills/skills/engineering/resolving-merge-conflicts
-  active_owner: mattpocock/skills/skills/engineering/resolving-merge-conflicts
-  content_hash: null
-- kind: project-relative
-  target: codex
-  value: .agents/skills/resolving-merge-conflicts/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - mattpocock/skills/skills/engineering/resolving-merge-conflicts
-  active_owner: mattpocock/skills/skills/engineering/resolving-merge-conflicts
-  content_hash: sha256:c7c9ba81362a786aac05d2223123bf1bd2f8a99c3243a72882ede9c68bedfb24
-- kind: project-relative
-  target: codex
-  value: .agents/skills/resolving-merge-conflicts/agents/openai.yaml
-  runtime: null
-  scope: project
-  owners:
-  - mattpocock/skills/skills/engineering/resolving-merge-conflicts
-  active_owner: mattpocock/skills/skills/engineering/resolving-merge-conflicts
-  content_hash: sha256:a1f4f96838f2ed6282eb28abbbf99029cb8fadce552baf53da90a025b8bffddf
-- kind: project-relative
-  target: codex
-  value: .agents/skills/tdd
-  runtime: null
-  scope: project
-  owners:
-  - mattpocock/skills/skills/engineering/tdd
-  active_owner: mattpocock/skills/skills/engineering/tdd
-  content_hash: null
-- kind: project-relative
-  target: codex
-  value: .agents/skills/tdd/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - mattpocock/skills/skills/engineering/tdd
-  active_owner: mattpocock/skills/skills/engineering/tdd
-  content_hash: sha256:5363bb2775679fe9311fbb67947f95359169c6e7f1fac77c0f25e190bca6cf2f
-- kind: project-relative
-  target: codex
-  value: .agents/skills/tdd/agents/openai.yaml
-  runtime: null
-  scope: project
-  owners:
-  - mattpocock/skills/skills/engineering/tdd
-  active_owner: mattpocock/skills/skills/engineering/tdd
-  content_hash: sha256:ea6f01cf1b8c06a4b0f5b649d74b1b8ce8685e72af1b38d70d877693e092af0b
-- kind: project-relative
-  target: codex
-  value: .agents/skills/tdd/mocking.md
-  runtime: null
-  scope: project
-  owners:
-  - mattpocock/skills/skills/engineering/tdd
-  active_owner: mattpocock/skills/skills/engineering/tdd
-  content_hash: sha256:3ceb807fdf4a47d6a93d4d9a891e5ba6d362a6247bd08adc451feebfc17361ef
-- kind: project-relative
-  target: codex
-  value: .agents/skills/tdd/tests.md
-  runtime: null
-  scope: project
-  owners:
-  - mattpocock/skills/skills/engineering/tdd
-  active_owner: mattpocock/skills/skills/engineering/tdd
-  content_hash: sha256:859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a
-- kind: project-relative
-  target: codex
-  value: .agents/skills/troubleshooting
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: null
-- kind: project-relative
-  target: codex
-  value: .agents/skills/troubleshooting/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:82a951e941e97516f2f4d6c08170b0dddaef135205963aa03bc9685ac894300f
-- kind: project-relative
-  target: codex
-  value: .agents/skills/using-git-worktrees
-  runtime: null
-  scope: project
-  owners:
-  - obra/superpowers/skills/using-git-worktrees
-  active_owner: obra/superpowers/skills/using-git-worktrees
-  content_hash: null
-- kind: project-relative
-  target: codex
-  value: .agents/skills/using-git-worktrees/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - obra/superpowers/skills/using-git-worktrees
-  active_owner: obra/superpowers/skills/using-git-worktrees
-  content_hash: sha256:8cfb86f121269e8f7f12361e6795c4f6738828340e28964c9229d365666c9edd
-- kind: project-relative
-  target: codex
   value: .codex/agents/code-reviewer.toml
   runtime: null
   scope: project
@@ -2437,8 +2426,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:c5e5be8edd06b3e84eac5d0b58496e4ee67265986d717c27980d5f7beb19be06
 - kind: project-relative
   target: codex
@@ -2446,8 +2435,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:e2ffff013fdea930f5ab26363e3542699e0472c2a877f2af5445d0540c63e796
 - kind: project-relative
   target: codex
@@ -2455,8 +2444,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:293fa2607dfd3e758d674379628a98fb8cb57569c3e9d555453b87164f589a0f
 - kind: project-relative
   target: codex
@@ -2466,15 +2455,15 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:691fe74920dd7abbe8c40469b694e7f9df714471d5c72924562998ba5552caa0
+  content_hash: sha256:55e3cc2c8a814e77813a02f7024f1036c705ea3a0ddc5139e6d1ed51cc775de8
 - kind: project-relative
   target: codex
   value: .codex/agents/plan.toml
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:099ffe5f148c183cea30a7480da7838ebbdb1f61995837f0a3cefcf28acab699
 - kind: project-relative
   target: codex
@@ -2482,8 +2471,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:bd39ae2409c516c735a8d17a865c306a046ac0151efbce37cee35b51efc3b2d2
 - kind: project-relative
   target: copilot
@@ -2500,8 +2489,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:040a6f8aacf9b4cf5378a07cbe0add6d810d2ebdf15d549f62c0ca276077c0a3
 - kind: project-relative
   target: copilot
@@ -2509,8 +2498,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:65f71a7eb594c2205554f383798a2344e69d6803a20c0d1e8fc7521b108ffbee
 - kind: project-relative
   target: copilot
@@ -2518,8 +2507,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:d3b387a5158c1e52f9ddc22e9335ef54ab17f42c83ff502ad23ae71f158519db
 - kind: project-relative
   target: copilot
@@ -2529,15 +2518,15 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:74c32f2bc2bcc60ac6e43c0c75ee5bb9153ca5ad50b0794bec9cd4b6967be3cd
+  content_hash: sha256:dd1197b12039ac3f37ce4c0749ddb5f2c9042c6affe5c8546fc2bfcdfddd60e4
 - kind: project-relative
   target: copilot
   value: .github/agents/plan.agent.md
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:b82e78e1ff6baa28714615934c3a738b1363b882cd706bcf185261fa130a5154
 - kind: project-relative
   target: copilot
@@ -2545,8 +2534,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:f15191d37b2da1fe17a30b7a6df6c15f57d7fa4c33cb9e90c4d00a1cb581ed6f
 - kind: project-relative
   target: copilot
@@ -2563,8 +2552,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:21b93c796ebe0bc919c372fab05f0f748c68216df914e25e80a3fa0b46b46d1b
 - kind: project-relative
   target: copilot
@@ -2572,8 +2561,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
+  - ./packages/baseline
+  active_owner: ./packages/baseline
   content_hash: sha256:8a4ae22cc343af983d69a1c004a2a1d5ac5a75189606ca02afb605c78878211a
 - kind: project-relative
   target: copilot
@@ -2590,27 +2579,27 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:08e4097383fa131ed14163f4ce3f8c9c490d0af341352a949b7d0ae7b90fc85d
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:17c397e3f81581c47242b6bee8ee2a798c82e805b000285cbd74e4c5b7a604fd
 - kind: project-relative
   target: copilot
   value: .github/prompts/reflect.prompt.md
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:6fc8288c5f2f67229732948758497943adb89f1ec2b0133b22c937e5d2494f7a
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:ae0c9e73fe338499fff903f2f0450276374ab06294d52e1692d30df45b9dfbe2
 - kind: project-relative
   target: copilot
   value: .github/prompts/setup-mcp.prompt.md
   runtime: null
   scope: project
   owners:
-  - ./packages/core
-  active_owner: ./packages/core
-  content_hash: sha256:cb6d3477424d6dd2809067e637c4f79b11e5bfd1881afe686c38a8c8b364cf8e
+  - ./packages/baseline
+  active_owner: ./packages/baseline
+  content_hash: sha256:19ac14c20cbe30d9894874f63d37babae61ff2ba3b0692d6619046b1352aebef
 - kind: project-relative
   target: legacy
   value: .agents/skills/meta-refresh-steering
@@ -2628,7 +2617,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:fca526ea3d2106712b3211915f49ef6e1f869362f86e19b1220512282f550761
+  content_hash: sha256:be72cfcb77d1e25cd91f6806d02708a0dfc97a97c5ee14b1839f13e4c7606217
 - kind: project-relative
   target: legacy
   value: .agents/skills/meta-review-steering
@@ -2646,7 +2635,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:d820a0b90ed7fce6f83bc2f43c411fc94b257accd3e990eb23f338ef0e34abd5
+  content_hash: sha256:91c71d5f8445d4fdbba67a8c9a8fbdd95c262f7ea8d6f08046b2d9fd8aefb935
 - kind: project-relative
   target: legacy
   value: .agents/skills/meta-update-models
@@ -2664,7 +2653,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:5b69e2bff6bd60f85d016b7504130970eed7d4831ecfa9511beaee6e65c17b5c
+  content_hash: sha256:fb6ed258daa2e4aa8a778d6af4b943ab4d0ffc0269c01f61111b4fd6a5370b52
 - kind: project-relative
   target: legacy
   value: .agents/skills/meta-update-repo
@@ -2682,7 +2671,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:6b9c6f8e3447d8d9aa26ff50c346ddf6bccfb6b530c0f546bab88f56e58601c7
+  content_hash: sha256:0bad58b23d03335e3f14379204e55c91dad16b631000bc66607f75dce53b4ad9
 - kind: project-relative
   target: legacy
   value: .agents/skills/meta-update-repo/references/safety-review.md
@@ -2700,7 +2689,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:eca01e9e0c483c38a59676bf3e9b8c585b22132c997083d9dcca1fdd30e46c1b
+  content_hash: sha256:9362c3916235b24d9bb435977ba9358209b995ddeaf7aae4083222738d27241c
 - kind: uri
   target: mcp
   value: context7
@@ -2786,8 +2775,8 @@ mcp_target_servers:
   - context7
   - github
 mcp_config_provenance:
-  context7: llmctl-core
-  github: llmctl-core
+  context7: llmctl-baseline
+  github: llmctl-baseline
 local_deployed_files:
 - .agents/skills/meta-refresh-steering
 - .agents/skills/meta-refresh-steering/SKILL.md
@@ -2814,19 +2803,19 @@ local_deployed_files:
 - .github/agents/meta-updater.agent.md
 - .github/hooks/llmctl-validate-customization-frontmatter.hook.json
 local_deployed_file_hashes:
-  .agents/skills/meta-refresh-steering/SKILL.md: sha256:fca526ea3d2106712b3211915f49ef6e1f869362f86e19b1220512282f550761
-  .agents/skills/meta-review-steering/SKILL.md: sha256:d820a0b90ed7fce6f83bc2f43c411fc94b257accd3e990eb23f338ef0e34abd5
-  .agents/skills/meta-update-models/SKILL.md: sha256:5b69e2bff6bd60f85d016b7504130970eed7d4831ecfa9511beaee6e65c17b5c
-  .agents/skills/meta-update-repo/SKILL.md: sha256:6b9c6f8e3447d8d9aa26ff50c346ddf6bccfb6b530c0f546bab88f56e58601c7
+  .agents/skills/meta-refresh-steering/SKILL.md: sha256:be72cfcb77d1e25cd91f6806d02708a0dfc97a97c5ee14b1839f13e4c7606217
+  .agents/skills/meta-review-steering/SKILL.md: sha256:91c71d5f8445d4fdbba67a8c9a8fbdd95c262f7ea8d6f08046b2d9fd8aefb935
+  .agents/skills/meta-update-models/SKILL.md: sha256:fb6ed258daa2e4aa8a778d6af4b943ab4d0ffc0269c01f61111b4fd6a5370b52
+  .agents/skills/meta-update-repo/SKILL.md: sha256:0bad58b23d03335e3f14379204e55c91dad16b631000bc66607f75dce53b4ad9
   .agents/skills/meta-update-repo/references/safety-review.md: sha256:c7fac8093cb8bf92adf70cc2b7acc5029e158c963292e1034d2b85c072339445
-  .agents/skills/meta-update-repo/references/source-url-reference.md: sha256:eca01e9e0c483c38a59676bf3e9b8c585b22132c997083d9dcca1fdd30e46c1b
-  .claude/agents/meta-updater.md: sha256:74c32f2bc2bcc60ac6e43c0c75ee5bb9153ca5ad50b0794bec9cd4b6967be3cd
-  .claude/skills/meta-refresh-steering/SKILL.md: sha256:fca526ea3d2106712b3211915f49ef6e1f869362f86e19b1220512282f550761
-  .claude/skills/meta-review-steering/SKILL.md: sha256:d820a0b90ed7fce6f83bc2f43c411fc94b257accd3e990eb23f338ef0e34abd5
-  .claude/skills/meta-update-models/SKILL.md: sha256:5b69e2bff6bd60f85d016b7504130970eed7d4831ecfa9511beaee6e65c17b5c
-  .claude/skills/meta-update-repo/SKILL.md: sha256:6b9c6f8e3447d8d9aa26ff50c346ddf6bccfb6b530c0f546bab88f56e58601c7
+  .agents/skills/meta-update-repo/references/source-url-reference.md: sha256:9362c3916235b24d9bb435977ba9358209b995ddeaf7aae4083222738d27241c
+  .claude/agents/meta-updater.md: sha256:dd1197b12039ac3f37ce4c0749ddb5f2c9042c6affe5c8546fc2bfcdfddd60e4
+  .claude/skills/meta-refresh-steering/SKILL.md: sha256:be72cfcb77d1e25cd91f6806d02708a0dfc97a97c5ee14b1839f13e4c7606217
+  .claude/skills/meta-review-steering/SKILL.md: sha256:91c71d5f8445d4fdbba67a8c9a8fbdd95c262f7ea8d6f08046b2d9fd8aefb935
+  .claude/skills/meta-update-models/SKILL.md: sha256:fb6ed258daa2e4aa8a778d6af4b943ab4d0ffc0269c01f61111b4fd6a5370b52
+  .claude/skills/meta-update-repo/SKILL.md: sha256:0bad58b23d03335e3f14379204e55c91dad16b631000bc66607f75dce53b4ad9
   .claude/skills/meta-update-repo/references/safety-review.md: sha256:c7fac8093cb8bf92adf70cc2b7acc5029e158c963292e1034d2b85c072339445
-  .claude/skills/meta-update-repo/references/source-url-reference.md: sha256:eca01e9e0c483c38a59676bf3e9b8c585b22132c997083d9dcca1fdd30e46c1b
-  .codex/agents/meta-updater.toml: sha256:691fe74920dd7abbe8c40469b694e7f9df714471d5c72924562998ba5552caa0
-  .github/agents/meta-updater.agent.md: sha256:74c32f2bc2bcc60ac6e43c0c75ee5bb9153ca5ad50b0794bec9cd4b6967be3cd
+  .claude/skills/meta-update-repo/references/source-url-reference.md: sha256:9362c3916235b24d9bb435977ba9358209b995ddeaf7aae4083222738d27241c
+  .codex/agents/meta-updater.toml: sha256:55e3cc2c8a814e77813a02f7024f1036c705ea3a0ddc5139e6d1ed51cc775de8
+  .github/agents/meta-updater.agent.md: sha256:dd1197b12039ac3f37ce4c0749ddb5f2c9042c6affe5c8546fc2bfcdfddd60e4
   .github/hooks/llmctl-validate-customization-frontmatter.hook.json: sha256:8a8d119e609359d4d99f7c4b91842a19126687fcdb606d510f40c1335a7083ac

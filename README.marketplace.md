@@ -16,14 +16,14 @@ Start with [Before you start](#before-you-start), then choose your setup:
 
 | Plugin | What it helps with |
 | --- | --- |
-| `llmctl-core` | Research, troubleshooting, planning work and writing agent guidance |
+| `llmctl-baseline` | Research, troubleshooting, planning work and writing agent guidance |
 | `llmctl-workflow` | Code delivery: TDD, worktrees, reviews, merge conflicts and linting |
 | `llmctl-ops` | Helm, Kubernetes and OpenTofu/Terraform |
 | `llmctl-product` | Writing epic and feature PRDs |
 | `llmctl-design` | Design direction, colour, typography and presentations |
 | `llmctl-travel` | Destination timing checks, trip planning, entry requirements and itineraries |
 
-`core` is the general baseline. Add `workflow` for code work, and the domain plugins where they fit.
+`baseline` is the general starting point. Add `workflow` for code work, and the domain plugins where they fit.
 
 Each plugin carries a calendar version, `YYYY.M.N` — the year, the month, and which release of that package it was within the month. The catalogue in [apm.yml](apm.yml) lists what is published.
 
@@ -75,7 +75,7 @@ See Claude's [plugin guide](https://support.claude.com/en/articles/13837440-use-
 
 ### Give it a try
 
-With `llmctl-core` installed and enabled, start a new conversation and ask:
+With `llmctl-baseline` installed and enabled, start a new conversation and ask:
 
 ```text
 Help me turn a recurring correction I give my assistant into a reusable skill.
@@ -85,7 +85,7 @@ The assistant should use the authoring guidance and help you decide what belongs
 
 ## Terminal and project setup
 
-Run the shell commands in your terminal. Replace `PLUGIN_NAME` with a name from the [plugin table](#pick-your-plugins), such as `llmctl-core`.
+Run the shell commands in your terminal. Replace `PLUGIN_NAME` with a name from the [plugin table](#pick-your-plugins), such as `llmctl-baseline`.
 
 ### Codex CLI
 

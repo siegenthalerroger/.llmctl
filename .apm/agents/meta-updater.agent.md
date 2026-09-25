@@ -26,7 +26,7 @@ metadata:
 
 # meta-updater
 
-Four independent procedures. Each is owned by a skill: load that skill and follow it, rather than working from this file. The authoring skills, [meta-steering](../../packages/core/.apm/skills/meta-steering/SKILL.md) and [meta-harness](../../packages/core/.apm/skills/meta-harness/SKILL.md), are loaded by the procedure that needs them, not here.
+Four independent procedures. Each is owned by a skill: load that skill and follow it, rather than working from this file. The authoring skills, [meta-steering](../../packages/baseline/.apm/skills/meta-steering/SKILL.md) and [meta-harness](../../packages/baseline/.apm/skills/meta-harness/SKILL.md), are loaded by the procedure that needs them, not here.
 
 **They are not a pipeline and they do not share a cadence.** Run the one that was asked for. If the request names none — "update the repo" — ask which before doing anything, and offer this table.
 

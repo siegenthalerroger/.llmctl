@@ -31,8 +31,8 @@ from .workspace import WorkspaceError, git
 # paths it must agree with -- the router plus the reference pages for that kind,
 # never the whole directory, so an edit to the agent pages does not mark every
 # SKILL.md behind.
-STEERING = "packages/core/.apm/skills/meta-steering"
-HARNESS = "packages/core/.apm/skills/meta-harness"
+STEERING = "packages/baseline/.apm/skills/meta-steering"
+HARNESS = "packages/baseline/.apm/skills/meta-harness"
 
 GOVERNED: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     (

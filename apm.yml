@@ -8,7 +8,7 @@ includes: auto
 
 dependencies:
   apm:
-    - ./packages/core
+    - ./packages/baseline
     - ./packages/python
     - ./packages/workflow
   mcp: []
