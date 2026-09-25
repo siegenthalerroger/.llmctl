@@ -21,7 +21,7 @@ marketplace:
   packages:
     - name: llmctl-baseline
       category: Development
-      description: Core steering skills — research, troubleshooting, batch execution, and Mermaid diagramming.
+      description: Baseline steering skills — research, troubleshooting, batch execution, and Mermaid diagramming.
     - name: llmctl-workflow
       category: Development
       description: Code delivery steering — TDD, git worktrees, merge-conflict resolution, code-review reception, and lint pipelines.

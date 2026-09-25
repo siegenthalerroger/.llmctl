@@ -1,9 +1,14 @@
 name: llmctl-baseline
 displayName: llmctl Baseline
 version: 0.0.0
-description: Core agent steering — domain-neutral planning, exploration and execution agents, research, troubleshooting, diagramming.
-author: siegenthalerroger
+description: Baseline agent steering — domain-neutral planning, exploration and execution agents, research, troubleshooting, diagramming.
+author:
+  name: siegenthalerroger
+  url: https://github.com/siegenthalerroger
 license: MIT AND CC-BY-SA-4.0
+homepage: https://github.com/siegenthalerroger/.llmctl/tree/main/packages/baseline
+repository: https://github.com/siegenthalerroger/.llmctl
+keywords: [agent-steering, research, troubleshooting, planning, diagrams, authoring]
 
 # Include all items in this package's `.apm/` directory.
 includes: auto
