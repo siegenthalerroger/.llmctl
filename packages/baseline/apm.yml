@@ -1,14 +1,15 @@
 name: llmctl-baseline
 displayName: llmctl Baseline
 version: 0.0.0
-description: Baseline agent steering — domain-neutral planning, exploration and execution agents, research, troubleshooting, diagramming.
+description: Baseline for efficient and effective AI agent usage. Encourage usage of sub-agents, adopt a more concise output style, and more. Comes with domain-neutral planning, exploration and execution agents, research, troubleshooting, and diagramming steering.
 author:
   name: siegenthalerroger
   url: https://github.com/siegenthalerroger
 license: MIT AND CC-BY-SA-4.0
-homepage: https://github.com/siegenthalerroger/.llmctl/tree/main/packages/baseline
+homepage: https://github.com/siegenthalerroger/.llmctl-marketplace
 repository: https://github.com/siegenthalerroger/.llmctl
-keywords: [agent-steering, research, troubleshooting, planning, diagrams, authoring]
+keywords: [behaviour, output, skills, hooks, connectors, mcp, research, troubleshooting, planning, diagrams]
+category: Development
 
 # Include all items in this package's `.apm/` directory.
 includes: auto

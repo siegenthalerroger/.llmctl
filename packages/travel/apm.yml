@@ -1,14 +1,15 @@
 name: llmctl-travel
 displayName: llmctl Travel
 version: 0.0.0
-description: Travel steering — destination timing intelligence (public/school holidays and major events), trip planning, entry requirements, itinerary authoring, plus flight, hotel, ferry and stay search MCP servers.
+description: Trip planning with AI agents. Destination timing checks against holidays and major events, entry requirements, itineraries, and flight, hotel, ferry and stay search connectors.
 author:
   name: siegenthalerroger
   url: https://github.com/siegenthalerroger
 license: MIT AND CC-BY-SA-4.0
-homepage: https://github.com/siegenthalerroger/.llmctl/tree/main/packages/travel
+homepage: https://github.com/siegenthalerroger/.llmctl-marketplace
 repository: https://github.com/siegenthalerroger/.llmctl
-keywords: [agent-steering, travel, trip-planning, flights, hotels]
+keywords: [skills, prompts, connectors, mcp, travel, trip-planning, flights, hotels]
+category: Productivity
 
 # Include all items in this package's `.apm/` directory.
 includes: auto

@@ -139,7 +139,7 @@ uv run llmctl-pack-marketplace --repo . --marketplace /path/to/.llmctl-marketpla
 
 Add `--dry-run` to preview what would be packed. Both `--repo` and `--marketplace` are required; the command does not infer paths from the environment.
 
-**Nothing in the marketplace repository is authored there.** Its `README.md`, `LICENSE`, `.gitignore` and `apm.yml` are written from `README.marketplace.md`, `LICENSE.marketplace`, `.gitignore.marketplace` and `apm.marketplace.yml` in this repository, and anything else found in that tree is deleted. Edit the sources here.
+**Nothing in the marketplace repository is authored there.** Its `README.md`, `LICENSE`, `.gitignore` and `apm.yml` are written from `README.marketplace.md`, `LICENSE.marketplace`, `.gitignore.marketplace` and `apm.marketplace.yml` in this repository, with one catalogue entry per package built from its `apm.yml`, and anything else found in that tree is deleted. Edit the sources here.
 
 Packing writes each package to `plugins/<name>-<version>/` from its committed lockfile, copies the required licence texts, and regenerates `THIRD-PARTY-NOTICES.md` and both catalogues:
 
@@ -203,20 +203,6 @@ To add a recommended package to a project:
 cd your-project
 apm install github/awesome-copilot/skills/review-and-refactor
 ```
-
-### Recommended MCP Servers
-
-These are recommended additions to the ones already wired into the packages ([`packages/baseline/apm.yml`](packages/baseline/apm.yml) and [`packages/ops/apm.yml`](packages/ops/apm.yml)) — add them to a project scoped `apm.yml` (or generate the block with [`/setup-mcp`](packages/baseline/.apm/prompts/setup-mcp.prompt.md)) when a task needs them.
-
-| Server                    | Transport | Provides                                                                             | Secret             |
-| ------------------------- | --------- | ------------------------------------------------------------------------------------ | ------------------ |
-| `brave-search-mcp-server` | stdio     | Brave web search                                                                     | `BRAVE_API_KEY`    |
-| `ddg-search`              | stdio     | DuckDuckGo web search                                                                | —                  |
-| `git`                     | stdio     | Local git repository operations                                                      | —                  |
-| `kubernetes-mcp-server`   | stdio     | Kubernetes cluster operations                                                        | —                  |
-| `gradle`                  | stdio     | Gradle build introspection                                                           | —                  |
-| `playwright`              | stdio     | Browser automation                                                                   | —                  |
-| `atlassian`               | http      | Jira / Confluence                                                                    | OAuth              |
 
 ### VS Code
 
