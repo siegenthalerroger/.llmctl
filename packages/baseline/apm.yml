@@ -1,4 +1,5 @@
 name: llmctl-baseline
+displayName: llmctl Baseline
 version: 0.0.0
 description: Core agent steering — domain-neutral planning, exploration and execution agents, research, troubleshooting, diagramming.
 author: siegenthalerroger

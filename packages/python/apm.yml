@@ -1,4 +1,5 @@
 name: llmctl-python
+displayName: llmctl Python
 version: 0.0.0
 description: Python steering — source-authoring standards and single-file script discipline, plus the upstream modern tooling setup for uv/ruff/ty projects.
 author: siegenthalerroger

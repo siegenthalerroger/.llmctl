@@ -1,4 +1,5 @@
 name: llmctl-travel
+displayName: llmctl Travel
 version: 0.0.0
 description: Travel steering — destination timing intelligence (public/school holidays and major events), trip planning, entry requirements, itinerary authoring, plus flight, hotel, ferry and stay search MCP servers.
 author: siegenthalerroger
