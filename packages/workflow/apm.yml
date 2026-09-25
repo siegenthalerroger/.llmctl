@@ -1,4 +1,5 @@
 name: llmctl-workflow
+displayName: llmctl Workflow
 version: 0.0.0
 description: Code delivery steering — the code-reviewer agent plus TDD, git worktrees, merge-conflict resolution, code-review reception, and lint pipelines.
 author: siegenthalerroger

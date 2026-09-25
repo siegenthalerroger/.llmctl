@@ -1,4 +1,5 @@
 name: llmctl-product
+displayName: llmctl Product
 version: 0.0.0
 description: Product steering — Epic/Feature PRD skills and the product-manager and UX-expert agents.
 author: siegenthalerroger

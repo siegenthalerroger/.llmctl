@@ -222,6 +222,35 @@ def relocate_manifest(bundle_dir: Path) -> bool:
     return True
 
 
+def display_name_of(manifest: Path) -> str | None:
+    """The optional `displayName:` a package declares in its apm.yml.
+
+    `name` is the identifier every host namespaces components under, so it
+    stays kebab-case; `displayName` is the title a plugin UI shows instead.
+    APM ignores the key rather than carrying it into the plugin.json it
+    generates, so the packer reads it here.
+    """
+    value = (workspace.read_yaml(manifest) or {}).get("displayName")
+    if value is None:
+        return None
+    if not isinstance(value, str) or not value.strip():
+        raise PackError(f"{manifest}: displayName must be a non-empty string")
+    return value.strip()
+
+
+def apply_display_name(bundle_dir: Path, display_name: str | None) -> None:
+    """Set `displayName` in the Claude manifest, which the Codex one derives from."""
+    if display_name is None:
+        return
+    path = bundle_dir / ".claude-plugin" / "plugin.json"
+    with path.open(encoding="utf-8") as handle:
+        manifest = json.load(handle)
+    manifest["displayName"] = display_name
+    with path.open("w", encoding="utf-8") as handle:
+        json.dump(manifest, handle, indent=2)
+        handle.write("\n")
+
+
 def write_codex_manifest(bundle_dir: Path, category: str) -> None:
     """Write the Codex sibling of the packed `.claude-plugin/plugin.json`.
 
@@ -260,7 +289,7 @@ def write_codex_manifest(bundle_dir: Path, category: str) -> None:
 
     author = base.get("author") or {}
     manifest["interface"] = {
-        "displayName": base.get("name", ""),
+        "displayName": base.get("displayName") or base.get("name", ""),
         # One authored description, so the subtitle and the details page say
         # the same thing rather than one of them being invented here.
         "shortDescription": base.get("description", ""),
@@ -400,7 +429,7 @@ def install_reproducibly(export: Path, name: str) -> None:
     frozen install only verifies that every dependency in apm.yml *appears* in
     the lockfile, keyed by repo and subpath -- never at which commit -- so a pin
     moved without a lockfile refresh passes it and packs the old code. And it
-    still cannot restore packages/core from a cold cache: the error names the
+    still cannot restore packages/baseline from a cold cache: the error names the
     manifestless repo-root package blader/humanizer, and on 0.31.0 it appears
     only while the package declares MCP servers (TODO 4l has the evidence and
     what is still unestablished). Seen on APM 0.28.0 and again on 0.31.0.
@@ -482,6 +511,7 @@ class Packer:
         export = self.scratch / package.directory
         export_package(self.ws, package.directory, export, self.source)
         stamp_version(export / "apm.yml", version)
+        display_name = display_name_of(export / "apm.yml")
         if not (export / "apm.lock.yaml").is_file():
             raise PackError(
                 f"{package.name}: packages/{package.directory}/apm.lock.yaml is "
@@ -507,6 +537,7 @@ class Packer:
             self.log(f"       stripped {len(dropped)} vendored path(s): {paths}")
         if not relocate_manifest(bundle_dir):
             raise PackError(f"{package.name}: packed bundle has no plugin.json")
+        apply_display_name(bundle_dir, display_name)
         write_codex_manifest(bundle_dir, category)
         carried = add_licenses(
             self.ws,
