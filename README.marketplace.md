@@ -148,7 +148,7 @@ Skills and commands are the main content to expect from these bundles. The bundl
 
 ## Always-on instructions
 
-Some plugins carry always-on instructions, such as `llmctl-baseline`'s writing style. No plugin host loads instruction files, and hosts that support plugins don't apply them from these bundles yet. To use them, copy the section for each plugin you installed from [ALWAYS_ON_INSTRUCTIONS.md](ALWAYS_ON_INSTRUCTIONS.md) into your personal settings:
+Some plugins carry always-on instructions, such as `llmctl-baseline`'s writing and working style. No plugin host loads instruction files, and hosts that support plugins don't apply them from these bundles yet. To use them, copy the section for each plugin you installed from [ALWAYS_ON_INSTRUCTIONS.md](ALWAYS_ON_INSTRUCTIONS.md) into your personal settings:
 
 | Where you work | Paste into |
 | --- | --- |
