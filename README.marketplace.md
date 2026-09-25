@@ -146,6 +146,21 @@ See the [APM marketplace reference](https://microsoft.github.io/apm/reference/cl
 
 Skills and commands are the main content to expect from these bundles. The bundles also carry agents and instructions, but which components load depends on the host. If you need direct deployment of the source package's agents, rules or MCP configuration, use the [source README's APM instructions](https://github.com/siegenthalerroger/.llmctl#deploy).
 
+## Personal instructions
+
+Some plugins carry always-on instructions, such as `llmctl-baseline`'s writing style. No plugin host loads instruction files, and hosts that support plugins don't apply them from these bundles yet. To use them, copy the section for each plugin you installed from [PERSONAL-INSTRUCTIONS.md](PERSONAL-INSTRUCTIONS.md) into your personal settings:
+
+| Where you work | Paste into |
+| --- | --- |
+| Claude on the web, desktop and mobile | **Settings → Profile**, the personal preferences field |
+| ChatGPT, and Codex in the ChatGPT desktop app | **Settings → Personalization → Custom instructions**. Codex keeps these in its global `AGENTS.md`. |
+| Claude Code | `~/.claude/CLAUDE.md` |
+| Codex CLI | `~/.codex/AGENTS.md` |
+| Copilot CLI | `~/.copilot/copilot-instructions.md` |
+| Copilot Chat on github.com | **Personal instructions** in the Copilot Chat profile menu |
+
+Cloud agents such as Codex cloud tasks and Claude Code on the web read only the repository they work in, so add the text to that repository's `AGENTS.md` if you want it there.
+
 ## Improve the guidance
 
 Corrections and ideas belong in [`.llmctl`](https://github.com/siegenthalerroger/.llmctl). Open an issue with what you asked the assistant to do and what needed correcting, or send a focused PR. A rough draft is welcome.
