@@ -15,4 +15,4 @@ Tool postures are for dual-deployed files ([agent-guide.md, Tools field](./agent
 | Testing specialist | Add tests for a change | Edit and execution allowed | "Do not modify production code; report bugs instead." |
 | Executor | Implement a well-specified plan | All tools | "Follow the plan; note deviations; do not re-plan." |
 
-See this repository's agents under `packages/baseline/.apm/agents/` for worked examples of the explorer, planner, researcher and executor rows.
+The `Explore`, `Plan`, `Researcher (Advanced)`, `Executor (Broad)` and `Executor (Focused)` agents installed alongside this skill are worked examples of the explorer, planner, researcher and executor rows.

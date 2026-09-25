@@ -33,7 +33,7 @@ Exposed tool count is not free: irrelevant tools degrade selection even when the
 
 ## APM-First Rule
 
-This repo deploys via APM. **Declare each MCP server once in the owning package's `apm.yml` (universal servers: [`packages/baseline/apm.yml`](https://github.com/siegenthalerroger/.llmctl/blob/main/packages/baseline/apm.yml)) under `dependencies.mcp` and let APM translate it into every target's native config on deploy.** Do not hand-maintain per-target files (`.vscode/mcp.json`, `.mcp.json`, `.codex/config.toml`) — those are machine-generated output, not source.
+This repo deploys via APM. **Declare each MCP server once in the owning package's `apm.yml` under `dependencies.mcp` and let APM translate it into every target's native config on deploy.** Do not hand-maintain per-target files (`.vscode/mcp.json`, `.mcp.json`, `.codex/config.toml`) — those are machine-generated output, not source.
 
 ```yaml
 # apm.yml
