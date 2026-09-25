@@ -1,7 +1,7 @@
 name: llmctl-product
 displayName: llmctl Product
 version: 0.0.0
-description: Product management with AI agents. Epic and feature PRD authoring, plus product-manager and UX-expert agents.
+description: Epic and feature PRD authoring, plus product-manager and UX-expert agents. Very Barebones!
 author:
   name: siegenthalerroger
   url: https://github.com/siegenthalerroger

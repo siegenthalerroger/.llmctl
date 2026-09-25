@@ -1,7 +1,7 @@
 name: llmctl-travel
 displayName: llmctl Travel
 version: 0.0.0
-description: Trip planning with AI agents. Destination timing checks against holidays and major events, entry requirements, itineraries, and flight, hotel, ferry and stay search connectors.
+description: Take the busy-work out of travel planning. Destination timing checks against holidays and major events, entry requirements, itineraries, and flight, hotel, ferry and stay search connectors.
 author:
   name: siegenthalerroger
   url: https://github.com/siegenthalerroger
