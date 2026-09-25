@@ -2,8 +2,13 @@ name: llmctl-workflow
 displayName: llmctl Workflow
 version: 0.0.0
 description: Code delivery steering — the code-reviewer agent plus TDD, git worktrees, merge-conflict resolution, code-review reception, and lint pipelines.
-author: siegenthalerroger
+author:
+  name: siegenthalerroger
+  url: https://github.com/siegenthalerroger
 license: MIT AND CC-BY-SA-4.0
+homepage: https://github.com/siegenthalerroger/.llmctl/tree/main/packages/workflow
+repository: https://github.com/siegenthalerroger/.llmctl
+keywords: [agent-steering, tdd, code-review, git-worktrees, linting]
 
 # Include all items in this package's `.apm/` directory
 includes: auto

@@ -2,8 +2,13 @@ name: llmctl-python
 displayName: llmctl Python
 version: 0.0.0
 description: Python steering — source-authoring standards and single-file script discipline, plus the upstream modern tooling setup for uv/ruff/ty projects.
-author: siegenthalerroger
+author:
+  name: siegenthalerroger
+  url: https://github.com/siegenthalerroger
 license: MIT AND CC-BY-SA-4.0
+homepage: https://github.com/siegenthalerroger/.llmctl/tree/main/packages/python
+repository: https://github.com/siegenthalerroger/.llmctl
+keywords: [agent-steering, python, uv, ruff, typing]
 
 # Include all items in this package's `.apm/` directory.
 includes: auto

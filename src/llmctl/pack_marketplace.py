@@ -265,7 +265,16 @@ def write_codex_manifest(bundle_dir: Path, category: str) -> None:
         base = json.load(handle)
 
     manifest = {}
-    for key in ("name", "version", "description", "author", "license"):
+    for key in (
+        "name",
+        "version",
+        "description",
+        "author",
+        "homepage",
+        "repository",
+        "license",
+        "keywords",
+    ):
         if key in base:
             manifest[key] = base[key]
 
@@ -298,6 +307,8 @@ def write_codex_manifest(bundle_dir: Path, category: str) -> None:
         "category": category,
         "capabilities": capabilities,
     }
+    if "homepage" in base:
+        manifest["interface"]["websiteURL"] = base["homepage"]
 
     target = bundle_dir / ".codex-plugin"
     target.mkdir(exist_ok=True)

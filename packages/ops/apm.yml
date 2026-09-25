@@ -2,8 +2,13 @@ name: llmctl-ops
 displayName: llmctl Ops
 version: 0.0.0
 description: Ops / infrastructure steering — Helm, Kubernetes, and OpenTofu/Terraform skills plus path-scoped instructions and cloud/IaC documentation MCP servers.
-author: siegenthalerroger
+author:
+  name: siegenthalerroger
+  url: https://github.com/siegenthalerroger
 license: MIT AND CC-BY-SA-4.0
+homepage: https://github.com/siegenthalerroger/.llmctl/tree/main/packages/ops
+repository: https://github.com/siegenthalerroger/.llmctl
+keywords: [agent-steering, devops, kubernetes, helm, terraform, opentofu]
 
 # Include all items in this package's `.apm/` directory.
 includes: auto
