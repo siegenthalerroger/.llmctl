@@ -1,13 +1,31 @@
-"""SessionStart hook: add a plugin's always-on instructions to the session context.
+"""SessionStart hook: add always-on instructions to the session context.
 
-No plugin format loads instruction files, so a plugin install would otherwise
-never see them. An always-on instruction is one without `applyTo`; the hook
-prints those as `additionalContext`, the SessionStart output Claude Code and
-Codex both read.
+Usage: always-on-instructions.py <instruction file>...
 
-It emits only from inside a plugin bundle. `apm install` copies this script
-into the harness config, where no plugin manifest sits above it, and deploys
-the instructions natively instead.
+Each argument is an instruction file without `applyTo`; its body is added as
+session context. The files are named in the hook command rather than
+discovered, because that is what makes `apm install` copy them next to this
+script and rewrite their paths. A new always-on instruction therefore needs
+adding to the command in `always-on-instructions.hook.json`.
+
+Where it runs:
+
+- Claude Code via `apm install`: silent, because APM already deploys the files
+  as rules.
+- Codex via `apm install`: injects once the hook is trusted in `/hooks`. APM
+  writes no AGENTS.md there without `apm compile`.
+- Copilot CLI via `apm install`: injects, since Copilot does not auto-apply an
+  instruction without `applyTo`.
+- Claude Code, Claude Desktop and Codex via a plugin: injects (Codex after the
+  one-time hook trust), but packed bundles leave the hook inert until
+  microsoft/apm#3074 ships. A bundle keeps the files under `instructions/`, so
+  a path that does not resolve is looked up there under the plugin root.
+- claude.ai, ChatGPT and cloud agents run no hooks; the marketplace's
+  ALWAYS_ON_INSTRUCTIONS.md covers them.
+
+Claude Code and Codex read `hookSpecificOutput.additionalContext`; Copilot CLI
+reads a top-level `additionalContext`. The stdin payload tells them apart:
+only the first two send `hook_event_name`.
 """
 
 from __future__ import annotations
@@ -15,20 +33,8 @@ from __future__ import annotations
 import json
 import os
 import sys
+from itertools import pairwise
 from pathlib import Path
-
-MANIFESTS = (".claude-plugin/plugin.json", ".codex-plugin/plugin.json")
-
-
-def plugin_root() -> Path | None:
-    """The bundle this script runs from, or None outside a plugin."""
-    candidates = [Path(__file__).resolve().parent, *Path(__file__).resolve().parents]
-    if root := os.environ.get("CLAUDE_PLUGIN_ROOT"):
-        candidates.insert(0, Path(root))
-    for candidate in candidates:
-        if any((candidate / manifest).is_file() for manifest in MANIFESTS):
-            return candidate
-    return None
 
 
 def body_if_always_on(text: str) -> str | None:
@@ -41,23 +47,48 @@ def body_if_always_on(text: str) -> str | None:
     return body.strip() or None
 
 
-def main() -> int:
-    root = plugin_root()
-    if root is None:
+def resolve(path: str) -> Path | None:
+    """The file itself, or its copy under a plugin bundle's instructions/."""
+    candidate = Path(path)
+    if candidate.is_file():
+        return candidate
+    root = os.environ.get("PLUGIN_ROOT") or os.environ.get("CLAUDE_PLUGIN_ROOT")
+    if root and (bundled := Path(root) / "instructions" / candidate.name).is_file():
+        return bundled
+    return None
+
+
+def deployed_as_claude_settings_hook() -> bool:
+    """True for the copy `apm install` puts under .claude/hooks/."""
+    parts = Path(__file__).resolve().parts
+    return any(a == ".claude" and b == "hooks" for a, b in pairwise(parts))
+
+
+def read_payload() -> dict[str, object]:
+    try:
+        payload = json.load(sys.stdin)
+    except (json.JSONDecodeError, OSError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def main(paths: list[str]) -> int:
+    if deployed_as_claude_settings_hook():
         return 0
-    files = sorted((root / "instructions").glob("*.instructions.md"))
+    files = [f for p in paths if (f := resolve(p))]
     bodies = [b for f in files if (b := body_if_always_on(f.read_text(encoding="utf-8")))]
     if not bodies:
         return 0
-    output = {
-        "hookSpecificOutput": {
-            "hookEventName": "SessionStart",
-            "additionalContext": "\n\n".join(bodies),
+    context = "\n\n".join(bodies)
+    if "hook_event_name" in read_payload():
+        output: dict[str, object] = {
+            "hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context}
         }
-    }
+    else:
+        output = {"additionalContext": context}
     json.dump(output, sys.stdout)
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1:]))

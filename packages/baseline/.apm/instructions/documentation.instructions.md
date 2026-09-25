@@ -1,10 +1,10 @@
 ---
 name: "Technical Documentation Instructions"
-description: "Technical-documentation conventions: link to authoritative sources instead of restating them, document patterns rather than volatile lists, and update every referring document when a doc changes scope. Applies when writing, restructuring or reviewing any Markdown file."
+description: "Technical-documentation conventions: link to authoritative sources instead of restating them, document patterns rather than volatile lists, and update every referring document when a doc changes scope. Applies when writing, restructuring or reviewing a documentation file: Markdown, MDX, reStructuredText or AsciiDoc."
 # Copilot
-applyTo: "**/*.md"
+applyTo: "**/*.md, **/*.mdx, **/*.rst, **/*.adoc"
 # Claude Code
-paths: ["**/*.md"]
+paths: ["**/*.md", "**/*.mdx", "**/*.rst", "**/*.adoc"]
 ---
 
 # Documentation Guidelines
@@ -16,7 +16,7 @@ Prose style (concision, no hard wrapping) is set by the always-on Writing Style 
 - Reference and link to other documentation (both internal and publicly available) when possible.
 - Use consistent terminology and style. Check pre-existing project documentation to match.
 - Draw diagrams in Mermaid.
-- Use standard markdown. The usage of GitHub/GitLab flavored Alerts is allowed (aka Callouts).
+- Use the format's standard syntax. In Markdown, GitHub/GitLab flavored Alerts (aka Callouts) are allowed.
 
 ## Documenting Volatile Content
 
