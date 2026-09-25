@@ -1,7 +1,7 @@
 name: llmctl-python
 displayName: llmctl Python
 version: 0.0.0
-description: Python development with AI agents. Source-authoring standards, single-file script discipline, and modern uv, ruff and ty project tooling.
+description: Ensure modern pythonic development with source-authoring standards, single-file script discipline, and modern uv, ruff and ty project tooling.
 author:
   name: siegenthalerroger
   url: https://github.com/siegenthalerroger

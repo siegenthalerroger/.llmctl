@@ -1,7 +1,7 @@
 name: llmctl-ops
 displayName: llmctl Ops
 version: 0.0.0
-description: Infrastructure work with AI agents. Helm, Kubernetes and OpenTofu/Terraform skills, path-scoped conventions, and cloud and IaC documentation connectors.
+description: Confidently hand off infrastructure work. Helm, Kubernetes and OpenTofu/Terraform skills, path-scoped conventions, and cloud and IaC documentation connectors.
 author:
   name: siegenthalerroger
   url: https://github.com/siegenthalerroger

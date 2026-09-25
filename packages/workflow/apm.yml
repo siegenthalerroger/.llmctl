@@ -1,7 +1,7 @@
 name: llmctl-workflow
 displayName: llmctl Workflow
 version: 0.0.0
-description: Code delivery with AI agents. Test-driven development, git worktrees, merge-conflict resolution, receiving code review and lint pipelines, plus a code-reviewer agent.
+description: Consistent code delivery from AI agents. Test-driven development, git worktrees, merge-conflict resolution, receiving code review and lint pipelines, plus a code-reviewer agent.
 author:
   name: siegenthalerroger
   url: https://github.com/siegenthalerroger
