@@ -33,7 +33,7 @@ So: read the gap commits first. If none of them changed a rule that file has to 
 
 A sweep is a wide read — every governed file, plus the guidance pages behind it — and doing it in one context degrades the files that come last: by then the guidance is being recalled from a summary of itself rather than read.
 
-So split the run and give each split its own subagent. One per package (`--include packages/core/`, `--include packages/ops/`, …) plus one for the root `.apm/` (`--include '.apm/*'` — a bare `.apm/` matches every package too), or finer where a package holds unrelated blocks: a set of skills that cite each other is worth keeping in one context, a set that does not is worth separating. Each subagent gets the paths it owns and the `llmctl-check-steering --json` rows for them, opens the guidance itself, and returns the three groups below for its own files only. Merge the reports here.
+So split the run and give each split its own subagent. One per package (`--include packages/baseline/`, `--include packages/ops/`, …) plus one for the root `.apm/` (`--include '.apm/*'` — a bare `.apm/` matches every package too), or finer where a package holds unrelated blocks: a set of skills that cite each other is worth keeping in one context, a set that does not is worth separating. Each subagent gets the paths it owns and the `llmctl-check-steering --json` rows for them, opens the guidance itself, and returns the three groups below for its own files only. Merge the reports here.
 
 ## What to review, once a file is worth reviewing
 
@@ -47,12 +47,12 @@ What no gate can check, and what this review is for:
 
 | | Against |
 | --- | --- |
-| Is the description a directive with an explicit negative constraint, front-loaded, name-first? | [meta-steering §3](../../../packages/core/.apm/skills/meta-steering/SKILL.md#3-description-craft--all-four-types) |
-| Is this the right customization type at all, or a rule wearing the wrong one? | [meta-steering §1](../../../packages/core/.apm/skills/meta-steering/SKILL.md#1-pick-the-customization-type-first) |
-| Does the description fit the discovery budget its harnesses share? | [meta-steering §3, context budget](../../../packages/core/.apm/skills/meta-steering/SKILL.md#context-budget--four-distinct-surfaces) |
-| Is every frontmatter key honoured, stripped or destructive on each deployed target, and does a stripped key's intent survive in the body? | [meta-steering §4](../../../packages/core/.apm/skills/meta-steering/SKILL.md#4-frontmatter-shared-by-all-four-types) and [the deploy matrix](../../../packages/core/.apm/skills/meta-steering/references/frontmatter-deploy.md#the-matrix) |
-| Does the body earn its place, or restate what the harness or a tool schema already says? Does it fall into a named anti-pattern? | [meta-steering §5](../../../packages/core/.apm/skills/meta-steering/SKILL.md#5-anti-patterns-across-all-four-types) |
-| For a hook or an MCP entry: is it deterministic, and is the event name real? | [meta-harness](../../../packages/core/.apm/skills/meta-harness/SKILL.md) |
+| Is the description a directive with an explicit negative constraint, front-loaded, name-first? | [meta-steering §3](../../../packages/baseline/.apm/skills/meta-steering/SKILL.md#3-description-craft--all-four-types) |
+| Is this the right customization type at all, or a rule wearing the wrong one? | [meta-steering §1](../../../packages/baseline/.apm/skills/meta-steering/SKILL.md#1-pick-the-customization-type-first) |
+| Does the description fit the discovery budget its harnesses share? | [meta-steering §3, context budget](../../../packages/baseline/.apm/skills/meta-steering/SKILL.md#context-budget--four-distinct-surfaces) |
+| Is every frontmatter key honoured, stripped or destructive on each deployed target, and does a stripped key's intent survive in the body? | [meta-steering §4](../../../packages/baseline/.apm/skills/meta-steering/SKILL.md#4-frontmatter-shared-by-all-four-types) and [the deploy matrix](../../../packages/baseline/.apm/skills/meta-steering/references/frontmatter-deploy.md#the-matrix) |
+| Does the body earn its place, or restate what the harness or a tool schema already says? Does it fall into a named anti-pattern? | [meta-steering §5](../../../packages/baseline/.apm/skills/meta-steering/SKILL.md#5-anti-patterns-across-all-four-types) |
+| For a hook or an MCP entry: is it deterministic, and is the event name real? | [meta-harness](../../../packages/baseline/.apm/skills/meta-harness/SKILL.md) |
 
 ## Constraints
 

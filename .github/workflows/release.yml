@@ -75,7 +75,7 @@ jobs:
 
       - name: Deploy this repo's own primitives
         # Not `--frozen`: APM 0.31 cannot restore a package that declares MCP
-        # servers into an empty `apm_modules/`, and `packages/core` declares
+        # servers into an empty `apm_modules/`, and `packages/baseline` declares
         # two. The `lockfiles` gate is what holds every lockfile to its pins.
         run: apm install --target claude,codex,agent-skills
         working-directory: .llmctl

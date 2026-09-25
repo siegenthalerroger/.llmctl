@@ -47,8 +47,8 @@ This skill owns the `modelProfile` semantics and the resolution maps. Two author
 | File | What to update |
 |---|---|
 | `.apm/skills/meta-update-models/SKILL.md` | Step 1 profile example, Part A maps, Part B filter rules |
-| `packages/core/.apm/skills/meta-steering/references/agent-guide.md` | Model field section (defers to this skill) |
-| `packages/core/.apm/skills/meta-steering/references/agent-frontmatter.md` | `metadata.modelProfile` schema table + `model`/`effort` field docs |
+| `packages/baseline/.apm/skills/meta-steering/references/agent-guide.md` | Model field section (defers to this skill) |
+| `packages/baseline/.apm/skills/meta-steering/references/agent-frontmatter.md` | `metadata.modelProfile` schema table + `model`/`effort` field docs |
 
 `CONTRIBUTING.md` only points here; it restates nothing. Before starting, catch any other location with `grep -rn "specialisation" --include='*.md' packages .apm CONTRIBUTING.md` — the deploy mirrors and `apm_modules/` are copies, not locations.
 

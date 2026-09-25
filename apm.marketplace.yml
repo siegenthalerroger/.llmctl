@@ -19,7 +19,7 @@ marketplace:
   versioning:
     strategy: per_package
   packages:
-    - name: llmctl-core
+    - name: llmctl-baseline
       category: Development
       description: Core steering skills — research, troubleshooting, batch execution, and Mermaid diagramming.
     - name: llmctl-workflow

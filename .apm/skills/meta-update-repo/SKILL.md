@@ -38,7 +38,7 @@ Out of scope, and owned elsewhere:
 ```bash
 uv run llmctl-update --repo . --dry-run          # what would move; writes nothing
 apm run update                                   # every package
-uv run llmctl-update --repo . --package core     # or one
+uv run llmctl-update --repo . --package baseline # or one
 ```
 
 Per package, the command:
@@ -166,7 +166,7 @@ For a stub or empty local file, fetch the full upstream content: commit summarie
 3. Recommend a **single merged update**.
 4. Flag any conflict where two upstreams changed the same idea differently.
 
-**After any merge, re-check `fidelity` and `license` in the same edit**, against [meta-steering's provenance rules](../../../packages/core/.apm/skills/meta-steering/references/skill-frontmatter.md#provenance-metadata-recommended). Never leave that to a follow-up.
+**After any merge, re-check `fidelity` and `license` in the same edit**, against [meta-steering's provenance rules](../../../packages/baseline/.apm/skills/meta-steering/references/skill-frontmatter.md#provenance-metadata-recommended). Never leave that to a follow-up.
 
 ## Phase D — specifications
 
@@ -209,10 +209,10 @@ What a bundle contains depends on the APM that packed it, and several documents 
 1. **Read the release notes** for every version in the range (`gh api repos/microsoft/apm/releases --jq '.[] | .tag_name, .body'`), looking for breaking changes to `install`, `update`, `pack`, `audit` and frontmatter translation. List what each one touches here: `update.py` and `pack_marketplace.py` shell out to `apm install`, `apm update` and `apm audit`, and CI runs `apm install`.
 2. **Install the new CLI locally.** Move the pin: the `apm-version` default in [.github/actions/setup/action.yml](../../../.github/actions/setup/action.yml).
 3. **Run every gate** with `uv run llmctl-check --repo .`. The pack gate is the one that exercises the packer.
-4. **Re-run the frontmatter probe** that produced meta-steering's deploy matrix. It is described under "The matrix" in [frontmatter-deploy.md](../../../packages/core/.apm/skills/meta-steering/references/frontmatter-deploy.md#the-matrix): one scratch package outside this repo, one file per type declaring the union of every harness's keys, deployed per target, with authored and deployed frontmatter diffed. Update any row whose result changed, and the "Established … against APM …" line with the new version, short SHA and date.
-5. **Re-pin the APM source permalinks** in the `authoritativeSpec` of [meta-steering](../../../packages/core/.apm/skills/meta-steering/SKILL.md), the `apm_cli/integration/*_integrator.py` URLs, to the commit the new release tag points at. They are SHA-pinned, so the spec audit reports them `up_to_date` forever. Re-pinning is the only way they move. Diff each file across the range (`gh api repos/microsoft/apm/compare/<old>...<new> --jq '.files[].filename'`) and re-read the ones that changed.
+4. **Re-run the frontmatter probe** that produced meta-steering's deploy matrix. It is described under "The matrix" in [frontmatter-deploy.md](../../../packages/baseline/.apm/skills/meta-steering/references/frontmatter-deploy.md#the-matrix): one scratch package outside this repo, one file per type declaring the union of every harness's keys, deployed per target, with authored and deployed frontmatter diffed. Update any row whose result changed, and the "Established … against APM …" line with the new version, short SHA and date.
+5. **Re-pin the APM source permalinks** in the `authoritativeSpec` of [meta-steering](../../../packages/baseline/.apm/skills/meta-steering/SKILL.md), the `apm_cli/integration/*_integrator.py` URLs, to the commit the new release tag points at. They are SHA-pinned, so the spec audit reports them `up_to_date` forever. Re-pinning is the only way they move. Diff each file across the range (`gh api repos/microsoft/apm/compare/<old>...<new> --jq '.files[].filename'`) and re-read the ones that changed.
 6. **Re-test every recorded APM workaround**, and update or close what changed:
-   - [TODO 4l](../../../TODO.md) (`--frozen` cannot restore `core` from a cold cache): run `apm install --frozen` in a scratch copy of `packages/core` with an empty `apm_modules/`.
+   - [TODO 4l](../../../TODO.md) (`--frozen` cannot restore `baseline` from a cold cache): run `apm install --frozen` in a scratch copy of `packages/baseline` with an empty `apm_modules/`.
    - The multi-subpath `apm update` failure on `packages/design` ([phase A](#when-a-package-cannot-be-updated)): run `apm update --dry-run` there.
    - TODO 3a, 3c, 3d and 6c.
 7. **Update the version strings** that name the old version: `grep -rn "APM 0\.\|on 0\.[0-9]" --include='*.md' --include='*.py' --include='*.yml' . | grep -v apm_modules`.

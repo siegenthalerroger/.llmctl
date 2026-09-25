@@ -14,8 +14,8 @@ Run it when you feel like it. Nothing schedules it, and nothing else depends on 
 
 | In | Out |
 | --- | --- |
-| `packages/core/.apm/skills/meta-steering/` and its `references/` | every file those two govern — that is `meta-review-steering` |
-| `packages/core/.apm/skills/meta-harness/` and its `references/` | `model:` and `effort:` selections — `meta-update-models` |
+| `packages/baseline/.apm/skills/meta-steering/` and its `references/` | every file those two govern — that is `meta-review-steering` |
+| `packages/baseline/.apm/skills/meta-harness/` and its `references/` | `model:` and `effort:` selections — `meta-update-models` |
 | the `authoritativeSpec` lists both carry | pinned dependencies and adapted files — `meta-update-repo` |
 
 **Nothing here commits.** Propose the diff and say what it is based on.
@@ -27,7 +27,7 @@ Phases 1 and 2 are the expensive part by a wide margin: a harness's documentatio
 So dispatch one subagent per harness, each with the `authoritativeSpec` URLs this repository already cites for that harness and the local claims those URLs back. Build each brief from the Phase 1 rows:
 
 - **Group the rows by host**, not by skill: `code.claude.com`, `code.visualstudio.com`, `docs.github.com`, `learn.chatgpt.com` with `developers.openai.com`, `agentskills.io`, `agent-plugins.org`, `microsoft.github.io/apm` with `github.com/microsoft/apm`. One host is one subagent.
-- **Find the claims each URL backs** with `grep -rn "<url>" packages/core/.apm/skills/meta-steering packages/core/.apm/skills/meta-harness`. A URL cited only in frontmatter backs the section named by its comment heading there. Hand the subagent those file paths and lines, not a summary of them.
+- **Find the claims each URL backs** with `grep -rn "<url>" packages/baseline/.apm/skills/meta-steering packages/baseline/.apm/skills/meta-harness`. A URL cited only in frontmatter backs the section named by its comment heading there. Hand the subagent those file paths and lines, not a summary of them.
 
 Ask each one back for a report, never the pages:
 
@@ -40,8 +40,8 @@ Phase 3 stays here. A subagent reports what a page says; deciding whether that i
 ## Phase 1 — the sources already cited
 
 ```bash
-uv run llmctl-check-updates --repo . --specs --include "packages/core/.apm/skills/meta-steering/SKILL.md"
-uv run llmctl-check-updates --repo . --specs --include "packages/core/.apm/skills/meta-harness/SKILL.md"
+uv run llmctl-check-updates --repo . --specs --include "packages/baseline/.apm/skills/meta-steering/SKILL.md"
+uv run llmctl-check-updates --repo . --specs --include "packages/baseline/.apm/skills/meta-harness/SKILL.md"
 ```
 
 `--include` and `--exclude` filter the same way in every `llmctl-*` command: a pattern with a wildcard is a whole-path glob, and a bare word matches anywhere in the path. How each status arises is in [source-url-reference.md](../meta-update-repo/references/source-url-reference.md#statuses).
@@ -62,7 +62,7 @@ For each harness the two skills already cite, open its documentation index and c
 - a page that replaced one already cited — the old URL may still resolve
 - a capability the guidance says does not exist, or predates
 
-Add what you find to `authoritativeSpec`, under the comment heading for its type, in the same order as the harnesses already listed there. A bare URL there is a citation and reproduces nothing — see [meta-steering's provenance section](../../../packages/core/.apm/skills/meta-steering/references/skill-frontmatter.md#provenance-metadata-recommended).
+Add what you find to `authoritativeSpec`, under the comment heading for its type, in the same order as the harnesses already listed there. A bare URL there is a citation and reproduces nothing — see [meta-steering's provenance section](../../../packages/baseline/.apm/skills/meta-steering/references/skill-frontmatter.md#provenance-metadata-recommended).
 
 ## Phase 3 — decide what a change means
 
@@ -77,18 +77,18 @@ A vendor's house style is not automatically this repository's convention. Where 
 
 ## Phase 4 — record and verify
 
-- A spec whose wording or tables were reproduced keeps its `authoritativeSpec` entry and switches it to the object form with `license` and `fidelity`, as [meta-steering's provenance section](../../../packages/core/.apm/skills/meta-steering/references/skill-frontmatter.md#provenance-metadata-recommended) says. Do not add an `adaptedFrom` entry for it. The `licences` gate can only enforce what is declared: a bare URL counts as `inspiration-only`, so reproduced wording under a bare URL passes unnoticed. Rewrite it in local words instead.
+- A spec whose wording or tables were reproduced keeps its `authoritativeSpec` entry and switches it to the object form with `license` and `fidelity`, as [meta-steering's provenance section](../../../packages/baseline/.apm/skills/meta-steering/references/skill-frontmatter.md#provenance-metadata-recommended) says. Do not add an `adaptedFrom` entry for it. The `licences` gate can only enforce what is declared: a bare URL counts as `inspiration-only`, so reproduced wording under a bare URL passes unnoticed. Rewrite it in local words instead.
 - After any frontmatter edit: `uv run llmctl-check --repo . --only frontmatter --only licences`; before proposing the whole diff, `apm run check`.
 - Editing the guidance is what makes every file it governs due for review. Say so at the end, and hand off to `meta-review-steering`.
 
 **`llmctl-check-steering` measures committed guidance only.** It reads `git log`, so an edit that is still in the working tree — which is every edit this procedure makes, since nothing here commits — is invisible to it. Hand off in one of two ways:
 
-- **Committed** (after confirmation, one commit per guidance skill, scope `core`): `uv run llmctl-check-steering --repo .` now shows what is behind.
+- **Committed** (after confirmation, one commit per guidance skill, scope `baseline`): `uv run llmctl-check-steering --repo .` now shows what is behind.
 - **Not committed**: give `meta-review-steering` the working-tree diff itself, and say which rules it changed:
 
   ```bash
-  git diff -- packages/core/.apm/skills/meta-steering packages/core/.apm/skills/meta-harness
-  git status --short -- packages/core/.apm/skills/meta-steering packages/core/.apm/skills/meta-harness   # new, untracked pages
+  git diff -- packages/baseline/.apm/skills/meta-steering packages/baseline/.apm/skills/meta-harness
+  git status --short -- packages/baseline/.apm/skills/meta-steering packages/baseline/.apm/skills/meta-harness   # new, untracked pages
   ```
 
 Then `meta-review-steering` decides which governed files actually need a change.

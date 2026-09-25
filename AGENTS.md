@@ -14,7 +14,7 @@ Content that cannot be published lives in a **separate private workspace**, not 
 
 ## Upstream dependencies
 
-Upstream-sourced content is declared in the relevant package's `apm.yml` (`packages/*/apm.yml`), pinned to a full commit SHA, and resolved in that package's committed `apm.lock.yaml`. MCP servers are scoped per package: universal dev servers in `packages/core/apm.yml`, domain servers in their domain package (`ops`, `travel`).
+Upstream-sourced content is declared in the relevant package's `apm.yml` (`packages/*/apm.yml`), pinned to a full commit SHA, and resolved in that package's committed `apm.lock.yaml`. MCP servers are scoped per package: universal dev servers in `packages/baseline/apm.yml`, domain servers in their domain package (`ops`, `travel`).
 
 A pin and its lockfile move only through the `meta-update-repo` skill — `apm run update` for a bump, its new-dependency phase for an addition — in one commit, after its safety review has read the upstream content. Nothing about that is `apm install --frozen`'s job — see [Lockfiles](CONTRIBUTING.md#lockfiles) for why.
 
@@ -22,8 +22,8 @@ A pin and its lockfile move only through the `meta-update-repo` skill — `apm r
 
 Load the owning skill before creating or editing any customization file. The rules live there and are not repeated here:
 
-- [`meta-steering`](packages/core/.apm/skills/meta-steering/SKILL.md): skills, agents, instructions, prompts, including frontmatter per harness, descriptions and provenance fields.
-- [`meta-harness`](packages/core/.apm/skills/meta-harness/SKILL.md): hooks, MCP servers, plugin bundles.
+- [`meta-steering`](packages/baseline/.apm/skills/meta-steering/SKILL.md): skills, agents, instructions, prompts, including frontmatter per harness, descriptions and provenance fields.
+- [`meta-harness`](packages/baseline/.apm/skills/meta-harness/SKILL.md): hooks, MCP servers, plugin bundles.
 
 Repository-only rules:
 
@@ -38,7 +38,7 @@ Conventional, and enforced by a gate rather than trusted:
 <type>(<scope>): <description>
 ```
 
-`type` ∈ `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`; `!` before the colon marks a breaking change. `scope` is optional, and when present must name a package the commit touched (`core`, `workflow`, …) or an area outside `packages/` (`tooling`, `ci`, `meta`, `docs`, `repo`).
+`type` ∈ `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`; `!` before the colon marks a breaking change. `scope` is optional, and when present must name a package the commit touched (`baseline`, `workflow`, …) or an area outside `packages/` (`tooling`, `ci`, `meta`, `docs`, `repo`).
 
 The type no longer sizes anything — versions are calendar-derived — it decides which heading the commit lands under in the release notes. Which package a commit releases comes from the paths it touched. Prose for the notes goes in the pull request body under a `## Release notes` heading. See [CONTRIBUTING.md](CONTRIBUTING.md#commit-convention).
 

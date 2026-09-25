@@ -1,6 +1,6 @@
 # Source URL Reference
 
-How `llmctl-check-updates` ([check_updates.py](../../../../src/llmctl/check_updates.py)) finds, parses and judges provenance URLs. What to *write* in a provenance block — the forms to choose, what `fidelity`, `license` and `took` mean, how to cite a book — is authoring guidance owned by [meta-steering's provenance section](../../../../packages/core/.apm/skills/meta-steering/references/skill-frontmatter.md#provenance-metadata-recommended). This file covers only what the tooling does with it.
+How `llmctl-check-updates` ([check_updates.py](../../../../src/llmctl/check_updates.py)) finds, parses and judges provenance URLs. What to *write* in a provenance block — the forms to choose, what `fidelity`, `license` and `took` mean, how to cite a book — is authoring guidance owned by [meta-steering's provenance section](../../../../packages/baseline/.apm/skills/meta-steering/references/skill-frontmatter.md#provenance-metadata-recommended). This file covers only what the tooling does with it.
 
 ## Two modes, one parse
 

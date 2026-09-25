@@ -149,7 +149,7 @@ Key points:
 
 ## Recommended Layout for This Repo
 
-1. Author each server under `dependencies.mcp` in the package that owns it — universal servers in [`packages/core/apm.yml`](https://github.com/siegenthalerroger/.llmctl/blob/main/packages/core/apm.yml).
+1. Author each server under `dependencies.mcp` in the package that owns it — universal servers in [`packages/baseline/apm.yml`](https://github.com/siegenthalerroger/.llmctl/blob/main/packages/baseline/apm.yml).
 2. Externalize all secrets to `${VAR}`, then check what each target's generated file received (see [Secrets](#secrets)).
 3. Run `apm install -g` to deploy; do not commit the generated `.vscode/mcp.json` / `.mcp.json` / `config.toml`.
 4. Keep server `name`s aligned with how agents refer to them. No agent in this repo declares a `tools:` array (a Copilot-style array makes Claude Code refuse to spawn the agent — see [agent-guide.md](../../meta-steering/references/agent-guide.md#tools-field)), so the alignment that matters is prose: an agent body naming a server (`context7`, `opentofu-registry`) must use the name declared here.

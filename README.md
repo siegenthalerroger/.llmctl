@@ -14,7 +14,7 @@ Start with [Deploy](#deploy) to install the published plugins. If you want to ex
 
 | Package | Scope | Provides |
 | --- | --- | --- |
-| `packages/core` | **Global baseline** | Domain-neutral planning / exploration / execution agents, research, troubleshooting, diagramming, the `meta-steering` + `meta-harness` authoring skills, `reflect` + `setup-mcp` prompts + universal MCP servers |
+| `packages/baseline` | **Global baseline** | Domain-neutral planning / exploration / execution agents, research, troubleshooting, diagramming, the `meta-steering` + `meta-harness` authoring skills, `reflect` + `setup-mcp` prompts + universal MCP servers |
 | `packages/workflow` | Coding | Code delivery — the code-reviewer agent + TDD, git worktrees, merge conflicts, code-review reception, lint pipelines |
 | `packages/ops` | IT Operations | Helm / Kubernetes / OpenTofu skills + instructions + cloud/IaC doc MCP servers |
 | `packages/product` | Product development | PRD skills + product-manager / UX agents |
@@ -59,14 +59,14 @@ brew install apm
 # Install APM (Windows)
 winget install Microsoft.APM
 
-# Global baseline — deploy core + workflow to user scope everywhere
+# Global baseline — deploy baseline + workflow to user scope everywhere
 apm install -g \
-  siegenthalerroger/.llmctl/packages/core \
+  siegenthalerroger/.llmctl/packages/baseline \
   siegenthalerroger/.llmctl/packages/workflow \
   --target claude,copilot,codex,agent-skills
 ```
 
-`packages/core` is deliberately domain-neutral: its executor agents run any well-specified task — code, configuration, IaC, docs, specs — tiered by how much context the work spans. Everything code-specific lives in `packages/workflow`, which is mostly upstream skills pulled in as pinned APM dependencies. Drop `workflow` from the command above (or install it per project) if a context does no code work, or if you do not want third-party steering in the global baseline.
+`packages/baseline` is deliberately domain-neutral: its executor agents run any well-specified task — code, configuration, IaC, docs, specs — tiered by how much context the work spans. Everything code-specific lives in `packages/workflow`, which is mostly upstream skills pulled in as pinned APM dependencies. Drop `workflow` from the command above (or install it per project) if a context does no code work, or if you do not want third-party steering in the global baseline.
 
 Add domain packages **per project**, only where they apply:
 
@@ -87,7 +87,7 @@ cd your-travel-notes
 apm install siegenthalerroger/.llmctl/packages/travel --target claude
 ```
 
-By default this tracks the default branch, so APM will warn that the dependency is unpinned. Append a git reference as `#<sha>` or a `#llmctl-core@<version>` release tag (substitute the package name) to pin a context to a known-good state. Refresh unpinned installs with `apm update -g --yes` (user scope) or `apm update --yes` (project).
+By default this tracks the default branch, so APM will warn that the dependency is unpinned. Append a git reference as `#<sha>` or a `#llmctl-baseline@<version>` release tag (substitute the package name) to pin a context to a known-good state. Refresh unpinned installs with `apm update -g --yes` (user scope) or `apm update --yes` (project).
 
 </details>
 
@@ -101,7 +101,7 @@ cd ~/.llmctl
 apm install --target claude   # or another --target for a different assistant
 
 # Try a local package before releasing it
-apm install ~/.llmctl/packages/core --target claude
+apm install ~/.llmctl/packages/baseline --target claude
 
 # Every gate: the tooling's own lint, conventions, licensing, lockfiles, and a full pack
 uv run llmctl-check --repo . --since origin/main
@@ -184,7 +184,7 @@ See the [VS Code agent customization docs](https://code.visualstudio.com/docs/ag
 | **Hooks** (`*.hook.json`)              | Supported       | Supported                               |
 | **MCP Servers** (`apm.yml`)            | Supported       | Supported                               |
 
-How to author each type, and which frontmatter survives the deploy to each harness, is in the [`meta-steering`](packages/core/.apm/skills/meta-steering/SKILL.md) skill (skills, agents, instructions, prompts) and the [`meta-harness`](packages/core/.apm/skills/meta-harness/SKILL.md) skill (hooks, MCP servers, plugins). See [CONTRIBUTING.md](CONTRIBUTING.md) for repository conventions, and [Continuous Integration](CONTRIBUTING.md#continuous-integration) for what runs on a pull request.
+How to author each type, and which frontmatter survives the deploy to each harness, is in the [`meta-steering`](packages/baseline/.apm/skills/meta-steering/SKILL.md) skill (skills, agents, instructions, prompts) and the [`meta-harness`](packages/baseline/.apm/skills/meta-harness/SKILL.md) skill (hooks, MCP servers, plugins). See [CONTRIBUTING.md](CONTRIBUTING.md) for repository conventions, and [Continuous Integration](CONTRIBUTING.md#continuous-integration) for what runs on a pull request.
 
 ## Tool Guides
 
@@ -206,7 +206,7 @@ apm install github/awesome-copilot/skills/review-and-refactor
 
 ### Recommended MCP Servers
 
-These are recommended additions to the ones already wired into the packages ([`packages/core/apm.yml`](packages/core/apm.yml) and [`packages/ops/apm.yml`](packages/ops/apm.yml)) — add them to a project scoped `apm.yml` (or generate the block with [`/setup-mcp`](packages/core/.apm/prompts/setup-mcp.prompt.md)) when a task needs them.
+These are recommended additions to the ones already wired into the packages ([`packages/baseline/apm.yml`](packages/baseline/apm.yml) and [`packages/ops/apm.yml`](packages/ops/apm.yml)) — add them to a project scoped `apm.yml` (or generate the block with [`/setup-mcp`](packages/baseline/.apm/prompts/setup-mcp.prompt.md)) when a task needs them.
 
 | Server                    | Transport | Provides                                                                             | Secret             |
 | ------------------------- | --------- | ------------------------------------------------------------------------------------ | ------------------ |
