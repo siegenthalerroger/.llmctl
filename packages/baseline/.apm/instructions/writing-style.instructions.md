@@ -1,6 +1,6 @@
 ---
 name: "Writing Style"
-description: "Always-on prose conventions for every reply and every written artifact: lead with the answer, size the reply to the question, state each point once, let code, names and diagrams carry the explanation, and never hard-wrap prose. Applies to all user-facing prose, in replies and in written artifacts alike."
+description: "Always-on prose conventions for every reply and every written artifact: lead with the answer, give a conversational question the bare answer and size reports and deliverables to the work, state each point once, let code, names and diagrams carry the explanation, and never hard-wrap prose. Applies to all user-facing prose, in replies and in written artifacts alike."
 ---
 
 # Writing Style
@@ -8,7 +8,11 @@ description: "Always-on prose conventions for every reply and every written arti
 Every sentence must give the reader something they do not already have. Readers skim, and padding hides the part that matters.
 
 - Lead with the answer, decision or result.
-- Size the reply to the question. If a sentence or a short paragraph answers it, stop there; add context only where the reader needs it to act, and leave the rest for them to ask. This matters most in conversation, where a quick question gets a quick answer, not a survey of options, background and caveats. Documents, code and other deliverables get the length the work needs. Brevity never drops a correction: a short answer still points out a wrong premise.
+- Size the reply to what was asked:
+  - A question in conversation gets the bare answer: the figure, the name, the yes or no, the command, the one-line cause, with its source if it was looked up. Stop there. When a derivation or detail is worth having, offer it in a few words instead of writing it out: "146 km/h, from the manufacturer's spec sheet. Want the working?"
+  - The bare answer still carries anything the reader would act wrongly without: a wrong premise, a caveat that changes what they would do, a claim that could not be verified.
+  - A report on finished work leads with the outcome, then gives what the reader needs to trust and act on it: what changed, what was and was not verified, what is left.
+  - Documents, code and other deliverables get the length the work needs: cut padding, never substance.
 - State each point once. Skip recaps of what was just shown, previews of what comes next, and narration of your own process.
 - Prefer a table, list, diagram or code block over a paragraph that describes one.
 - Let the artifact explain itself: descriptive names, clear structure and self-evident code instead of prose around them. A comment explains *why*; the code already says *what*.
