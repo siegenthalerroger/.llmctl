@@ -242,3 +242,24 @@ Marketplace manifests and packed bundles live in a **separate repository**, gene
 - [ ] **6b — Get the Codex marketplace entries to carry their own metadata.** Bundles now ship `.codex-plugin/plugin.json` (Codex does not read the Claude manifest), which is what makes them installable; pack_marketplace.py writes it, and nothing verifies it afterwards. The catalogue around them is still thin: APM writes `version`, `description` and `category` into `.claude-plugin/marketplace.json` but emits only `name`, `source`, `policy` and `category` per entry in `.agents/plugins/marketplace.json`, even though all of it is declared in the marketplace `apm.yml`. Nothing breaks — [openai/codex#28789](https://github.com/openai/codex/pull/28789) makes the on-disk `plugin.json` win over marketplace metadata — but browsing the marketplace shows no version and no description. It is APM's emitter to fix, so: report it upstream rather than post-processing a generated file. While there, `interface.capabilities` is specified only as a free-form "capability list from implementation"; `write_codex_manifest` reports what each bundle carries, which is a reading, not a documented vocabulary. Confirm it against a real `codex plugin validate` — the Codex CLI is not in CI, so nothing checks the Codex manifest the way `claude plugin validate` checks the Claude one.
 
 - [ ] **6c — Get `apm pack` to emit the Codex plugin manifest, and delete `write_codex_manifest`.** `apm pack` writes `.claude-plugin/plugin.json` and nothing else — its `--target` help names claude and copilot — so [pack_marketplace.py](src/llmctl/pack_marketplace.py) hand-writes the `.codex-plugin/plugin.json` beside it from the manifest APM just produced. That is a gap in APM, not a decision here: the same `apm.yml` supplies every field except `interface`, and APM already emits the Codex *marketplace* manifest, so it knows the host exists. **No upstream issue covers this** — searched microsoft/apm on 2026-08-20 for `codex`, `plugin.json`, `codex-plugin` and `marketplace.json`; the nearest is [microsoft/apm#2524](https://github.com/microsoft/apm/issues/2524) (pack drops description/version for *remote* packages when a metadata fetch fails), which is a different cause. So the first step is filing one, together with **6b** — both are the same omission seen from the bundle side and the catalogue side. Until then `write_codex_manifest` is ours to keep correct against a spec we do not own; delete it in the change that adopts APM's.
+
+---
+
+## 7 — Always-On Instructions: Product Notes and Per-Model Variants
+
+**Goal:** Decide whether `baseline`'s always-on instructions (writing and working style) need per-product notes or per-model variants, once behaviour across model families diverges enough to matter.
+
+**Priority: low — revisit on evidence.** One model-agnostic text serves every target today, held to the [always-on checks in meta-steering](packages/baseline/.apm/skills/meta-steering/references/instructions.md#always-on-instructions-across-model-families).
+
+### Background
+
+As of 2026-10-11 the vendor prompting guides for Claude, GPT-5.x and Gemini 3.x agree on the principles the text follows, and a rule that names the target rather than a change from the default lands in the same place on each family. What differs sits outside the text:
+
+- **Product settings that compete with custom instructions:** ChatGPT's base style and tone presets (for example Efficient and Candid), the OpenAI API `verbosity` parameter, Gemini 3.x's terse default. Kept out of the instructions on purpose, so the text reads the same everywhere.
+- **Small open-weight models** hold fewer instructions reliably ([IFScale](https://arxiv.org/abs/2507.11538)), and some take no system prompt at all ([DeepSeek-R1](https://github.com/deepseek-ai/DeepSeek-R1#usage-recommendations)). Not a target: small models only get tightly scoped tasks.
+
+### Tasks
+
+- [ ] **7a — Record divergence.** Note here each case where a family or product reacts to the always-on text differently enough to hurt (ignores the bare-answer tier, over-questions premises, pads reports). Once [section 5](#5--eval-framework-for-steering-effectiveness) has a harness, measure it there instead.
+- [ ] **7b — Per-product notes.** If a product setting fights the text, add a one-line pointer to the matching setting in the [paste-in table](README.marketplace.md#always-on-instructions), not to the instructions.
+- [ ] **7c — Per-model variants.** Only if a family needs different text: decide how a variant is selected (APM target, a bundle per family, or a section per family in `ALWAYS_ON_INSTRUCTIONS.md`) and how the packer and the always-on hook pick it.
