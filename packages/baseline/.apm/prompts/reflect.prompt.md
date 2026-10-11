@@ -13,7 +13,7 @@ This runs with file read and edit tools and, for a new or rewritten file, a suba
 
 ## Steps
 
-1. **Name the learnings.** For each one, identify the customization file that should have prevented it and what type it belongs in — a skill for knowledge or a task, an instruction only to force a skill to load, a prompt for an entry point, a hook for a deterministic guardrail. Prefer a skill.
+1. **Name the learnings.** For each one, identify the customization file that should have prevented it and what type it belongs in — a skill for knowledge or a task, an always-on instruction for behaviour that applies to every request (how replies are written, when to ask, check or push back), a path-scoped instruction only to force a skill to load, a prompt for an entry point, a hook for a deterministic guardrail. Prefer a skill. A lesson about always-on behaviour usually means correcting or narrowing the rule that misfired rather than adding one: every always-on line costs adherence in every session, on every model family.
 
 2. **Classify each target file by its path**, using the path it was actually loaded from:
 
