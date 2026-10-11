@@ -166,6 +166,17 @@ Model-generation effects (literal scoping, the consistency pass) apply to every 
 
 Use markdown structure as a semantic signal: sections group related rules and bullets mark independent items. Use numbered steps only when order matters.
 
+### Always-On Instructions Across Model Families
+
+An instruction without `applyTo` loads into every session, and its text also reaches other model families: Codex and Copilot through the always-on hook, chat products through a paste-in copy. One text has to steer Claude, GPT and Gemini models alike, so it passes these checks on top of the core principles:
+
+- **Name the target, not a change from the default.** "Give the bare answer" lands in the same place on every model; "be more concise" moves each one a different distance from a default that differs by family, version and product
+- **No contradictions, across files as well as within one.** Always-on files load together and act as one prompt. GPT-5 models spend reasoning trying to reconcile contradictory instructions ([OpenAI](https://developers.openai.com/cookbook/examples/gpt-5/gpt-5_prompting_guide)) and current Claude models follow each literally, so when two rules can fire on the same case, scope them apart
+- **One stated trade-off behind every judgment call.** Rules that ask for judgment (when to ask, check, stop or push back) apply a single principle rather than each carrying its own threshold, which pulls the model in different directions on the cases in between
+- **Concrete targets and a positive example over adjectives and emphasis.** Concrete length limits are followed more reliably than adjectives ([OpenAI](https://developers.openai.com/cookbook/examples/gpt-5/gpt-5-2_prompting_guide)); capitals and "CRITICAL" make current models overtrigger ([Anthropic](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices))
+- **No instructions to think harder, re-check or show the reasoning.** Reasoning models already do it; such lines add cost and over-verification ([Anthropic](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5), [Google](https://ai.google.dev/gemini-api/docs/generate-content/whats-new-gemini-3.5))
+- **No product names, settings or tool names.** The text must read the same in every harness and chat product
+
 ## Good vs Bad Examples
 
 ✅ **GOOD** - Specific, scoped, with reasoning:
@@ -222,6 +233,7 @@ Write good components. Follow best practices. Keep them clean.
 - [ ] Always / Ask first / Never tiers are used only where applicable
 - [ ] Code examples included where the rule is subtle
 - [ ] The file's size respects the shared always-loaded budget, not just its own line count
+- [ ] An always-on file passes the [cross-family checks](#always-on-instructions-across-model-families), read together with every other always-on file
 
 **Testing**:
 - [ ] Patterns match the intended files and nothing else, cross-platform
