@@ -257,6 +257,9 @@ As of 2026-10-11 the vendor prompting guides for Claude, GPT-5.x and Gemini 3.x 
 
 - **Product settings that compete with custom instructions:** ChatGPT's base style and tone presets (for example Efficient and Candid), the OpenAI API `verbosity` parameter, Gemini 3.x's terse default. Kept out of the instructions on purpose, so the text reads the same everywhere.
 - **Small open-weight models** hold fewer instructions reliably ([IFScale](https://arxiv.org/abs/2507.11538)), and some take no system prompt at all ([DeepSeek-R1](https://github.com/deepseek-ai/DeepSeek-R1#usage-recommendations)). Not a target: small models only get tightly scoped tasks.
+- **Known default divergences to watch:** GPT-6 Astra asks more questions and formats more by default, GPT-5.6 is terser than GPT-5.5 ([OpenAI](https://developers.openai.com/api/docs/guides/latest-model/gpt-6-astra)), and without a prompt most models rarely ask at all ([Ambig-SWE](https://arxiv.org/abs/2502.13069)). How hard to push clarifying questions, and how strongly to word a rule ([IH-Benchmark](https://arxiv.org/abs/2607.25987) finds stronger wording fixes some models and not others), are the first knobs a variant would turn.
+- **Harness mandates the text can meet:** Gemini CLI requires a one-sentence intent line before every tool call and a change summary after every edit. The writing style scopes its no-recap rule to answers and reports so the two do not collide.
+- **Product options for later:** Claude Code can carry the writing style as a custom output style (system-prompt placement, with `keep-coding-instructions: true`) if rule-level adherence proves weak, and `/doctor prompt-audit` checks instruction files for contradictions. Gemini CLI already switches its own system prompt by model generation, a precedent for 7c.
 
 ### Tasks
 
