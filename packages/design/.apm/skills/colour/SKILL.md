@@ -8,10 +8,11 @@ metadata:
         license: CC-BY-4.0
         fidelity: largely-derived
         took: "The hue-first-harmony debunk and the character-first finding that chroma and lightness predict emotional response better than hue; the chroma/saturation/lightness/brightness distinctions; the space-per-task selection table; HSL's three non-perceptual axes with the yellow-versus-blue lightness example; gamut clipping resolved by reducing chroma rather than clamping channels, and that CSS gamut-maps automatically where code does not; the WCAG and APCA pass-rate figures over all sRGB pairs; the 60-30-10 dominance shorthand; reference-to-semantic-to-component token layering with the encode-the-decision vocabulary and token graph; the CSS Color 4/5 feature set; and Ström's border trick for chart fills."
+    authoritativeSpec:
       - url: "https://github.com/Myndex/apca-w3"
         license: W3C-20150513
         fidelity: inspiration-only
-        took: "The published APCA-W3 0.1.9 G-4g constants -- transfer exponent, luminance coefficients, both polarity exponent pairs, the black soft-clamp, scale, offset and clip thresholds -- plus the guidance-level bands, reimplemented in scripts/check-contrast.py. Not a line-for-line base: no upstream code was read across, and the comparison target is the constants in `SA98G`, not the file. Tracked here rather than on the script because the provenance parser reads .md only; the licence obliges implementations to keep current, which is what the drift audit on this URL is for."
+        took: "The published APCA-W3 0.1.9 G-4g constants (transfer exponent, luminance coefficients, both polarity exponent pairs, the black soft-clamp, scale, offset and clip thresholds) and the guidance-level bands, reimplemented in scripts/check-contrast.py. The comparison target is the constants in `SA98G`, not the file."
 ---
 
 # Colour

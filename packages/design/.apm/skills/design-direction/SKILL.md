@@ -13,7 +13,7 @@ metadata:
         fidelity: inspiration-only
         took: "Grouping tells by the surface they appear on rather than as one flat list."
       - url: "https://github.com/github/awesome-copilot/blob/main/skills/anti-ui-slop/SKILL.md"
-        license: MIT
+        license: Apache-2.0
         fidelity: inspiration-only
         took: "Fixing a design contract up front so later choices are checked against it rather than judged ad hoc."
       - url: "https://github.com/yetone/kill-ai-slop"
