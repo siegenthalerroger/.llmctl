@@ -37,13 +37,13 @@ def sh(args: list[str], cwd: Path | str) -> subprocess.CompletedProcess:
 
 
 def gate_tooling(ctx: Context) -> Outcome:
-    """The tooling's own lint: locked, formatted, linted and type-checked.
+    """The tooling's own lint: locked, formatted, linted, type-checked and tested.
 
     Only a checkout of the project can answer any of that: ruff and ty read
-    their configuration out of pyproject.toml, and `uv.lock` only exists beside
-    it. A workspace running the tooling from git holds none of those, so the
-    gate says so and skips rather than linting an installed copy against
-    default rules it was never written for.
+    their configuration out of pyproject.toml, and `uv.lock` and `tests/` only
+    exist beside it. A workspace running the tooling from git holds none of
+    those, so the gate says so and skips rather than linting an installed copy
+    against default rules it was never written for.
     """
     package = Path(__file__).resolve().parent
     project = package.parents[1]
@@ -63,16 +63,33 @@ def gate_tooling(ctx: Context) -> Outcome:
             "uv.lock does not match pyproject.toml; run `uv lock`",
         ),
         (
-            ["run", "--locked", "--quiet", "ruff", "format", "--check", "src/"],
+            ["run", "--locked", "--quiet", "ruff", "format", "--check", "src/", "tests/"],
             "ruff format clean",
-            "ruff format --check: run `uv run ruff format src/`",
+            "ruff format --check: run `uv run ruff format src/ tests/`",
         ),
         (
-            ["run", "--locked", "--quiet", "ruff", "check", "--quiet", "src/"],
+            ["run", "--locked", "--quiet", "ruff", "check", "--quiet", "src/", "tests/"],
             "ruff clean",
             "ruff check",
         ),
         (["run", "--locked", "--quiet", "ty", "check", "src/"], "ty clean", "ty check"),
+        (
+            [
+                "run",
+                "--locked",
+                "--quiet",
+                "python",
+                "-m",
+                "unittest",
+                "discover",
+                "-s",
+                "tests",
+                "-t",
+                ".",
+            ],
+            "unit tests pass",
+            "unit tests",
+        ),
     ):
         result = sh(["uv", *args], project)
         if result.returncode == 0:
@@ -227,14 +244,20 @@ def gate_pack(ctx: Context) -> Outcome:
         missing = gen_notices.unrecorded(text)
         if missing:
             return fail(
-                "no licence recorded in dependency-licenses.yml for {}".format(", ".join(missing))
+                "no licence or copyright holder recorded in dependency-licenses.yml for {}".format(
+                    ", ".join(missing)
+                )
             )
     detail = "; ".join(notes)
     return ok(f"{len(packages)} package(s) packed from their lockfiles; {detail}")
 
 
 GATES = [
-    Gate("tooling", "the release tooling is locked, formatted, linted and typed", gate_tooling),
+    Gate(
+        "tooling",
+        "the release tooling is locked, formatted, linted, typed and tested",
+        gate_tooling,
+    ),
     Gate("frontmatter", "customization frontmatter conventions", gate_frontmatter),
     Gate(
         "commits",

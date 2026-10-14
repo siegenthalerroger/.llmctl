@@ -28,7 +28,7 @@ Load the owning skill before creating or editing any customization file. The rul
 Repository-only rules:
 
 - **Licensing:** `*.md` is CC-BY-SA-4.0, everything else MIT — see [LICENSE](LICENSE) and [Licensing](CONTRIBUTING.md#licensing). Run `apm run check` after touching provenance or adding a dependency.
-- **Tooling:** a uv project — [pyproject.toml](pyproject.toml), one module per command under `src/llmctl/`, one `llmctl-<command>` console script each — run with `uv run`, which syncs the locked environment first. `uv.lock` moves only through `uv lock`. Run `uv run ruff format src/ && uv run ruff check src/ && uv run ty check src/` before committing; the `tooling` gate runs exactly those three plus `uv lock --check`. The `scripts:` block in [apm.yml](apm.yml) is the index of commands.
+- **Tooling:** a uv project — [pyproject.toml](pyproject.toml), one module per command under `src/llmctl/`, one `llmctl-<command>` console script each — run with `uv run`, which syncs the locked environment first. `uv.lock` moves only through `uv lock`. Run `uv run ruff format src/ tests/ && uv run ruff check src/ tests/ && uv run ty check src/ && uv run python -m unittest discover -s tests -t .` before committing; the `tooling` gate runs exactly those plus `uv lock --check`. Tests are stdlib `unittest` under `tests/`, one module per concern, and a regression for a deterministic rule belongs there. The `scripts:` block in [apm.yml](apm.yml) is the index of commands.
 
 ## Commits
 

@@ -7,7 +7,8 @@ Notices, the rest under Acknowledgements, because listing an `inspiration-only`
 source as a notice would imply a condition that does not exist.
 
 pack_marketplace.py imports `write()`; the `pack` gate fails on any `UNRECORDED`
-upstream. See CONTRIBUTING.md#licensing.
+upstream: a vendored dependency with no licence, or an adapted file whose upstream
+has no recorded copyright holder. See CONTRIBUTING.md#licensing.
 """
 
 from __future__ import annotations
@@ -246,6 +247,9 @@ def bundle_rows(
                 ack.setdefault(key, (set(), entry.url))[0].add(fidelity)
                 continue
             info = licenses.get(key, {})
+            # The copyright line is the one thing these licences oblige us to
+            # carry, and only the map records it. Without a row the notice would
+            # ship with no holder; the marker makes the `pack` gate fail instead.
             exceptions.append(
                 (
                     rel,
@@ -253,7 +257,7 @@ def bundle_rows(
                     entry.license or info.get("spdx", "?"),
                     fidelity,
                     key,
-                    info.get("holder", ""),
+                    info.get("holder") or UNRECORDED,
                     upstream_path(entry.url),
                     entry.url,
                 )
@@ -393,12 +397,17 @@ def write(ws: str | Path, marketplace: str | Path) -> Path:
 
 
 def unrecorded(text: str) -> list[str]:
-    """Upstream keys the notices could not find a licence for."""
+    """Upstream keys the notices could not find a licence or copyright holder for.
+
+    Two row shapes carry the marker: a vendored dependency with no map row (in
+    its licence column) and an adapted file whose upstream has no recorded
+    holder (in its copyright column, the last).
+    """
+    vendored = rf"\| `[^`]*` \| \[([^\]]+)\]\([^)]*\) \| {UNRECORDED} \|"
+    adapted = rf"^\| `[^`]*` \| [^|]+ \| \[([^\]]+)\]\([^|]*\| [^|]+ \| {UNRECORDED} \|$"
     return sorted(
-        {
-            m.group(1)
-            for m in re.finditer(rf"\| `[^`]*` \| \[([^\]]+)\]\([^)]*\) \| {UNRECORDED} \|", text)
-        }
+        {m.group(1) for m in re.finditer(vendored, text)}
+        | {m.group(1) for m in re.finditer(adapted, text, re.MULTILINE)}
     )
 
 
@@ -504,9 +513,8 @@ def main(
     missing = unrecorded(text)
     if missing:
         sys.stderr.write(
-            "no licence recorded for: {} - add them to dependency-licenses.yml\n".format(
-                ", ".join(missing)
-            )
+            "no licence or copyright holder recorded for: {} - add them to "
+            "dependency-licenses.yml\n".format(", ".join(missing))
         )
     print(f"[notices] {target} ({len(collect(marketplace))} bundle(s))")
 

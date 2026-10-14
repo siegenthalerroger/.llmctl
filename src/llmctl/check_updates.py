@@ -1,10 +1,14 @@
 """Audit the upstreams this repo copies from, rather than depends on. Writes nothing.
 
-Two modes over `metadata.provenance`: `adaptedFrom` (content adapted from an
-upstream file, dated from its commits) and `--specs` for `authoritativeSpec`
-(mostly vendor docs, which have no history, so a dead link and `Last-Modified`
-are all HTTP can answer). Pinned APM dependencies are update.py's half.
-The statuses and what to do about each are in the meta-update-repo skill.
+Two modes over `metadata.provenance`: `adaptedFrom` (ordinary adaptations,
+dated from the upstream's commits) and `--specs` for `authoritativeSpec` (binding
+normative sources; mostly vendor docs, which have no history, so a dead link and
+`Last-Modified` are all HTTP can answer). Both read every Markdown file that
+declares provenance -- a skill's `references/` pages included -- because a file
+declares its own upstream and `SKILL.md` never stands in for it. A binding source
+is assessed for every changed normative requirement, so its rows recommend that
+rather than a merge, whatever `took` says. Pinned APM dependencies are update.py's
+half. The statuses and what to do about each are in the meta-update-repo skill.
 
 A fetch failure is a row, never an exit code: a rate limit on one upstream must
 not discard the other twenty-seven answers.
@@ -112,11 +116,13 @@ def last_commit(repo: Path | str, path: str) -> dict[str, str]:
 
 
 def tracked_entries(root: Path, kind: str) -> list[dict]:
-    """One record per upstream URL of `kind`, across every customization file."""
+    """One record per upstream URL of `kind`, across every Markdown file that declares one.
+
+    Primitives and reference pages alike: a reference is where a reproduced spec
+    most often lands, and it declares that itself.
+    """
     entries = []
     for path in prov.iter_files(root):
-        if not prov.is_customization(path):
-            continue
         record = prov.parse(path)
         relative = os.path.relpath(path, root).replace("\\", "/")
         for entry in record.entries:
@@ -124,6 +130,7 @@ def tracked_entries(root: Path, kind: str) -> list[dict]:
                 entries.append(
                     {
                         "file": relative,
+                        "kind": entry.kind,
                         "source": entry.url,
                         "took": entry.took or "",
                         "license": entry.license or "",
@@ -153,6 +160,26 @@ def row(
         upstream=upstream or {"sha": "", "date": ""},
         days_behind=days,
         commits=commits or [],
+    )
+
+
+def recommend_update(item: Item, *, bootstrap: bool = False) -> str:
+    """What to do about a source that moved, which depends on what the source is.
+
+    A binding source is assessed for every changed or newly introduced normative
+    requirement relevant to the declared subject; `took` is not consulted, so it
+    cannot narrow that. An adaptation is merged, and the reviewer may scope it.
+    """
+    if item["kind"] == prov.BINDING:
+        return (
+            "bootstrap_assess_all_normative_content"
+            if bootstrap
+            else "assess_all_normative_content"
+        )
+    return (
+        "bootstrap_review_and_merge_from_upstream"
+        if bootstrap
+        else "review_and_merge_from_upstream"
     )
 
 
@@ -198,7 +225,7 @@ def audit_adapted(item: Item, root: Path, client: githublib.GitHub, options: Opt
         return row(
             item,
             "update_available",
-            "bootstrap_review_and_merge_from_upstream",
+            recommend_update(item, bootstrap=True),
             "local_file_not_in_git_history_bootstrap_allowed",
             local=local,
             upstream=upstream,
@@ -221,7 +248,7 @@ def audit_adapted(item: Item, root: Path, client: githublib.GitHub, options: Opt
     return row(
         item,
         "update_available",
-        "review_and_merge_from_upstream",
+        recommend_update(item),
         "upstream_commit_newer_than_local_commit",
         local=local,
         upstream=upstream,
@@ -286,7 +313,7 @@ def audit_spec(item: Item, root: Path, client: githublib.GitHub, options: Option
     return row(
         item,
         "update_available",
-        "read_the_page_and_check_our_claims",
+        recommend_update(item),
         "page_modified_since_local_commit",
         local=local,
         upstream=upstream,
@@ -395,7 +422,7 @@ def main(
     token = githublib.token(github_token)
     client = githublib.GitHub(token)
 
-    kind = "authoritativeSpec" if specs else "adaptedFrom"
+    kind = prov.BINDING if specs else prov.ADAPTED
     items = tracked_entries(root, kind)
     items = [i for i in items if workspace.included(i["file"], include, exclude)]
     if not items:

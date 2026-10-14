@@ -41,6 +41,7 @@ GOVERNED: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         (
             f"{STEERING}/SKILL.md",
             f"{STEERING}/references/frontmatter-deploy.md",
+            f"{STEERING}/references/provenance.md",
             f"{STEERING}/references/skills.md",
             f"{STEERING}/references/skill-body.md",
             f"{STEERING}/references/skill-frontmatter.md",
@@ -54,6 +55,7 @@ GOVERNED: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         (
             f"{STEERING}/SKILL.md",
             f"{STEERING}/references/frontmatter-deploy.md",
+            f"{STEERING}/references/provenance.md",
             f"{STEERING}/references/agent-guide.md",
             f"{STEERING}/references/agent-frontmatter.md",
             f"{STEERING}/references/agent-handoff.md",
@@ -68,6 +70,7 @@ GOVERNED: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         (
             f"{STEERING}/SKILL.md",
             f"{STEERING}/references/frontmatter-deploy.md",
+            f"{STEERING}/references/provenance.md",
             f"{STEERING}/references/instructions.md",
             f"{STEERING}/references/instruction-bootstrapping.md",
         ),
@@ -78,6 +81,7 @@ GOVERNED: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         (
             f"{STEERING}/SKILL.md",
             f"{STEERING}/references/frontmatter-deploy.md",
+            f"{STEERING}/references/provenance.md",
             f"{STEERING}/references/prompts.md",
         ),
     ),

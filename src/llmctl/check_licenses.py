@@ -61,6 +61,19 @@ def check_file(
         fidelity = prov.effective_fidelity(entry)
         where = f"{entry.kind} -> {entry.url}"
 
+        if entry.kind == prov.BINDING and entry.took and not entry.fidelity:
+            # `took` asserts a borrowing, but the default for a binding source is
+            # "cited, nothing reproduced". Left unstated, the gate would wave
+            # through reproduced wording as obligation-free.
+            warnings.append(
+                (
+                    rel,
+                    f"{where}: `took` records borrowed material but there is no `fidelity`, "
+                    "so the entry counts as cited only (inspiration-only) and attaches no "
+                    "terms - state the fidelity and the upstream `license`",
+                )
+            )
+
         if entry.fidelity and entry.fidelity not in prov.FIDELITIES:
             errors.append(
                 (
@@ -99,8 +112,8 @@ def check_file(
                 (
                     rel,
                     f"{where}: upstream is `{upstream}` - no grant of rights, so no "
-                    "licence can carry it. Reduce the borrowing until "
-                    "fidelity is inspiration-only, or drop it",
+                    "licence can carry it. Reduce the borrowing to a fidelity that "
+                    "attaches no terms (inspiration-only or structural-echo), or drop it",
                 )
             )
             continue
