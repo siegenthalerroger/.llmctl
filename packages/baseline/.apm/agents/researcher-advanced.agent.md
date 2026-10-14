@@ -19,10 +19,10 @@ skills: ['complex-research']
 metadata:
   provenance:
     adaptedFrom:
-      - url: "https://github.com/arisng/github-copilot-fc/blob/main/agents/generic-research/cli/generic-research-cli.agent.md"
+      - url: "https://github.com/arisng/github-copilot-fc/blob/main/agents/.archived/generic-research/cli/generic-research-cli.agent.md"
         license: NONE
         fidelity: inspiration-only
-        took: "The phased plan-gather-synthesise workflow shape."
+        took: "Stating assumptions instead of asking clarifying questions, gathering broad then narrow, and synthesising with conflicting sources called out and weighted."
   modelProfile:
     specialisation: LONG-CONTEXT
     cost: MEDIUM

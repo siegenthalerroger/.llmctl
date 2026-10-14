@@ -1,3 +1,17 @@
+---
+metadata:
+  provenance:
+    adaptedFrom:
+      - url: "https://github.com/github/awesome-copilot/blob/main/instructions/agent-skills.instructions.md"
+        license: MIT
+        fidelity: partly-derived
+        took: "The What Are Agent Skills? definition and key characteristics, the progressive loading table, the one-subdirectory-per-skill rule, the supported resource types table and resource-referencing example, the Writing Style bullets, and the focus-on-what-the-agent-doesn't-know, gotchas, flexible-guidelines and progressive-disclosure paragraphs, in the upstream section order."
+      - url: "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices"
+        license: Proprietary
+        fidelity: inspiration-only
+        took: "The gerund naming preference, the third-person description rule, a table of contents for reference files over 100 lines, references kept one level deep, the degrees-of-freedom framing and forward-slash paths."
+---
+
 # Agent Skills File Guidelines
 
 **Contents:** [What Are Agent Skills?](#what-are-agent-skills) · [Authority and Responsibility Boundaries](#authority-and-responsibility-boundaries) · [Required SKILL.md Format](#required-skillmd-format) · [Bundling Resources](#bundling-resources) · [Content Guidelines](#content-guidelines) · [Writing High-Impact Skills](#writing-high-impact-skills) · [Anti-Patterns](#anti-patterns) · [Validation Checklist](#validation-checklist) · [Resources](#resources)
@@ -63,12 +77,12 @@ description: "Scaffolds example widgets. ALWAYS invoke when asked to create or m
 | `license` | Conditional | SPDX id of **this** file. Omit to take the repo default for its path (`*.md` is CC-BY-SA-4.0); declare it only where an upstream obligation the default cannot satisfy forces another licence. See [LICENSE](https://github.com/siegenthalerroger/.llmctl/blob/main/LICENSE) |
 | `compatibility` | No | Optional note about environment requirements when truly needed, max 500 characters |
 | `allowed-tools` | No | Experimental spec field for pre-approved tools where supported |
-| `metadata.provenance.adaptedFrom` | No | Where local content was adapted from: a URL string, an array of URLs, or an array of objects carrying `url` plus `license` / `fidelity` / `took`. String and array forms mean the **whole file** derives from that upstream |
-| `metadata.provenance.authoritativeSpec` | No | Array of URLs for authoritative format specifications. A bare URL means cited only, nothing reproduced; use the object form for a spec whose wording or tables were reproduced locally |
+| `metadata.provenance.adaptedFrom` | No | Ordinary adaptations and borrowed material: a URL string, an array of URLs, or an array of objects carrying `url` plus `license` / `fidelity` / `took`. String and array forms mean the **whole file** derives from that upstream |
+| `metadata.provenance.authoritativeSpec` | No | **Binding** normative sources governing the skill's subject (format specifications, technical contracts, operational requirements, organizational standards): URLs or objects. A bare URL means cited and conformed to, nothing reproduced; use the object form, not `adaptedFrom`, where the binding source's wording or tables were reproduced |
 
 > **Portable vs. private fields:** The [agentskills.io spec](https://agentskills.io/specification) defines `name`, `description`, `license`, `compatibility`, `metadata` (a string-to-string map) and the experimental `allowed-tools`. Its reference validator reports any other top-level key as an error, and so do claude.ai skill uploads, the Skills API and `package_skill.py`: "If you include any field the spec doesn't allow, packaging or upload fails with a hard error instead of ignoring the field" ([Claude Code skills](https://code.claude.com/docs/en/skills)). A skill distributed through those paths must carry only the six spec fields; Claude Code itself accepts every field below. Keys under `metadata.*` (provenance) are this repository's conventions, except `metadata.short-description`, which Codex reads. Do not add `metadata.*` fields to skills intended for upstream publication without confirming the target registry supports them.
 
-For consistent provenance tracking, use `metadata.provenance` fields across prompt, instruction, skill, and agent frontmatter. `fidelity` decides whether upstream terms attach and therefore what `license` this file may carry — the rules, and the two fields' interaction with this repository's `licences` gate (`llmctl-check-licenses`, `src/llmctl/check_licenses.py`), are in [skill-frontmatter.md](./skill-frontmatter.md#provenance-metadata-recommended).
+For consistent provenance tracking, use `metadata.provenance` fields across prompt, instruction, skill, and agent frontmatter. `fidelity` decides whether upstream terms attach and therefore what `license` this file may carry — the rules, and the two fields' interaction with this repository's `licences` gate (`llmctl-check-licenses`, `src/llmctl/check_licenses.py`), are in [provenance.md](./provenance.md).
 
 #### Harness-Specific Fields
 
