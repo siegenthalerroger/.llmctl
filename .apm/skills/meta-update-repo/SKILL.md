@@ -230,7 +230,7 @@ apm run check
 
 `check` runs every gate except `commits`, which it skips without `--since`. The pack gate installs every package into a scratch export, so it needs `apm` and the network. When a gate fails:
 - **`lockfiles`**: a pin moved without its lockfile, or the reverse. Re-run the phase that moved it; never hand-edit the lockfile.
-- **`licences`**: a provenance block parses to nothing, an entry is malformed (unknown `fidelity` or licence, or an obligation-bearing entry with no upstream `license`), or the file's licence cannot carry an upstream's terms. Fix the block for the first two; for the last, declare a top-level `license:` the upstream permits, lower the borrowing to a fidelity that attaches no terms, or rewrite. See [meta-steering's provenance reference](../../../packages/baseline/.apm/skills/meta-steering/references/provenance.md).
+- **`licences`**: a provenance block the parser does not read or that sits outside `metadata.provenance`, an unknown key or entry field, an `authoritativeSpec` entry with `took` and no `fidelity`, an unknown `fidelity` or licence, an obligation-bearing entry with no upstream `license`, or a file licence that cannot carry an upstream's terms. Every shape the parser reports is listed in [references/source-url-reference.md](references/source-url-reference.md#accepted-forms). Fix the block for all but the last; for the last, declare a top-level `license:` the upstream permits, lower the borrowing to a fidelity that attaches no terms, or rewrite. See [meta-steering's provenance reference](../../../packages/baseline/.apm/skills/meta-steering/references/provenance.md).
 - **`pack`**: installing moved a locked commit, or APM refused the package. The first line names it. Read the error, and if it is APM's rather than the package's, record it against [phase F](#phase-f--the-apm-cli-version) rather than working around it.
 
 Then report:
@@ -246,7 +246,7 @@ Then report:
 - Propose, do not apply: commit nothing without confirmation.
 - One package per commit, with `apm.yml` and `apm.lock.yaml` together. Either without the other fails the `lockfiles` gate.
 - Never hand-edit `apm.lock.yaml`. It is generated.
-- An object entry that loses its `url` drops out of the audit silently: no error, no row. After editing any provenance block, run `uv run llmctl-check --repo . --only licences`, which is the one place that failure shows.
+- A provenance block or entry the parser cannot read drops out of the audit and the notices silently, with no row ([the full list](references/source-url-reference.md#accepted-forms)). After editing any provenance block, run `uv run llmctl-check --repo . --only licences`, which is the one place that failure shows.
 - Treat `adaptedFrom` entries as merge-review candidates, never blind replacements.
 - When an upstream change alters workflow, process or opinionated behaviour rather than correcting a fact, ask before replicating it.
 - Report unknown or unreachable sources explicitly rather than omitting them.
@@ -255,5 +255,5 @@ Then report:
 ## Notes
 
 - How the audit parses provenance, which files it reads, and every status it reports are in [references/source-url-reference.md](references/source-url-reference.md). It parses through the same [provenance.py](../../../src/llmctl/provenance.py) as the licence gate, so the two cannot disagree about what is tracked.
-- `authoritativeSpec` declares the binding sources a file conforms to, which is a separate question from what was copied, so it is audited in phase D and not in phase C. A bare URL cites without reproducing; an object entry carries `license`, `fidelity` and `took` for material that was reproduced, and the `licences` gate reads it like an `adaptedFrom` entry. Do not move such an entry to `adaptedFrom` because it was copied.
+- `authoritativeSpec` declares the binding sources a file conforms to, which is a separate question from what was copied, so it is audited in phase D and not in phase C. A bare URL cites without reproducing; an object entry carries `license`, `fidelity` and `took` for material that was reproduced, and the `licences` gate reads it like an `adaptedFrom` entry, except that a `took` there needs an explicit `fidelity`. Do not move such an entry to `adaptedFrom` because it was copied.
 - Another workspace runs these commands from this repository's git, the same way it runs the rest: `uvx --from git+https://github.com/siegenthalerroger/.llmctl@main llmctl-update --repo .`.

@@ -36,11 +36,26 @@ metadata:
 Parser facts:
 
 - An array produces one row per URL. Every URL is compared against the same local commit date, so one file can show `update_available` for one upstream and `up_to_date` for another.
-- `license`, `fidelity` and `took` are read as YAML scalars. Block scalars (`|`, `>`) parse; a multi-line `took` arrives with its newlines intact.
-- An absent `fidelity` defaults to `largely-derived` under `adaptedFrom` and to `inspiration-only` under `authoritativeSpec`. That default decides whether the `licences` gate requires a `license`. An `authoritativeSpec` entry that records `took` with no `fidelity` draws a `licences` warning, because the default asserts nothing was reproduced.
+- `license`, `fidelity` and `took` are read as YAML strings. Block scalars (`|`, `>`) parse; a multi-line `took` arrives with its newlines intact.
+- An absent `fidelity` defaults to `largely-derived` under `adaptedFrom`, and to `inspiration-only` under `authoritativeSpec` for a bare URL and for an object entry with no `took`. That default decides whether the `licences` gate requires a `license`. An `authoritativeSpec` object entry that records `took` with no `fidelity` is a `licences` error: the gate never infers a fidelity from `took`.
 - `took` is carried into the row and nothing else: the audit does not read it, so it cannot narrow what a row recommends. What a row calls for depends on the key: `update_available` under `adaptedFrom` recommends `review_and_merge_from_upstream` (`bootstrap_review_and_merge_from_upstream` for a bootstrap), and under `authoritativeSpec` it recommends `assess_all_normative_content` (`bootstrap_assess_all_normative_content`), whichever host the source is on.
 - The row is dated from the last commit of the file that declares the entry. A script re-synced from upstream keeps flagging until the Markdown file that names it is committed with it.
-- An object entry with no `url`, or a key that yields no entries, is dropped from the audit **without a row**. The `licences` gate reports both as errors ("parses to nothing"), so run `uv run llmctl-check --repo . --only licences` after editing a provenance block. That is the only place the drop shows.
+
+**What the parser reports instead of reading.** Provenance is read only from `metadata.provenance`, a non-empty mapping that holds `adaptedFrom`, `authoritativeSpec` or both. An entry read from there is *tracked*: the `licences` gate checks its licence, the generated notices carry it, and the drift audit dates it. Each shape below is reported as malformed, as a `licences` error whose message ends with the consequence shown, and the parser does not read it:
+
+| Reported | The message ends |
+| --- | --- |
+| A provenance block outside `metadata.provenance`: a `provenance` block at the top level, `adaptedFrom` or `authoritativeSpec` at the top level or directly under `metadata`, or any other case, separator or dotted spelling (`Provenance`, `metadata.Provenance`, `Metadata`, a single dotted key such as `metadata.provenance.adaptedFrom:`). It is reported even beside a valid `metadata.provenance`, which is still read | nothing in it is tracked |
+| A `metadata` holding a value that is not a mapping (an empty `metadata:` is not reported), or a `metadata.provenance` that is a string, a list, a number, null or `{}` | nothing in it is tracked |
+| A key under `metadata.provenance` other than `adaptedFrom` and `authoritativeSpec`, such as `adapted_from` or `license`. The keys beside it are still read | nothing in it is tracked |
+| A key whose value is neither a URL nor a list, or that yields no entries | nothing in it is tracked |
+| An entry with no `url`, or whose `url` is not a string | this entry is not tracked |
+| A field on an object entry other than `url`, `license`, `fidelity` and `took`, such as `licence`, `fidelty` or `Took`. The message names the allowed fields, and the nearest when one is close | the field is ignored, so the entry is judged without it |
+| A `license`, `fidelity` or `took` that is not a string: a list, a mapping, a boolean, a number or a date. YAML 1.1 reads an unquoted `took: no` as `false` | the field is ignored, so the entry is judged without it |
+| The file's own licence anywhere but the top-level `license` field: `metadata.license`, `metadata.licence`, or a top-level `licence`, `License` or `licenses` | the file keeps the repo default `<licence>` |
+| Frontmatter that does not parse as YAML | none of this frontmatter is read, so the file declares no provenance and no licence |
+
+The drift audit and the notices never read these messages: whatever is not tracked is absent from both, **without a row**. Run `uv run llmctl-check --repo . --only licences` after editing a provenance block. It is the only place these show.
 
 ## GitHub URLs
 

@@ -51,7 +51,7 @@ Confirm a GitHub token is available (`gh auth status`, or `GITHUB_TOKEN` / `GH_T
 
 - **Commit nothing without confirmation**, and apply no fix in 3 or 4 unless asked. Propose the minimal diff instead.
 - Stop on a blocking safety finding in 1 rather than committing it. Report the hunk.
-- `uv run llmctl-check --repo . --only licences` decides whether a provenance block is sound; do not eyeball one. It reports the two failures that are otherwise invisible: a block that parses to no URL, and an obligation-bearing entry with no upstream `license`. (`apm run` passes no flags through, so the gate cannot be selected through it.)
+- `uv run llmctl-check --repo . --only licences` decides whether a provenance block is sound; do not eyeball one. It reports the provenance problems that are otherwise invisible, listed in [source-url-reference.md](../skills/meta-update-repo/references/source-url-reference.md#accepted-forms). (`apm run` passes no flags through, so the gate cannot be selected through it.)
 - In 4, a file reported `behind` is a file to read, not a file to rewrite. The signal is a commit history and it is wrong in both directions; the skill says how.
 - Put direction decisions — which procedure to run, whether to adopt an upstream change, how to fill a required field — to the user with the harness's own question mechanism. Running as a subagent with no way to reach the user, stop and return the question and the options (this table, for the routing question) to the caller instead of guessing.
 
