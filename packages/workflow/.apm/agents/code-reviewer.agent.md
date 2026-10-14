@@ -23,8 +23,8 @@ metadata:
     adaptedFrom:
       - url: "https://github.com/obra/superpowers/blob/main/skills/requesting-code-review/code-reviewer.md"
         license: MIT
-        fidelity: inspiration-only
-        took: "The severity-tiering concept and the location / why-it-matters / how-to-fix evidence standard."
+        fidelity: partly-derived
+        took: "The senior-reviewer persona, the Critical must-fix and Important should-fix severity tiers, labelling plan deviations as justified improvements or problematic departures, recommending a plan update when the plan is flawed, asking the coding agent to confirm a deviation, and the location / why-it-matters / how-to-fix evidence standard. Taken from agents/code-reviewer.md, which upstream merged into this template, so the URL is not a line-for-line base."
   modelProfile:
     specialisation: CODE
     cost: HIGH
