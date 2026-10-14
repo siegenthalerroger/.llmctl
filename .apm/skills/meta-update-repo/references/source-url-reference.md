@@ -45,14 +45,14 @@ Parser facts:
 
 | Reported | The message ends |
 | --- | --- |
-| A provenance block outside `metadata.provenance`: a `provenance` block at the top level, `adaptedFrom` or `authoritativeSpec` at the top level or directly under `metadata`, or any other case, separator or dotted spelling (`Provenance`, `metadata.Provenance`, `Metadata`, a single dotted key such as `metadata.provenance.adaptedFrom:`). It is reported even beside a valid `metadata.provenance`, which is still read | nothing in it is tracked |
+| A provenance block outside `metadata.provenance`, anywhere in the frontmatter: a `provenance` block at the top level, `adaptedFrom` or `authoritativeSpec` at the top level or directly under `metadata`, or any of them nested deeper (`metadata.metadata.provenance`). Case, separator, dotted and near-miss spellings count (`Provenance`, `metadata_provenance`, `provenace`, `Metadata`, a single dotted key such as `metadata.provenance.adaptedFrom:`). It is reported even beside a valid `metadata.provenance`, which is still read | nothing in it is tracked |
 | A `metadata` holding a value that is not a mapping (an empty `metadata:` is not reported), or a `metadata.provenance` that is a string, a list, a number, null or `{}` | nothing in it is tracked |
 | A key under `metadata.provenance` other than `adaptedFrom` and `authoritativeSpec`, such as `adapted_from` or `license`. The keys beside it are still read | nothing in it is tracked |
-| A key whose value is neither a URL nor a list, or that yields no entries | nothing in it is tracked |
+| A key whose value is neither a URL nor a list, or is an empty list | nothing in it is tracked |
 | An entry with no `url`, or whose `url` is not a string | this entry is not tracked |
-| A field on an object entry other than `url`, `license`, `fidelity` and `took`, such as `licence`, `fidelty` or `Took`. The message names the allowed fields, and the nearest when one is close | the field is ignored, so the entry is judged without it |
+| A field on an object entry other than `url`, `license`, `fidelity` and `took`, such as `licence`, `fidelty` or `Took`. The message names the allowed fields, and the nearest when one is close | the field is ignored, so the entry is judged without it (this entry is not tracked, when it also has no `url`) |
 | A `license`, `fidelity` or `took` that is not a string: a list, a mapping, a boolean, a number or a date. YAML 1.1 reads an unquoted `took: no` as `false` | the field is ignored, so the entry is judged without it |
-| The file's own licence anywhere but the top-level `license` field: `metadata.license`, `metadata.licence`, or a top-level `licence`, `License` or `licenses` | the file keeps the repo default `<licence>` |
+| The file's own licence anywhere but the top-level `license` field: `metadata.license`, `metadata.licence`, or a top-level `licence`, `License` or `licenses` | it stays `<licence>`, the declared top-level `license` or else the repo default |
 | Frontmatter that does not parse as YAML | none of this frontmatter is read, so the file declares no provenance and no licence |
 
 The drift audit and the notices never read these messages: whatever is not tracked is absent from both, **without a row**. Run `uv run llmctl-check --repo . --only licences` after editing a provenance block. It is the only place these show.
