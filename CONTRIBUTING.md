@@ -52,7 +52,7 @@ APM is the primary mechanism for consuming upstream content. Prefer declaring up
 - A source the file must conform to (a format specification, technical contract, operational requirement or organizational standard) is *binding*, and belongs under `authoritativeSpec` even when text was copied from it: copying is recorded by the same object-entry fields, never by a second entry under `adaptedFrom`.
 - A copy is declared by the file that holds it. A `references/*.md` page declares its own upstream, and `SKILL.md` does not stand in for it; a script or asset, which cannot carry frontmatter, is attributed in the owning `SKILL.md` with `took` naming its path.
 - Before adding one, verify the upstream isn't available as an APM package.
-- Run `apm run check` afterwards. Its `licences` gate is the only thing that catches a provenance block which parses to nothing — a file that stops being tracked looks exactly like one with nothing to track.
+- Run `apm run check` afterwards. Its `licences` gate is the only thing that catches a provenance block that parses to nothing or that sits outside `metadata.provenance` — a file that stops being tracked looks exactly like one with nothing to track.
 
 Local-only skills (not available upstream) remain directly in this repository.
 
@@ -76,8 +76,8 @@ Hook authoring, including the `*.hook.json` naming convention, is in [meta-harne
 
 `metadata.provenance.adaptedFrom` and `metadata.provenance.authoritativeSpec` are a convention of this repository, not a universal standard. They are defined once, in two halves:
 
-- **What to write** (which key a source belongs under, the three forms, what `fidelity`, `license` and `took` mean, what `took` may and may not close in a drift review, and where reference pages and companion files declare theirs): [meta-steering's provenance reference](packages/baseline/.apm/skills/meta-steering/references/provenance.md).
-- **How the tooling reads it** (which files are audited, reference pages included; both audit modes and what each recommends; supported URL forms; every status; how an entry silently drops out of the audit): [source-url-reference.md](.apm/skills/meta-update-repo/references/source-url-reference.md).
+- **What to write** (where the block lives, which key a source belongs under, the three forms, what `fidelity`, `license` and `took` mean, what `took` may and may not close in a drift review, and where reference pages and companion files declare theirs): [meta-steering's provenance reference](packages/baseline/.apm/skills/meta-steering/references/provenance.md).
+- **How the tooling reads it** (which files are audited, reference pages included; both audit modes and what each recommends; supported URL forms; every status; what the parser reports instead of reading, and how an entry silently drops out of the audit): [source-url-reference.md](.apm/skills/meta-update-repo/references/source-url-reference.md).
 
 [`llmctl-check-licenses`](src/llmctl/check_licenses.py) enforces the licence half; see [Licensing](#licensing).
 
