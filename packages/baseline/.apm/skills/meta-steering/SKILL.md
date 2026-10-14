@@ -3,23 +3,6 @@ name: "meta-steering"
 description: "Authoring guide for every steering file an agent harness reads: skills (SKILL.md), subagents (*.agent.md), instructions (*.instructions.md, applyTo/paths) and prompts (*.prompt.md) — frontmatter, description shape, discovery budgets, provenance. ALWAYS load before creating or editing one of those files, and when deciding which customization type a new rule belongs in. Do not hand-write customization frontmatter, a skill or agent description, or path scoping from recall — the discovery budgets and cross-harness field names are version-specific and this skill pins them. Does not cover hooks, MCP servers or plugin bundles — see meta-harness. Keywords: skill, SKILL.md, agent, subagent, persona, handoff, instructions, rules, conventions, applyTo, prompt, template, frontmatter, description, progressive disclosure, provenance."
 metadata:
   provenance:
-    adaptedFrom:
-      - url: "https://github.com/github/awesome-copilot/blob/main/instructions/agent-skills.instructions.md"
-        license: MIT
-        fidelity: structural-echo
-        took: "The section skeleton for a skill-authoring guide."
-      - url: "https://github.com/github/awesome-copilot/blob/main/instructions/agents.instructions.md"
-        license: MIT
-        fidelity: structural-echo
-        took: "The shape of a checklist-driven agent-authoring guide."
-      - url: "https://github.com/github/awesome-copilot/blob/main/instructions/prompt.instructions.md"
-        license: MIT
-        fidelity: structural-echo
-        took: "The prompt-file authoring guide framing."
-      - url: "https://github.com/netresearch/agent-rules-skill/blob/main/skills/agent-rules/SKILL.md"
-        license: CC-BY-SA-4.0
-        fidelity: partly-derived
-        took: "The Detect/Extract/Draft/Verify bootstrap loop, the root-as-thin-index plus scoped-children model with explicit precedence, the root-file section skeleton, the generate-vs-curate split, and the run-the-command and exact-path verification rules."
     authoritativeSpec:
       # Skills — SKILL.md
       - "https://agentskills.io/"

@@ -1,3 +1,13 @@
+---
+metadata:
+  provenance:
+    adaptedFrom:
+      - url: "https://github.com/netresearch/agent-rules-skill/tree/main/skills/agent-rules"
+        license: CC-BY-SA-4.0
+        fidelity: partly-derived
+        took: "The Detect/Extract/Generate/Verify workflow (Draft here), the run-every-command and exact-path verification rules, and the root-as-index scoping with explicit precedence, condensed into the bootstrapping and Scoping by Directory sections."
+---
+
 # Instruction Files Guidelines
 
 **Contents:** [What Are Instruction Files?](#what-are-instruction-files) · [Selection Guide](#selection-guide) · [Cross-Tool Compatibility (Copilot + Claude Code)](#cross-tool-compatibility-copilot--claude-code) · [Loading Skills via Instructions](#loading-skills-via-instructions) · [File Structure and Naming](#file-structure-and-naming) · [Frontmatter Requirements](#frontmatter-requirements) · [Bootstrapping a Repository That Has No Instructions](#bootstrapping-a-repository-that-has-no-instructions) · [Authority and Conflict Boundaries](#authority-and-conflict-boundaries) · [Writing Effective Instructions](#writing-effective-instructions) · [Good vs Bad Examples](#good-vs-bad-examples) · [Anti-Patterns to Avoid](#anti-patterns-to-avoid) · [Quality Assurance Checklist](#quality-assurance-checklist) · [Additional Resources](#additional-resources)
@@ -86,7 +96,7 @@ paths: ["**/*.py"]
 | `paths` | Conditional | Claude Code glob list, aligned with `applyTo` |
 | `license` | Conditional | SPDX id of **this** file. Omit to take the repo default for its path (`*.md` is CC-BY-SA-4.0); declare it only where an upstream obligation the default cannot satisfy forces another licence |
 
-Provenance (`metadata.provenance`) follows the convention owned by [the router, section 4](../SKILL.md#4-frontmatter-shared-by-all-four-types).
+Provenance (`metadata.provenance`) follows the convention owned by [provenance.md](./provenance.md). Like `license`, it is read from the source and from the packed bundle; the installed `.claude/rules/` copy keeps only `paths`.
 
 ### Path Scoping Patterns
 

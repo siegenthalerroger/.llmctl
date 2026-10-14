@@ -1,3 +1,13 @@
+---
+metadata:
+  provenance:
+    adaptedFrom:
+      - url: "https://github.com/github/awesome-copilot/blob/main/instructions/prompt.instructions.md"
+        license: MIT
+        fidelity: partly-derived
+        took: "The opening sentence, the Scope and Principles audience and goals, the name/model/tools/argument-hint field descriptions, the quoting and metadata-preservation guidelines, the action-named filename rule, the missing-context handling bullets and the Instruction Tone and Style rules, under the upstream section headings."
+---
+
 # Prompt Files Guidelines
 
 **Contents:** [Scope and Principles](#scope-and-principles) · [Prompt Engineering Techniques](#prompt-engineering-techniques) · [Structuring Larger Prompts](#structuring-larger-prompts) · [Bounding Open-Ended Behavior](#bounding-open-ended-behavior) · [Authority and Trust Boundaries](#authority-and-trust-boundaries) · [Frontmatter Fields](#frontmatter-fields) · [Cross-Tool Compatibility (Copilot + Claude Code)](#cross-tool-compatibility-copilot--claude-code) · [File Naming and Placement](#file-naming-and-placement) · [Input and Context Handling](#input-and-context-handling) · [Output and Failure Contracts](#output-and-failure-contracts) · [Instruction Tone and Style](#instruction-tone-and-style) · [Model-Generation Effects](#model-generation-effects) · [Anti-Patterns to Avoid](#anti-patterns-to-avoid) · [Quality Assurance Checklist](#quality-assurance-checklist) · [Additional Resources](#additional-resources)
@@ -69,7 +79,8 @@ Every prompt file carries YAML frontmatter with the following fields:
 | `tools`         | Optional    | VS Code | List of tool/tool set names available for this prompt; restricts availability. Claude's `allowed-tools` only pre-approves listed tools and restricts nothing; Claude's restriction is `disallowed-tools`, which APM drops |
 | `argument-hint` | Optional    | VS Code, Claude, Copilot CLI | Hint text shown in chat input to guide user interaction |
 | `input`         | Optional    | APM only (deployer input) | Names for Claude `arguments`. APM rewrites `${input:name}` to `$name` only for names listed here; see [Input and Context Handling](#input-and-context-handling) |
-| `metadata.provenance` | Optional | repo convention | Provenance; convention owned by [the router, section 4](../SKILL.md#4-frontmatter-shared-by-all-four-types) |
+| `license` | Conditional | repo convention | SPDX id of **this** file. Omit to take the repo default for its path (`*.md` is CC-BY-SA-4.0); declare it only where an upstream obligation the default cannot satisfy forces another licence. Claude Code's schema allows it, but APM's Claude-command allowlist does not, so `apm install` drops it with a dropped-keys warning (case 2, stripped); `apm pack` keeps it |
+| `metadata.provenance` | Optional | repo convention | Provenance; convention owned by [provenance.md](./provenance.md). Handled like `license`: dropped from the installed Claude command, kept in the packed bundle, which is what the generated notices are read from |
 
 Claude Code commands accept the skill frontmatter schema except `name` and `paths`; which keys survive APM is in the matrix.
 

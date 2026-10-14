@@ -1,3 +1,13 @@
+---
+metadata:
+  provenance:
+    adaptedFrom:
+      - url: "https://github.com/github/awesome-copilot/blob/main/instructions/agents.instructions.md"
+        license: MIT
+        fidelity: partly-derived
+        took: "Prompt-based orchestration and its limit at long sequential pipelines, the well-structured agent body outline, the character-limit and filename checks of the agent creation checklist, and the section topics handoffs configuration, tool configuration, sub-agent invocation and common agent patterns."
+---
+
 # Custom Agent File Guidelines
 
 **Contents:** [What is a Custom Agent?](#what-is-a-custom-agent) · [Cross-Tool Compatibility (Copilot + Claude Code)](#cross-tool-compatibility-copilot--claude-code) · [*.agent.md File Structure](#agentmd-file-structure) · [Agent Behavior Definition](#agent-behavior-definition) · [Good vs Bad Examples](#good-vs-bad-examples) · [Handoffs Configuration](#handoffs-configuration) · [Tool Policy](#tool-policy) · [Sub-Agent Orchestration](#sub-agent-orchestration) · [Common Agent Patterns](#common-agent-patterns) · [Anti-Patterns to Avoid](#anti-patterns-to-avoid) · [Validation Checklist](#validation-checklist) · [Hooks and Plugins](#hooks-and-plugins) · [References](#references)
@@ -109,7 +119,7 @@ An agent description is routing text, keyed to the words a caller would use and 
 
 ### Provenance
 
-The provenance convention is shared by all four types; see [the router, section 4](../SKILL.md#4-frontmatter-shared-by-all-four-types).
+The provenance convention is shared by all four types; see [provenance.md](./provenance.md).
 
 ## Agent Behavior Definition
 

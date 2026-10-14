@@ -2,7 +2,7 @@
 license: Apache-2.0
 metadata:
   provenance:
-    adaptedFrom:
+    authoritativeSpec:
       - url: "https://github.com/agentskills/agentskills/blob/main/docs/specification.mdx"
         license: Apache-2.0
         fidelity: largely-derived

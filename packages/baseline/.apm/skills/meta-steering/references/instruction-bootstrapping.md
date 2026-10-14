@@ -1,3 +1,13 @@
+---
+metadata:
+  provenance:
+    adaptedFrom:
+      - url: "https://github.com/netresearch/agent-rules-skill/tree/main/skills/agent-rules"
+        license: CC-BY-SA-4.0
+        fidelity: partly-derived
+        took: "The Detect/Extract/Generate/Verify workflow (Draft here), the root-as-thin-index plus scoped-children model with explicit precedence, the root-file section table, the generate-vs-curate split with GENERATED markers, the run-every-command, exact-path and never-trust-existing-content verification rules, and the anti-bloat table with the senior-engineer litmus test."
+---
+
 # Bootstrapping Instructions for a Repository That Has None
 
 **Contents:** [The Loop: Detect → Extract → Draft → Verify](#the-loop-detect--extract--draft--verify) · [Root File Section Skeleton](#root-file-section-skeleton) · [Scoped Files](#scoped-files) · [Multi-Harness Output](#multi-harness-output)
