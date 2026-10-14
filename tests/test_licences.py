@@ -56,16 +56,61 @@ class GateTest(unittest.TestCase):
                 outcomes.append([message.replace(key, "KEY") for _, message in report.errors])
             self.assertEqual(outcomes[0], outcomes[1], (license_, fidelity, declared))
 
-    def test_took_without_fidelity_on_a_binding_source_warns(self) -> None:
-        report = self.reference(entry("authoritativeSpec", None, None, "The limits table."))
-        self.assertEqual(report.errors, [])
-        (warning,) = report.warnings
-        self.assertIn("no `fidelity`", warning[1])
+    def test_took_on_a_binding_source_must_state_its_fidelity(self) -> None:
+        # `took` says something was borrowed; the binding default says nothing was. The
+        # gate does not guess which from the prose, and a recorded licence does not decide it.
+        for license_ in (None, "MIT"):
+            report = self.reference(entry("authoritativeSpec", license_, None, "The limits table."))
+            self.assertEqual(report.warnings, [], license_)
+            (error,) = report.errors
+            self.assertIn("`fidelity` is not", error[1])
+        # An empty `fidelity:` is not a stated one.
+        empty = block("authoritativeSpec", {"url": URL, "took": "The limits table."})
+        (error,) = self.reference(empty + "\n        fidelity:").errors
+        self.assertIn("`fidelity` is not", error[1])
+
+    def test_a_binding_source_that_records_no_borrowing_needs_no_fidelity(self) -> None:
         for body in (
-            entry("authoritativeSpec", "MIT", "partly-derived", "The limits table."),
-            entry("adaptedFrom", None, None, "The tiers."),
+            block("authoritativeSpec", URL),
+            entry("authoritativeSpec", None, None),
+            entry("authoritativeSpec", "MIT", None),
         ):
-            self.assertEqual(self.reference(body).warnings, [], body)
+            report = self.reference(body)
+            self.assertEqual((report.errors, report.warnings), ([], []), body)
+
+    def test_took_with_a_stated_fidelity_is_judged_by_that_fidelity(self) -> None:
+        took = "The limits table."
+        for body in (
+            entry("authoritativeSpec", None, "inspiration-only", took),
+            entry("authoritativeSpec", None, "structural-echo", took),
+            entry("authoritativeSpec", "MIT", "partly-derived", took),
+        ):
+            report = self.reference(body)
+            self.assertEqual((report.errors, report.warnings), ([], []), body)
+        (error,) = self.reference(entry("authoritativeSpec", None, "partly-derived", took)).errors
+        self.assertIn("the upstream `license:` is required", error[1])
+
+    def test_an_adaptation_keeps_its_whole_file_default_whatever_took_says(self) -> None:
+        (error,) = self.reference(entry("adaptedFrom", None, None, "The tiers.")).errors
+        self.assertIn("fidelity `largely-derived` copies expression", error[1])
+        report = self.reference(entry("adaptedFrom", "MIT", None, "The tiers."))
+        self.assertEqual((report.errors, report.warnings), ([], []))
+
+    def test_a_block_the_parser_does_not_read_fails_the_gate(self) -> None:
+        report = self.reference(block("authoritativeSpec", URL), under="provenance")
+        self.assertEqual(report.records[0].entries, ())
+        (error,) = report.errors
+        self.assertEqual(error[0], f"{SKILLS}/references/r.md")
+        self.assertIn("`metadata.provenance`", error[1])
+
+    def test_a_misspelt_licence_fails_the_gate_and_is_not_read_as_one(self) -> None:
+        body = block("adaptedFrom", {"url": URL, "licence": "MIT", "fidelity": "partly-derived"})
+        report = self.reference(body)
+        self.assertEqual([e.url for e in report.tracked], [URL])
+        (field, required) = [message for _, message in report.errors]
+        self.assertIn("`licence`", field)
+        self.assertNotIn("parses to nothing", field)
+        self.assertIn("the upstream `license:` is required", required)
 
 
 class BundleTest(unittest.TestCase):
