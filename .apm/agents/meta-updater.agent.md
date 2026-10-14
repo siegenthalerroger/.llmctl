@@ -32,7 +32,7 @@ Four independent procedures. Each is owned by a skill: load that skill and follo
 
 | # | Ask it when | Skill | Covers |
 | --- | --- | --- | --- |
-| 1 | an upstream may have moved, a dependency is being added, or APM itself has a new release | [meta-update-repo](../skills/meta-update-repo/SKILL.md) | pinned dependencies and their lockfiles, new dependencies, the APM CLI version, the Python the tooling itself pins, adapted files, cited specifications outside the guidance, upstream licences |
+| 1 | an upstream may have moved, a dependency is being added, or APM itself has a new release | [meta-update-repo](../skills/meta-update-repo/SKILL.md) | pinned dependencies and their lockfiles, new dependencies, the APM CLI version, the Python the tooling itself pins, adapted files, binding sources outside the guidance and the model catalogues, upstream licences |
 | 2 | a new model shipped | [meta-update-models](../skills/meta-update-models/SKILL.md) | `model:` and `effort:` in files declaring a `metadata.modelProfile` |
 | 3 | the harnesses have moved on | [meta-refresh-steering](../skills/meta-refresh-steering/SKILL.md) | `meta-steering` and `meta-harness` themselves, and the specifications they cite, against what the vendors now document |
 | 4 | the guidance changed, or it has been a while | [meta-review-steering](../skills/meta-review-steering/SKILL.md) | every steering file, against the guidance that governs it |

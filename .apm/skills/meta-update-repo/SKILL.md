@@ -1,6 +1,6 @@
 ---
 name: "meta-update-repo"
-description: "Refreshes this repository's upstream inputs — the pinned APM dependencies and their lockfiles, a newly added APM dependency, the APM CLI version the gates run on, the third-party Python its own tooling pins, the files adapted from an upstream via metadata.provenance.adaptedFrom, and the specification URLs under authoritativeSpec — by running the repository's own update and audit commands and reading the diff of everything that moved before any of it is committed. ALWAYS use when asked to update dependencies, add or bump a pin, sync upstream, refresh a lockfile, move the APM version, raise a Python version pin, or check adapted files for drift. Do not run apm update or uv lock --upgrade directly, edit a #sha by hand, or merge an upstream change without this procedure and its safety review. Keywords: apm update, apm outdated, new dependency, APM version, lockfile, pin bump, upstream sync, uv lock, pyproject, exclude-newer, adaptedFrom, authoritativeSpec, drift audit, safety review."
+description: "Refreshes this repository's upstream inputs — the pinned APM dependencies and their lockfiles, a newly added APM dependency, the APM CLI version the gates run on, the third-party Python its own tooling pins, the files adapted from an upstream via metadata.provenance.adaptedFrom, and the binding sources under authoritativeSpec — by running the repository's own update and audit commands and reading the diff of everything that moved before any of it is committed. ALWAYS use when asked to update dependencies, add or bump a pin, sync upstream, refresh a lockfile, move the APM version, raise a Python version pin, or check adapted files for drift. Do not run apm update or uv lock --upgrade directly, edit a #sha by hand, or merge an upstream change without this procedure and its safety review. Keywords: apm update, apm outdated, new dependency, APM version, lockfile, pin bump, upstream sync, uv lock, pyproject, exclude-newer, adaptedFrom, authoritativeSpec, drift audit, safety review."
 compatibility: "Repo-local: needs `apm`, `uv`, `git`, `gh` and a GitHub token, and drives this repository's `llmctl-update`, `llmctl-check-updates` and `llmctl-check` commands plus `uv lock`, none of which are bundled with the skill. If they cannot be run, reproduce each step with equivalent repository or MCP tools and report the fallback used."
 ---
 
@@ -16,15 +16,15 @@ Each kind of upstream is audited separately, because each fails in a different w
 | --- | --- | --- |
 | APM dependencies, existing | `dependencies.apm` in `packages/*/apm.yml`, resolved in `packages/*/apm.lock.yaml` | [A](#phase-a--pinned-dependencies) |
 | Tooling dependencies | `[project.dependencies]` and `[dependency-groups] dev` in `pyproject.toml`, resolved in `uv.lock` | [B](#phase-b--the-toolings-own-dependencies) |
-| Adapted content | `metadata.provenance.adaptedFrom` in a primitive's frontmatter | [C](#phase-c--adapted-content) |
-| Specifications | `metadata.provenance.authoritativeSpec`, except in the three files whose owners audit their own | [D](#phase-d--specifications) |
+| Adapted content | `metadata.provenance.adaptedFrom` in the frontmatter of a primitive or of a skill's reference page | [C](#phase-c--adapted-content) |
+| Binding sources | `metadata.provenance.authoritativeSpec` in the same files, except under the three skill directories whose owners audit their own | [D](#phase-d--binding-sources) |
 | APM dependencies, new | a `dependencies.apm` entry that has no lockfile record yet | [E](#phase-e--a-new-apm-dependency) |
 | The APM CLI | the `apm-version` default in `.github/actions/setup/action.yml` | [F](#phase-f--the-apm-cli-version) |
 
 Out of scope, and owned elsewhere:
 - Model selections belong to `meta-update-models`.
 - Description and structure conventions belong to `meta-steering` and `meta-harness`.
-- The specifications cited by those two skills belong to `meta-refresh-steering`.
+- The binding sources declared by those two skills, in `SKILL.md` and in every reference page, belong to `meta-refresh-steering`.
 
 **Nothing here commits.** Every command writes the working tree at most. Deciding what to keep is the judgement this skill exists to support.
 
@@ -145,14 +145,15 @@ apm run check-updates                                                          #
 uv run llmctl-check-updates --repo . --include "<pattern>" --change-details --json
 ```
 
-When the target is known, scope directly with `--include` and never run a broad scan first. This applies even when the request is indirect: if a specific file can be identified from context, treat it as an identified target. `took`, `license` and `fidelity` appear only in `--json`, so use it whenever a row is going to be reviewed.
+When the target is known, scope directly with `--include` and never run a broad scan first. This applies even when the request is indirect: if a specific file can be identified from context, treat it as an identified target. `kind`, `took`, `license` and `fidelity` appear only in `--json`, so use it whenever a row is going to be reviewed. Reference pages (`references/*.md`) that declare provenance are rows like any other: a reference declares its own upstream, and `SKILL.md` never stands in for it.
 
 | Case | Status | Action |
 | --- | --- | --- |
 | APM-eligible upstream: a git repository whose path APM can install as a subdirectory dependency (`owner/repo/path#<sha>`) | `update_available` | recommend converting it to an APM dependency ([phase E](#phase-e--a-new-apm-dependency)) instead of merging |
 | Single source | `update_available` | merge review |
 | Multi-source | one or more `update_available` | synthesised merge review across all changed upstreams |
-| `took` present | `update_available` | scope the review to `took` first. If the upstream change touches nothing on its list, close as no action and say so |
+| Nonbinding, specific `took` | `update_available` | read the whole upstream change, then decide what falls inside the declared borrowing. A change wholly outside it may be closed as needing no integration: say so, and name what you read. `took` informs that call; it does not make it |
+| `took` missing or vague (names no rule, table, section, procedure or concept) | `update_available` | no scoping: review the whole change. Never dismiss a change on the strength of a missing or vague `took`; tighten the `took` in the same edit if the file is selective |
 | Upstream path gone | `source_missing` | re-point the URL, or drop the provenance entry if nothing of it remains |
 | Request failed | `fetch_failed` | check the token (`Auth:` line) and the URL shape, then re-run that file alone. Report it if it still fails |
 | Local file never committed | `missing_local_commit` | ask whether to commit it first, or re-run with `--allow-no-local-commit` to treat it as a bootstrap |
@@ -166,20 +167,22 @@ For a stub or empty local file, fetch the full upstream content: commit summarie
 3. Recommend a **single merged update**.
 4. Flag any conflict where two upstreams changed the same idea differently.
 
-**After any merge, re-check `fidelity` and `license` in the same edit**, against [meta-steering's provenance rules](../../../packages/baseline/.apm/skills/meta-steering/references/skill-frontmatter.md#provenance-metadata-recommended). Never leave that to a follow-up.
+**After any merge, re-check `fidelity` and `license` in the same edit**, against [meta-steering's provenance rules](../../../packages/baseline/.apm/skills/meta-steering/references/provenance.md). Never leave that to a follow-up.
 
-## Phase D — specifications
+## Phase D — binding sources
 
 ```bash
-uv run llmctl-check-updates --repo . --specs \
-  --exclude meta-steering/SKILL.md --exclude meta-harness/SKILL.md --exclude meta-update-models/SKILL.md
+uv run llmctl-check-updates --repo . --specs --json \
+  --exclude packages/baseline/.apm/skills/meta-steering/ \
+  --exclude packages/baseline/.apm/skills/meta-harness/ \
+  --exclude .apm/skills/meta-update-models/
 ```
 
-The three excluded files audit their own specifications: `meta-refresh-steering` owns the first two and `meta-update-models` the third. A row for one of them is not this phase's to act on.
+The three excluded directories audit their own binding sources, `SKILL.md` and every reference page under each: `meta-refresh-steering` owns the first two (its Phase 1 includes the same two paths) and `meta-update-models` the third. A row under one of them is not this phase's to act on. Whole directories are excluded so that a reference page there is neither missed nor audited twice.
 
 A GitHub source is dated from its commits; anything else is probed over HTTP. How each status arises is in [references/source-url-reference.md](references/source-url-reference.md#statuses).
 
-- `update_available` means the page changed since the local file last did. Read it and check the claims the local file makes about it: a field name, a limit, a schema.
+- `update_available` means the source changed since the local file last did. Assess **all** changed or newly introduced normative content relevant to the declared subject: what the declaring file says it governs. For a source declared in `SKILL.md` that is the skill as a whole, references included; for one declared in a reference page it is that page's subject. A requirement, limit, schema, default or deprecation counts whether or not `took` mentions it, and `took` never excludes a new binding requirement. Record, per change, whether the local file already satisfies it, needs an edit, or is unaffected and why.
 - `source_missing` needs a re-point. Open the URL in a browser first, because a site that refuses scripted clients answers ≥ 400 too.
 - `not_trackable` means no date was available, not that nothing changed. Leave it, unless the request was specifically about that file.
 
@@ -227,7 +230,7 @@ apm run check
 
 `check` runs every gate except `commits`, which it skips without `--since`. The pack gate installs every package into a scratch export, so it needs `apm` and the network. When a gate fails:
 - **`lockfiles`**: a pin moved without its lockfile, or the reverse. Re-run the phase that moved it; never hand-edit the lockfile.
-- **`licences`**: a provenance block parses to nothing, or an obligation-bearing entry has no upstream `license`. Fix the block.
+- **`licences`**: a provenance block parses to nothing, an entry is malformed (unknown `fidelity` or licence, or an obligation-bearing entry with no upstream `license`), or the file's licence cannot carry an upstream's terms. Fix the block for the first two; for the last, declare a top-level `license:` the upstream permits, lower the borrowing to a fidelity that attaches no terms, or rewrite. See [meta-steering's provenance reference](../../../packages/baseline/.apm/skills/meta-steering/references/provenance.md).
 - **`pack`**: installing moved a locked commit, or APM refused the package. The first line names it. Read the error, and if it is APM's rather than the package's, record it against [phase F](#phase-f--the-apm-cli-version) rather than working around it.
 
 Then report:
@@ -252,5 +255,5 @@ Then report:
 ## Notes
 
 - How the audit parses provenance, which files it reads, and every status it reports are in [references/source-url-reference.md](references/source-url-reference.md). It parses through the same [provenance.py](../../../src/llmctl/provenance.py) as the licence gate, so the two cannot disagree about what is tracked.
-- `authoritativeSpec` declares which specification a file conforms to, not where content came from, so it is not in the phase C scan. It is not inert: the `licences` gate reads it too, treating a bare URL as a citation that reproduces nothing.
+- `authoritativeSpec` declares the binding sources a file conforms to, which is a separate question from what was copied, so it is audited in phase D and not in phase C. A bare URL cites without reproducing; an object entry carries `license`, `fidelity` and `took` for material that was reproduced, and the `licences` gate reads it like an `adaptedFrom` entry. Do not move such an entry to `adaptedFrom` because it was copied.
 - Another workspace runs these commands from this repository's git, the same way it runs the rest: `uvx --from git+https://github.com/siegenthalerroger/.llmctl@main llmctl-update --repo .`.

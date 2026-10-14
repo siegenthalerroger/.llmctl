@@ -16,7 +16,7 @@ Run it when you feel like it. Nothing schedules it, and nothing else depends on 
 | --- | --- |
 | `packages/baseline/.apm/skills/meta-steering/` and its `references/` | every file those two govern — that is `meta-review-steering` |
 | `packages/baseline/.apm/skills/meta-harness/` and its `references/` | `model:` and `effort:` selections — `meta-update-models` |
-| the `authoritativeSpec` lists both carry | pinned dependencies and adapted files — `meta-update-repo` |
+| the `authoritativeSpec` entries both skills declare, in `SKILL.md` **and in every `references/*.md` page** | pinned dependencies and `adaptedFrom` files, reference pages included — `meta-update-repo` |
 
 **Nothing here commits.** Propose the diff and say what it is based on.
 
@@ -40,13 +40,13 @@ Phase 3 stays here. A subagent reports what a page says; deciding whether that i
 ## Phase 1 — the sources already cited
 
 ```bash
-uv run llmctl-check-updates --repo . --specs --include "packages/baseline/.apm/skills/meta-steering/SKILL.md"
-uv run llmctl-check-updates --repo . --specs --include "packages/baseline/.apm/skills/meta-harness/SKILL.md"
+uv run llmctl-check-updates --repo . --specs --json --include "packages/baseline/.apm/skills/meta-steering/"
+uv run llmctl-check-updates --repo . --specs --json --include "packages/baseline/.apm/skills/meta-harness/"
 ```
 
-`--include` and `--exclude` filter the same way in every `llmctl-*` command: a pattern with a wildcard is a whole-path glob, and a bare word matches anywhere in the path. How each status arises is in [source-url-reference.md](../meta-update-repo/references/source-url-reference.md#statuses).
+Each include is the whole skill directory, so a reference page that declares its own `authoritativeSpec` is read with its `SKILL.md`. `meta-update-repo` phase D excludes these same two directories, which is what keeps every file audited by exactly one procedure. `--include` and `--exclude` filter the same way in every `llmctl-*` command: a pattern with a wildcard is a whole-path glob, and a bare word matches anywhere in the path. How each status arises is in [source-url-reference.md](../meta-update-repo/references/source-url-reference.md#statuses).
 
-Each row is one `authoritativeSpec` URL. `update_available` means the page changed since the local file last did.
+Each row is one `authoritativeSpec` entry of one file, which is a `SKILL.md` or a reference page. `update_available` means the source changed since that file last did.
 
 **Treat a quiet run as no evidence, not as good news.** A non-GitHub page is judged by its `Last-Modified` header against the file's last commit, and most vendor docs sites send no such header — they come back `not_trackable`. A GitHub permalink pinned to a commit SHA (the `microsoft/apm` integrator sources) reports `up_to_date` forever, because an immutable ref never moves; re-pinning those follows an APM CLI bump and is `meta-update-repo`'s phase F. So read the ones that matter whether or not they were flagged, and let the flags decide the order rather than the scope.
 
@@ -62,7 +62,7 @@ For each harness the two skills already cite, open its documentation index and c
 - a page that replaced one already cited — the old URL may still resolve
 - a capability the guidance says does not exist, or predates
 
-Add what you find to `authoritativeSpec`, under the comment heading for its type, in the same order as the harnesses already listed there. A bare URL there is a citation and reproduces nothing — see [meta-steering's provenance section](../../../packages/baseline/.apm/skills/meta-steering/references/skill-frontmatter.md#provenance-metadata-recommended).
+Add what you find to the `authoritativeSpec` of the file whose subject it binds: `SKILL.md`, under the comment heading for its type and in the same order as the harnesses already listed there, when it binds the skill as a whole; the reference page itself when it binds only that page's subject ([skill-structure.md](../../../packages/baseline/.apm/skills/meta-steering/references/skill-structure.md#provenance-on-bundled-files)). These are binding sources: a bare URL cites one and reproduces nothing — see [meta-steering's provenance reference](../../../packages/baseline/.apm/skills/meta-steering/references/provenance.md).
 
 ## Phase 3 — decide what a change means
 
@@ -73,11 +73,13 @@ Separate two things before editing, because they carry different burdens of proo
 | **Fact** | a field name, a character limit, an event name, a schema, a file location | update it directly; it is verifiable and being wrong is a defect |
 | **Technique** | how a description should be shaped, when to split a skill, what makes discovery work | judgement — a vendor describes their own product's behaviour, which is evidence, not a rule |
 
+Assess every changed or newly introduced normative statement on a cited page that bears on the declared subject of the file citing it (the skill as a whole for `SKILL.md`, that page's subject for a reference page); `took` records what was reproduced, not what is in scope, so it does not narrow that. The table sorts what each statement is worth, not whether it is read.
+
 A vendor's house style is not automatically this repository's convention. Where the two disagree and the local rule was deliberate, keep the local rule and say why, in the file, where the next reader will meet it.
 
 ## Phase 4 — record and verify
 
-- A spec whose wording or tables were reproduced keeps its `authoritativeSpec` entry and switches it to the object form with `license` and `fidelity`, as [meta-steering's provenance section](../../../packages/baseline/.apm/skills/meta-steering/references/skill-frontmatter.md#provenance-metadata-recommended) says. Do not add an `adaptedFrom` entry for it. The `licences` gate can only enforce what is declared: a bare URL counts as `inspiration-only`, so reproduced wording under a bare URL passes unnoticed. Rewrite it in local words instead.
+- A spec whose wording or tables were reproduced keeps its `authoritativeSpec` entry and switches it to the object form with `license` and `fidelity`, as [meta-steering's provenance reference](../../../packages/baseline/.apm/skills/meta-steering/references/provenance.md) says. Do not add an `adaptedFrom` entry for it. Declare it on the file that holds the copy: a reference page carries its own entry, and `SKILL.md` does not stand in for it. The `licences` gate can only enforce what is declared: a bare URL counts as `inspiration-only`, so reproduced wording under a bare URL passes unnoticed. Where the source grants no reuse rights, rewrite it in local words instead.
 - After any frontmatter edit: `uv run llmctl-check --repo . --only frontmatter --only licences`; before proposing the whole diff, `apm run check`.
 - Editing the guidance is what makes every file it governs due for review. Say so at the end, and hand off to `meta-review-steering`.
 

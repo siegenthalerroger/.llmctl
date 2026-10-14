@@ -1,19 +1,20 @@
 # Source URL Reference
 
-How `llmctl-check-updates` ([check_updates.py](../../../../src/llmctl/check_updates.py)) finds, parses and judges provenance URLs. What to *write* in a provenance block — the forms to choose, what `fidelity`, `license` and `took` mean, how to cite a book — is authoring guidance owned by [meta-steering's provenance section](../../../../packages/baseline/.apm/skills/meta-steering/references/skill-frontmatter.md#provenance-metadata-recommended). This file covers only what the tooling does with it.
+How `llmctl-check-updates` ([check_updates.py](../../../../src/llmctl/check_updates.py)) finds, parses and judges provenance URLs. What to *write* in a provenance block — which key a source belongs under, the forms to choose, what `fidelity`, `license` and `took` mean, where a reference page or a script declares its upstream, how to cite a book — is authoring guidance owned by [meta-steering's provenance reference](../../../../packages/baseline/.apm/skills/meta-steering/references/provenance.md). This file covers only what the tooling does with it.
 
 ## Two modes, one parse
 
 | Mode | Key read | Command |
 | --- | --- | --- |
-| adapted content (default) | `metadata.provenance.adaptedFrom` | `uv run llmctl-check-updates --repo .` |
-| specifications | `metadata.provenance.authoritativeSpec` | the same, with `--specs` |
+| adapted content (default) | `metadata.provenance.adaptedFrom`: ordinary adaptations and borrowed material | `uv run llmctl-check-updates --repo .` |
+| binding sources | `metadata.provenance.authoritativeSpec`: format specifications, technical contracts, operational requirements, organizational standards | the same, with `--specs` |
 
 Both modes parse through [provenance.py](../../../../src/llmctl/provenance.py), the same parse the `licences` gate uses.
 
-- **Files read:** only `SKILL.md`, `*.agent.md`, `*.instructions.md` and `*.prompt.md` under `packages/` and `.apm/`. A `references/*.md` page is never audited, even if it has frontmatter. `apm_modules/`, the deploy mirrors (`.claude/`, `.agents/`, `.codex/`, `.github/`), `build/` and `LICENSES/` are skipped.
+- **Files read:** every `*.md` file under `packages/` and `.apm/` that declares provenance, so primitives (`SKILL.md`, `*.agent.md`, `*.instructions.md`, `*.prompt.md`) and `references/*.md` pages alike. A reference page declares its own upstream and `SKILL.md` never stands in for it, so each is a row on its own file. Non-Markdown files (scripts, assets, templates) carry no frontmatter and are never read: a source-derived one is attributed in its owning Markdown file's entry, and the row is that file's. `apm_modules/`, the deploy mirrors (`.claude/`, `.agents/`, `.codex/`, `.github/`), `build/` and `LICENSES/` are skipped.
 - **Scoping:** `--include PATTERN` keeps matching paths and `--exclude PATTERN` (repeatable) drops them. A pattern with no `*`, `?` or `[` is a substring match; one with a wildcard is a whole-path, case-sensitive glob where `*` spans `/`. Every `llmctl-*` command that filters paths uses this matcher.
-- **Output:** the text report prints status, file, source, reason and recommendation. `took`, `license` and `fidelity` are **only in `--json`**, so a review that scopes by `took` needs `--json`.
+- **Output:** the text report prints status, file, source, reason and recommendation. `kind` (the provenance key), `took`, `license` and `fidelity` are **only in `--json`**, so a review needs `--json` to see them.
+- **Ownership:** the filters partition the files, so each is audited once. `meta-refresh-steering` includes the `meta-steering/` and `meta-harness/` directories, and `meta-update-repo` phase D excludes those same two and `meta-update-models/`; a reference page under any of them goes with its skill.
 - **Exit code:** 1 only when no source matched the filters. Every per-URL failure is a row, never an exit code.
 
 ## Accepted forms
@@ -36,7 +37,9 @@ Parser facts:
 
 - An array produces one row per URL. Every URL is compared against the same local commit date, so one file can show `update_available` for one upstream and `up_to_date` for another.
 - `license`, `fidelity` and `took` are read as YAML scalars. Block scalars (`|`, `>`) parse; a multi-line `took` arrives with its newlines intact.
-- An absent `fidelity` defaults to `largely-derived` under `adaptedFrom` and to `inspiration-only` under `authoritativeSpec`. That default decides whether the `licences` gate requires a `license`.
+- An absent `fidelity` defaults to `largely-derived` under `adaptedFrom` and to `inspiration-only` under `authoritativeSpec`. That default decides whether the `licences` gate requires a `license`. An `authoritativeSpec` entry that records `took` with no `fidelity` draws a `licences` warning, because the default asserts nothing was reproduced.
+- `took` is carried into the row and nothing else: the audit does not read it, so it cannot narrow what a row recommends. What a row calls for depends on the key: `update_available` under `adaptedFrom` recommends `review_and_merge_from_upstream` (`bootstrap_review_and_merge_from_upstream` for a bootstrap), and under `authoritativeSpec` it recommends `assess_all_normative_content` (`bootstrap_assess_all_normative_content`), whichever host the source is on.
+- The row is dated from the last commit of the file that declares the entry. A script re-synced from upstream keeps flagging until the Markdown file that names it is committed with it.
 - An object entry with no `url`, or a key that yields no entries, is dropped from the audit **without a row**. The `licences` gate reports both as errors ("parses to nothing"), so run `uv run llmctl-check --repo . --only licences` after editing a provenance block. That is the only place the drop shows.
 
 ## GitHub URLs
