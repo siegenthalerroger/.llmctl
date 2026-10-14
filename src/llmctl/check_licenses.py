@@ -1,8 +1,10 @@
 """Check that every file's licence can carry the upstream terms it inherits.
 
 Per provenance entry: does the fidelity mean expression was copied, and if so can
-this file's effective licence satisfy that upstream's? check.py imports `check()`
-for its `licences` gate. Rules: CONTRIBUTING.md#licensing.
+this file's effective licence satisfy that upstream's? Every declaration the parser
+could not read, and every borrowing whose fidelity is left to a default that denies it,
+fails here: this gate is the one place those show. check.py imports `check()` for its
+`licences` gate. Rules: CONTRIBUTING.md#licensing.
 """
 
 from __future__ import annotations
@@ -36,14 +38,8 @@ def check_file(
     errors, warnings = [], []
     rel = os.path.relpath(record.path, root).replace("\\", "/")
 
-    for problem in record.malformed:
-        errors.append(
-            (
-                rel,
-                problem + " - a provenance block that parses to nothing "
-                "stops being tracked silently",
-            )
-        )
+    # Each problem already says what it costs: a block, an entry or a field.
+    errors.extend((rel, problem) for problem in record.malformed)
 
     declared = record.declared
     effective = record.effective
@@ -62,17 +58,19 @@ def check_file(
         where = f"{entry.kind} -> {entry.url}"
 
         if entry.kind == prov.BINDING and entry.took and not entry.fidelity:
-            # `took` asserts a borrowing, but the default for a binding source is
-            # "cited, nothing reproduced". Left unstated, the gate would wave
-            # through reproduced wording as obligation-free.
-            warnings.append(
+            # `took` records a borrowing; the binding default says nothing was reproduced.
+            # Nothing in `took` tells an idea from copied wording, so the gate does not
+            # guess: left to the default, reproduced wording would pass obligation-free.
+            errors.append(
                 (
                     rel,
-                    f"{where}: `took` records borrowed material but there is no `fidelity`, "
-                    "so the entry counts as cited only (inspiration-only) and attaches no "
-                    "terms - state the fidelity and the upstream `license`",
+                    f"{where}: `took` is set but `fidelity` is not - state it: "
+                    "`inspiration-only` or `structural-echo` if no wording was copied, "
+                    "`partly-derived` or `largely-derived` plus the upstream `license` "
+                    "if it was",
                 )
             )
+            continue
 
         if entry.fidelity and entry.fidelity not in prov.FIDELITIES:
             errors.append(

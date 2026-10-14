@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import textwrap
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,14 +33,31 @@ def block(key: str, *items: str | dict[str, str]) -> str:
     return "\n".join(lines)
 
 
-def frontmatter(body: str, *, license_: str | None = None, name: str | None = None) -> str:
-    """A frontmatter block holding `metadata.provenance` = `body` (already indented 4)."""
+def nest(path: str, body: str) -> str:
+    """`body`, dedented, placed under the dotted key `path`; "" is the top level."""
+    keys = path.split(".") if path else []
+    heads = [f"{'  ' * depth}{key}:" for depth, key in enumerate(keys)]
+    return "\n".join([*heads, textwrap.indent(textwrap.dedent(body), "  " * len(keys))])
+
+
+def frontmatter(
+    body: str,
+    *,
+    license_: str | None = None,
+    name: str | None = None,
+    under: str = "metadata.provenance",
+) -> str:
+    """A frontmatter block holding `body` under the dotted key `under` ("" = top level).
+
+    `body` is a `block()` or several; any other `under` is somewhere the parser must
+    not read, which is how a test writes a misplaced block.
+    """
     lines = ["---"]
     if name:
         lines += [f'name: "{name}"', f'description: "{name} description."']
     if license_:
         lines.append(f"license: {license_}")
-    lines += ["metadata:", "  provenance:", body.rstrip("\n"), "---", "", "# Body", ""]
+    lines += [nest(under, body.rstrip("\n")), "---", "", "# Body", ""]
     return "\n".join(lines)
 
 

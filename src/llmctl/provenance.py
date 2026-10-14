@@ -1,14 +1,17 @@
 """Shared provenance/licence model for the gates, the notices and the drift audit.
 
 One parse of `metadata.provenance`, one obligation table, one path->default-licence
-rule, so the four consumers cannot disagree about what a file claims. A block that
-yields no entries, or an entry with no `url`, is reported as malformed rather than
-skipped: a file that silently stops being tracked is the failure this exists to
-make loud. The convention itself is in CONTRIBUTING.md#repository-frontmatter-provenance-convention.
+rule, so the four consumers cannot disagree about what a file claims. Anything outside
+the documented shape -- a block that yields no entries, an entry with no `url`, a block
+or a file licence written somewhere the parser does not read, an unknown key or field --
+is reported as malformed rather than skipped: a file that silently stops being tracked
+is the failure this exists to make loud. The convention itself is in
+CONTRIBUTING.md#repository-frontmatter-provenance-convention.
 """
 
 from __future__ import annotations
 
+import difflib
 import os
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -24,6 +27,7 @@ __all__ = [
     "BINDING",
     "DEFAULT_CODE",
     "DEFAULT_CONTENT",
+    "ENTRY_FIELDS",
     "FIDELITIES",
     "KNOWN_LICENSES",
     "OBLIGATION",
@@ -114,6 +118,20 @@ BINDING = "authoritativeSpec"
 ADAPTED = "adaptedFrom"
 PROVENANCE_KEYS = (ADAPTED, BINDING)
 
+# The fields an object entry may carry. Anything else is a misspelling (`licence`,
+# `fidelty`), not an extension, and reading past it would judge the entry without it.
+ENTRY_FIELDS = ("url", "license", "fidelity", "took")
+
+# Names a misplaced block or file licence goes by, compared after `_norm`, so a case,
+# separator or dotted spelling of a key in the wrong place is caught along with the key.
+_PROVENANCE_NAMES = {"provenance", "adaptedfrom", "authoritativespec"}
+_LICENSE_NAMES = {"license", "licence", "licenses", "licences"}
+
+# What each kind of malformed declaration costs, said in the message that reports it.
+_BLOCK = "nothing in it is tracked"
+_ENTRY = "this entry is not tracked"
+_FIELD = "the field is ignored, so the entry is judged without it"
+
 
 def default_license_for(path: str | Path) -> str:
     """The repo default for a path, before any per-file `license:` override."""
@@ -146,37 +164,98 @@ class Record:
     malformed: tuple[str, ...] = ()
 
 
-def _entries(value: object, kind: str) -> list[Entry]:
-    """Normalise one provenance key's value into entries.
+def _norm(key: object) -> list[str]:
+    """`key`'s dotted segments, lowercased to letters only. YAML keys need not be strings."""
+    return ["".join(c for c in part.lower() if c.isalpha()) for part in str(key).split(".")]
+
+
+def _kind_of(value: object) -> str:
+    """How a value that is not the expected type reads in a message."""
+    if value is None:
+        return "empty"
+    for types, name in (
+        (bool, "a boolean"),  # before int: bool is an int
+        ((int, float), "a number"),
+        (str, "a string"),
+        (list, "a list"),
+        (dict, "a mapping"),
+    ):
+        if isinstance(value, types):
+            return name
+    return f"a {type(value).__name__}"
+
+
+def _hint(name: object, allowed: tuple[str, ...]) -> str:
+    folded = {a.lower(): a for a in allowed}
+    close = difflib.get_close_matches(str(name).lower(), folded, n=1)
+    return f"; did you mean `{folded[close[0]]}`?" if close else ""
+
+
+def _allowed(names: tuple[str, ...]) -> str:
+    return ", ".join(f"`{n}`" for n in names)
+
+
+def _entries(value: object, kind: str) -> tuple[list[Entry], list[str]]:
+    """Normalise one provenance key's value into entries, and every problem found doing it.
 
     Three forms are accepted, as documented in source-url-reference.md: a URL string, a
-    list of URL strings, or a list of objects carrying `url` plus any of
-    `license` / `fidelity` / `took`. Anything else yields an entry with no url,
-    which the caller reports as malformed.
+    list of URL strings, or a list of objects carrying `url` plus any of `license` /
+    `fidelity` / `took`. An entry with no usable `url` is reported and dropped.
     """
     if isinstance(value, str):
-        return [Entry(value.strip() or None, "string", kind)]
-    if not isinstance(value, list):
-        return [Entry(None, "object", kind)]
-    entries = []
+        value = [value]
+    elif not isinstance(value, list):
+        return [], [f"`{kind}` is {_kind_of(value)}, not a URL or a list of entries - {_BLOCK}"]
+    if not value:
+        return [], [f"`{kind}` yields no entries - {_BLOCK}"]
+    entries, problems = [], []
     for item in value:
-        if isinstance(item, str):
-            entries.append(Entry(item.strip() or None, "string", kind))
-        elif isinstance(item, dict):
-            url = item.get("url")
-            entries.append(
-                Entry(
-                    str(url).strip() if url else None,
-                    "object",
-                    kind,
-                    license=_text(item.get("license")),
-                    fidelity=_text(item.get("fidelity")),
-                    took=_text(item.get("took")),
-                )
-            )
+        if isinstance(item, dict):
+            entry, found = _object_entry(item, kind)
+            problems += found
+        elif isinstance(item, str) and item.strip():
+            entry = Entry(item.strip(), "string", kind)
         else:
-            entries.append(Entry(None, "object", kind))
-    return entries
+            entry = None
+            problems.append(f"`{kind}` has an entry with no url - {_ENTRY}")
+        if entry:
+            entries.append(entry)
+    return entries, problems
+
+
+def _object_entry(item: dict, kind: str) -> tuple[Entry | None, list[str]]:
+    """One object-form entry, or None when it has no usable `url`, and its problems.
+
+    A field outside `ENTRY_FIELDS`, or one that is not a string, is reported and ignored
+    while the entry is kept, so the drift audit still tracks it.
+    """
+    url = item.get("url")
+    if url is not None and not isinstance(url, str):
+        return None, [
+            f"`{kind}` has an entry whose `url` is {_kind_of(url)}, not a string - {_ENTRY}"
+        ]
+    url = (url or "").strip()
+    where = f"{kind} -> {url}" if url else f"`{kind}` entry with no url"
+    problems = [
+        f"{where}: unknown field `{name}` (allowed: {_allowed(ENTRY_FIELDS)}"
+        f"{_hint(name, ENTRY_FIELDS)}) - {_FIELD if url else _ENTRY}"
+        for name in item
+        if name not in ENTRY_FIELDS
+    ]
+    if not url:
+        return None, [*problems, f"`{kind}` has an entry with no url - {_ENTRY}"]
+    fields: dict[str, str | None] = {}
+    for name in ("license", "fidelity", "took"):
+        raw = item.get(name)
+        if raw is None or isinstance(raw, str):
+            fields[name] = _text(raw)
+            continue
+        # str() of a list or a YAML 1.1 boolean (`took: no`) reads as text, and a truthy
+        # `took` would claim a borrowing nobody recorded.
+        problems.append(f"{where}: `{name}` is {_kind_of(raw)}, not a string - {_FIELD}")
+        fields[name] = None
+    entry = Entry(url, "object", kind, fields["license"], fields["fidelity"], fields["took"])
+    return entry, problems
 
 
 def _text(value: object) -> str | None:
@@ -187,28 +266,66 @@ def _text(value: object) -> str | None:
 
 
 def _declared(provenance: dict) -> tuple[tuple[Entry, ...], tuple[str, ...]]:
-    """Every entry under a known provenance key, and every problem found doing it."""
+    """Every entry under a provenance key, and every problem found reading the block.
+
+    A key that is not one of `PROVENANCE_KEYS` is reported, never read as the key it
+    resembles; the valid keys beside it are still read.
+    """
     entries, malformed = [], []
-    for key in PROVENANCE_KEYS:
-        if key not in provenance:
+    for key, value in provenance.items():
+        if key not in PROVENANCE_KEYS:
+            malformed.append(
+                f"`metadata.provenance.{key}` is not a provenance key (allowed: "
+                f"{_allowed(PROVENANCE_KEYS)}{_hint(key, PROVENANCE_KEYS)}) - {_BLOCK}"
+            )
             continue
-        found = _entries(provenance.get(key), key)
-        if not found:
-            malformed.append(f"`{key}` yields no entries")
-        for entry in found:
-            if not entry.url:
-                malformed.append(f"`{key}` has an entry with no url")
-                continue
-            entries.append(entry)
+        found, problems = _entries(value, key)
+        entries += found
+        malformed += problems
     return tuple(entries), tuple(malformed)
+
+
+def _misplaced(metadata: dict, default: str) -> list[str]:
+    """Provenance and file-licence keys written where the parser does not read them.
+
+    Reported even beside a valid `metadata.provenance`, which is still read: the
+    canonical placement is the only format, so a second one is an error, not an input.
+    """
+    licence = (
+        "the file's own licence is the top-level `license` field - "
+        f"the file keeps the repo default `{default}`"
+    )
+    elsewhere = f"provenance belongs under `metadata.provenance` - {_BLOCK}"
+    found = []
+    for key in metadata:
+        name = _norm(key)
+        if key in ("metadata", "license"):
+            continue
+        if name == ["metadata"]:
+            found.append(f"`{key}` is not read: the key is `metadata`, and {elsewhere}")
+        elif name[-1] in _PROVENANCE_NAMES:
+            found.append(f"`{key}` is not read: {elsewhere}")
+        elif name[-1] in _LICENSE_NAMES:
+            found.append(f"`{key}` is not read: {licence}")
+    container = metadata.get("metadata")
+    for key in container if isinstance(container, dict) else ():
+        name = _norm(key)
+        if key == "provenance":
+            continue
+        if name[-1] in _PROVENANCE_NAMES:
+            found.append(f"`metadata.{key}` is not read: {elsewhere}")
+        elif name[-1] in _LICENSE_NAMES:
+            found.append(f"`metadata.{key}` is not read: {licence}")
+    return found
 
 
 def parse(path: str | Path) -> Record:
     """Read one file's provenance.
 
-    A block that yields no entries, and an entry with no `url`, land in
-    `malformed` rather than being dropped: a file that silently stops being
-    tracked is the failure this exists to make loud.
+    A block that yields no entries, an entry with no `url`, a `metadata.provenance` that
+    is not a non-empty mapping, and a provenance block or file licence written anywhere
+    the parser does not read, all land in `malformed` rather than being dropped: a file
+    that silently stops being tracked is the failure this exists to make loud.
     """
     default = default_license_for(path)
     text = Path(path).read_text(encoding="utf-8")
@@ -221,24 +338,44 @@ def parse(path: str | Path) -> Record:
             str(path),
             None,
             default,
-            malformed=("frontmatter does not parse as YAML: {}".format(str(exc).split("\n")[0]),),
+            malformed=(
+                "frontmatter does not parse as YAML: {} - none of this frontmatter is read, "
+                "so the file declares no provenance and no licence".format(str(exc).split("\n")[0]),
+            ),
         )
     if not isinstance(metadata, dict):
         return Record(str(path), None, default)
 
     declared = _text(metadata.get("license"))
+    malformed = _misplaced(metadata, default)
+    entries: tuple[Entry, ...] = ()
     container = metadata.get("metadata")
-    provenance = container.get("provenance") if isinstance(container, dict) else None
-    entries, malformed = _declared(provenance) if isinstance(provenance, dict) else ((), ())
-    return Record(str(path), declared, declared or default, entries, malformed)
+    if container is not None and not isinstance(container, dict):
+        malformed.append(
+            f"`metadata` is {_kind_of(container)}, not a mapping - `metadata.provenance` "
+            f"cannot be read, so {_BLOCK}"
+        )
+    elif isinstance(container, dict) and "provenance" in container:
+        provenance = container["provenance"]
+        if isinstance(provenance, dict) and provenance:
+            entries, problems = _declared(provenance)
+            malformed += problems
+        else:
+            what = "empty" if provenance in (None, {}, [], "") else _kind_of(provenance)
+            malformed.append(
+                f"`metadata.provenance` is {what}, not a mapping of "
+                f"{_allowed(PROVENANCE_KEYS)} - {_BLOCK}"
+            )
+    return Record(str(path), declared, declared or default, entries, tuple(malformed))
 
 
 def effective_fidelity(entry: Entry) -> str:
     """The fidelity to judge an entry by, applying the documented defaults.
 
     A bare `authoritativeSpec` URL asserts a citation -- nothing reproduced -- and
-    so does an object entry that states no fidelity. A bare `adaptedFrom` URL
-    asserts whole-file derivation.
+    so does an object entry that states no fidelity. The licence gate rejects such an
+    object when it records `took`, so this default never judges a recorded borrowing.
+    A bare `adaptedFrom` URL asserts whole-file derivation.
     """
     if entry.fidelity:
         return entry.fidelity
