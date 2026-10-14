@@ -7,11 +7,11 @@ metadata:
       - url: "https://github.com/github/awesome-copilot/blob/main/instructions/kubernetes-deployment-best-practices.instructions.md"
         license: MIT
         fidelity: inspiration-only
-        took: "The topic coverage — labels and metadata, security context, probes, resource requests."
+        took: "The topic coverage: Deployments in place of bare Pods, Services and Ingress, ConfigMaps versus Secrets, probes, resource requests and limits, HPA and VPA, network policies, RBAC, the pod security context and image security."
       - url: "https://github.com/github/awesome-copilot/blob/main/instructions/kubernetes-manifests.instructions.md"
         license: MIT
-        fidelity: inspiration-only
-        took: "The manifest-authoring framing."
+        fidelity: partly-derived
+        took: "The mission line (production-ready manifests, security first, then reliability), the standard label set with the extra labels and monitoring annotations, the security-context defaults, Pod Security Admission with Restricted for production, the QoS-class guidance, the three probe types, zero-downtime rolling updates with a disruption budget and anti-affinity, the validation commands and the manifest checklist."
 ---
 
 # Kubernetes Standards and Patterns
