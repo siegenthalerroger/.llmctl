@@ -38,6 +38,7 @@ SUBJECT_RE = re.compile(
 # A package path names its own directory instead, which `scopes_for` handles.
 AREAS = (
     ("src/", "tooling"),
+    ("tests/", "tooling"),
     ("pyproject.toml", "tooling"),
     ("uv.lock", "tooling"),
     (".github/", "ci"),

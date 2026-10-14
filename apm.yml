@@ -18,6 +18,9 @@ scripts:
   # Add `--since <ref>` by calling the command directly to lint a commit range;
   # without it that one gate is skipped, not failed.
   check: "uv run llmctl-check --repo ."
+  # The unit tests the `tooling` gate also runs: provenance parsing, drift
+  # discovery, licence handling, and the ownership split between audits.
+  test: "uv run python -m unittest discover -s tests -t ."
   # Move the pinned upstreams and show the diff of everything that moved.
   # Commits nothing: the reading is the point. See the meta-update-repo skill.
   update: "uv run llmctl-update --repo ."

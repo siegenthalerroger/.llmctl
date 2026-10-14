@@ -206,7 +206,7 @@ GitHub Actions runs the same entry points a contributor runs. The tooling is a l
 
 **There is one gate set, and it lives in [check.py](src/llmctl/check.py).** The marketplace-shaped gates pack into a scratch directory and validate that, so one checkout runs everything — the tooling's own lint, frontmatter conventions, the commit convention, licence obligations, lockfiles against their pins, and a full pack that every bundle must survive.
 
-The `tooling` gate is `uv lock --check`, `ruff format --check`, `ruff check` and `ty check`, in that order. Both linters read their configuration out of `pyproject.toml`, and `uv.lock` only exists beside it, so the gate skips with its reason stated in a workspace running the tooling from git — there is nothing there to lint, and linting an installed copy against default rules it was never written for would report noise rather than findings.
+The `tooling` gate is `uv lock --check`, `ruff format --check`, `ruff check`, `ty check` and the unit tests under `tests/`, in that order. Ruff covers `src/` and `tests/`; `ty` covers `src/`. Both linters read their configuration out of `pyproject.toml`, and `uv.lock` only exists beside it, so the gate skips with its reason stated in a workspace running the tooling from git — there is nothing there to lint, and linting an installed copy against default rules it was never written for would report noise rather than findings.
 
 A push to `main` runs those same gates inside `release.yml`, immediately before publishing what they passed on, so `checks.yml` does not duplicate it.
 

@@ -20,6 +20,8 @@ import frontmatter
 from .workspace import INSTALL_OUTPUT
 
 __all__ = [
+    "ADAPTED",
+    "BINDING",
     "DEFAULT_CODE",
     "DEFAULT_CONTENT",
     "FIDELITIES",
@@ -31,7 +33,6 @@ __all__ = [
     "Record",
     "default_license_for",
     "effective_fidelity",
-    "is_customization",
     "iter_files",
     "parse",
 ]
@@ -80,13 +81,16 @@ PERMITTED_OUTBOUND = {
     "CC-BY-NC-4.0": (),
     # W3C-20150513 permits copying and porting with the full notice carried, so
     # in isolation it would sit with the permissive licences above. It is listed
-    # with no permitted outbound deliberately, to enforce re-evaluation of LICENSE.md
-    # if any more than `inspiration-only` is used.
+    # with no permitted outbound deliberately, to force a re-read of LICENSE.md
+    # before anything above `structural-echo` is used.
     "W3C-20150513": (),
     # No grant of rights at all -- nothing is permitted. Such a source is usable
-    # only at a fidelity that attaches no obligation, i.e. cite it, never copy it.
-    # `Proprietary` covers the vendor documentation sites: reproducing their
-    # wording has no licensable remedy, so the only fix is rewriting.
+    # only at a fidelity that attaches no obligation (`inspiration-only` or
+    # `structural-echo`): take the idea or the shape, never the wording. `NONE`
+    # is a source that states no licence (a repository without LICENSE, a book,
+    # a blog), `Proprietary` a vendor documentation site that reserves all rights,
+    # `NOASSERTION` a licence not yet established. Reproducing any of them has
+    # no licensable remedy, so the only fix is rewriting.
     "NONE": (),
     "NOASSERTION": (),
     "Proprietary": (),
@@ -97,22 +101,18 @@ KNOWN_LICENSES = tuple(PERMITTED_OUTBOUND)
 # `.md` alone, deliberately: the customization types (`*.agent.md`,
 # `*.prompt.md`, `*.instructions.md`, `SKILL.md`) are all Markdown, and so are
 # the `references/` files they link to -- which is where a reproduced spec table
-# is most likely to land. Listing the four types would exclude exactly those.
+# is most likely to land. Listing the four types would exclude exactly those, and
+# every consumer (licence gate, notices, drift audit) reads them all alike: a
+# reference page declares its own upstream, and `SKILL.md` never stands in for it.
 CONTENT_SUFFIXES = (".md",)
 
-# The four file types that define a primitive. `iter_files` yields every `.md`
-# because a `references/` page can carry provenance too; the drift audit walks
-# only these four, because only a primitive has an upstream to drift from.
-CUSTOMIZATION_NAMES = ("SKILL.md",)
-CUSTOMIZATION_SUFFIXES = (".agent.md", ".instructions.md", ".prompt.md")
-
-PROVENANCE_KEYS = ("adaptedFrom", "authoritativeSpec")
-
-
-def is_customization(path: str | Path) -> bool:
-    """True for the four primitive-defining file types."""
-    name = Path(path).name
-    return name in CUSTOMIZATION_NAMES or name.endswith(CUSTOMIZATION_SUFFIXES)
+# `authoritativeSpec` holds binding normative sources; `adaptedFrom` holds ordinary
+# adaptations and borrowed material. The key says which, whether or not anything
+# was copied -- so a drift review of the former assesses every normative change
+# relevant to the declared subject, and `took` never narrows it.
+BINDING = "authoritativeSpec"
+ADAPTED = "adaptedFrom"
+PROVENANCE_KEYS = (ADAPTED, BINDING)
 
 
 def default_license_for(path: str | Path) -> str:
@@ -236,12 +236,13 @@ def parse(path: str | Path) -> Record:
 def effective_fidelity(entry: Entry) -> str:
     """The fidelity to judge an entry by, applying the documented defaults.
 
-    A bare `authoritativeSpec` URL asserts a citation -- nothing reproduced. A bare
-    `adaptedFrom` URL asserts whole-file derivation.
+    A bare `authoritativeSpec` URL asserts a citation -- nothing reproduced -- and
+    so does an object entry that states no fidelity. A bare `adaptedFrom` URL
+    asserts whole-file derivation.
     """
     if entry.fidelity:
         return entry.fidelity
-    if entry.kind == "authoritativeSpec":
+    if entry.kind == BINDING:
         return "inspiration-only"
     return "largely-derived"
 
