@@ -122,10 +122,14 @@ PROVENANCE_KEYS = (ADAPTED, BINDING)
 # `fidelty`), not an extension, and reading past it would judge the entry without it.
 ENTRY_FIELDS = ("url", "license", "fidelity", "took")
 
-# Names a misplaced block or file licence goes by, compared after `_norm`, so a case,
-# separator or dotted spelling of a key in the wrong place is caught along with the key.
-_PROVENANCE_NAMES = {"provenance", "adaptedfrom", "authoritativespec"}
-_LICENSE_NAMES = {"license", "licence", "licenses", "licences"}
+# Names a misplaced block or file licence goes by, compared by `_resembles`, so a case,
+# separator, dotted or near-miss spelling of a key in the wrong place is caught with it.
+_METADATA_NAMES = ("metadata",)
+_PROVENANCE_NAMES = ("provenance", "adaptedfrom", "authoritativespec")
+_LICENSE_NAMES = ("license", "licence", "licenses", "licences")
+# SequenceMatcher ratio from which a key counts as a typo of one of those names: one
+# dropped or swapped letter (`provenace`, `metdata`) clears it, unrelated keys do not.
+_NEAR_MISS = 0.85
 
 # What each kind of malformed declaration costs, said in the message that reports it.
 _BLOCK = "nothing in it is tracked"
@@ -164,9 +168,18 @@ class Record:
     malformed: tuple[str, ...] = ()
 
 
-def _norm(key: object) -> list[str]:
-    """`key`'s dotted segments, lowercased to letters only. YAML keys need not be strings."""
-    return ["".join(c for c in part.lower() if c.isalpha()) for part in str(key).split(".")]
+def _resembles(key: object, names: tuple[str, ...]) -> bool:
+    """Whether `key`'s last dotted segment is one of `names` under some spelling.
+
+    Case and separators are dropped, a prefix (`metadata_provenance`) still ends in the
+    name, and a near-miss typo (`provenace`) is close enough. YAML keys need not be
+    strings.
+    """
+    last = "".join(c for c in str(key).split(".")[-1].lower() if c.isalpha())
+    return any(
+        last.endswith(name) or difflib.SequenceMatcher(None, last, name).ratio() >= _NEAR_MISS
+        for name in names
+    )
 
 
 def _kind_of(value: object) -> str:
@@ -285,37 +298,37 @@ def _declared(provenance: dict) -> tuple[tuple[Entry, ...], tuple[str, ...]]:
     return tuple(entries), tuple(malformed)
 
 
-def _misplaced(metadata: dict, default: str) -> list[str]:
+def _misplaced(metadata: dict, licence: str) -> list[str]:
     """Provenance and file-licence keys written where the parser does not read them.
 
-    Reported even beside a valid `metadata.provenance`, which is still read: the
-    canonical placement is the only format, so a second one is an error, not an input.
+    The whole frontmatter outside `metadata.provenance` is searched, so a block pasted
+    one level too deep (`metadata.metadata.provenance`) is caught as well. Reported even
+    beside a valid `metadata.provenance`, which is still read: the canonical placement
+    is the only format, so a second one is an error, not an input.
     """
-    licence = (
-        "the file's own licence is the top-level `license` field - "
-        f"the file keeps the repo default `{default}`"
-    )
     elsewhere = f"provenance belongs under `metadata.provenance` - {_BLOCK}"
-    found = []
-    for key in metadata:
-        name = _norm(key)
-        if key in ("metadata", "license"):
-            continue
-        if name == ["metadata"]:
-            found.append(f"`{key}` is not read: the key is `metadata`, and {elsewhere}")
-        elif name[-1] in _PROVENANCE_NAMES:
-            found.append(f"`{key}` is not read: {elsewhere}")
-        elif name[-1] in _LICENSE_NAMES:
-            found.append(f"`{key}` is not read: {licence}")
-    container = metadata.get("metadata")
-    for key in container if isinstance(container, dict) else ():
-        name = _norm(key)
-        if key == "provenance":
-            continue
-        if name[-1] in _PROVENANCE_NAMES:
-            found.append(f"`metadata.{key}` is not read: {elsewhere}")
-        elif name[-1] in _LICENSE_NAMES:
-            found.append(f"`metadata.{key}` is not read: {licence}")
+    misread = f"the file's own licence is the top-level `license` field, so it stays `{licence}`"
+    found: list[str] = []
+
+    def walk(node: object, path: tuple[str, ...]) -> None:
+        for item in node if isinstance(node, list) else ():
+            walk(item, path)
+        for key, value in node.items() if isinstance(node, dict) else ():
+            where = ".".join((*path, str(key)))
+            if (path, key) in (((), "license"), (("metadata",), "provenance")):
+                continue
+            if (path, key) == ((), "metadata"):
+                walk(value, ("metadata",))
+            elif not path and _resembles(key, _METADATA_NAMES):
+                found.append(f"`{where}` is not read: the key is `metadata`, and {elsewhere}")
+            elif _resembles(key, _PROVENANCE_NAMES):
+                found.append(f"`{where}` is not read: {elsewhere}")
+            elif path in ((), ("metadata",)) and _resembles(key, _LICENSE_NAMES):
+                found.append(f"`{where}` is not read: {misread}")
+            else:
+                walk(value, (*path, str(key)))
+
+    walk(metadata, ())
     return found
 
 
@@ -347,7 +360,7 @@ def parse(path: str | Path) -> Record:
         return Record(str(path), None, default)
 
     declared = _text(metadata.get("license"))
-    malformed = _misplaced(metadata, default)
+    malformed = _misplaced(metadata, declared or default)
     entries: tuple[Entry, ...] = ()
     container = metadata.get("metadata")
     if container is not None and not isinstance(container, dict):

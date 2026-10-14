@@ -13,6 +13,10 @@ from .support import SKILLS, block, frontmatter, nest, write
 
 URL = "https://github.com/example/up/blob/main/a.md"
 FIELDS = ("url", "license", "fidelity", "took")
+# What each malformed message must end with: the cost of the mistake, not a generic tail.
+BLOCK = "nothing in it is tracked"
+ENTRY = "this entry is not tracked"
+FIELD = "the field is ignored, so the entry is judged without it"
 
 
 class ProvenanceTest(unittest.TestCase):
@@ -44,6 +48,7 @@ class ProvenanceTest(unittest.TestCase):
             record = prov.parse(path)
             self.assertEqual(record.entries, (), body)
             self.assertTrue(any(problem in message for message in record.malformed), body)
+            self.assertTrue(all(m.endswith((BLOCK, ENTRY)) for m in record.malformed), body)
 
     def test_a_block_outside_metadata_provenance_is_reported_and_not_read(self) -> None:
         # The convention has one location. Every other placement used to parse to nothing
@@ -57,12 +62,19 @@ class ProvenanceTest(unittest.TestCase):
             ("metadata", "authoritativeSpec", "metadata.authoritativeSpec"),
             ("metadata.Provenance", "adaptedFrom", "metadata.Provenance"),
             ("Metadata.provenance", "adaptedFrom", "Metadata"),
+            ("metadata_provenance", "adaptedFrom", "metadata_provenance"),
+            ("provenace", "adaptedFrom", "provenace"),
+            ("metadata.provenace", "adaptedFrom", "metadata.provenace"),
+            ("metdata.provenance", "adaptedFrom", "metdata"),
+            # Pasted one level too deep, under a block that already exists.
+            ("metadata.metadata.provenance", "adaptedFrom", "metadata.metadata.provenance"),
+            ("metadata.apm.provenance", "adaptedFrom", "metadata.apm.provenance"),
         ):
             record = self.record(block(key, URL), under=under)
-            self.assertEqual(record.entries, (), where)
-            self.assertEqual(len(record.malformed), 1, record.malformed)
-            self.assertIn(f"`{where}`", record.malformed[0])
-            self.assertIn("`metadata.provenance`", record.malformed[0])
+            self.assertEqual((record.entries, len(record.malformed)), ((), 1), record.malformed)
+            self.assertIn(f"`{where}`", record.malformed[0], under)
+            self.assertIn("`metadata.provenance`", record.malformed[0], under)
+            self.assertTrue(record.malformed[0].endswith(BLOCK), record.malformed[0])
         # The dotted path the docs name the field by, written as one literal key.
         record = self.record(f'metadata.provenance.adaptedFrom: "{URL}"', under="")
         self.assertEqual(record.entries, ())
@@ -98,10 +110,10 @@ class ProvenanceTest(unittest.TestCase):
             (f'metadata: "{URL}"', ""),
         ):
             record = self.record(body, under=under)
-            self.assertEqual(record.entries, (), body)
-            self.assertEqual(len(record.malformed), 1, record.malformed)
-            self.assertIn("`metadata", record.malformed[0])
-            self.assertIn("not a mapping", record.malformed[0])
+            self.assertEqual((record.entries, len(record.malformed)), ((), 1), record.malformed)
+            self.assertIn("`metadata", record.malformed[0], body)
+            self.assertIn("not a mapping", record.malformed[0], body)
+            self.assertTrue(record.malformed[0].endswith(BLOCK), record.malformed[0])
 
     def test_an_unknown_key_under_provenance_is_reported(self) -> None:
         for key in ("adapted_from", "adaptedfrom", "authoritative_spec", "license"):
@@ -111,7 +123,8 @@ class ProvenanceTest(unittest.TestCase):
             self.assertEqual([e.kind for e in record.entries], ["adaptedFrom"], key)
             self.assertEqual(len(record.malformed), 1, record.malformed)
             for name in (key, *prov.PROVENANCE_KEYS):
-                self.assertIn(name, record.malformed[0])
+                self.assertIn(name, record.malformed[0], key)
+            self.assertTrue(record.malformed[0].endswith(BLOCK), record.malformed[0])
 
     def test_an_unknown_field_is_reported_and_its_entry_still_tracked(self) -> None:
         # The url is good, so the entry stays in the drift audit; the misspelt field is not
@@ -121,23 +134,26 @@ class ProvenanceTest(unittest.TestCase):
             self.assertEqual(record.entries, (prov.Entry(URL, "object", "adaptedFrom"),), field)
             self.assertEqual(len(record.malformed), 1, record.malformed)
             for name in (field, *FIELDS):
-                self.assertIn(f"`{name}`", record.malformed[0])
+                self.assertIn(f"`{name}`", record.malformed[0], field)
+            self.assertTrue(record.malformed[0].endswith(FIELD), record.malformed[0])
 
     def test_a_field_that_is_not_a_string_is_ignored_and_reported(self) -> None:
         # str() of a list or a YAML 1.1 boolean reads as text; under a binding key it would
         # then claim a borrowing nobody recorded.
         for field, value in (("took", "[]"), ("took", "no"), ("license", "[MIT]")):
             body = nest("authoritativeSpec", f'- url: "{URL}"\n  {field}: {value}')
-            (entry,) = self.record(body).entries
-            self.assertIsNone(getattr(entry, field), (field, value))
-            (problem,) = self.record(body).malformed
-            self.assertIn(f"`{field}` is a", problem)
+            record = self.record(body)
+            self.assertEqual((len(record.entries), len(record.malformed)), (1, 1), (field, value))
+            self.assertIsNone(getattr(record.entries[0], field), (field, value))
+            self.assertIn(f"`{field}` is a", record.malformed[0], (field, value))
+            self.assertTrue(record.malformed[0].endswith(FIELD), record.malformed[0])
         record = self.record(nest("adaptedFrom", f'- url: ["{URL}"]'))
         self.assertEqual(record.entries, ())
         (problem,) = record.malformed
         self.assertIn("`url` is a list", problem)
+        self.assertTrue(problem.endswith(ENTRY), problem)
 
-    def test_a_misplaced_file_licence_is_reported_and_the_default_kept(self) -> None:
+    def test_a_misplaced_file_licence_is_reported_and_not_read(self) -> None:
         for body, under, key in (
             ("license: MIT", "metadata", "metadata.license"),
             ("licence: MIT", "metadata", "metadata.licence"),
@@ -146,9 +162,15 @@ class ProvenanceTest(unittest.TestCase):
         ):
             record = self.record(body, under=under)
             self.assertEqual((record.declared, record.effective), (None, prov.DEFAULT_CONTENT))
-            (problem,) = record.malformed
-            self.assertIn(f"`{key}`", problem)
-            self.assertIn("top-level `license`", problem)
+            self.assertEqual(len(record.malformed), 1, record.malformed)
+            self.assertIn(f"`{key}`", record.malformed[0], key)
+            self.assertIn("top-level `license`", record.malformed[0], key)
+            self.assertTrue(record.malformed[0].endswith(f"`{prov.DEFAULT_CONTENT}`"), key)
+        # Beside a declared licence, the message names the licence the file actually has.
+        record = self.record("licence: Apache-2.0", under="metadata", license_="MIT")
+        self.assertEqual(record.effective, "MIT")
+        (problem,) = record.malformed
+        self.assertTrue(problem.endswith("it stays `MIT`"), problem)
         self.assertEqual(self.record("", under="", license_="MIT").malformed, ())
 
     def test_a_reference_page_needs_no_name_or_description(self) -> None:
