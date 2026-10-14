@@ -2,7 +2,7 @@
 
 **Contents:** [Keys](#keys) · [Forms](#forms) · [`fidelity` and `license`](#fidelity-and-license) · [`took`](#took) · [Declaring and reading](#declaring-and-reading) · [Other rules](#other-rules)
 
-One convention for every file type this guide covers: skills, agents, instructions, prompts, and the reference pages a skill ships. Provenance lives under `metadata.provenance` in the file's frontmatter. What a skill adds for its bundled files (reference pages, scripts, assets) is in [skill-structure.md](./skill-structure.md#provenance-on-bundled-files).
+One convention for every file type this guide covers: skills, agents, instructions, prompts, and the reference pages a skill ships. Provenance lives under `metadata.provenance` in the file's frontmatter and nowhere else, as a mapping that holds `adaptedFrom`, `authoritativeSpec` or both, and no other key. A block placed or spelt any other way is not read as provenance, and this repository's `licences` gate rejects it. What a skill adds for its bundled files (reference pages, scripts, assets) is in [skill-structure.md](./skill-structure.md#provenance-on-bundled-files).
 
 ## Keys
 
@@ -33,11 +33,11 @@ metadata:
         took: "The column-mapping rules."
 ```
 
-Both keys accept the same three forms, which may be mixed in one array: a URL string, an array of URL strings, or an array of objects carrying `url` plus any of `license`, `fidelity` and `took`. A bare `adaptedFrom` URL means the **whole file** derives from that upstream. A bare `authoritativeSpec` URL means **cited and conformed to, nothing reproduced**, which carries no obligation. Prefer the object form wherever anything was reproduced or adapted.
+Both keys accept the same three forms, which may be mixed in one array: a URL string, an array of URL strings, or an array of objects carrying `url` plus any of `license`, `fidelity` and `took`. An object carries no other field: a misspelling such as `licence` is rejected, not read as `license`. A bare `adaptedFrom` URL means the **whole file** derives from that upstream. A bare `authoritativeSpec` URL means **cited and conformed to, nothing reproduced**, which carries no obligation. Prefer the object form wherever anything was reproduced or adapted.
 
 ## `fidelity` and `license`
 
-**`fidelity`** is the obligation level. Absent means `largely-derived` under `adaptedFrom` (whole-file derivation) and `inspiration-only` under `authoritativeSpec` (cited, nothing reproduced).
+**`fidelity`** is the obligation level. Absent means `largely-derived` under `adaptedFrom` (whole-file derivation) and `inspiration-only` under `authoritativeSpec` (cited, nothing reproduced). Under `authoritativeSpec`, any `took` requires an explicit `fidelity`, even one that holds only the comparison-base note described under [`took`](#took): state `inspiration-only` when nothing was reproduced. `took` records a borrowing that the default denies, and this repository's `licences` gate does not guess a fidelity from its prose.
 
 | Value | Meaning | Upstream terms attach? |
 | --- | --- | --- |
@@ -56,11 +56,11 @@ Both keys accept the same three forms, which may be mixed in one array: a URL st
 
 Where terms attach, the upstream also needs a row in `dependency-licenses.yml` with its copyright `holder`: the generated notices take the copyright line from there, and the `pack` gate fails without it.
 
-A file whose upstream obligation cannot be met by the repository default licence declares its own with a top-level `license:` field, whatever its type; see [LICENSE](https://github.com/siegenthalerroger/.llmctl/blob/main/LICENSE).
+A file whose upstream obligation cannot be met by the repository default licence declares its own with a top-level `license:` field, whatever its type; see [LICENSE](https://github.com/siegenthalerroger/.llmctl/blob/main/LICENSE). The file's own licence is that top-level field, spelt exactly `license`; no other spelling or place is read.
 
 ## `took`
 
-`took` is optional, and it records **borrowing**: what was actually taken from this upstream, nothing else.
+`took` is optional, and it records **borrowing**: what was actually taken from this upstream, nothing else. Under `authoritativeSpec` it requires an explicit `fidelity` ([above](#fidelity-and-license)).
 
 - **Single line.**
 - **Specific enough to identify the reused material.** Name the rules, tables, sections, procedures or concepts: "The severity tiers and the location / why-it-matters / how-to-fix evidence standard." A vague label such as "the general approach", "the framing" or "the structure" names nothing a reader could find in both files, so it cannot close a drift review.
@@ -97,4 +97,4 @@ A file whose upstream obligation cannot be met by the repository default licence
 - Cite the specific edition; page-level claims do not survive an edition change.
 - Never "resolve" a `not_trackable` entry by deleting it. The update check cannot track it, but the attribution is what the entry exists to carry.
 
-What the parser accepts, which files the drift audit reads, and how an entry can silently drop out of the audit is in the `meta-update-repo` skill (source repository only), `references/source-url-reference.md`.
+What the parser accepts and rejects, which files the drift audit reads, and how an entry can silently drop out of the audit is in the `meta-update-repo` skill (source repository only), `references/source-url-reference.md`.
