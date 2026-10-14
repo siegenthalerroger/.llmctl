@@ -109,7 +109,7 @@ handoffs:
 
 ### `license`
 
-Not an agent key on any target. The repository default for `*.md` (CC-BY-SA-4.0) applies; declare a top-level `license` only where an upstream obligation the default cannot satisfy forces another, which this repository's `licences` gate (`llmctl-check-licenses`) enforces. See the [router, section 4](../SKILL.md#4-frontmatter-shared-by-all-four-types).
+Not an agent key on any target. The repository default for `*.md` (CC-BY-SA-4.0) applies; declare a top-level `license` only where an upstream obligation the default cannot satisfy forces another, which this repository's `licences` gate (`llmctl-check-licenses`) enforces. See [provenance.md](./provenance.md).
 
 ### `metadata`
 
@@ -117,7 +117,7 @@ Not an agent key on any target. The repository default for `*.md` (CC-BY-SA-4.0)
 
 This repository's private conventions. Copilot cloud accepts `metadata` for annotation; other runtimes ignore it.
 
-- `metadata.provenance` — the shared provenance convention; see the [router, section 4](../SKILL.md#4-frontmatter-shared-by-all-four-types).
+- `metadata.provenance` — the shared provenance convention; see [provenance.md](./provenance.md).
 - `metadata.modelProfile` — below.
 
 #### `metadata.modelProfile`

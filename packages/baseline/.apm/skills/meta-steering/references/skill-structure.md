@@ -40,3 +40,12 @@ Directory layout for a skill's bundled resources, and the rule for choosing betw
 
 > [!NOTE]
 > `templates/` is a **non-standard extension** not in the [official spec](https://agentskills.io/). The spec places template files under `assets/`. Use `templates/` when portability across implementations is not a concern.
+
+## Provenance on bundled files
+
+The convention is in [provenance.md](./provenance.md). This is what a skill adds for the files it ships.
+
+- **Shared binding authority is declared once, at the widest file it binds.** A source that binds the skill's declared subject as a whole goes in `SKILL.md`. It applies to everything the skill ships (references, scripts, assets) without being repeated, and a drift review of it assesses normative changes relevant to the skill's subject wherever they land in the skill. A source that binds only one reference's narrower subject goes in that reference, and its review is scoped to that reference's subject.
+- **A reference page declares its own copying.** `SKILL.md` never stands in for it: a reference that reproduces or adapts material declares the source itself, as an object entry with `license` and `fidelity`, and a top-level `license:` where the upstream's terms need one. The same URL may appear in `SKILL.md` (authority, usually bare) and in a reference (copying): those are two facts, not duplication.
+- **Reference Markdown** (`references/*.md`) takes frontmatter only to declare provenance or a licence: `license` and `metadata.provenance`. Omit `name` and `description`, which identify a primitive for discovery and a reference is not one. Frontmatter is optional; a reference with nothing to declare has none.
+- **Scripts, assets and templates cannot carry frontmatter, so a Markdown declaration does not cover them unless it names them.** Attribute a source-derived companion in the provenance of the Markdown file that owns it (the `SKILL.md` of the skill that ships it), as an ordinary entry in the same format, with `took` naming the companion's path and the material taken from it ("The G-4g constants, reimplemented in `scripts/check-contrast.py`"). There is no second register. The companion is licensed by the repository default for its path (MIT, not CC-BY-SA-4.0), so record only upstreams whose terms that default can carry; where they cannot, rewrite the companion instead.

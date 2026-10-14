@@ -36,7 +36,7 @@ APM is the primary mechanism for consuming upstream content. Prefer declaring up
 | Category | When to use | Provenance field | Storage / update |
 |---|---:|---|---|
 | APM dependency (default) | Upstream package available as APM | none required (declare in `apm.yml`) | Installed to `apm_modules/` (git-ignored). Added and bumped through `meta-update-repo` |
-| Adapted / synthesised (local) | Any local copy of upstream material, from a light borrowing to a near-verbatim carry-over — only if APM cannot manage it | `metadata.provenance.adaptedFrom` | Tracked by `meta-update-repo` for drift detection; file lives in repo |
+| Adapted / synthesised (local) | Any local copy of upstream material, from a light borrowing to a near-verbatim carry-over — only if APM cannot manage it | `metadata.provenance.adaptedFrom`, or an object entry under `authoritativeSpec` when the source is also binding | Tracked by `meta-update-repo` for drift detection (`meta-refresh-steering` for the authoring guidance's own binding sources); file lives in repo |
 
 ### APM dependency (default)
 
@@ -49,6 +49,8 @@ APM is the primary mechanism for consuming upstream content. Prefer declaring up
 
 - Use whenever anything at all was taken from an upstream file that APM cannot manage — whether the local file restructures the material for local conventions, synthesises several sources, or carries most of one upstream across near-verbatim.
 - Add `metadata.provenance.adaptedFrom` listing upstream sources, and set each entry's `fidelity` to say how much was taken plus its `license` wherever that fidelity copies expression. These files are tracked by `meta-update-repo` for drift and merge-review workflows.
+- A source the file must conform to (a format specification, technical contract, operational requirement or organizational standard) is *binding*, and belongs under `authoritativeSpec` even when text was copied from it: copying is recorded by the same object-entry fields, never by a second entry under `adaptedFrom`.
+- A copy is declared by the file that holds it. A `references/*.md` page declares its own upstream, and `SKILL.md` does not stand in for it; a script or asset, which cannot carry frontmatter, is attributed in the owning `SKILL.md` with `took` naming its path.
 - Before adding one, verify the upstream isn't available as an APM package.
 - Run `apm run check` afterwards. Its `licences` gate is the only thing that catches a provenance block which parses to nothing — a file that stops being tracked looks exactly like one with nothing to track.
 
@@ -74,8 +76,8 @@ Hook authoring, including the `*.hook.json` naming convention, is in [meta-harne
 
 `metadata.provenance.adaptedFrom` and `metadata.provenance.authoritativeSpec` are a convention of this repository, not a universal standard. They are defined once, in two halves:
 
-- **What to write** (the three forms, what `fidelity`, `license` and `took` mean, and how to keep `took` from rotting): [meta-steering's provenance section](packages/baseline/.apm/skills/meta-steering/references/skill-frontmatter.md#provenance-metadata-recommended).
-- **How the tooling reads it** (which files are audited, both audit modes, supported URL forms, every status, how an entry silently drops out of the audit): [source-url-reference.md](.apm/skills/meta-update-repo/references/source-url-reference.md).
+- **What to write** (which key a source belongs under, the three forms, what `fidelity`, `license` and `took` mean, what `took` may and may not close in a drift review, and where reference pages and companion files declare theirs): [meta-steering's provenance reference](packages/baseline/.apm/skills/meta-steering/references/provenance.md).
+- **How the tooling reads it** (which files are audited, reference pages included; both audit modes and what each recommends; supported URL forms; every status; how an entry silently drops out of the audit): [source-url-reference.md](.apm/skills/meta-update-repo/references/source-url-reference.md).
 
 [`llmctl-check-licenses`](src/llmctl/check_licenses.py) enforces the licence half; see [Licensing](#licensing).
 
@@ -96,15 +98,15 @@ Four maintenance procedures, run separately and never as a pipeline — dependen
 | Every `*.md` file — skills, agents, prompts, instructions, `references/`, repo docs | **CC-BY-SA-4.0** |
 | Everything else — `src/`, hooks, `*.py`, `*.ps1`, `*.json`, `*.yml` | **MIT** |
 
-Three rules follow from that, and [`llmctl-check-licenses`](src/llmctl/check_licenses.py) enforces all three:
+Three rules follow from that. The `licences` gate ([`llmctl-check-licenses`](src/llmctl/check_licenses.py)) enforces the second, except for scripts and assets, and the `pack` gate enforces the third:
 
 - **The content half is copyleft.** Adapting a `*.md` file from here means releasing your adaptation under CC-BY-SA-4.0 too. That is deliberate.
-- **A file's provenance decides its licence.** Where `metadata.provenance` records an obligation-bearing `fidelity`, the upstream's `license` constrains what the local file may be licensed under: MIT upstream permits either default; CC-BY-SA-4.0 upstream forces CC-BY-SA-4.0; Apache-2.0 and GPL-3.0 upstreams force their own licence and need a per-file override; `NONE` permits nothing beyond `inspiration-only`. Declare an override with a **top-level `license:` field** in the file's frontmatter — that always wins over the table above.
+- **A file's provenance decides its licence, file by file.** A reference page is judged on its own declaration and a file with none carries no upstream obligation, so `SKILL.md` never covers its references; a script or asset takes the path default (MIT) and is attributed through its owning `SKILL.md`, so only upstreams MIT can carry may be recorded for one (the gate judges that entry against the `SKILL.md`'s licence, so it cannot catch a violation). Where `metadata.provenance` records an obligation-bearing `fidelity`, the upstream's `license` constrains what the local file may be licensed under: MIT upstream permits either default; CC-BY-SA-4.0 upstream forces CC-BY-SA-4.0; Apache-2.0 and GPL-3.0 upstreams force their own licence and need a per-file override; `NONE`, `Proprietary` and `NOASSERTION` grant nothing, so such an upstream is usable only at `inspiration-only` or `structural-echo`. Declare an override with a **top-level `license:` field** in the file's frontmatter — that always wins over the table above.
 - **Attribution is generated, never hand-written.** `THIRD-PARTY-NOTICES.md` in the marketplace repo is produced by [`llmctl-gen-notices`](src/llmctl/gen_notices.py) from provenance metadata plus each bundle's `apm.lock.yaml`. Sources whose terms attach land under *Notices*; everything else, including `inspiration-only` sources and upstreams with no licence at all, is still credited under *Acknowledgements*.
 
 `CC-BY-NC-4.0` is recognised inbound with **no permitted outbound**. Its NonCommercial term is one neither default can carry — CC-BY-SA-4.0's ShareAlike requires the adaptation permit commercial use, and MIT cannot express the restriction at all — so such an upstream is usable only at a fidelity that attaches nothing. Take the shape, never the prose; `partly-derived` or above fails the `licences` gate by design rather than silently relicensing.
 
-Adding a dependency or an adaptation from a **new** upstream means recording its licence in [dependency-licenses.yml](dependency-licenses.yml) or the entry's `license:` field. Run `apm run check` before opening a pull request.
+Adding a dependency or an adaptation from a **new** upstream means recording its licence and copyright `holder` in [dependency-licenses.yml](dependency-licenses.yml). The entry's `license:` field is enough only for a source whose terms do not attach: the notices take the copyright line from the map, and the `pack` gate fails on an obligation-bearing upstream that has none. Run `apm run check` before opening a pull request.
 
 ## Commit Convention
 
@@ -115,7 +117,7 @@ Commits are **conventional**:
 ```
 
 - `type` — `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`. Append `!` before the colon for a breaking change (`refactor(baseline)!: …`).
-- `scope` — optional. For a change under `packages/`, the package directory: `baseline`, `design`, `ops`, `product`, `python`, `travel`, `workflow`. Outside it, the area the paths belong to: `tooling` (`src/`, `pyproject.toml`, `uv.lock`), `ci` (`.github/`), `meta` (the root `.apm/`), `docs` (a root `*.md`), `repo` (root config — `apm.yml`, `apm.lock.yaml`, `.gitignore`, `dependency-licenses.yml` — plus `LICENSE*`, `LICENSES/` and the `*.marketplace.*` sources). The mapping is [commits.py](src/llmctl/commits.py)'s `AREAS`.
+- `scope` — optional. For a change under `packages/`, the package directory: `baseline`, `design`, `ops`, `product`, `python`, `travel`, `workflow`. Outside it, the area the paths belong to: `tooling` (`src/`, `tests/`, `pyproject.toml`, `uv.lock`), `ci` (`.github/`), `meta` (the root `.apm/`), `docs` (a root `*.md`), `repo` (root config — `apm.yml`, `apm.lock.yaml`, `.gitignore`, `dependency-licenses.yml` — plus `LICENSE*`, `LICENSES/` and the `*.marketplace.*` sources). The mapping is [commits.py](src/llmctl/commits.py)'s `AREAS`.
 
 **The type sizes nothing.** Versions are calendar-derived, so `feat` and `fix` no longer mean "minor" and "patch"; they decide which heading a commit lands under in the generated release notes, and nothing else. That is worth keeping, so the convention is now *enforced* rather than merely read: the `commits` gate refuses a subject outside the type list, and refuses a scope that names nothing the commit touched.
 

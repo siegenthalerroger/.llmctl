@@ -95,6 +95,7 @@ Read the row for the file being authored. Load the depth files only when the fir
 | `*.agent.md` | [agent-guide.md](./references/agent-guide.md) | [agent-frontmatter.md](./references/agent-frontmatter.md), [agent-tools.md](./references/agent-tools.md), [agent-subagent.md](./references/agent-subagent.md), [agent-handoff.md](./references/agent-handoff.md), [agent-patterns.md](./references/agent-patterns.md) |
 | `*.instructions.md`, `AGENTS.md`, `CLAUDE.md` | [instructions.md](./references/instructions.md) | [instruction-bootstrapping.md](./references/instruction-bootstrapping.md) — writing a repository's *first* context files |
 | `*.prompt.md` | [prompts.md](./references/prompts.md) | — |
+| `metadata.provenance` or `license` on any of the four, or on a skill's reference pages, scripts and assets | [provenance.md](./references/provenance.md) | [skill-structure.md](./references/skill-structure.md#provenance-on-bundled-files) for a skill's bundled files |
 | Any frontmatter key meant for more than one target, or a dropped-keys warning from `apm install` | [frontmatter-deploy.md](./references/frontmatter-deploy.md) | — |
 
 ## 3) Description craft — all four types
@@ -136,7 +137,7 @@ Always-loaded instructions have their own shared budget: frontier models reliabl
 
 ## 4) Frontmatter shared by all four types
 
-**Provenance** — one convention for skills, agents, instructions and prompts: `metadata.provenance.adaptedFrom` records where content came from (with `license`, `fidelity` and `took`), and `metadata.provenance.authoritativeSpec` lists the specs that define the format. The rules, including how `fidelity` decides what `license` a file may carry, are in [skill-frontmatter.md](./references/skill-frontmatter.md#provenance-metadata-recommended). If the upstream is available as an APM package, consume it via `apm.yml` instead of copying it in.
+**Provenance** — one convention for skills, agents, instructions and prompts: `metadata.provenance.authoritativeSpec` lists the binding normative sources that govern the file's subject (format specifications, technical contracts, operational requirements, organizational standards), and `metadata.provenance.adaptedFrom` records ordinary adaptations and borrowed material, both with `license`, `fidelity` and `took` where something was reproduced. A skill's reference pages declare their own copying. The rules, including how `fidelity` decides what `license` a file may carry and what `took` may and may not do, are in [provenance.md](./references/provenance.md). If the upstream is available as an APM package, consume it via `apm.yml` instead of copying it in.
 
 Keys under `metadata.*` are this repository's conventions, except `metadata.short-description`, which Codex reads. The agentskills.io spec types `metadata` as a string-to-string map, so nested `metadata.provenance` is not spec-shaped.
 
