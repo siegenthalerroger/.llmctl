@@ -7,7 +7,7 @@ metadata:
       - url: "https://openlibrary.org/isbn/9780273710516"
         license: NONE
         fidelity: inspiration-only
-        took: "The pyramid principle -- conclusion first, support grouped beneath it, groups that neither overlap nor leave gaps -- and the situation/complication/question/answer frame. Action titles are later consulting-house practice built on this, not Minto's own term."
+        took: "The pyramid principle -- conclusion first, support grouped beneath it, groups that neither overlap nor leave gaps -- and the situation/complication/question/answer frame."
       - url: "https://openlibrary.org/isbn/9780470632017"
         license: NONE
         fidelity: inspiration-only
@@ -19,7 +19,7 @@ metadata:
       - url: "https://guykawasaki.com/the_102030_rule/"
         license: NONE
         fidelity: inspiration-only
-        took: "The argument that a type-size floor is really a content-density constraint in disguise. The specific 10/20/30 numbers are deliberately not carried."
+        took: "The argument that a type-size floor is really a content-density constraint in disguise."
 ---
 
 # Presentation
