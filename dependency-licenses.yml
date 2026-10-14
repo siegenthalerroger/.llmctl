@@ -60,8 +60,9 @@ github.com/Design-Machines-Studio/depot:
   note: >-
     Public-domain dedication, so nothing attaches. The LICENSE carries no
     copyright line -- the holder above is attribution, not a quoted notice.
-    Only the `design-practice` plugin's layout, identity and dataviz skills are
-    consumed; the repository is a much larger multi-domain marketplace.
+    The `design-practice` plugin's layout, identity and dataviz skills are
+    consumed as APM dependencies, and its typography skill is adapted locally;
+    the repository is a much larger multi-domain marketplace.
 
 github.com/trailofbits/skills:
   spdx: CC-BY-SA-4.0
@@ -75,7 +76,7 @@ github.com/trailofbits/skills:
     that plugin's SessionStart hook, and not the security-audit plugins that make
     up the rest of the repository.
 
-# --- Sources of adapted content (metadata.provenance) ------------------------
+# --- Sources material was taken from (either metadata.provenance key) ---------
 
 github.com/github/awesome-copilot:
   spdx: MIT
@@ -118,8 +119,10 @@ github.com/Myndex/apca-w3:
     which are facts rather than protected expression -- hence inspiration-only,
     at which nothing attaches -- reimplemented in
     packages/design/.apm/skills/colour/scripts/check-contrast.py for screen and
-    web contrast, inside the permitted field of use. The keep-current duty is why
-    this is tracked as adaptedFrom (drift-audited) rather than authoritativeSpec.
+    web contrast, inside the permitted field of use. The keep-current duty makes
+    it a binding source, so it is declared under authoritativeSpec: a drift
+    review assesses every change to the published constants and bands, whatever
+    `took` lists.
 
 github.com/petekp/claude-code-setup:
   spdx: MIT
@@ -127,8 +130,9 @@ github.com/petekp/claude-code-setup:
   license_url: https://github.com/petekp/claude-code-setup/blob/main/LICENSE
   note: >-
     Only its `skills/typography` interface craft is adapted, merged with depot's
-    cross-medium grounding into one local skill. Its CSS/Tailwind implementation
-    blocks and named font recommendations are deliberately not consumed.
+    cross-medium grounding into one local skill. Its named font recommendations
+    and Tailwind blocks are not consumed; a few of its CSS snippets (clamp,
+    text-wrap, dark-mode weight and smoothing) are carried in web-typography.md.
 
 github.com/Vinayak-Shukla-03/anti-ai-slop:
   spdx: MIT
@@ -207,11 +211,12 @@ github.com/arisng/github-copilot-fc:
   holder: "arisng"
   license_url: ""
 
-# --- Cited specifications (metadata.provenance.authoritativeSpec) ------------
+# --- Cited sources, nothing reproduced (usually bare authoritativeSpec) -------
 #
-# Cited, never reproduced; recorded so the Acknowledgements table can state a
-# licence. The vendor documentation sites grant no reuse at all, so the only fix
-# for a reproduced run there is rewriting it.
+# Recorded so the Acknowledgements table can state a licence. A binding source
+# whose material was taken is listed in the section above instead. The vendor
+# documentation sites grant no reuse at all, so the only fix for a reproduced run
+# there is rewriting it.
 
 github.com/mermaid-js/mermaid:
   spdx: MIT
