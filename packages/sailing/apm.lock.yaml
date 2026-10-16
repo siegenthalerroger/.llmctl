@@ -1,0 +1,196 @@
+lockfile_version: '1'
+dependencies: []
+deployments:
+- kind: project-relative
+  target: claude
+  value: .claude/commands/new-sailing-trip.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:fd2c2c99d7bcccc90cf155d6ddc0845ad3de5985ee778db0490a7c32a78a9dce
+- kind: project-relative
+  target: claude
+  value: .claude/skills/sailing-onboard-planning
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/sailing-onboard-planning/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:f77ad126cb58676badef127793a806ea71e93b83b168378932e9715146534880
+- kind: project-relative
+  target: claude
+  value: .claude/skills/sailing-onboard-planning/references/crew-documents.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:c9cd0a88471c7ae1d188259c1ee1a9f1a249cec61df85404a7020d6a2e2e1b73
+- kind: project-relative
+  target: claude
+  value: .claude/skills/sailing-onboard-planning/references/life-aboard.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:2967ae49ad604c7b7f23aa0c56950246066acdf516409db2c7351aeedaf66477
+- kind: project-relative
+  target: claude
+  value: .claude/skills/sailing-route-planning
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/sailing-route-planning/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:b8ff99b28e38ef1d8a52aec43e7493b72ef033111c12fff374b9e6001915b292
+- kind: project-relative
+  target: claude
+  value: .claude/skills/sailing-route-planning/references/berth-pricing.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:bac964ac3982b56b9084fe7bb21351d3a91ea8934d7d7bd177c76625b556b9b7
+- kind: project-relative
+  target: claude
+  value: .claude/skills/sailing-route-planning/references/sources.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:5eef1a823a7fe933fab45687da95ef62d1334cb72f727a6c0430d2d50b39f3cd
+- kind: project-relative
+  target: claude
+  value: .claude/skills/sailing-route-planning/scripts/track_stops.py
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:c0dfefdaf09055cd1fd458eb6be73a8831628ab105541097d8a2dbfe8583790d
+- kind: project-relative
+  target: claude
+  value: .claude/skills/sailing-seamanship
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/sailing-seamanship/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:a9c11bf73f8eee7cf82c242d4816fc6723753f524ac5bd5ace5563929a90aee1
+- kind: project-relative
+  target: claude
+  value: .claude/skills/sailing-seamanship/scripts/build_polar.py
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:d60e16664f2aa70d2b6fe1b7f49fac1c426dd9cbeacfecee0be6acd6d830473c
+- kind: project-relative
+  target: claude
+  value: .claude/skills/sailing-seamanship/scripts/vmg.py
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:098167c279d03739ab465ac79ef12a59eb860bec822d30576dff5bb11b70c861
+- kind: uri
+  target: mcp
+  value: nausika
+  runtime: claude
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: uri
+  target: mcp
+  value: windy
+  runtime: claude
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+mcp_servers:
+- nausika
+- windy
+mcp_configs:
+  nausika:
+    name: nausika
+    transport: http
+    registry: false
+    url: https://mcp.nausika.app
+  windy:
+    name: windy
+    transport: stdio
+    env:
+      WINDY_API_KEY: ${WINDY_API_KEY}
+    args:
+    - windy-mcp-server==0.2.2
+    registry: false
+    command: uvx
+mcp_target_servers:
+  claude:
+  - nausika
+  - windy
+local_deployed_files:
+- .claude/commands/new-sailing-trip.md
+- .claude/skills/sailing-onboard-planning
+- .claude/skills/sailing-onboard-planning/SKILL.md
+- .claude/skills/sailing-onboard-planning/references/crew-documents.md
+- .claude/skills/sailing-onboard-planning/references/life-aboard.md
+- .claude/skills/sailing-route-planning
+- .claude/skills/sailing-route-planning/SKILL.md
+- .claude/skills/sailing-route-planning/references/berth-pricing.md
+- .claude/skills/sailing-route-planning/references/sources.md
+- .claude/skills/sailing-route-planning/scripts/track_stops.py
+- .claude/skills/sailing-seamanship
+- .claude/skills/sailing-seamanship/SKILL.md
+- .claude/skills/sailing-seamanship/scripts/build_polar.py
+- .claude/skills/sailing-seamanship/scripts/vmg.py
+local_deployed_file_hashes:
+  .claude/commands/new-sailing-trip.md: sha256:fd2c2c99d7bcccc90cf155d6ddc0845ad3de5985ee778db0490a7c32a78a9dce
+  .claude/skills/sailing-onboard-planning/SKILL.md: sha256:f77ad126cb58676badef127793a806ea71e93b83b168378932e9715146534880
+  .claude/skills/sailing-onboard-planning/references/crew-documents.md: sha256:c9cd0a88471c7ae1d188259c1ee1a9f1a249cec61df85404a7020d6a2e2e1b73
+  .claude/skills/sailing-onboard-planning/references/life-aboard.md: sha256:2967ae49ad604c7b7f23aa0c56950246066acdf516409db2c7351aeedaf66477
+  .claude/skills/sailing-route-planning/SKILL.md: sha256:b8ff99b28e38ef1d8a52aec43e7493b72ef033111c12fff374b9e6001915b292
+  .claude/skills/sailing-route-planning/references/berth-pricing.md: sha256:bac964ac3982b56b9084fe7bb21351d3a91ea8934d7d7bd177c76625b556b9b7
+  .claude/skills/sailing-route-planning/references/sources.md: sha256:5eef1a823a7fe933fab45687da95ef62d1334cb72f727a6c0430d2d50b39f3cd
+  .claude/skills/sailing-route-planning/scripts/track_stops.py: sha256:c0dfefdaf09055cd1fd458eb6be73a8831628ab105541097d8a2dbfe8583790d
+  .claude/skills/sailing-seamanship/SKILL.md: sha256:a9c11bf73f8eee7cf82c242d4816fc6723753f524ac5bd5ace5563929a90aee1
+  .claude/skills/sailing-seamanship/scripts/build_polar.py: sha256:d60e16664f2aa70d2b6fe1b7f49fac1c426dd9cbeacfecee0be6acd6d830473c
+  .claude/skills/sailing-seamanship/scripts/vmg.py: sha256:098167c279d03739ab465ac79ef12a59eb860bec822d30576dff5bb11b70c861
