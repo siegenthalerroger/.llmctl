@@ -22,6 +22,7 @@ Start with [Before you start](#before-you-start), then choose your setup:
 | `llmctl-product` | Writing epic and feature PRDs |
 | `llmctl-design` | Design direction, colour, typography and presentations |
 | `llmctl-travel` | Destination timing checks, trip planning, entry requirements and itineraries |
+| `llmctl-sailing` | Trip setup, route and berth planning, crew documents, trim, polars and on-board troubleshooting for skippers |
 
 `baseline` is the general starting point. Add `workflow` for code work, and the domain plugins where they fit.
 
