@@ -13,6 +13,7 @@
 | `packages/design` | Per-project (design) | `design-direction`, `colour`, `typography`, `presentation` skills; upstream layout/identity/dataviz practice | `apm install <repo>/packages/design` |
 | `packages/python` | Per-project (Python) | `python-standards` + `python-scripts` skills; python instructions; upstream `modern-python` project tooling | `apm install <repo>/packages/python` |
 | `packages/travel` | Per-project (travel) | `destination-calendar` (scripted holiday/event check), `trip-planning`, `travel-entry-requirements` (scripted Schengen count), `itinerary-authoring` skills; the `plan-trip` prompt; flight / hotel / ferry / stay MCP servers |
+| `packages/sailing` | Per-project (sailing) | `sailing-route-planning` (scripted track-log stop extraction), `sailing-onboard-planning`, `sailing-seamanship` (scripted VMG table and log-based polar) skills; the `new-sailing-trip` prompt; marine forecast / harbour MCP servers | `apm install <repo>/packages/sailing` |
 | root `.apm/` | Repo-local only | `meta-updater` dispatcher + the `meta-update-repo` / `meta-update-models` / `meta-refresh-steering` / `meta-review-steering`  procedures, the frontmatter-validation hook | Deployed only when developing this repo |
 
 ### Rules
@@ -117,7 +118,7 @@ Commits are **conventional**:
 ```
 
 - `type` — `feat` `fix` `docs` `refactor` `chore` `test` `build` `ci`. Append `!` before the colon for a breaking change (`refactor(baseline)!: …`).
-- `scope` — optional. For a change under `packages/`, the package directory: `baseline`, `design`, `ops`, `product`, `python`, `travel`, `workflow`. Outside it, the area the paths belong to: `tooling` (`src/`, `tests/`, `pyproject.toml`, `uv.lock`), `ci` (`.github/`), `meta` (the root `.apm/`), `docs` (a root `*.md`), `repo` (root config — `apm.yml`, `apm.lock.yaml`, `.gitignore`, `dependency-licenses.yml` — plus `LICENSE*`, `LICENSES/` and the `*.marketplace.*` sources). The mapping is [commits.py](src/llmctl/commits.py)'s `AREAS`.
+- `scope` — optional. For a change under `packages/`, the package directory: `baseline`, `design`, `ops`, `product`, `python`, `sailing`, `travel`, `workflow`. Outside it, the area the paths belong to: `tooling` (`src/`, `tests/`, `pyproject.toml`, `uv.lock`), `ci` (`.github/`), `meta` (the root `.apm/`), `docs` (a root `*.md`), `repo` (root config — `apm.yml`, `apm.lock.yaml`, `.gitignore`, `dependency-licenses.yml` — plus `LICENSE*`, `LICENSES/` and the `*.marketplace.*` sources). The mapping is [commits.py](src/llmctl/commits.py)'s `AREAS`.
 
 **The type sizes nothing.** Versions are calendar-derived, so `feat` and `fix` no longer mean "minor" and "patch"; they decide which heading a commit lands under in the generated release notes, and nothing else. That is worth keeping, so the convention is now *enforced* rather than merely read: the `commits` gate refuses a subject outside the type list, and refuses a scope that names nothing the commit touched.
 

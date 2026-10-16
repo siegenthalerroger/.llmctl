@@ -1,0 +1,41 @@
+name: llmctl-sailing
+displayName: llmctl Sailing
+version: 0.0.0
+description: Skipper's assistant for cruising and charter trips. Trip setup, route and berth planning with marine forecasts and harbour data, crew documents and life aboard, trim and polars, and on-board troubleshooting.
+author:
+  name: siegenthalerroger
+  url: https://github.com/siegenthalerroger
+license: MIT AND CC-BY-SA-4.0
+homepage: https://github.com/siegenthalerroger/.llmctl-marketplace
+repository: https://github.com/siegenthalerroger/.llmctl
+keywords: [skills, connectors, mcp, sailing, cruising, charter, marina, anchorage, weather]
+category: Productivity
+
+# Include all items in this package's `.apm/` directory.
+includes: auto
+
+dependencies:
+  apm: []
+  # Marine data servers, scoped here so their tools load only in sailing
+  # contexts. A server that cannot start, or has no credentials, degrades to the
+  # fallbacks in the sailing-route-planning skill's sources reference.
+  mcp:
+    # Sea routing, marine forecast, tides and curated marinas, ports and
+    # anchorages (OpenStreetMap-based). Strongest in the Mediterranean.
+    # OAuth in the client on first use; no key in this file.
+    - name: nausika
+      registry: false
+      transport: http
+      url: https://mcp.nausika.app
+    # Windy point forecast (weather and waves, model selectable). The Testing
+    # key tier returns shuffled data by design; only a Professional key gives
+    # usable forecasts — see the sources reference.
+    - name: windy
+      registry: false
+      transport: stdio
+      command: uvx
+      args: ["windy-mcp-server==0.2.2"]
+      env:
+        WINDY_API_KEY: "${WINDY_API_KEY}"
+    # Navily: no MCP server exists yet. The route-planning skill reads its
+    # public web API directly; declare a server here once one ships.
