@@ -73,7 +73,7 @@ To reject one, run `git checkout -- packages/<dir>` and say why.
 
 **`apm update` failed.** The run carries on with the other packages, then exits non-zero and lists the failed package under "could not be updated". Read the error tail it printed.
 
-- "Expected exactly one apm.yml entry for `<sha>`, found N": APM 0.31 cannot move several subpaths of one repository pinned at the same commit, and it writes nothing. No package is in that state since `packages/design` vendored its three `depot` subpaths. Report it. Do not work around it by hand-editing the pins, because a hand-moved pin skips the tag `apm update` would have chosen.
+- "Expected exactly one apm.yml entry for `<sha>`, found N": APM 0.31 cannot move a package that pins several subpaths of one repository at the same commit, and it writes nothing. It has been seen at three subpaths; two at one commit update fine (`baseline` pins two of `mattpocock/skills`), so the limit lies somewhere above two, and adding a third subpath of a repository a package already pins twice puts that package in this state. Report the package, the repository and N. Do not work around it by hand-editing the pins, because a hand-moved pin skips the tag `apm update` would have chosen.
 - Anything else, including APM 0.31's refusal to install a package that deploys to no target: run `git diff packages/<dir>` to see whether the manifest or lockfile was partly written. Report the error and the state of the files, and revert with `git checkout -- packages/<dir>` if either moved.
 
 **`apm install` failed after an untagged HEAD bump.** The run **stops**. Packages processed earlier keep their moved pins in the working tree, and their diffs were never printed. Do not start another update over them. Then:
@@ -216,7 +216,7 @@ What a bundle contains depends on the APM that packed it, and several documents 
 5. **Re-pin the APM source permalinks** in the `authoritativeSpec` of [meta-steering](../../../packages/baseline/.apm/skills/meta-steering/SKILL.md), the `apm_cli/integration/*_integrator.py` URLs, to the commit the new release tag points at. They are SHA-pinned, so the spec audit reports them `up_to_date` forever. Re-pinning is the only way they move. Diff each file across the range (`gh api repos/microsoft/apm/compare/<old>...<new> --jq '.files[].filename'`) and re-read the ones that changed.
 6. **Re-test every recorded APM workaround**, and update or close what changed:
    - [TODO 4l](../../../TODO.md) (`--frozen` cannot restore `baseline` from a cold cache): run `apm install --frozen` in a scratch copy of `packages/baseline` with an empty `apm_modules/`.
-   - The multi-subpath `apm update` failure ([phase A](#when-a-package-cannot-be-updated)): no package pins three subpaths of one repository at one commit any more, so re-test it only if one does again.
+   - The multi-subpath `apm update` failure ([phase A](#when-a-package-cannot-be-updated)): run `apm update --dry-run` in every package that pins three or more subpaths of one repository at one commit. If none does, run it in a scratch package that pins three subpaths of one repository at one commit, and check whether two still pass. Record where the limit now lies, or that it is gone.
    - TODO 3a, 3c, 3d and 6c.
 7. **Update the version strings** that name the old version: `grep -rn "APM 0\.\|on 0\.[0-9]" --include='*.md' --include='*.py' --include='*.yml' . | grep -v apm_modules`.
 
