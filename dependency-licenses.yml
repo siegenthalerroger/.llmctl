@@ -61,8 +61,11 @@ github.com/Design-Machines-Studio/depot:
     Public-domain dedication, so nothing attaches. The LICENSE carries no
     copyright line -- the holder above is attribution, not a quoted notice.
     The `design-practice` plugin's layout, identity and dataviz skills are
-    consumed as APM dependencies, and its typography skill is adapted locally;
-    the repository is a much larger multi-domain marketplace.
+    vendored in packages/design from commit ab34ce69, and its typography skill
+    is adapted locally; the repository was a much larger multi-domain
+    marketplace. It was deleted or made private between 2026-10-18 and
+    2026-10-30, so the URLs here and in the provenance entries no longer
+    resolve; the licence was read from the LICENSE at ab34ce69.
 
 github.com/trailofbits/skills:
   spdx: CC-BY-SA-4.0

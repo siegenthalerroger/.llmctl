@@ -15,16 +15,17 @@ category: Design
 includes: auto
 
 dependencies:
-  apm:
-    # Design-Machines-Studio/depot (Unlicense) — the `design-practice` plugin by
-    # Travis Gertz (ex-Louder Than Ten). Taken for the three domains where it
-    # teaches derivation instead of handing over values.
-    # Deliberately left behind:
-    #   - `typography` skill — the local `typography` skill covers this.
-    #   - `design-machines` plugin — the local `design-direction` skill covers this.
-    #   - `accessibility-*` plugin — the local `colour` skill and specific accessibility checks cover this.
-    #   - every other depot plugin — non-design domains.
-    - Design-Machines-Studio/depot/plugins/design-practice/skills/layout#ab34ce69fb965cb16004bbd80e12a43e6851e2d7
-    - Design-Machines-Studio/depot/plugins/design-practice/skills/identity#ab34ce69fb965cb16004bbd80e12a43e6851e2d7
-    - Design-Machines-Studio/depot/plugins/design-practice/skills/dataviz#ab34ce69fb965cb16004bbd80e12a43e6851e2d7
+  # The layout, identity and dataviz skills are vendored under .apm/skills/ from
+  # Design-Machines-Studio/depot (Unlicense) at ab34ce69, the commit this package
+  # last pinned: the `design-practice` plugin by Travis Gertz (ex-Louder Than Ten),
+  # taken for the three domains where it teaches derivation instead of handing over
+  # values. The upstream repository was deleted or made private between 2026-10-18
+  # and 2026-10-30, so it can no longer be installed; each vendored file records the
+  # upstream path in its own `metadata.provenance`.
+  # Deliberately left behind:
+  #   - `typography` skill — the local `typography` skill covers this.
+  #   - `design-machines` plugin — the local `design-direction` skill covers this.
+  #   - `accessibility-*` plugin — the local `colour` skill and specific accessibility checks cover this.
+  #   - every other depot plugin — non-design domains.
+  apm: []
   mcp: []
